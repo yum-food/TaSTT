@@ -45,7 +45,7 @@ params["ANIMATOR_STATE_TRANSITION_U"] = "1101"
 # By default, the board shows an empty character in every group/cell.
 # Technically we only have to initialize groups, since SetLetters.cs will use
 # the groups to populate the cells.
-DEFAULT_CHAR=1
+DEFAULT_CHAR=64  # 64 == space == blank
 params["DEFAULT_GROUP_VAL"] = str((DEFAULT_CHAR << 24) | (DEFAULT_CHAR << 16) | (DEFAULT_CHAR << 8) | DEFAULT_CHAR)
 params["DEFAULT_CELL_VAL"] = str(DEFAULT_CHAR)
 params["DEFAULT_INT_VAL"] = str(0)
@@ -146,6 +146,18 @@ GROUP_NAMES = [
         "_Letter_Row02_Col04_07",
         "_Letter_Row02_Col08_11",
         "_Letter_Row02_Col12_13",
+        "_Letter_Row03_Col00_03",
+        "_Letter_Row03_Col04_07",
+        "_Letter_Row03_Col08_11",
+        "_Letter_Row03_Col12_13",
+        "_Letter_Row04_Col00_03",
+        "_Letter_Row04_Col04_07",
+        "_Letter_Row04_Col08_11",
+        "_Letter_Row04_Col12_13",
+        "_Letter_Row05_Col00_03",
+        "_Letter_Row05_Col04_07",
+        "_Letter_Row05_Col08_11",
+        "_Letter_Row05_Col12_13",
         ]
 
 CELL_NAMES = [
@@ -191,28 +203,69 @@ CELL_NAMES = [
         "_Letter_Row02_Col11",
         "_Letter_Row02_Col12",
         "_Letter_Row02_Col13",
+        "_Letter_Row03_Col00",
+        "_Letter_Row03_Col01",
+        "_Letter_Row03_Col02",
+        "_Letter_Row03_Col03",
+        "_Letter_Row03_Col04",
+        "_Letter_Row03_Col05",
+        "_Letter_Row03_Col06",
+        "_Letter_Row03_Col07",
+        "_Letter_Row03_Col08",
+        "_Letter_Row03_Col09",
+        "_Letter_Row03_Col10",
+        "_Letter_Row03_Col11",
+        "_Letter_Row03_Col12",
+        "_Letter_Row03_Col13",
+        "_Letter_Row04_Col00",
+        "_Letter_Row04_Col01",
+        "_Letter_Row04_Col02",
+        "_Letter_Row04_Col03",
+        "_Letter_Row04_Col04",
+        "_Letter_Row04_Col05",
+        "_Letter_Row04_Col06",
+        "_Letter_Row04_Col07",
+        "_Letter_Row04_Col08",
+        "_Letter_Row04_Col09",
+        "_Letter_Row04_Col10",
+        "_Letter_Row04_Col11",
+        "_Letter_Row04_Col12",
+        "_Letter_Row04_Col13",
+        "_Letter_Row05_Col00",
+        "_Letter_Row05_Col01",
+        "_Letter_Row05_Col02",
+        "_Letter_Row05_Col03",
+        "_Letter_Row05_Col04",
+        "_Letter_Row05_Col05",
+        "_Letter_Row05_Col06",
+        "_Letter_Row05_Col07",
+        "_Letter_Row05_Col08",
+        "_Letter_Row05_Col09",
+        "_Letter_Row05_Col10",
+        "_Letter_Row05_Col11",
+        "_Letter_Row05_Col12",
+        "_Letter_Row05_Col13",
         ]
 
 def genAnimator(state):
-    result = replaceMacros(ANIMATOR_HEADER, params)
-    result += ANIMATOR_PARAMETER_HEADER
+    print(replaceMacros(ANIMATOR_HEADER, params))
+    print(ANIMATOR_PARAMETER_HEADER)
     for group_name in GROUP_NAMES:
         params["ANIMATOR_PARAMETER_NAME"] = group_name
         params["DEFAULT_INT_VAL"] = params["DEFAULT_GROUP_VAL"]
-        result += replaceMacros(ANIMATOR_PARAMETER_INT, params)
+        print(replaceMacros(ANIMATOR_PARAMETER_INT, params))
     for cell_name in CELL_NAMES:
         params["ANIMATOR_PARAMETER_NAME"] = cell_name
         params["DEFAULT_INT_VAL"] = params["DEFAULT_CELL_VAL"]
-        result += replaceMacros(ANIMATOR_PARAMETER_INT, params)
-    result += replaceMacros(ANIMATOR_LAYER_HEADER, params)
-    result += replaceMacros(ANIMATOR_LAYER_EXPAND_GROUPS, params)
+        print(replaceMacros(ANIMATOR_PARAMETER_INT, params))
+    print(replaceMacros(ANIMATOR_LAYER_HEADER, params))
+    print(replaceMacros(ANIMATOR_LAYER_EXPAND_GROUPS, params))
     for cell_name in CELL_NAMES:
         params[cell_name + "_U2"] = get_u2("1102", state)
         params["LAYER_NAME"] = cell_name
         params["LAYER_STATE_MACHINE_U2"] = params[cell_name + "_U2"]
-        result += replaceMacros(ANIMATOR_LAYER_CELL_ANIM, params)
-    return result
-print(genAnimator(state))
+        print(replaceMacros(ANIMATOR_LAYER_CELL_ANIM, params))
+genAnimator(state)
 
 EXPAND_GROUPS_LAYER = """
 --- !u!%ANIMATOR_STATE_MACHINE_U% &%EXPAND_GROUPS_LAYER_U2%
@@ -287,10 +340,9 @@ MonoBehaviour:
 # Generate the layer that converts our select few 32-bit int parameters into
 # 4x as many int parameters, each containing the letter value for one cell.
 def genExpandGroupsLayer():
-    result = EXPAND_GROUPS_LAYER + EXPAND_GROUPS_LAYER_STATE + SET_LETTERS_SCRIPT
-    result = replaceMacros(result, params)
-    return result
-print(genExpandGroupsLayer())
+    tmp = EXPAND_GROUPS_LAYER + EXPAND_GROUPS_LAYER_STATE + SET_LETTERS_SCRIPT
+    print(replaceMacros(tmp, params))
+genExpandGroupsLayer()
 
 CELL_LAYER_HEADER="""
 --- !u!%ANIMATOR_STATE_MACHINE_U% &%CELL_LAYER_U2%
@@ -396,46 +448,43 @@ def getAnimationGuid(anim_meta_filename):
     return None
 
 def genCellAnimationLayers(state):
-    result = ""
     for layer in CELL_NAMES:
         params["CELL_LAYER_U2"] = params[layer + "_U2"]
         params["CELL_LAYER_U2" + layer] = params["CELL_LAYER_U2"]
         params["LAYER_NAME"] = layer
-        result += replaceMacros(CELL_LAYER_HEADER, params)
+        print(replaceMacros(CELL_LAYER_HEADER, params))
 
         # Add a state for each animation, i.e. for each character writeable in this slot.
-        for i in range(0,60):
+        for i in range(0,128):
             params["CELL_LAYER_STATE_U2"] = get_u2(params["ANIMATOR_STATE_U"], state)
             params["CELL_LAYER_STATE_U2" + layer + ("_Letter%02d" % i)] = params["CELL_LAYER_STATE_U2"]
             params["STATE_Y"] = str(-190 - i * 40)
-            result += replaceMacros(CELL_LAYER_STATE_HEADER, params)
+            print(replaceMacros(CELL_LAYER_STATE_HEADER, params))
 
-        result += CELL_LAYER_MIDDLE
+        print(CELL_LAYER_MIDDLE)
 
-        for i in range(0,60):
+        for i in range(0,128):
             params["CELL_LAYER_TRANSITION_U2"] = get_u2(params["ANIMATOR_STATE_TRANSITION_U"], state)
             params["CELL_LAYER_TRANSITION_U2" + layer + ("_Letter%02d" % i)] = params["CELL_LAYER_TRANSITION_U2"]
-            result += replaceMacros(CELL_LAYER_TRANSITION_HEADER, params)
+            print(replaceMacros(CELL_LAYER_TRANSITION_HEADER, params))
 
         # Set the default layer to the 0th animation.
         params["CELL_LAYER_DEFAULT_STATE_U2"] = params["CELL_LAYER_STATE_U2" + layer + ("_Letter%02d" % 0)]
-        result += replaceMacros(CELL_LAYER_SUFFIX, params)
+        print(replaceMacros(CELL_LAYER_SUFFIX, params))
 
         # Done creating the layer header! Phew. Let's make the states next.
-        for i in range(0,60):
+        for i in range(0,128):
             params["ANIMATION_NAME"] = layer + ("_Letter%02d" % i)
             params["CELL_LAYER_STATE_U2"] = params["CELL_LAYER_STATE_U2" + layer + ("_Letter%02d" % i)]
             # Get the GUID of the animation we will play at this state.
             anim_meta_filename = "generated/animations/" + layer + ("_Letter%02d" % i) + ".anim.meta"
             params["CELL_LAYER_STATE_ANIM_GUID"] = getAnimationGuid(anim_meta_filename)
-            result += replaceMacros(CELL_LAYER_STATE, params)
+            print(replaceMacros(CELL_LAYER_STATE, params))
 
         # OK, finally, let's wire up the states.
-        for i in range(0,60):
+        for i in range(0,128):
             params["CELL_LAYER_TRANSITION_U2"] = params["CELL_LAYER_TRANSITION_U2" + layer + ("_Letter%02d" % i)]
             params["TRANSITION_THRESHOLD"] = str(i)
             params["CELL_LAYER_DST_STATE_U2"] = params["CELL_LAYER_STATE_U2" + layer + ("_Letter%02d" % i)]
-            result += replaceMacros(CELL_LAYER_TRANSITION, params)
-
-    return result
-print(genCellAnimationLayers(state))
+            print(replaceMacros(CELL_LAYER_TRANSITION, params))
+genCellAnimationLayers(state)
