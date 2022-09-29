@@ -19,7 +19,9 @@ client = udp_client.SimpleUDPClient(args.i, args.p)
 
 for i in range(1,100):
     addr="/avatar/parameters/_Letter_Row00_Col00_03"
-    msg = ((15 << 24) | (16 << 16) | (17 << 8) | 18)
+    #addr="/avatar/parameters/_Letter_Row00_Col00"
+    #msg = ((15 << 24) | (16 << 16) | (17 << 8) | 18)
+    msg = i % 2
     print("send {} to {}".format(msg, addr))
     client.send_message(addr, msg)
     time.sleep(1)

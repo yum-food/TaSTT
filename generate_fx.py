@@ -308,7 +308,7 @@ AnimatorState:
   - {fileID: %SET_LETTERS_SCRIPT_U2%}
   m_Position: {x: 50, y: 50, z: 0}
   m_IKOnFeet: 0
-  m_WriteDefaultValues: 1
+  m_WriteDefaultValues: 0
   m_Mirror: 0
   m_SpeedParameterActive: 0
   m_MirrorParameterActive: 0
@@ -455,7 +455,7 @@ def genCellAnimationLayers(state):
         print(replaceMacros(CELL_LAYER_HEADER, params))
 
         # Add a state for each animation, i.e. for each character writeable in this slot.
-        for i in range(0,128):
+        for i in range(0,80):
             params["CELL_LAYER_STATE_U2"] = get_u2(params["ANIMATOR_STATE_U"], state)
             params["CELL_LAYER_STATE_U2" + layer + ("_Letter%02d" % i)] = params["CELL_LAYER_STATE_U2"]
             params["STATE_Y"] = str(-190 - i * 40)
@@ -463,7 +463,7 @@ def genCellAnimationLayers(state):
 
         print(CELL_LAYER_MIDDLE)
 
-        for i in range(0,128):
+        for i in range(0,80):
             params["CELL_LAYER_TRANSITION_U2"] = get_u2(params["ANIMATOR_STATE_TRANSITION_U"], state)
             params["CELL_LAYER_TRANSITION_U2" + layer + ("_Letter%02d" % i)] = params["CELL_LAYER_TRANSITION_U2"]
             print(replaceMacros(CELL_LAYER_TRANSITION_HEADER, params))
@@ -473,7 +473,7 @@ def genCellAnimationLayers(state):
         print(replaceMacros(CELL_LAYER_SUFFIX, params))
 
         # Done creating the layer header! Phew. Let's make the states next.
-        for i in range(0,128):
+        for i in range(0,80):
             params["ANIMATION_NAME"] = layer + ("_Letter%02d" % i)
             params["CELL_LAYER_STATE_U2"] = params["CELL_LAYER_STATE_U2" + layer + ("_Letter%02d" % i)]
             # Get the GUID of the animation we will play at this state.
@@ -482,7 +482,7 @@ def genCellAnimationLayers(state):
             print(replaceMacros(CELL_LAYER_STATE, params))
 
         # OK, finally, let's wire up the states.
-        for i in range(0,128):
+        for i in range(0,80):
             params["CELL_LAYER_TRANSITION_U2"] = params["CELL_LAYER_TRANSITION_U2" + layer + ("_Letter%02d" % i)]
             params["TRANSITION_THRESHOLD"] = str(i)
             params["CELL_LAYER_DST_STATE_U2"] = params["CELL_LAYER_STATE_U2" + layer + ("_Letter%02d" % i)]

@@ -16,7 +16,7 @@ for row in `seq 0 5`; do
   for col in `seq 0 13`; do
     COL_PADDED=$(printf '%02d' $col)
     LETTER_SHADER_PARAM=_Letter_Row${ROW_PADDED}_Col${COL_PADDED}
-    for letter in `seq 0 128`; do
+    for letter in `seq 0 79`; do
       LETTER_PADDED=$(printf '%02d' $letter)
       ANIM_NAME=${LETTER_SHADER_PARAM}_Letter${LETTER_PADDED}
       FILENAME=generated/animations/${ANIM_NAME}.anim
