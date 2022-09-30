@@ -3,6 +3,7 @@
 import argparse
 import random
 import time
+import fileinput
 
 from pythonosc import udp_client
 
@@ -17,11 +18,26 @@ args = parser.parse_args()
 
 client = udp_client.SimpleUDPClient(args.i, args.p)
 
-for i in range(1,100):
-    addr="/avatar/parameters/_Letter_Row00_Col00_03"
-    #addr="/avatar/parameters/_Letter_Row00_Col00"
-    #msg = ((15 << 24) | (16 << 16) | (17 << 8) | 18)
-    msg = i % 2
-    print("send {} to {}".format(msg, addr))
-    client.send_message(addr, msg)
-    time.sleep(1)
+seed = random.randrange(3) * 26
+for row in range(0, 6):
+    addr="/avatar/parameters/TaSTT_Row"
+    client.send_message(addr, row)
+    for col in range(0, 14):
+        addr="/avatar/parameters/TaSTT_Col"
+        client.send_message(addr, col)
+
+        time.sleep(0.01)
+
+        addr="/avatar/parameters/TaSTT_Active"
+        client.send_message(addr, True)
+
+        addr="/avatar/parameters/TaSTT_Letter"
+        client.send_message(addr, (seed + row * 14 + col) % 65)
+        print("sent {} at {},{}".format((seed + row * 14 + col) % 65, row, col))
+
+        time.sleep(0.01)
+
+        addr="/avatar/parameters/TaSTT_Active"
+        client.send_message(addr, False)
+
+time.sleep(1000)

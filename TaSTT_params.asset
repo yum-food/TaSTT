@@ -13,99 +13,19 @@ MonoBehaviour:
   m_Name: TaSTT_params
   m_EditorClassIdentifier: 
   parameters:
-  - name: _Letter_Row00_Col00_03
+  - name: TaSTT_Letter
     valueType: 0
     saved: 0
     defaultValue: 0
-  - name: _Letter_Row00_Col04_07
+  - name: TaSTT_Row
     valueType: 0
     saved: 0
     defaultValue: 0
-  - name: _Letter_Row00_Col08_11
+  - name: TaSTT_Col
     valueType: 0
     saved: 0
     defaultValue: 0
-  - name: _Letter_Row00_Col12_13
-    valueType: 0
-    saved: 0
-    defaultValue: 0
-  - name: _Letter_Row01_Col00_03
-    valueType: 0
-    saved: 0
-    defaultValue: 0
-  - name: _Letter_Row01_Col04_07
-    valueType: 0
-    saved: 0
-    defaultValue: 0
-  - name: _Letter_Row01_Col08_11
-    valueType: 0
-    saved: 0
-    defaultValue: 0
-  - name: _Letter_Row01_Col12_13
-    valueType: 0
-    saved: 0
-    defaultValue: 0
-  - name: _Letter_Row02_Col00_03
-    valueType: 0
-    saved: 0
-    defaultValue: 0
-  - name: _Letter_Row02_Col04_07
-    valueType: 0
-    saved: 0
-    defaultValue: 0
-  - name: _Letter_Row02_Col08_11
-    valueType: 0
-    saved: 0
-    defaultValue: 0
-  - name: _Letter_Row02_Col12_13
-    valueType: 0
-    saved: 0
-    defaultValue: 0
-  - name: _Letter_Row03_Col00_03
-    valueType: 0
-    saved: 0
-    defaultValue: 0
-  - name: _Letter_Row03_Col04_07
-    valueType: 0
-    saved: 0
-    defaultValue: 0
-  - name: _Letter_Row03_Col08_11
-    valueType: 0
-    saved: 0
-    defaultValue: 0
-  - name: _Letter_Row03_Col12_13
-    valueType: 0
-    saved: 0
-    defaultValue: 0
-  - name: _Letter_Row04_Col00_03
-    valueType: 0
-    saved: 0
-    defaultValue: 0
-  - name: _Letter_Row04_Col04_07
-    valueType: 0
-    saved: 0
-    defaultValue: 0
-  - name: _Letter_Row04_Col08_11
-    valueType: 0
-    saved: 0
-    defaultValue: 0
-  - name: _Letter_Row04_Col12_13
-    valueType: 0
-    saved: 0
-    defaultValue: 0
-  - name: _Letter_Row05_Col00_03
-    valueType: 0
-    saved: 0
-    defaultValue: 0
-  - name: _Letter_Row05_Col04_07
-    valueType: 0
-    saved: 0
-    defaultValue: 0
-  - name: _Letter_Row05_Col08_11
-    valueType: 0
-    saved: 0
-    defaultValue: 0
-  - name: _Letter_Row05_Col12_13
-    valueType: 0
+  - name: TaSTT_Active
+    valueType: 2
     saved: 0
     defaultValue: 0

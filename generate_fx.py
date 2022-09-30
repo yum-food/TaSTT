@@ -15,6 +15,12 @@
 #     where we're transitioning to.
 # 12. %TRANSITION_THRESHOLD% - the threshold to use when transitioning.
 
+# To debug, I recommend setting these values low and manually moving things
+# around in the animator. Then run using Lyuma's avatar 3.0 emulator.
+NUM_ROWS=6
+NUM_COLS=14
+NUM_LETTERS=80
+
 params = {}
 
 class EvilGlobalState:
@@ -31,33 +37,18 @@ params["ANIMATOR_CONTROLLER_U"] = "91"
 params["ANIMATOR_HEADER_U2"] = "9100000" # this is a special value
 
 params["ANIMATOR_STATE_MACHINE_U"] = "1107"
-params["EXPAND_GROUPS_LAYER_U2"] = get_u2("1107", state)
-params["CELL_LAYER_U2"] = get_u2("1107", state)
+params["TASTT_LAYER_U2"] = get_u2("1107", state)
 
 params["MONO_BEHAVIOUR_U"] = "114"
 params["SET_LETTERS_SCRIPT_U2"] = get_u2("114", state)
 
 params["ANIMATOR_STATE_U"] = "1102"
-params["EXPAND_GROUPS_LAYER_STATE_U2"] = get_u2("1102", state)
+params["TASTT_DEFAULT_STATE_U2"] = get_u2("1102", state)
+params["TASTT_ACTIVE_STATE_U2"] = get_u2("1102", state)
 
 params["ANIMATOR_STATE_TRANSITION_U"] = "1101"
-
-# By default, the board shows an empty character in every group/cell.
-# Technically we only have to initialize groups, since SetLetters.cs will use
-# the groups to populate the cells.
-DEFAULT_CHAR=64  # 64 == space == blank
-params["DEFAULT_GROUP_VAL"] = str((DEFAULT_CHAR << 24) | (DEFAULT_CHAR << 16) | (DEFAULT_CHAR << 8) | DEFAULT_CHAR)
-params["DEFAULT_CELL_VAL"] = str(DEFAULT_CHAR)
-params["DEFAULT_INT_VAL"] = str(0)
-
-# Get from SetLetters.cs.meta
-with open("SetLetters.cs.meta") as f:
-    guid = None
-    for line in f:
-        if "guid" in line:
-            guid = line.split()[1]
-assert(guid != None)
-params["SET_LETTERS_GUID"]=guid
+params["TASTT_ACTIVE_STATE_TRANSITION_U2"] = get_u2("1101", state)
+params["TASTT_RESTART_TRANSITION_U2"] = get_u2("1101", state)
 
 HEADER="""
 %YAML 1.1
@@ -94,25 +85,35 @@ ANIMATOR_PARAMETER_INT = """
   - m_Name: %ANIMATOR_PARAMETER_NAME%
     m_Type: 3
     m_DefaultFloat: 0
-    m_DefaultInt: %DEFAULT_INT_VAL%
+    m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: %ANIMATOR_HEADER_U2%}
+    m_Controller: {fileID: 0}
+"""[1:]
+
+ANIMATOR_PARAMETER_BOOL = """
+  - m_Name: %ANIMATOR_PARAMETER_NAME%
+    m_Type: 4
+    m_DefaultFloat: 0
+    m_DefaultInt: 0
+    m_DefaultBool: 0
+    m_Controller: {fileID: 0}
 """[1:]
 
 ANIMATOR_LAYER_HEADER = """
   m_AnimatorLayers:
 """[1:]
 
-ANIMATOR_LAYER_EXPAND_GROUPS = """
+# We have a single animator layer which does everything.
+ANIMATOR_LAYER_TASTT = """
   - serializedVersion: 5
-    m_Name: TaSTT_Expand_Groups
-    m_StateMachine: {fileID: %EXPAND_GROUPS_LAYER_U2%}
+    m_Name: TaSTT
+    m_StateMachine: {fileID: %TASTT_LAYER_U2%}
     m_Mask: {fileID: 0}
     m_Motions: []
     m_Behaviours: []
     m_BlendingMode: 0
     m_SyncedLayerIndex: -1
-    m_DefaultWeight: 1
+    m_DefaultWeight: 0
     m_IKPass: 0
     m_SyncedLayerAffectsTiming: 0
     m_Controller: {fileID: %ANIMATOR_HEADER_U2%}
@@ -130,7 +131,7 @@ ANIMATOR_LAYER_CELL_ANIM = """
     m_DefaultWeight: 1
     m_IKPass: 0
     m_SyncedLayerAffectsTiming: 0
-    m_Controller: {fileID: 9100000}
+    m_Controller: {fileID: %ANIMATOR_HEADER_U2%}
 """[1:]
 
 GROUP_NAMES = [
@@ -250,36 +251,41 @@ CELL_NAMES = [
 def genAnimator(state):
     print(replaceMacros(ANIMATOR_HEADER, params))
     print(ANIMATOR_PARAMETER_HEADER)
-    for group_name in GROUP_NAMES:
-        params["ANIMATOR_PARAMETER_NAME"] = group_name
-        params["DEFAULT_INT_VAL"] = params["DEFAULT_GROUP_VAL"]
-        print(replaceMacros(ANIMATOR_PARAMETER_INT, params))
-    for cell_name in CELL_NAMES:
-        params["ANIMATOR_PARAMETER_NAME"] = cell_name
-        params["DEFAULT_INT_VAL"] = params["DEFAULT_CELL_VAL"]
-        print(replaceMacros(ANIMATOR_PARAMETER_INT, params))
+
+    params["ANIMATOR_PARAMETER_NAME"] = "TaSTT_Letter"
+    print(replaceMacros(ANIMATOR_PARAMETER_INT, params))
+    params["ANIMATOR_PARAMETER_NAME"] = "TaSTT_Row"
+    print(replaceMacros(ANIMATOR_PARAMETER_INT, params))
+    params["ANIMATOR_PARAMETER_NAME"] = "TaSTT_Col"
+    print(replaceMacros(ANIMATOR_PARAMETER_INT, params))
+    params["ANIMATOR_PARAMETER_NAME"] = "TaSTT_Active"
+    print(replaceMacros(ANIMATOR_PARAMETER_BOOL, params))
+    params["ANIMATOR_PARAMETER_NAME"] = "TaSTT_Dummy"
+    print(replaceMacros(ANIMATOR_PARAMETER_BOOL, params))
+
     print(replaceMacros(ANIMATOR_LAYER_HEADER, params))
-    print(replaceMacros(ANIMATOR_LAYER_EXPAND_GROUPS, params))
-    for cell_name in CELL_NAMES:
-        params[cell_name + "_U2"] = get_u2("1102", state)
-        params["LAYER_NAME"] = cell_name
-        params["LAYER_STATE_MACHINE_U2"] = params[cell_name + "_U2"]
-        print(replaceMacros(ANIMATOR_LAYER_CELL_ANIM, params))
+    print(replaceMacros(ANIMATOR_LAYER_TASTT, params))
 genAnimator(state)
 
-EXPAND_GROUPS_LAYER = """
---- !u!%ANIMATOR_STATE_MACHINE_U% &%EXPAND_GROUPS_LAYER_U2%
+TASTT_LAYER_HEADER = """
+--- !u!%ANIMATOR_STATE_MACHINE_U% &%TASTT_LAYER_U2%
 AnimatorStateMachine:
   serializedVersion: 6
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: TaSTT_Expand_Groups
+  m_Name: TaSTT
   m_ChildStates:
+"""[1:]
+
+TASTT_LAYER_HEADER_CHILD_STATE = """
   - serializedVersion: 1
-    m_State: {fileID: %EXPAND_GROUPS_LAYER_STATE_U2%}
-    m_Position: {x: 280, y: 90, z: 0}
+    m_State: {fileID: %TASTT_STATE_U2%}
+    m_Position: {x: 330, y: -60, z: 0}
+"""[1:]
+
+TASTT_LAYER_FOOTER = """
   m_ChildStateMachines: []
   m_AnyStateTransitions: []
   m_EntryTransitions: []
@@ -289,23 +295,25 @@ AnimatorStateMachine:
   m_EntryPosition: {x: 50, y: 120, z: 0}
   m_ExitPosition: {x: 800, y: 120, z: 0}
   m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
-  m_DefaultState: {fileID: %EXPAND_GROUPS_LAYER_STATE_U2%}
+  m_DefaultState: {fileID: %TASTT_DEFAULT_STATE_U2%}
 """[1:]
 
-EXPAND_GROUPS_LAYER_STATE = """
---- !u!%ANIMATOR_STATE_U% &%EXPAND_GROUPS_LAYER_STATE_U2%
+# Default state.
+# One transition to TaSTT_Active.
+TASTT_DEFAULT_STATE = """
+--- !u!%ANIMATOR_STATE_U% &%TASTT_DEFAULT_STATE_U2%
 AnimatorState:
   serializedVersion: 6
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: SetLetters
+  m_Name: TaSTT_Do_Nothing
   m_Speed: 1
   m_CycleOffset: 0
-  m_Transitions: []
-  m_StateMachineBehaviours:
-  - {fileID: %SET_LETTERS_SCRIPT_U2%}
+  m_Transitions:
+  - {fileID: %TASTT_ACTIVE_STATE_TRANSITION_U2%}
+  m_StateMachineBehaviours: []
   m_Position: {x: 50, y: 50, z: 0}
   m_IKOnFeet: 0
   m_WriteDefaultValues: 0
@@ -322,98 +330,12 @@ AnimatorState:
   m_TimeParameter: 
 """[1:]
 
-SET_LETTERS_SCRIPT = """
---- !u!%MONO_BEHAVIOUR_U% &%SET_LETTERS_SCRIPT_U2%
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: %SET_LETTERS_GUID%, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-"""[1:]
-
-# Generate the layer that converts our select few 32-bit int parameters into
-# 4x as many int parameters, each containing the letter value for one cell.
-def genExpandGroupsLayer():
-    tmp = EXPAND_GROUPS_LAYER + EXPAND_GROUPS_LAYER_STATE + SET_LETTERS_SCRIPT
-    print(replaceMacros(tmp, params))
-genExpandGroupsLayer()
-
-CELL_LAYER_HEADER="""
---- !u!%ANIMATOR_STATE_MACHINE_U% &%CELL_LAYER_U2%
-AnimatorStateMachine:
-  serializedVersion: 6
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: %LAYER_NAME%
-  m_ChildStates:
-"""[1:]
-
-CELL_LAYER_STATE_HEADER="""
-  - serializedVersion: 1
-    m_State: {fileID: %CELL_LAYER_STATE_U2%}
-    m_Position: {x: 350.6628, y: %STATE_Y%, z: 0}
-"""[1:]
-
-CELL_LAYER_MIDDLE="""
-  m_ChildStateMachines: []
-  m_AnyStateTransitions:
-"""[1:]
-
-CELL_LAYER_TRANSITION_HEADER="""
-  - {fileID: %CELL_LAYER_TRANSITION_U2%}
-"""[1:]
-
-CELL_LAYER_SUFFIX="""
-  m_ChildStateMachines: []
-  m_EntryTransitions: []
-  m_StateMachineTransitions: {}
-  m_StateMachineBehaviours: []
-  m_AnyStatePosition: {x: 50, y: 20, z: 0}
-  m_EntryPosition: {x: 50, y: 120, z: 0}
-  m_ExitPosition: {x: 800, y: 120, z: 0}
-  m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
-  m_DefaultState: {fileID: %CELL_LAYER_DEFAULT_STATE_U2%}
-"""[1:]
-
-CELL_LAYER_STATE = """
---- !u!%ANIMATOR_STATE_U% &%CELL_LAYER_STATE_U2%
-AnimatorState:
-  serializedVersion: 6
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: %ANIMATION_NAME%
-  m_Speed: 1
-  m_CycleOffset: 0
-  m_Transitions: []
-  m_StateMachineBehaviours: []
-  m_Position: {x: 50, y: 50, z: 0}
-  m_IKOnFeet: 0
-  m_WriteDefaultValues: 0
-  m_Mirror: 0
-  m_SpeedParameterActive: 0
-  m_MirrorParameterActive: 0
-  m_CycleOffsetParameterActive: 0
-  m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: %CELL_LAYER_STATE_ANIM_GUID%, type: 2}
-  m_Tag: 
-  m_SpeedParameter: 
-  m_MirrorParameter: 
-  m_CycleOffsetParameter: 
-  m_TimeParameter: 
-"""[1:]
-
-CELL_LAYER_TRANSITION="""
---- !u!%ANIMATOR_STATE_TRANSITION_U% &%CELL_LAYER_TRANSITION_U2%
+# Transition from TaSTT_Do_nothing. to TaSTT_Active.
+# Params:
+#   %TASTT_ACTIVE_STATE_TRANSITION_U2%
+#   %TASTT_ROW_STATE_U2% - address of row state we're transitioning to
+TASTT_ACTIVE_STATE_TRANSITION = """
+--- !u!1101 &%TASTT_ACTIVE_STATE_TRANSITION_U2%
 AnimatorStateTransition:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
@@ -421,16 +343,16 @@ AnimatorStateTransition:
   m_PrefabAsset: {fileID: 0}
   m_Name: 
   m_Conditions:
-  - m_ConditionMode: 6
-    m_ConditionEvent: %LAYER_NAME%
-    m_EventTreshold: %TRANSITION_THRESHOLD%
+  - m_ConditionMode: 1
+    m_ConditionEvent: TaSTT_Active
+    m_EventTreshold: 1
   m_DstStateMachine: {fileID: 0}
-  m_DstState: {fileID: %CELL_LAYER_DST_STATE_U2%}
+  m_DstState: {fileID: %TASTT_ACTIVE_STATE_U2%}
   m_Solo: 0
   m_Mute: 0
   m_IsExit: 0
   serializedVersion: 3
-  m_TransitionDuration: 0.1
+  m_TransitionDuration: 0
   m_TransitionOffset: 0
   m_ExitTime: 0.75
   m_HasExitTime: 0
@@ -440,51 +362,395 @@ AnimatorStateTransition:
   m_CanTransitionToSelf: 1
 """[1:]
 
+# State reached when TaSTT_Active = True.
+# One transition per row.
+TASTT_ACTIVE_STATE_HEADER = """
+--- !u!1102 &%TASTT_ACTIVE_STATE_U2%
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: TaSTT_Active
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions:
+"""[1:]
+
+TASTT_ACTIVE_STATE_HEADER_TRANSITION = """
+  - {fileID: %TASTT_TRANSITION_U2%}
+"""[1:]
+
+TASTT_ACTIVE_STATE_FOOTER = """
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 0
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 0}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+"""[1:]
+
+# Transition from TaSTT_Active to TaSTT_Row*.
+# Params:
+#   TRANSITION_THRESHOLD: The row to transition to (int).
+#   DST_STATE_U2
+TASTT_ROW_STATE_TRANSITION = """
+--- !u!1101 &%TRANSITION_U2%
+AnimatorStateTransition:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_Conditions:
+  - m_ConditionMode: 6
+    m_ConditionEvent: TaSTT_Row
+    m_EventTreshold: %TRANSITION_THRESHOLD%
+  m_DstStateMachine: {fileID: 0}
+  m_DstState: {fileID: %DST_STATE_U2%}
+  m_Solo: 0
+  m_Mute: 0
+  m_IsExit: 0
+  serializedVersion: 3
+  m_TransitionDuration: 0
+  m_TransitionOffset: 0
+  m_ExitTime: 0.75
+  m_HasExitTime: 0
+  m_HasFixedDuration: 1
+  m_InterruptionSource: 0
+  m_OrderedInterruption: 1
+  m_CanTransitionToSelf: 1
+"""[1:]
+
+# State reached after TaSTT_Active.
+# One transition per column.
+# Params:
+#   %TASTT_STATE_NAME%: TaSTT_Row[0-9][0-9].
+#   %TASTT_TRANSITION_U2%
+TASTT_ROW_STATE_HEADER = """
+--- !u!1102 &%TASTT_STATE_U2%
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: %TASTT_STATE_NAME%
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions:
+"""[1:]
+
+TASTT_ROW_STATE_HEADER_TRANSITION = """
+  - {fileID: %TASTT_TRANSITION_U2%}
+"""[1:]
+
+TASTT_ROW_STATE_FOOTER = """
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 0
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 0}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+"""[1:]
+
+# Transition from TaSTT_Row* to TaSTT_Row*_Col*.
+# Params:
+#   TRANSITION_THRESHOLD: The col to transition to (int).
+#   DST_STATE_U2
+TASTT_COL_STATE_TRANSITION = """
+--- !u!1101 &%TASTT_TRANSITION_U2%
+AnimatorStateTransition:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_Conditions:
+  - m_ConditionMode: 6
+    m_ConditionEvent: TaSTT_Col
+    m_EventTreshold: %TRANSITION_THRESHOLD%
+  m_DstStateMachine: {fileID: 0}
+  m_DstState: {fileID: %DST_STATE_U2%}
+  m_Solo: 0
+  m_Mute: 0
+  m_IsExit: 0
+  serializedVersion: 3
+  m_TransitionDuration: 0
+  m_TransitionOffset: 0
+  m_ExitTime: 0.75
+  m_HasExitTime: 0
+  m_HasFixedDuration: 1
+  m_InterruptionSource: 0
+  m_OrderedInterruption: 1
+  m_CanTransitionToSelf: 1
+"""[1:]
+
+# State reached after TaSTT_Row*.
+# One transition per letter.
+# Params:
+#   %TASTT_STATE_NAME%: TaSTT_Row[0-9][0-9]_Col[0-9][0-9]
+#   %TASTT_TRANSITION_U2%
+TASTT_COL_STATE_HEADER = """
+--- !u!1102 &%TASTT_STATE_U2%
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: %TASTT_STATE_NAME%
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions:
+"""[1:]
+
+TASTT_COL_STATE_HEADER_TRANSITION = """
+  - {fileID: %TASTT_TRANSITION_U2%}
+"""[1:]
+
+TASTT_COL_STATE_FOOTER = """
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 0
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 0}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+"""
+
+# Transition from TaSTT_Row*_Col* to TaSTT_Row*_Col*_Letter*.
+# Params:
+#   TRANSITION_THRESHOLD: The row to transition to (int).
+#   DST_STATE_U2
+TASTT_LETTER_STATE_TRANSITION = """
+--- !u!1101 &%TASTT_TRANSITION_U2%
+AnimatorStateTransition:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_Conditions:
+  - m_ConditionMode: 6
+    m_ConditionEvent: TaSTT_Letter
+    m_EventTreshold: %TRANSITION_THRESHOLD%
+  m_DstStateMachine: {fileID: 0}
+  m_DstState: {fileID: %DST_STATE_U2%}
+  m_Solo: 0
+  m_Mute: 0
+  m_IsExit: 0
+  serializedVersion: 3
+  m_TransitionDuration: 0
+  m_TransitionOffset: 0
+  m_ExitTime: 0.75
+  m_HasExitTime: 0
+  m_HasFixedDuration: 1
+  m_InterruptionSource: 0
+  m_OrderedInterruption: 1
+  m_CanTransitionToSelf: 1
+"""[1:]
+
+# State reached after TaSTT_Row*_Col*.
+# One transition back up to TaSTT_Do_Nothing.
+# Params:
+#   %TASTT_STATE_NAME%: TaSTT_Row[0-9][0-9]_Col[0-9][0-9]_Letter[0-9][0-9][0-9]
+#  %TASTT_ANIM_GUID%: GUID of the animation to play
+#  %TASTT_RESTART_TRANSITION_U2%: U2 of transition back to
+#      TaSTT_Do_Nothing.
+TASTT_LETTER_STATE = """
+--- !u!1102 &%TASTT_STATE_U2%
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: %TASTT_STATE_NAME%
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions:
+  - {fileID: %TASTT_RESTART_TRANSITION_U2%}
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 0
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 7400000, guid: %TASTT_ANIM_GUID%, type: 2}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+"""[1:]
+
+TASTT_RESTART_TRANSITION = """
+--- !u!1101 &%TASTT_RESTART_TRANSITION_U2%
+AnimatorStateTransition:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_Conditions:
+  - m_ConditionMode: 2
+    m_ConditionEvent: TaSTT_Dummy
+    m_EventTreshold: 0
+  m_DstStateMachine: {fileID: 0}
+  m_DstState: {fileID: %TASTT_DEFAULT_STATE_U2%}
+  m_Solo: 0
+  m_Mute: 0
+  m_IsExit: 0
+  serializedVersion: 3
+  m_TransitionDuration: 0
+  m_TransitionOffset: 0
+  m_ExitTime: 0.75
+  m_HasExitTime: 0
+  m_HasFixedDuration: 1
+  m_InterruptionSource: 0
+  m_OrderedInterruption: 1
+  m_CanTransitionToSelf: 1
+"""
+
 def getAnimationGuid(anim_meta_filename):
     with open(anim_meta_filename, 'r') as f:
         for line in f:
             if "guid" in line:
                 return line.split()[1]
-    return None
 
-def genCellAnimationLayers(state):
-    for layer in CELL_NAMES:
-        params["CELL_LAYER_U2"] = params[layer + "_U2"]
-        params["CELL_LAYER_U2" + layer] = params["CELL_LAYER_U2"]
-        params["LAYER_NAME"] = layer
-        print(replaceMacros(CELL_LAYER_HEADER, params))
+def genTasttLayer(state):
+    # Generate return-home transition
+    print(replaceMacros(TASTT_RESTART_TRANSITION, params))
 
-        # Add a state for each animation, i.e. for each character writeable in this slot.
-        for i in range(0,80):
-            params["CELL_LAYER_STATE_U2"] = get_u2(params["ANIMATOR_STATE_U"], state)
-            params["CELL_LAYER_STATE_U2" + layer + ("_Letter%02d" % i)] = params["CELL_LAYER_STATE_U2"]
-            params["STATE_Y"] = str(-190 - i * 40)
-            print(replaceMacros(CELL_LAYER_STATE_HEADER, params))
+    # Default state.
+    print(replaceMacros(TASTT_DEFAULT_STATE, params))
 
-        print(CELL_LAYER_MIDDLE)
+    # Active state transition.
+    print(replaceMacros(TASTT_ACTIVE_STATE_TRANSITION, params))
 
-        for i in range(0,80):
-            params["CELL_LAYER_TRANSITION_U2"] = get_u2(params["ANIMATOR_STATE_TRANSITION_U"], state)
-            params["CELL_LAYER_TRANSITION_U2" + layer + ("_Letter%02d" % i)] = params["CELL_LAYER_TRANSITION_U2"]
-            print(replaceMacros(CELL_LAYER_TRANSITION_HEADER, params))
+    # Active state.
+    print(replaceMacros(TASTT_ACTIVE_STATE_HEADER, params))
+    for row in range(0, NUM_ROWS):
+        params["TASTT_TRANSITION_ROW%02d_U2" % row] = get_u2("1101", state)
+        params["TASTT_TRANSITION_U2"] = params["TASTT_TRANSITION_ROW%02d_U2" % row]
+        print(replaceMacros(TASTT_ACTIVE_STATE_HEADER_TRANSITION, params))
+    print(replaceMacros(TASTT_ACTIVE_STATE_FOOTER, params))
 
-        # Set the default layer to the 0th animation.
-        params["CELL_LAYER_DEFAULT_STATE_U2"] = params["CELL_LAYER_STATE_U2" + layer + ("_Letter%02d" % 0)]
-        print(replaceMacros(CELL_LAYER_SUFFIX, params))
+    # Row state transitions (one per row).
+    for row in range(0, NUM_ROWS):
+        params["TRANSITION_U2"] = params["TASTT_TRANSITION_ROW%02d_U2" % row]
+        params["TRANSITION_THRESHOLD"] = str(row)
+        params["TASTT_ROW%02d_STATE_U2" % row] = get_u2("1102", state)
+        params["DST_STATE_U2"] = params["TASTT_ROW%02d_STATE_U2" % row]
+        print(replaceMacros(TASTT_ROW_STATE_TRANSITION, params))
 
-        # Done creating the layer header! Phew. Let's make the states next.
-        for i in range(0,80):
-            params["ANIMATION_NAME"] = layer + ("_Letter%02d" % i)
-            params["CELL_LAYER_STATE_U2"] = params["CELL_LAYER_STATE_U2" + layer + ("_Letter%02d" % i)]
-            # Get the GUID of the animation we will play at this state.
-            anim_meta_filename = "generated/animations/" + layer + ("_Letter%02d" % i) + ".anim.meta"
-            params["CELL_LAYER_STATE_ANIM_GUID"] = getAnimationGuid(anim_meta_filename)
-            print(replaceMacros(CELL_LAYER_STATE, params))
+    # Row states (one per row)..
+    for row in range(0, NUM_ROWS):
+        params["TASTT_STATE_U2"] = params["TASTT_ROW%02d_STATE_U2" % row]
+        params["TASTT_STATE_NAME"] = "TaSTT_Row%02d" % row
+        print(replaceMacros(TASTT_ROW_STATE_HEADER, params))
+        for col in range(0, NUM_COLS):
+            params["TASTT_TRANSITION_ROW%02d_COL%02d_U2" % (row, col)] = get_u2("1101", state)
+            params["TASTT_TRANSITION_U2"] = params["TASTT_TRANSITION_ROW%02d_COL%02d_U2" % (row, col)]
+            print(replaceMacros(TASTT_ROW_STATE_HEADER_TRANSITION, params))
+        print(replaceMacros(TASTT_ROW_STATE_FOOTER, params))
 
-        # OK, finally, let's wire up the states.
-        for i in range(0,80):
-            params["CELL_LAYER_TRANSITION_U2"] = params["CELL_LAYER_TRANSITION_U2" + layer + ("_Letter%02d" % i)]
-            params["TRANSITION_THRESHOLD"] = str(i)
-            params["CELL_LAYER_DST_STATE_U2"] = params["CELL_LAYER_STATE_U2" + layer + ("_Letter%02d" % i)]
-            print(replaceMacros(CELL_LAYER_TRANSITION, params))
-genCellAnimationLayers(state)
+    # Column state transitions (one per row * column).
+    for row in range(0, NUM_ROWS):
+        for col in range(0, NUM_COLS):
+            params["TASTT_TRANSITION_U2"] = params["TASTT_TRANSITION_ROW%02d_COL%02d_U2" % (row, col)]
+            params["TRANSITION_THRESHOLD"] = str(col)
+            params["TASTT_ROW%02d_COL%02d_STATE_U2" % (row, col)] = get_u2("1102", state)
+            params["DST_STATE_U2"] = params["TASTT_ROW%02d_COL%02d_STATE_U2" % (row, col)]
+            print(replaceMacros(TASTT_COL_STATE_TRANSITION, params))
+
+    # Column states (one per row * column).
+    for row in range(0, NUM_ROWS):
+        for col in range(0, NUM_COLS):
+            params["TASTT_STATE_U2"] = params["TASTT_ROW%02d_COL%02d_STATE_U2" % (row, col)]
+            params["TASTT_STATE_NAME"] = "TaSTT_Row%02d_Col%02d" % (row,
+                    col)
+            print(replaceMacros(TASTT_COL_STATE_HEADER, params))
+            for letter in range(0, NUM_LETTERS):
+                params["TASTT_TRANSITION_ROW%02d_COL%02d_LETTER%02d_U2" % (row, col, letter)] = get_u2("1101", state)
+                params["TASTT_TRANSITION_U2"] = params["TASTT_TRANSITION_ROW%02d_COL%02d_LETTER%02d_U2" % (row, col, letter)]
+                print(replaceMacros(TASTT_COL_STATE_HEADER_TRANSITION, params))
+            print(replaceMacros(TASTT_COL_STATE_FOOTER, params))
+
+    # Letter state transitions (one per row * column * letter).
+    for row in range(0, NUM_ROWS):
+        for col in range(0, NUM_COLS):
+            for letter in range(0, NUM_LETTERS):
+                params["TASTT_TRANSITION_U2"] = params["TASTT_TRANSITION_ROW%02d_COL%02d_LETTER%02d_U2" % (row, col, letter)]
+                params["TRANSITION_THRESHOLD"] = str(letter)
+                params["TASTT_ROW%02d_COL%02d_LETTER%02d_STATE_U2" % (row, col, letter)] = get_u2("1102", state)
+                params["DST_STATE_U2"] = params["TASTT_ROW%02d_COL%02d_LETTER%02d_STATE_U2" % (row, col, letter)]
+                print(replaceMacros(TASTT_LETTER_STATE_TRANSITION, params))
+
+    # Letter states (one per row * column * letter).
+    for row in range(0, NUM_ROWS):
+        for col in range(0, NUM_COLS):
+            for letter in range(0, NUM_LETTERS):
+                params["TASTT_STATE_U2"] = params["TASTT_ROW%02d_COL%02d_LETTER%02d_STATE_U2" % (row, col, letter)]
+                params["TASTT_STATE_NAME"] = "TaSTT_Row%02d_Col%02d_Letter%02d" % (row, col, letter)
+                # Get the GUID of the animation we will play here.
+                anim_meta_filename = "generated/animations/_Letter_Row%02d_Col%02d_Letter%02d.anim.meta" % (row, col, letter)
+                params["TASTT_ANIM_GUID"] = getAnimationGuid(anim_meta_filename)
+                print(replaceMacros(TASTT_LETTER_STATE, params))
+
+    # TaSTT layer.
+    print(replaceMacros(TASTT_LAYER_HEADER, params))
+
+    params["TASTT_STATE_U2"] = params["TASTT_DEFAULT_STATE_U2"]
+    print(replaceMacros(TASTT_LAYER_HEADER_CHILD_STATE, params))
+
+    params["TASTT_STATE_U2"] = params["TASTT_ACTIVE_STATE_U2"]
+    print(replaceMacros(TASTT_LAYER_HEADER_CHILD_STATE, params))
+
+    for row in range(0, NUM_ROWS):
+        params["TASTT_STATE_U2"] = params["TASTT_ROW%02d_STATE_U2" % row]
+        print(replaceMacros(TASTT_LAYER_HEADER_CHILD_STATE, params))
+
+    for row in range(0, NUM_ROWS):
+        for col in range(0, NUM_COLS):
+            params["TASTT_STATE_U2"] = params["TASTT_ROW%02d_COL%02d_STATE_U2" % (row, col)]
+            print(replaceMacros(TASTT_LAYER_HEADER_CHILD_STATE, params))
+
+    for row in range(0, NUM_ROWS):
+        for col in range(0, NUM_COLS):
+            for letter in range(0, NUM_LETTERS):
+                params["TASTT_STATE_U2"] = params["TASTT_ROW%02d_COL%02d_LETTER%02d_STATE_U2" % (row, col, letter)]
+                print(replaceMacros(TASTT_LAYER_HEADER_CHILD_STATE, params))
+
+genTasttLayer(state)
