@@ -26,7 +26,7 @@ for row in range(0, 6):
         addr="/avatar/parameters/TaSTT_Col"
         client.send_message(addr, col)
 
-        time.sleep(0.01)
+        time.sleep(.5)
 
         addr="/avatar/parameters/TaSTT_Active"
         client.send_message(addr, True)
@@ -35,7 +35,7 @@ for row in range(0, 6):
         client.send_message(addr, (seed + row * 14 + col) % 65)
         print("sent {} at {},{}".format((seed + row * 14 + col) % 65, row, col))
 
-        time.sleep(0.01)
+        time.sleep(.5)
 
         addr="/avatar/parameters/TaSTT_Active"
         client.send_message(addr, False)
