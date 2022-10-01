@@ -74,20 +74,20 @@
     _Letter_Row04_Col11("_Letter_Row04_Col11", float) = 0
     _Letter_Row04_Col12("_Letter_Row04_Col12", float) = 0
     _Letter_Row04_Col13("_Letter_Row04_Col13", float) = 0
-    _Letter_Row03_Col00("_Letter_Row03_Col00", float) = 0
-    _Letter_Row03_Col01("_Letter_Row03_Col01", float) = 0
-    _Letter_Row03_Col02("_Letter_Row03_Col02", float) = 0
-    _Letter_Row03_Col03("_Letter_Row03_Col03", float) = 0
-    _Letter_Row03_Col04("_Letter_Row03_Col04", float) = 0
-    _Letter_Row03_Col05("_Letter_Row03_Col05", float) = 0
-    _Letter_Row03_Col06("_Letter_Row03_Col06", float) = 0
-    _Letter_Row03_Col07("_Letter_Row03_Col07", float) = 0
-    _Letter_Row03_Col08("_Letter_Row03_Col08", float) = 0
-    _Letter_Row03_Col09("_Letter_Row03_Col09", float) = 0
-    _Letter_Row03_Col10("_Letter_Row03_Col10", float) = 0
-    _Letter_Row03_Col11("_Letter_Row03_Col11", float) = 0
-    _Letter_Row03_Col12("_Letter_Row03_Col12", float) = 0
-    _Letter_Row03_Col13("_Letter_Row03_Col13", float) = 0
+    _Letter_Row05_Col00("_Letter_Row05_Col00", float) = 0
+    _Letter_Row05_Col01("_Letter_Row05_Col01", float) = 0
+    _Letter_Row05_Col02("_Letter_Row05_Col02", float) = 0
+    _Letter_Row05_Col03("_Letter_Row05_Col03", float) = 0
+    _Letter_Row05_Col04("_Letter_Row05_Col04", float) = 0
+    _Letter_Row05_Col05("_Letter_Row05_Col05", float) = 0
+    _Letter_Row05_Col06("_Letter_Row05_Col06", float) = 0
+    _Letter_Row05_Col07("_Letter_Row05_Col07", float) = 0
+    _Letter_Row05_Col08("_Letter_Row05_Col08", float) = 0
+    _Letter_Row05_Col09("_Letter_Row05_Col09", float) = 0
+    _Letter_Row05_Col10("_Letter_Row05_Col10", float) = 0
+    _Letter_Row05_Col11("_Letter_Row05_Col11", float) = 0
+    _Letter_Row05_Col12("_Letter_Row05_Col12", float) = 0
+    _Letter_Row05_Col13("_Letter_Row05_Col13", float) = 0
   }
   SubShader
   {
@@ -268,7 +268,7 @@
         float CHAR_ROW = floor(i.uv.y * CHAR_ROWS);
 
         // ok now this is epic
-        if (CHAR_ROW == 0) {
+        if (CHAR_ROW == 5) {
           if (CHAR_COL == 0) {
             return _Letter_Row00_Col00;
           } else if (CHAR_COL == 1) {
@@ -298,7 +298,7 @@
           } else if (CHAR_COL == 13) {
             return _Letter_Row00_Col13;
           }
-        } else if (CHAR_ROW == 1) {
+        } else if (CHAR_ROW == 4) {
           if (CHAR_COL == 0) {
             return _Letter_Row01_Col00;
           } else if (CHAR_COL == 1) {
@@ -328,7 +328,7 @@
           } else if (CHAR_COL == 13) {
             return _Letter_Row01_Col13;
           }
-        } else if (CHAR_ROW == 2) {
+        } else if (CHAR_ROW == 3) {
           if (CHAR_COL == 0) {
             return _Letter_Row02_Col00;
           } else if (CHAR_COL == 1) {
@@ -358,7 +358,7 @@
           } else if (CHAR_COL == 13) {
             return _Letter_Row02_Col13;
           }
-        } else if (CHAR_ROW == 3) {
+        } else if (CHAR_ROW == 2) {
           if (CHAR_COL == 0) {
             return _Letter_Row03_Col00;
           } else if (CHAR_COL == 1) {
@@ -388,7 +388,7 @@
           } else if (CHAR_COL == 13) {
             return _Letter_Row03_Col13;
           }
-        } else if (CHAR_ROW == 4) {
+        } else if (CHAR_ROW == 1) {
           if (CHAR_COL == 0) {
             return _Letter_Row04_Col00;
           } else if (CHAR_COL == 1) {
@@ -418,7 +418,7 @@
           } else if (CHAR_COL == 13) {
             return _Letter_Row04_Col13;
           }
-        } else if (CHAR_ROW == 5) {
+        } else if (CHAR_ROW == 0) {
           if (CHAR_COL == 0) {
             return _Letter_Row05_Col00;
           } else if (CHAR_COL == 1) {

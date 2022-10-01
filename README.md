@@ -13,12 +13,6 @@ Features:
 * Low-latency.
 * Stable.
 * Configurable.
-* Very low parameter space usage: 25 bits at the time of writing.
-  * u8 TaSTT\_Letter: the letter to write at the current position
-  * u8 TaSTT\_Row: the row to write on.
-  * u8 TaSTT\_Col: the col to write on.
-  * bool TaSTT\_Active: whether or not to overwrite (turn this off while seeking
-    to a new spot).
 * 6x14 display grid, 80 characters per slot.
   * Each parameter - grid size, characters per slot, may be dialed up or down
     as desired.
