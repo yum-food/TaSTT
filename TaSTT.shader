@@ -18,6 +18,8 @@
     _Letter_Row00_Col11("_Letter_Row00_Col11", float) = 0
     _Letter_Row00_Col12("_Letter_Row00_Col12", float) = 0
     _Letter_Row00_Col13("_Letter_Row00_Col13", float) = 0
+    _Letter_Row00_Col14("_Letter_Row00_Col14", float) = 0
+    _Letter_Row00_Col15("_Letter_Row00_Col15", float) = 0
     _Letter_Row01_Col00("_Letter_Row01_Col00", float) = 0
     _Letter_Row01_Col01("_Letter_Row01_Col01", float) = 0
     _Letter_Row01_Col02("_Letter_Row01_Col02", float) = 0
@@ -32,6 +34,8 @@
     _Letter_Row01_Col11("_Letter_Row01_Col11", float) = 0
     _Letter_Row01_Col12("_Letter_Row01_Col12", float) = 0
     _Letter_Row01_Col13("_Letter_Row01_Col13", float) = 0
+    _Letter_Row01_Col14("_Letter_Row01_Col14", float) = 0
+    _Letter_Row01_Col15("_Letter_Row01_Col15", float) = 0
     _Letter_Row02_Col00("_Letter_Row02_Col00", float) = 0
     _Letter_Row02_Col01("_Letter_Row02_Col01", float) = 0
     _Letter_Row02_Col02("_Letter_Row02_Col02", float) = 0
@@ -46,6 +50,8 @@
     _Letter_Row02_Col11("_Letter_Row02_Col11", float) = 0
     _Letter_Row02_Col12("_Letter_Row02_Col12", float) = 0
     _Letter_Row02_Col13("_Letter_Row02_Col13", float) = 0
+    _Letter_Row02_Col14("_Letter_Row02_Col14", float) = 0
+    _Letter_Row02_Col15("_Letter_Row02_Col15", float) = 0
     _Letter_Row03_Col00("_Letter_Row03_Col00", float) = 0
     _Letter_Row03_Col01("_Letter_Row03_Col01", float) = 0
     _Letter_Row03_Col02("_Letter_Row03_Col02", float) = 0
@@ -60,6 +66,8 @@
     _Letter_Row03_Col11("_Letter_Row03_Col11", float) = 0
     _Letter_Row03_Col12("_Letter_Row03_Col12", float) = 0
     _Letter_Row03_Col13("_Letter_Row03_Col13", float) = 0
+    _Letter_Row03_Col14("_Letter_Row03_Col14", float) = 0
+    _Letter_Row03_Col15("_Letter_Row03_Col15", float) = 0
     _Letter_Row04_Col00("_Letter_Row04_Col00", float) = 0
     _Letter_Row04_Col01("_Letter_Row04_Col01", float) = 0
     _Letter_Row04_Col02("_Letter_Row04_Col02", float) = 0
@@ -74,6 +82,8 @@
     _Letter_Row04_Col11("_Letter_Row04_Col11", float) = 0
     _Letter_Row04_Col12("_Letter_Row04_Col12", float) = 0
     _Letter_Row04_Col13("_Letter_Row04_Col13", float) = 0
+    _Letter_Row04_Col14("_Letter_Row04_Col14", float) = 0
+    _Letter_Row04_Col15("_Letter_Row04_Col15", float) = 0
     _Letter_Row05_Col00("_Letter_Row05_Col00", float) = 0
     _Letter_Row05_Col01("_Letter_Row05_Col01", float) = 0
     _Letter_Row05_Col02("_Letter_Row05_Col02", float) = 0
@@ -88,6 +98,8 @@
     _Letter_Row05_Col11("_Letter_Row05_Col11", float) = 0
     _Letter_Row05_Col12("_Letter_Row05_Col12", float) = 0
     _Letter_Row05_Col13("_Letter_Row05_Col13", float) = 0
+    _Letter_Row05_Col14("_Letter_Row05_Col14", float) = 0
+    _Letter_Row05_Col15("_Letter_Row05_Col15", float) = 0
   }
   SubShader
   {
@@ -132,6 +144,8 @@
       float _Letter_Row00_Col11;
       float _Letter_Row00_Col12;
       float _Letter_Row00_Col13;
+      float _Letter_Row00_Col14;
+      float _Letter_Row00_Col15;
       float _Letter_Row01_Col00;
       float _Letter_Row01_Col01;
       float _Letter_Row01_Col02;
@@ -146,6 +160,8 @@
       float _Letter_Row01_Col11;
       float _Letter_Row01_Col12;
       float _Letter_Row01_Col13;
+      float _Letter_Row01_Col14;
+      float _Letter_Row01_Col15;
       float _Letter_Row02_Col00;
       float _Letter_Row02_Col01;
       float _Letter_Row02_Col02;
@@ -160,6 +176,8 @@
       float _Letter_Row02_Col11;
       float _Letter_Row02_Col12;
       float _Letter_Row02_Col13;
+      float _Letter_Row02_Col14;
+      float _Letter_Row02_Col15;
       float _Letter_Row03_Col00;
       float _Letter_Row03_Col01;
       float _Letter_Row03_Col02;
@@ -174,6 +192,8 @@
       float _Letter_Row03_Col11;
       float _Letter_Row03_Col12;
       float _Letter_Row03_Col13;
+      float _Letter_Row03_Col14;
+      float _Letter_Row03_Col15;
       float _Letter_Row04_Col00;
       float _Letter_Row04_Col01;
       float _Letter_Row04_Col02;
@@ -188,6 +208,8 @@
       float _Letter_Row04_Col11;
       float _Letter_Row04_Col12;
       float _Letter_Row04_Col13;
+      float _Letter_Row04_Col14;
+      float _Letter_Row04_Col15;
       float _Letter_Row05_Col00;
       float _Letter_Row05_Col01;
       float _Letter_Row05_Col02;
@@ -202,6 +224,8 @@
       float _Letter_Row05_Col11;
       float _Letter_Row05_Col12;
       float _Letter_Row05_Col13;
+      float _Letter_Row05_Col14;
+      float _Letter_Row05_Col15;
 
       v2f vert (appdata v)
       {
@@ -223,7 +247,7 @@
         // Thus given UV, I need to know a few things:
         // 1. What grid cell I'm in. This is simply u * m, v * n.
         float CHAR_ROWS = 6.0;
-        float CHAR_COLS = 14.0;
+        float CHAR_COLS = 16.0;
         float CHAR_COL = floor(i.uv.x * CHAR_COLS);
         float CHAR_ROW = floor(i.uv.y * CHAR_ROWS);
 
@@ -263,7 +287,7 @@
       float GetLetterParameter(v2f i)
       {
         float CHAR_ROWS = 6.0;
-        float CHAR_COLS = 14.0;
+        float CHAR_COLS = 16.0;
         float CHAR_COL = floor(i.uv.x * CHAR_COLS);
         float CHAR_ROW = floor(i.uv.y * CHAR_ROWS);
 
@@ -297,6 +321,10 @@
             return _Letter_Row00_Col12;
           } else if (CHAR_COL == 13) {
             return _Letter_Row00_Col13;
+          } else if (CHAR_COL == 14) {
+            return _Letter_Row00_Col14;
+          } else if (CHAR_COL == 15) {
+            return _Letter_Row00_Col15;
           }
         } else if (CHAR_ROW == 4) {
           if (CHAR_COL == 0) {
@@ -327,6 +355,10 @@
             return _Letter_Row01_Col12;
           } else if (CHAR_COL == 13) {
             return _Letter_Row01_Col13;
+          } else if (CHAR_COL == 14) {
+            return _Letter_Row01_Col14;
+          } else if (CHAR_COL == 15) {
+            return _Letter_Row01_Col15;
           }
         } else if (CHAR_ROW == 3) {
           if (CHAR_COL == 0) {
@@ -357,6 +389,10 @@
             return _Letter_Row02_Col12;
           } else if (CHAR_COL == 13) {
             return _Letter_Row02_Col13;
+          } else if (CHAR_COL == 14) {
+            return _Letter_Row02_Col14;
+          } else if (CHAR_COL == 15) {
+            return _Letter_Row02_Col15;
           }
         } else if (CHAR_ROW == 2) {
           if (CHAR_COL == 0) {
@@ -387,6 +423,10 @@
             return _Letter_Row03_Col12;
           } else if (CHAR_COL == 13) {
             return _Letter_Row03_Col13;
+          } else if (CHAR_COL == 14) {
+            return _Letter_Row03_Col14;
+          } else if (CHAR_COL == 15) {
+            return _Letter_Row03_Col15;
           }
         } else if (CHAR_ROW == 1) {
           if (CHAR_COL == 0) {
@@ -417,6 +457,10 @@
             return _Letter_Row04_Col12;
           } else if (CHAR_COL == 13) {
             return _Letter_Row04_Col13;
+          } else if (CHAR_COL == 14) {
+            return _Letter_Row04_Col14;
+          } else if (CHAR_COL == 15) {
+            return _Letter_Row04_Col15;
           }
         } else if (CHAR_ROW == 0) {
           if (CHAR_COL == 0) {
@@ -447,6 +491,10 @@
             return _Letter_Row05_Col12;
           } else if (CHAR_COL == 13) {
             return _Letter_Row05_Col13;
+          } else if (CHAR_COL == 14) {
+            return _Letter_Row05_Col14;
+          } else if (CHAR_COL == 15) {
+            return _Letter_Row05_Col15;
           }
         }
 
@@ -458,7 +506,7 @@
         float letter = GetLetterParameter(i);
         float2 uv = GetLetter(i, letter);
         fixed4 ret = tex2D(_MainTex, uv);
-        if (uv.x == 0 && uv.y == 0) {
+        if (uv.x == 0 || uv.y == 0 || uv.x == 1 || uv.y == 1) {
           ret.xyz = 0;
           ret.w = 0;
         }

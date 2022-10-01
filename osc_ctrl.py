@@ -16,6 +16,9 @@ from generate_utils import NUM_LAYERS
 from generate_utils import BOARD_ROWS
 from generate_utils import BOARD_COLS
 
+#MSG_DELAY_S=0.3
+MSG_DELAY_S=0.1
+
 def usage():
     print("python3 -m pip install python-osc")
     print("python3 ./osc_ctrl.py")
@@ -27,24 +30,26 @@ args = parser.parse_args()
 
 client = udp_client.SimpleUDPClient(args.i, args.p)
 
-def encodeMessage(msg):
+def encodeMessage(lines):
     result = []
-    for char in msg:
-        char_int = ord(char)
-        if char_int >= ord('A') and char_int <= ord('Z'):
-            result.append(ord(char) - ord('A'))
-        elif char >= 'a' and char <= 'z':
-            result.append((ord(char) - ord('a')) + 26)
-        elif char >= '0' and char <= '9':
-            result.append((ord(char) - ord('0')) + 52)
-        elif char == '.':
-            result.append(62)
-        elif char == ',':
-            result.append(63)
-        elif char == ' ':
-            result.append(64)
-    # Pad message with spaces so that it overwrites any leftover text.
-    result += [65] * (BOARD_ROWS * BOARD_COLS - len(result))
+    for line in lines:
+        for char in line:
+            char_int = ord(char)
+            if char_int >= ord('A') and char_int <= ord('Z'):
+                result.append(ord(char) - ord('A'))
+            elif char >= 'a' and char <= 'z':
+                result.append((ord(char) - ord('a')) + 26)
+            elif char >= '0' and char <= '9':
+                result.append((ord(char) - ord('0')) + 52)
+            elif char == '.':
+                result.append(63)
+            elif char == ',':
+                result.append(62)
+            elif char == ' ':
+                result.append(64)
+        # Pad message with spaces so that it overwrites any leftover text.
+        result += [65] * (BOARD_COLS - len(line))
+    #print("Encoded message: {}".format(result))
     return result
 
 # `which_cell` is an integer in the range [0,8).
@@ -72,7 +77,7 @@ def sendMessageCell(msg_cell, which_cell):
         client.send_message(addr, (which_cell % 2) == 1)
 
     # Wait for convergence.
-    time.sleep(0.3)
+    time.sleep(MSG_DELAY_S)
 
     # Enable each layer.
     # TODO(yum_food) for some reason, if we don't active every layer, the
@@ -82,7 +87,7 @@ def sendMessageCell(msg_cell, which_cell):
         client.send_message(addr, True)
 
     # Wait for convergence.
-    time.sleep(0.3)
+    time.sleep(MSG_DELAY_S)
 
     # Disable each layer.
     for i in range(0, NUM_LAYERS):
@@ -90,25 +95,65 @@ def sendMessageCell(msg_cell, which_cell):
         client.send_message(addr, False)
 
     # Wait for convergence.
-    time.sleep(0.3)
+    time.sleep(MSG_DELAY_S)
+
+# The board is broken down into contiguous collections of characters called
+# cells. Each cell contains `NUM_LAYERS` characters. We can update one cell
+# every ~1.0 seconds. Going faster causes the board to display garbage to
+# remote players.
+def splitMessage(msg):
+    lines = []
+    line = ""
+    for word in msg.split():
+        while len(word) > BOARD_COLS:
+            if len(line) != 0:
+                lines.append(line)
+                line = ""
+            word_prefix = word[0:BOARD_COLS-1] + "-"
+            word_suffix = word[BOARD_COLS-1:]
+            print("append prefix {}".format(word_prefix))
+            lines.append(word_prefix)
+            word = word_suffix
+
+        if len(line) == 0:
+            line = word
+            continue
+
+        if len(line) + len(" ") + len(word) <= BOARD_COLS:
+            line += " " + word
+            continue
+    
+        print("append line {}".format(line))
+        lines.append(line)
+        line = word
+
+    if len(line) > 0:
+        lines.append(line)
+
+    return lines
 
 def sendMessage(msg):
-    # The board is broken down into contiguous collections of characters called
-    # cells. Each cell contains `NUM_LAYERS` characters. We can update one cell
-    # every ~1.0 seconds; going faster causes the board to display garbage to
-    # remote players.
-    msg = encodeMessage(msg)
+    lines = splitMessage(msg)
+    msg = encodeMessage(lines)
+    msg_len = len(msg)
 
-    n_cells = ceil(len(msg) / NUM_LAYERS)
+    print("Encoded message: {}".format(msg))
+
+    n_cells = ceil(msg_len / NUM_LAYERS)
+    print("n_cells: {}".format(n_cells))
     for cell in range(0, n_cells):
+        # Really long messages just wrap back around.
+        cell = cell % NUM_LAYERS
+
         cell_begin = cell * NUM_LAYERS
         cell_end = (cell + 1) * NUM_LAYERS
         cell_msg = msg[cell_begin:cell_end]
         print("Send cell {}".format(cell))
         sendMessageCell(cell_msg, cell)
 
-for line in fileinput.input():
-    sendMessage(line)
+if __name__ == "__main__":
+    for line in fileinput.input():
+        sendMessage(line)
 
-sendMessage("")
+    sendMessage("")
 

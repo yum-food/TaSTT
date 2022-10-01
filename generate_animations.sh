@@ -13,7 +13,7 @@ mkdir -p generated/animations
 
 for row in `seq 0 5`; do
   ROW_PADDED=$(printf '%02d' $row)
-  for col in `seq 0 13`; do
+  for col in `seq 0 16`; do
     COL_PADDED=$(printf '%02d' $col)
     LETTER_SHADER_PARAM=_Letter_Row${ROW_PADDED}_Col${COL_PADDED}
     for letter in `seq 0 79`; do

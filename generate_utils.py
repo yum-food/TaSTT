@@ -7,7 +7,7 @@ def replaceMacros(lines, macro_defs):
     return lines
 
 BOARD_ROWS=6
-BOARD_COLS=14
+BOARD_COLS=16
 INDEX_BITS=3
 CHARS_PER_CELL=80
 
@@ -34,10 +34,11 @@ def getEnableParam(which_layer):
     return "TaSTT_L%02d_E" % which_layer
 
 def getBoardIndex(which_layer, s0, s1, s2):
-    # TODO(yum_food) because we divide the board into a multiple of 8 cells,
-    # some cells describe animations which don't exist. We work around this by
-    # simply wrapping those animations back to the top of the board, and rely
-    # on the OSC controller to simply not reference those cells. Clean this up.
+    # Because we divide the board into a multiple of 8 cells, some cells may
+    # describe animations which don't exist, depending on the size of the board.
+    # We work around this by simply wrapping those animations back to the top
+    # of the board, and rely on the OSC controller to simply not reference
+    # those cells.
     return ((s0 * 4 + s1 * 2 + s2) * NUM_LAYERS + which_layer) % (BOARD_ROWS * BOARD_COLS)
 
 # Mapping from layer to shader param.
