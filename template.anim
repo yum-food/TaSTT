@@ -30,7 +30,7 @@ AnimationClip:
         inWeight: 0
         outWeight: 0
       - serializedVersion: 3
-        time: 0.033333335
+        time: 0.016666668
         value: %LETTER_VALUE%
         inSlope: 0
         outSlope: 0
@@ -95,7 +95,7 @@ AnimationClip:
         inWeight: 0
         outWeight: 0
       - serializedVersion: 3
-        time: 0.033333335
+        time: 0.016666668
         value: %LETTER_VALUE%
         inSlope: 0
         outSlope: 0

@@ -78,9 +78,24 @@ def updateCell(cell_idx, letter_encoded, s0, s1, s2):
     addr="/avatar/parameters/" + getSelectParam(cell_idx, 2)
     client.send_message(addr, s2)
 
+def enable():
+    for i in range(0, NUM_LAYERS):
+        addr="/avatar/parameters/" + getEnableParam(i)
+        client.send_message(addr, True)
+
+def disable():
+    for i in range(0, NUM_LAYERS):
+        addr="/avatar/parameters/" + getEnableParam(i)
+        client.send_message(addr, False)
+
 # Send a cell all at once.
 # `which_cell` is an integer in the range [0,8).
 def sendMessageCellDiscrete(msg_cell, which_cell):
+    # Disable each layer.
+    disable()
+
+    time.sleep(CELL_TX_TIME_S / 2.0)
+
     # Really long messages just wrap back around.
     which_cell = (which_cell % 8)
 
@@ -94,25 +109,15 @@ def sendMessageCellDiscrete(msg_cell, which_cell):
         updateCell(i, msg_cell[i], s0, s1, s2)
 
     # Wait for convergence.
-    time.sleep(CELL_TX_TIME_S / 3.0)
+    time.sleep(CELL_TX_TIME_S / 4.0)
 
     # Enable each layer.
     # TODO(yum_food) for some reason, if we don't active every layer, the
     # desired subset won't reliably fire. Why?
-    for i in range(0, NUM_LAYERS):
-        addr="/avatar/parameters/" + getEnableParam(i)
-        client.send_message(addr, True)
+    enable()
 
     # Wait for convergence.
-    time.sleep(CELL_TX_TIME_S / 3.0)
-
-    # Disable each layer.
-    for i in range(0, NUM_LAYERS):
-        addr="/avatar/parameters/" + getEnableParam(i)
-        client.send_message(addr, False)
-
-    # Wait for convergence.
-    time.sleep(CELL_TX_TIME_S / 3.0)
+    time.sleep(CELL_TX_TIME_S / 4.0)
 
 # Send a cell smoothly spread out over the course of CELL_TX_TIME_S.
 # `which_cell` is an integer in the range [0,8).
@@ -259,10 +264,8 @@ def closeBoard():
 if __name__ == "__main__":
     generateEncoding(state)
     #openBoard()
-    clear()
+    #clear()
 
     for line in fileinput.input():
         sendMessage(line)
-
-    sendMessage("")
 
