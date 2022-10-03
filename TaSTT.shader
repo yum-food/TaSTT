@@ -100,6 +100,8 @@
     _Letter_Row05_Col13("_Letter_Row05_Col13", float) = 0
     _Letter_Row05_Col14("_Letter_Row05_Col14", float) = 0
     _Letter_Row05_Col15("_Letter_Row05_Col15", float) = 0
+    // This does nothing, it's just used by the 'Do Nothing' animation.
+    _Dummy("_Dummy", float) = 0
   }
   SubShader
   {

@@ -17,8 +17,9 @@ from generate_utils import NUM_LAYERS
 from generate_utils import BOARD_ROWS
 from generate_utils import BOARD_COLS
 
-#CELL_TX_TIME_S=1.0
-CELL_TX_TIME_S=0.6
+#CELL_TX_TIME_S=3.0
+CELL_TX_TIME_S=1.0
+#CELL_TX_TIME_S=0.7
 
 def usage():
     print("python3 -m pip install python-osc")
@@ -181,7 +182,7 @@ def splitMessage(msg):
         if len(line) + len(" ") + len(word) <= BOARD_COLS:
             line += " " + word
             continue
-    
+
         print("append line {}".format(line))
         lines.append(line)
         line = word
@@ -198,7 +199,7 @@ def sendMessage(msg):
 
     print("Encoded message: {}".format(msg))
 
-    openBoard()
+    #openBoard()
 
     n_cells = ceil(msg_len / NUM_LAYERS)
     print("n_cells: {}".format(n_cells))
@@ -209,7 +210,7 @@ def sendMessage(msg):
         print("Send cell {}".format(cell))
         sendMessageCellDiscrete(cell_msg, cell)
 
-    closeBoard()
+    #closeBoard()
 
 def sendRawMessage(msg):
     n_cells = ceil(len(msg) / NUM_LAYERS)
@@ -229,12 +230,12 @@ def openBoard():
     addr="/avatar/parameters/" + generate_utils.getResize1Param()
     client.send_message(addr, False)
 
-    time.sleep(0.1)
+    time.sleep(0.3)
 
     addr="/avatar/parameters/" + generate_utils.getResizeEnableParam()
     client.send_message(addr, True)
 
-    time.sleep(0.1)
+    time.sleep(0.3)
 
     addr="/avatar/parameters/" + generate_utils.getResizeEnableParam()
     client.send_message(addr, False)
@@ -257,6 +258,7 @@ def closeBoard():
 
 if __name__ == "__main__":
     generateEncoding(state)
+    #openBoard()
     clear()
 
     for line in fileinput.input():

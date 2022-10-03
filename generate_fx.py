@@ -388,7 +388,7 @@ AnimatorStateTransition:
   m_Mute: 0
   m_IsExit: 0
   serializedVersion: 3
-  m_TransitionDuration: 0.1
+  m_TransitionDuration: 0.03
   m_TransitionOffset: 0
   m_ExitTime: 0.75
   m_HasExitTime: 0
@@ -469,43 +469,45 @@ def getAnimationGuid(anim_meta_filename):
             if "guid" in line:
                 return line.split()[1]
 
-def getDefaultStateName():
-    return "TaSTT_Do_Nothing"
+def getDefaultStateName(which_layer):
+    return "TaSTT_L%02d_Do_Nothing" % which_layer
+
+def getDefaultStateNameResizeLayer():
+    return "TaSTT_Resize_Do_Nothing"
 
 def getActiveStateName(which_layer):
-    return "TaSTT_Active"
+    return "TaSTT_L%02d_Active" % which_layer
 
 def getS0StateName(which_layer, s0):
-    return "TaSTT_S%02d" % (s0)
+    return "TaSTT_L%02d_S%02d" % (which_layer, s0)
 
 def getS1StateName(which_layer, s0, s1):
-    return "TaSTT_S%02d_S%02d" % (s0, s1)
+    return "TaSTT_L%02d_S%02d_S%02d" % (which_layer, s0, s1)
 
 def getS2StateName(which_layer, s0, s1, s2):
-    return "TaSTT_S%02d_S%02d_S%02d" % (s0, s1, s2)
+    return "TaSTT_L%02d_S%02d_S%02d_S%02d" % (which_layer, s0, s1, s2)
 
 def getLetterStateName(which_layer, s0, s1, s2, letter):
-    return "TaSTT_S%02d_S%02d_S%02d_L%03d" % (s0, s1, s2, letter)
+    return "TaSTT_L%02d_S%02d_S%02d_S%02d_L%03d" % (which_layer, s0, s1, s2, letter)
 
 def getResizeStateName(e0, e1):
     return "TaSTT_Resize_E%d_E%d" % (e0, e1)
 
-def genTasttLayer(state, which_layer):
-    # Generate return-home transition
-    params["TASTT_RETURN_HOME_TRANSITION_%02d_U2" % which_layer] = get_u2("1101", state)
-    params["TASTT_STATE_TRANSITION_U2"] = params["TASTT_RETURN_HOME_TRANSITION_%02d_U2" % which_layer]
-    params["BOOL_PARAM"] = getDummyParam()
-    params["THRESHOLD"] = str(0)
-    params["MODE"] = str(2)  # See comment above TASTT_BOOL_STATE_UNARY_TRANSITION.
-    params["TASTT_DEFAULT_STATE_U2"] = get_u2("1102", state)
-    params["DST_STATE_U2"] = params["TASTT_DEFAULT_STATE_U2"]
-    print(replaceMacros(TASTT_BOOL_STATE_UNARY_TRANSITION, params))
+def getReturnHomeTransitionName(which_layer, s0, s1, s2, letter):
+    return "TASTT_RETURN_HOME_TRANSITION_L%02d_S%02d_S%02d_S%02d_L%03d" % (which_layer, s0, s1, s2, letter)
 
+def getReturnHomeTransitionNameResizeLayer(e0, e1):
+    return "TASTT_RETURN_HOME_TRANSITION_E%d_E%d" % (e0, e1)
+
+def genTasttLayer(state, which_layer):
     # Default state.
+    params["TASTT_DEFAULT_STATE_U2"] = get_u2("1102", state)
     params["TASTT_STATE_U2"] = params["TASTT_DEFAULT_STATE_U2"]
-    params["TASTT_STATE_NAME"] = getDefaultStateName()
+    params["TASTT_STATE_NAME"] = getDefaultStateName(which_layer)
     params["TASTT_STATE_TRANSITION_U2"] = get_u2("1101", state)
-    print(replaceMacros(TASTT_UNARY_STATE, params))
+    anim_meta_filename = "Animations/TaSTT_Do_Nothing.anim.meta"
+    params["TASTT_ANIM_GUID"] = getAnimationGuid(anim_meta_filename)
+    print(replaceMacros(TASTT_ANIM_STATE, params))
 
     # Active state transition.
     params["BOOL_PARAM"] = getEnableParam(which_layer)
@@ -610,10 +612,26 @@ def genTasttLayer(state, which_layer):
                 for letter in range(0, CHARS_PER_CELL):
                     params["TASTT_STATE_U2"] = params[getLetterStateName(which_layer, s0, s1, s2, letter) + "_U2"]
                     params["TASTT_STATE_NAME"] = getLetterStateName(which_layer, s0, s1, s2, letter)
-                    params["TASTT_STATE_TRANSITION_U2"] = params["TASTT_RETURN_HOME_TRANSITION_%02d_U2" % which_layer]
+                    transition_name = getReturnHomeTransitionName(which_layer, s0, s1, s2, letter) + "_U2"
+                    params[transition_name] = get_u2("1101", state)
+                    params["TASTT_STATE_TRANSITION_U2"] = params[transition_name]
                     anim_meta_filename = getAnimationPath(getShaderParam(which_layer, s0, s1, s2), letter) + ".meta"
                     params["TASTT_ANIM_GUID"] = getAnimationGuid(anim_meta_filename)
                     print(replaceMacros(TASTT_ANIM_STATE, params))
+
+    # Return-home transitions.
+    for s0 in range(0,2):
+        for s1 in range(0,2):
+            for s2 in range(0,2):
+                for letter in range(0, CHARS_PER_CELL):
+                    transition_name = getReturnHomeTransitionName(which_layer, s0, s1, s2, letter) + "_U2"
+                    params["TASTT_STATE_TRANSITION_U2"] = params[transition_name]
+                    params["BOOL_PARAM"] = getDummyParam()
+                    params["THRESHOLD"] = str(0)
+                    params["MODE"] = str(2)  # See comment above TASTT_BOOL_STATE_UNARY_TRANSITION.
+                    params["DST_STATE_U2"] = params["TASTT_DEFAULT_STATE_U2"]
+                    print(replaceMacros(TASTT_BOOL_STATE_UNARY_TRANSITION, params))
+
 
     # TaSTT layer.
     params["TASTT_LAYER_U2"] = params[getLayerParam(which_layer) + "_LAYER_U2"]
@@ -656,21 +674,14 @@ for i in range(0, NUM_LAYERS):
     genTasttLayer(state, i)
 
 def genTasttResizeLayer(state):
-    # Generate return-home transition
-    params["TASTT_RETURN_HOME_TRANSITION_U2"] = get_u2("1101", state)
-    params["TASTT_STATE_TRANSITION_U2"] = params["TASTT_RETURN_HOME_TRANSITION_U2"]
-    params["BOOL_PARAM"] = getDummyParam()
-    params["THRESHOLD"] = str(0)
-    params["MODE"] = str(2)  # See comment above TASTT_BOOL_STATE_UNARY_TRANSITION.
-    params["TASTT_DEFAULT_STATE_U2"] = get_u2("1102", state)
-    params["DST_STATE_U2"] = params["TASTT_DEFAULT_STATE_U2"]
-    print(replaceMacros(TASTT_BOOL_STATE_UNARY_TRANSITION, params))
-
     # Default state.
+    params["TASTT_DEFAULT_STATE_U2"] = get_u2("1102", state)
     params["TASTT_STATE_U2"] = params["TASTT_DEFAULT_STATE_U2"]
-    params["TASTT_STATE_NAME"] = getDefaultStateName()
+    params["TASTT_STATE_NAME"] = getDefaultStateNameResizeLayer()
+    anim_meta_filename = "Animations/TaSTT_Do_Nothing.anim.meta"
+    params["TASTT_ANIM_GUID"] = getAnimationGuid(anim_meta_filename)
     params["TASTT_STATE_TRANSITION_U2"] = get_u2("1101", state)
-    print(replaceMacros(TASTT_UNARY_STATE, params))
+    print(replaceMacros(TASTT_ANIM_STATE, params))
 
     # Active state transition.
     params["BOOL_PARAM"] = generate_utils.getResizeEnableParam()
@@ -715,7 +726,9 @@ def genTasttResizeLayer(state):
         for e1 in range(0, 2):
             params["TASTT_STATE_NAME"] = getResizeStateName(e0, e1)
             params["TASTT_STATE_U2"] = params[getResizeStateName(e0, e1) + "_U2"]
-            params["TASTT_STATE_TRANSITION_U2"] = params["TASTT_RETURN_HOME_TRANSITION_U2"]
+            transition_name = getReturnHomeTransitionNameResizeLayer(e0, e1) + "_U2"
+            params[transition_name] = get_u2("1101", state)
+            params["TASTT_STATE_TRANSITION_U2"] = params[transition_name]
             anim_meta_filename="Animations/"
             if e0 == 0 and e1 == 0:
                 anim_meta_filename += "TaSTT_Backplate_Resize_00_to_50.anim.meta"
@@ -727,6 +740,17 @@ def genTasttResizeLayer(state):
                 anim_meta_filename += "TaSTT_Backplate_Resize_50_to_00.anim.meta"
             params["TASTT_ANIM_GUID"] = getAnimationGuid(anim_meta_filename)
             print(replaceMacros(TASTT_ANIM_STATE, params))
+
+    # Generate return-home transitions
+    for e0 in range(0, 2):
+        for e1 in range(0, 2):
+            transition_name = getReturnHomeTransitionNameResizeLayer(e0, e1) + "_U2"
+            params["TASTT_STATE_TRANSITION_U2"] = params[transition_name]
+            params["BOOL_PARAM"] = getDummyParam()
+            params["THRESHOLD"] = str(0)
+            params["MODE"] = str(2)  # See comment above TASTT_BOOL_STATE_UNARY_TRANSITION.
+            params["DST_STATE_U2"] = params["TASTT_DEFAULT_STATE_U2"]
+            print(replaceMacros(TASTT_BOOL_STATE_UNARY_TRANSITION, params))
 
     # Layer
     params["TASTT_LAYER_U2"] = params["TASTT_RESIZE_LAYER_U2"]
