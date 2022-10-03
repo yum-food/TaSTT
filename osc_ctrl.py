@@ -18,8 +18,8 @@ from generate_utils import BOARD_ROWS
 from generate_utils import BOARD_COLS
 
 #CELL_TX_TIME_S=3.0
-CELL_TX_TIME_S=1.0
-#CELL_TX_TIME_S=0.7
+#CELL_TX_TIME_S=1.0
+CELL_TX_TIME_S=0.3
 
 def usage():
     print("python3 -m pip install python-osc")
@@ -79,14 +79,12 @@ def updateCell(cell_idx, letter_encoded, s0, s1, s2):
     client.send_message(addr, s2)
 
 def enable():
-    for i in range(0, NUM_LAYERS):
-        addr="/avatar/parameters/" + getEnableParam(i)
-        client.send_message(addr, True)
+    addr="/avatar/parameters/" + getEnableParam()
+    client.send_message(addr, True)
 
 def disable():
-    for i in range(0, NUM_LAYERS):
-        addr="/avatar/parameters/" + getEnableParam(i)
-        client.send_message(addr, False)
+    addr="/avatar/parameters/" + getEnableParam()
+    client.send_message(addr, False)
 
 # Send a cell all at once.
 # `which_cell` is an integer in the range [0,8).
@@ -94,7 +92,7 @@ def sendMessageCellDiscrete(msg_cell, which_cell):
     # Disable each layer.
     disable()
 
-    time.sleep(CELL_TX_TIME_S / 2.0)
+    time.sleep(CELL_TX_TIME_S / 3.0)
 
     # Really long messages just wrap back around.
     which_cell = (which_cell % 8)
@@ -109,7 +107,7 @@ def sendMessageCellDiscrete(msg_cell, which_cell):
         updateCell(i, msg_cell[i], s0, s1, s2)
 
     # Wait for convergence.
-    time.sleep(CELL_TX_TIME_S / 4.0)
+    time.sleep(CELL_TX_TIME_S / 3.0)
 
     # Enable each layer.
     # TODO(yum_food) for some reason, if we don't active every layer, the
@@ -117,7 +115,7 @@ def sendMessageCellDiscrete(msg_cell, which_cell):
     enable()
 
     # Wait for convergence.
-    time.sleep(CELL_TX_TIME_S / 4.0)
+    time.sleep(CELL_TX_TIME_S / 3.0)
 
 # Send a cell smoothly spread out over the course of CELL_TX_TIME_S.
 # `which_cell` is an integer in the range [0,8).
@@ -128,7 +126,7 @@ def sendMessageCellContinuous(msg_cell, which_cell):
     s1 = ((floor(which_cell / 2) % 2) == 1)
     s2 = ((floor(which_cell / 1) % 2) == 1)
 
-    time_quanta = 100
+    time_quanta = 20
     dt = CELL_TX_TIME_S / (time_quanta * 1.0)
 
     # key: time quantum \elem [0, 100)
@@ -146,21 +144,30 @@ def sendMessageCellContinuous(msg_cell, which_cell):
         enable_times[enable_time] = i
         disable_times[disable_time] = i
 
+    begin = time.time_ns()
+
     for t in range(0, time_quanta):
         if t in update_times:
+            #print("update cell: {}".format(which_cell))
             which_cell = update_times[t]
-            print("which cell: {}".format(which_cell))
             updateCell(which_cell, msg_cell[which_cell], s0, s1, s2)
         if t in enable_times:
+            #print("enable cell: {}".format(which_cell))
             which_cell = enable_times[t]
             addr="/avatar/parameters/" + getEnableParam(which_cell)
             client.send_message(addr, True)
         if t in disable_times:
+            #print("disable cell: {}".format(which_cell))
             which_cell = disable_times[t]
             addr="/avatar/parameters/" + getEnableParam(which_cell)
             client.send_message(addr, False)
 
         time.sleep(dt)
+
+    end = time.time_ns()
+    delta_t_s = (end - begin) / (1000.0 * 1000.0 * 1000.0)
+    if delta_t_s < CELL_TX_TIME_S:
+        time.sleep(CELL_TX_TIME_S - delta_t_s)
 
 # The board is broken down into contiguous collections of characters called
 # cells. Each cell contains `NUM_LAYERS` characters. We can update one cell
@@ -214,6 +221,7 @@ def sendMessage(msg):
         cell_msg = msg[cell_begin:cell_end]
         print("Send cell {}".format(cell))
         sendMessageCellDiscrete(cell_msg, cell)
+        #sendMessageCellContinuous(cell_msg, cell)
 
     #closeBoard()
 
@@ -263,9 +271,11 @@ def closeBoard():
 
 if __name__ == "__main__":
     generateEncoding(state)
-    #openBoard()
-    #clear()
-
     for line in fileinput.input():
+        clear()
         sendMessage(line)
+        time.sleep(1)
+    #with open("lorum_ipsum.txt", "r") as f:
+    #    for line in f:
+    #        sendMessage(line)
 

@@ -41,8 +41,8 @@ def getLayerParam(which_layer):
 def getSelectParam(which_layer, which_select):
     return "TaSTT_L%02d_S%02d" % (which_layer, which_select)
 
-def getEnableParam(which_layer):
-    return "TaSTT_L%02d_E" % which_layer
+def getEnableParam():
+    return "TaSTT_Enable"
 
 def getBoardIndex(which_layer, s0, s1, s2):
     # Because we divide the board into a multiple of 8 cells, some cells may

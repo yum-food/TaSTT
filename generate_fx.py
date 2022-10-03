@@ -133,6 +133,9 @@ def genAnimator(state):
     params["ANIMATOR_PARAMETER_NAME"] = generate_utils.getResize1Param()
     print(replaceMacros(ANIMATOR_PARAMETER_BOOL, params))
 
+    params["ANIMATOR_PARAMETER_NAME"] = getEnableParam()
+    print(replaceMacros(ANIMATOR_PARAMETER_BOOL, params))
+
     for i in range(0, NUM_LAYERS):
         params["ANIMATOR_PARAMETER_NAME"] = getLayerParam(i)
         print(replaceMacros(ANIMATOR_PARAMETER_INT, params))
@@ -144,9 +147,6 @@ def genAnimator(state):
         print(replaceMacros(ANIMATOR_PARAMETER_BOOL, params))
 
         params["ANIMATOR_PARAMETER_NAME"] = getSelectParam(i, 2)
-        print(replaceMacros(ANIMATOR_PARAMETER_BOOL, params))
-
-        params["ANIMATOR_PARAMETER_NAME"] = getEnableParam(i)
         print(replaceMacros(ANIMATOR_PARAMETER_BOOL, params))
 
 
@@ -510,7 +510,7 @@ def genTasttLayer(state, which_layer):
     print(replaceMacros(TASTT_ANIM_STATE, params))
 
     # Active state transition.
-    params["BOOL_PARAM"] = getEnableParam(which_layer)
+    params["BOOL_PARAM"] = getEnableParam()
     params["THRESHOLD"] = str(1)
     params["MODE"] = str(1)  # See comment above TASTT_BOOL_STATE_UNARY_TRANSITION.
     params["ACTIVE_STATE_U2"] = get_u2("1102", state)

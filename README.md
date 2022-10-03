@@ -69,5 +69,9 @@ There are roughly 4 important pieces here:
 3. General usability features.
 3.1. Error detection & correction.
 3.2. Text-to-text interface. Type in terminal, show in game.
+4. Optimization
+4.1. Utilize the avatar 3.0 SDK's ability to drive parameters to reduce the
+     total # of parameters (and therefore OSC messages & sync events). Note
+     that the parameter memory usage may not decrease.
 
 Made with love by yum\_food.
