@@ -39,9 +39,16 @@ BOOL_PARAM = """
 params = {}
 print(generate_utils.replaceMacros(PARAM_HEADER, params))
 
-# Implementation detail. We use this parameter to return from the terminal
-# state of the FX layer to the starting state.
-params["PARAM_NAME"] = "TaSTT_Dummy"
+params["PARAM_NAME"] = generate_utils.getDummyParam()
+print(generate_utils.replaceMacros(BOOL_PARAM, params))
+
+params["PARAM_NAME"] = generate_utils.getResizeEnableParam()
+print(generate_utils.replaceMacros(BOOL_PARAM, params))
+
+params["PARAM_NAME"] = generate_utils.getResize0Param()
+print(generate_utils.replaceMacros(BOOL_PARAM, params))
+
+params["PARAM_NAME"] = generate_utils.getResize1Param()
 print(generate_utils.replaceMacros(BOOL_PARAM, params))
 
 for i in range(0, generate_utils.NUM_LAYERS):

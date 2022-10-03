@@ -17,6 +17,8 @@
 
 from generate_utils import replaceMacros
 from generate_utils import getDummyParam
+from generate_utils import getResize0Param
+from generate_utils import getResize1Param
 from generate_utils import getLayerParam
 from generate_utils import getSelectParam
 from generate_utils import getEnableParam
@@ -24,6 +26,8 @@ from generate_utils import getShaderParam
 from generate_utils import getAnimationPath
 from generate_utils import NUM_LAYERS
 from generate_utils import CHARS_PER_CELL
+
+import generate_utils
 
 # To debug, I recommend setting these values low and manually moving things
 # around in the animator. Then run using Lyuma's avatar 3.0 emulator.
@@ -113,125 +117,20 @@ ANIMATOR_LAYER_TASTT = """
     m_Controller: {fileID: %ANIMATOR_HEADER_U2%}
 """[1:][:-1]
 
-GROUP_NAMES = [
-        "_Letter_Row00_Col00_03",
-        "_Letter_Row00_Col04_07",
-        "_Letter_Row00_Col08_11",
-        "_Letter_Row00_Col12_13",
-        "_Letter_Row01_Col00_03",
-        "_Letter_Row01_Col04_07",
-        "_Letter_Row01_Col08_11",
-        "_Letter_Row01_Col12_13",
-        "_Letter_Row02_Col00_03",
-        "_Letter_Row02_Col04_07",
-        "_Letter_Row02_Col08_11",
-        "_Letter_Row02_Col12_13",
-        "_Letter_Row03_Col00_03",
-        "_Letter_Row03_Col04_07",
-        "_Letter_Row03_Col08_11",
-        "_Letter_Row03_Col12_13",
-        "_Letter_Row04_Col00_03",
-        "_Letter_Row04_Col04_07",
-        "_Letter_Row04_Col08_11",
-        "_Letter_Row04_Col12_13",
-        "_Letter_Row05_Col00_03",
-        "_Letter_Row05_Col04_07",
-        "_Letter_Row05_Col08_11",
-        "_Letter_Row05_Col12_13",
-        ]
-
-CELL_NAMES = [
-        "_Letter_Row00_Col00",
-        "_Letter_Row00_Col01",
-        "_Letter_Row00_Col02",
-        "_Letter_Row00_Col03",
-        "_Letter_Row00_Col04",
-        "_Letter_Row00_Col05",
-        "_Letter_Row00_Col06",
-        "_Letter_Row00_Col07",
-        "_Letter_Row00_Col08",
-        "_Letter_Row00_Col09",
-        "_Letter_Row00_Col10",
-        "_Letter_Row00_Col11",
-        "_Letter_Row00_Col12",
-        "_Letter_Row00_Col13",
-        "_Letter_Row01_Col00",
-        "_Letter_Row01_Col01",
-        "_Letter_Row01_Col02",
-        "_Letter_Row01_Col03",
-        "_Letter_Row01_Col04",
-        "_Letter_Row01_Col05",
-        "_Letter_Row01_Col06",
-        "_Letter_Row01_Col07",
-        "_Letter_Row01_Col08",
-        "_Letter_Row01_Col09",
-        "_Letter_Row01_Col10",
-        "_Letter_Row01_Col11",
-        "_Letter_Row01_Col12",
-        "_Letter_Row01_Col13",
-        "_Letter_Row02_Col00",
-        "_Letter_Row02_Col01",
-        "_Letter_Row02_Col02",
-        "_Letter_Row02_Col03",
-        "_Letter_Row02_Col04",
-        "_Letter_Row02_Col05",
-        "_Letter_Row02_Col06",
-        "_Letter_Row02_Col07",
-        "_Letter_Row02_Col08",
-        "_Letter_Row02_Col09",
-        "_Letter_Row02_Col10",
-        "_Letter_Row02_Col11",
-        "_Letter_Row02_Col12",
-        "_Letter_Row02_Col13",
-        "_Letter_Row03_Col00",
-        "_Letter_Row03_Col01",
-        "_Letter_Row03_Col02",
-        "_Letter_Row03_Col03",
-        "_Letter_Row03_Col04",
-        "_Letter_Row03_Col05",
-        "_Letter_Row03_Col06",
-        "_Letter_Row03_Col07",
-        "_Letter_Row03_Col08",
-        "_Letter_Row03_Col09",
-        "_Letter_Row03_Col10",
-        "_Letter_Row03_Col11",
-        "_Letter_Row03_Col12",
-        "_Letter_Row03_Col13",
-        "_Letter_Row04_Col00",
-        "_Letter_Row04_Col01",
-        "_Letter_Row04_Col02",
-        "_Letter_Row04_Col03",
-        "_Letter_Row04_Col04",
-        "_Letter_Row04_Col05",
-        "_Letter_Row04_Col06",
-        "_Letter_Row04_Col07",
-        "_Letter_Row04_Col08",
-        "_Letter_Row04_Col09",
-        "_Letter_Row04_Col10",
-        "_Letter_Row04_Col11",
-        "_Letter_Row04_Col12",
-        "_Letter_Row04_Col13",
-        "_Letter_Row05_Col00",
-        "_Letter_Row05_Col01",
-        "_Letter_Row05_Col02",
-        "_Letter_Row05_Col03",
-        "_Letter_Row05_Col04",
-        "_Letter_Row05_Col05",
-        "_Letter_Row05_Col06",
-        "_Letter_Row05_Col07",
-        "_Letter_Row05_Col08",
-        "_Letter_Row05_Col09",
-        "_Letter_Row05_Col10",
-        "_Letter_Row05_Col11",
-        "_Letter_Row05_Col12",
-        "_Letter_Row05_Col13",
-        ]
-
 def genAnimator(state):
     print(replaceMacros(ANIMATOR_HEADER, params))
     print(ANIMATOR_PARAMETER_HEADER)
 
     params["ANIMATOR_PARAMETER_NAME"] = getDummyParam()
+    print(replaceMacros(ANIMATOR_PARAMETER_BOOL, params))
+
+    params["ANIMATOR_PARAMETER_NAME"] = generate_utils.getResizeEnableParam()
+    print(replaceMacros(ANIMATOR_PARAMETER_BOOL, params))
+
+    params["ANIMATOR_PARAMETER_NAME"] = generate_utils.getResize0Param()
+    print(replaceMacros(ANIMATOR_PARAMETER_BOOL, params))
+
+    params["ANIMATOR_PARAMETER_NAME"] = generate_utils.getResize1Param()
     print(replaceMacros(ANIMATOR_PARAMETER_BOOL, params))
 
     for i in range(0, NUM_LAYERS):
@@ -258,6 +157,11 @@ def genAnimator(state):
         params["TASTT_LAYER_U2"] = params[getLayerParam(i) + "_LAYER_U2"]
         params["TASTT_LAYER_NAME"] = getLayerParam(i)
         print(replaceMacros(ANIMATOR_LAYER_TASTT, params))
+
+    params["TASTT_RESIZE_LAYER_U2"] = get_u2("1107", state)
+    params["TASTT_LAYER_U2"] = params["TASTT_RESIZE_LAYER_U2"]
+    params["TASTT_LAYER_NAME"] = "TaSTT_Resize"
+    print(replaceMacros(ANIMATOR_LAYER_TASTT, params))
 genAnimator(state)
 
 TASTT_LAYER_HEADER = """
@@ -363,36 +267,6 @@ AnimatorState:
   m_TimeParameter: 
 """[1:][:-1]
 
-TASTT_UNARY_STATE = """
---- !u!%ANIMATOR_STATE_U% &%TASTT_STATE_U2%
-AnimatorState:
-  serializedVersion: 6
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: %TASTT_STATE_NAME%
-  m_Speed: 1
-  m_CycleOffset: 0
-  m_Transitions:
-  - {fileID: %TASTT_STATE_TRANSITION_U2%}
-  m_StateMachineBehaviours: []
-  m_Position: {x: 50, y: 50, z: 0}
-  m_IKOnFeet: 0
-  m_WriteDefaultValues: 0
-  m_Mirror: 0
-  m_SpeedParameterActive: 0
-  m_MirrorParameterActive: 0
-  m_CycleOffsetParameterActive: 0
-  m_TimeParameterActive: 0
-  m_Motion: {fileID: 0}
-  m_Tag: 
-  m_SpeedParameter: 
-  m_MirrorParameter: 
-  m_CycleOffsetParameter: 
-  m_TimeParameter: 
-"""[1:][:-1]
-
 TASTT_NARY_STATE_HEADER = """
 --- !u!%ANIMATOR_STATE_U% &%TASTT_STATE_U2%
 AnimatorState:
@@ -437,7 +311,7 @@ TASTT_NARY_STATE_FOOTER = """
 #   %TASTT_ROW_STATE_U2% - address of row state we're transitioning to
 # A bizarre quirk: when branching false, m_ConditionMode = 2; else
 # m_ConditionMode = 1.
-TASTT_BOOL_STATE_TRANSITION = """
+TASTT_BOOL_STATE_UNARY_TRANSITION = """
 --- !u!1101 &%TASTT_STATE_TRANSITION_U2%
 AnimatorStateTransition:
   m_ObjectHideFlags: 1
@@ -465,6 +339,37 @@ AnimatorStateTransition:
   m_CanTransitionToSelf: 1
 """[1:][:-1]
 
+TASTT_BOOL_STATE_BINARY_TRANSITION = """
+--- !u!1101 &%TASTT_STATE_TRANSITION_U2%
+AnimatorStateTransition:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_Conditions:
+  - m_ConditionMode: %MODE0%
+    m_ConditionEvent: %BOOL_PARAM0%
+    m_EventTreshold: %THRESHOLD0%
+  - m_ConditionMode: %MODE1%
+    m_ConditionEvent: %BOOL_PARAM1%
+    m_EventTreshold: %THRESHOLD1%
+  m_DstStateMachine: {fileID: 0}
+  m_DstState: {fileID: %DST_STATE_U2%}
+  m_Solo: 0
+  m_Mute: 0
+  m_IsExit: 0
+  serializedVersion: 3
+  m_TransitionDuration: 1.0
+  m_TransitionOffset: 0
+  m_ExitTime: 0.75
+  m_HasExitTime: 0
+  m_HasFixedDuration: 1
+  m_InterruptionSource: 0
+  m_OrderedInterruption: 1
+  m_CanTransitionToSelf: 1
+"""[1:][:-1]
+
 TASTT_INT_STATE_TRANSITION = """
 --- !u!1101 &%TASTT_STATE_TRANSITION_U2%
 AnimatorStateTransition:
@@ -483,7 +388,7 @@ AnimatorStateTransition:
   m_Mute: 0
   m_IsExit: 0
   serializedVersion: 3
-  m_TransitionDuration: 0.02
+  m_TransitionDuration: 0.1
   m_TransitionOffset: 0
   m_ExitTime: 0.75
   m_HasExitTime: 0
@@ -500,7 +405,7 @@ AnimatorStateTransition:
 #  %TASTT_ANIM_GUID%: GUID of the animation to play
 #  %TASTT_RESTART_TRANSITION_U2%: U2 of transition back to
 #      TaSTT_Do_Nothing.
-TASTT_LETTER_STATE = """
+TASTT_ANIM_STATE = """
 --- !u!1102 &%TASTT_STATE_U2%
 AnimatorState:
   serializedVersion: 6
@@ -564,7 +469,7 @@ def getAnimationGuid(anim_meta_filename):
             if "guid" in line:
                 return line.split()[1]
 
-def getDefaultStateName(which_layer):
+def getDefaultStateName():
     return "TaSTT_Do_Nothing"
 
 def getActiveStateName(which_layer):
@@ -582,30 +487,33 @@ def getS2StateName(which_layer, s0, s1, s2):
 def getLetterStateName(which_layer, s0, s1, s2, letter):
     return "TaSTT_S%02d_S%02d_S%02d_L%03d" % (s0, s1, s2, letter)
 
+def getResizeStateName(e0, e1):
+    return "TaSTT_Resize_E%d_E%d" % (e0, e1)
+
 def genTasttLayer(state, which_layer):
     # Generate return-home transition
     params["TASTT_RETURN_HOME_TRANSITION_%02d_U2" % which_layer] = get_u2("1101", state)
     params["TASTT_STATE_TRANSITION_U2"] = params["TASTT_RETURN_HOME_TRANSITION_%02d_U2" % which_layer]
     params["BOOL_PARAM"] = getDummyParam()
     params["THRESHOLD"] = str(0)
-    params["MODE"] = str(2)  # See comment above TASTT_BOOL_STATE_TRANSITION.
-    params["DEFAULT_STATE_U2"] = get_u2("1102", state)
-    params["DST_STATE_U2"] = params["DEFAULT_STATE_U2"]
-    print(replaceMacros(TASTT_BOOL_STATE_TRANSITION, params))
+    params["MODE"] = str(2)  # See comment above TASTT_BOOL_STATE_UNARY_TRANSITION.
+    params["TASTT_DEFAULT_STATE_U2"] = get_u2("1102", state)
+    params["DST_STATE_U2"] = params["TASTT_DEFAULT_STATE_U2"]
+    print(replaceMacros(TASTT_BOOL_STATE_UNARY_TRANSITION, params))
 
     # Default state.
-    params["TASTT_STATE_U2"] = params["DEFAULT_STATE_U2"]
-    params["TASTT_STATE_NAME"] = getDefaultStateName(which_layer)
+    params["TASTT_STATE_U2"] = params["TASTT_DEFAULT_STATE_U2"]
+    params["TASTT_STATE_NAME"] = getDefaultStateName()
     params["TASTT_STATE_TRANSITION_U2"] = get_u2("1101", state)
     print(replaceMacros(TASTT_UNARY_STATE, params))
 
     # Active state transition.
     params["BOOL_PARAM"] = getEnableParam(which_layer)
     params["THRESHOLD"] = str(1)
-    params["MODE"] = str(1)  # See comment above TASTT_BOOL_STATE_TRANSITION.
+    params["MODE"] = str(1)  # See comment above TASTT_BOOL_STATE_UNARY_TRANSITION.
     params["ACTIVE_STATE_U2"] = get_u2("1102", state)
     params["DST_STATE_U2"] = params["ACTIVE_STATE_U2"]
-    print(replaceMacros(TASTT_BOOL_STATE_TRANSITION, params))
+    print(replaceMacros(TASTT_BOOL_STATE_UNARY_TRANSITION, params))
 
     # Active state.
     params["TASTT_STATE_U2"] = params["ACTIVE_STATE_U2"]
@@ -621,10 +529,10 @@ def genTasttLayer(state, which_layer):
         params["TASTT_STATE_TRANSITION_U2"] = params[getS0StateName(which_layer, s0) + "_TRANSITION_U2"]
         params["BOOL_PARAM"] = getSelectParam(which_layer, 0)
         params["THRESHOLD"] = str(s0)
-        params["MODE"] = str(2 - s0)  # See comment above TASTT_BOOL_STATE_TRANSITION.
+        params["MODE"] = str(2 - s0)  # See comment above TASTT_BOOL_STATE_UNARY_TRANSITION.
         params[getS0StateName(which_layer, s0) + "_U2"] = get_u2("1102", state)
         params["DST_STATE_U2"] = params[getS0StateName(which_layer, s0) + "_U2"]
-        print(replaceMacros(TASTT_BOOL_STATE_TRANSITION, params))
+        print(replaceMacros(TASTT_BOOL_STATE_UNARY_TRANSITION, params))
 
     # S0 state.
     for s0 in range(0,2):
@@ -642,10 +550,10 @@ def genTasttLayer(state, which_layer):
             params["TASTT_STATE_TRANSITION_U2"] = params[getS1StateName(which_layer, s0, s1) + "_TRANSITION_U2"]
             params["BOOL_PARAM"] = getSelectParam(which_layer, 1)
             params["THRESHOLD"] = str(s1)
-            params["MODE"] = str(2 - s1)  # See comment above TASTT_BOOL_STATE_TRANSITION.
+            params["MODE"] = str(2 - s1)  # See comment above TASTT_BOOL_STATE_UNARY_TRANSITION.
             params[getS1StateName(which_layer, s0, s1) + "_U2"] = get_u2("1102", state)
             params["DST_STATE_U2"] = params[getS1StateName(which_layer, s0, s1) + "_U2"]
-            print(replaceMacros(TASTT_BOOL_STATE_TRANSITION, params))
+            print(replaceMacros(TASTT_BOOL_STATE_UNARY_TRANSITION, params))
 
     # S1 state.
     for s0 in range(0,2):
@@ -665,10 +573,10 @@ def genTasttLayer(state, which_layer):
                 params["TASTT_STATE_TRANSITION_U2"] = params[getS2StateName(which_layer, s0, s1, s2) + "_TRANSITION_U2"]
                 params["BOOL_PARAM"] = getSelectParam(which_layer, 2)
                 params["THRESHOLD"] = str(s2)
-                params["MODE"] = str(2 - s2)  # See comment above TASTT_BOOL_STATE_TRANSITION.
+                params["MODE"] = str(2 - s2)  # See comment above TASTT_BOOL_STATE_UNARY_TRANSITION.
                 params[getS2StateName(which_layer, s0, s1, s2) + "_U2"] = get_u2("1102", state)
                 params["DST_STATE_U2"] = params[getS2StateName(which_layer, s0, s1, s2) + "_U2"]
-                print(replaceMacros(TASTT_BOOL_STATE_TRANSITION, params))
+                print(replaceMacros(TASTT_BOOL_STATE_UNARY_TRANSITION, params))
 
     # S2 state.
     for s0 in range(0,2):
@@ -705,7 +613,7 @@ def genTasttLayer(state, which_layer):
                     params["TASTT_STATE_TRANSITION_U2"] = params["TASTT_RETURN_HOME_TRANSITION_%02d_U2" % which_layer]
                     anim_meta_filename = getAnimationPath(getShaderParam(which_layer, s0, s1, s2), letter) + ".meta"
                     params["TASTT_ANIM_GUID"] = getAnimationGuid(anim_meta_filename)
-                    print(replaceMacros(TASTT_LETTER_STATE, params))
+                    print(replaceMacros(TASTT_ANIM_STATE, params))
 
     # TaSTT layer.
     params["TASTT_LAYER_U2"] = params[getLayerParam(which_layer) + "_LAYER_U2"]
@@ -713,7 +621,7 @@ def genTasttLayer(state, which_layer):
     params["TASTT_LAYER_NAME"] = getLayerParam(which_layer)
     print(replaceMacros(TASTT_LAYER_HEADER, params))
 
-    params["TASTT_STATE_U2"] = params["DEFAULT_STATE_U2"]
+    params["TASTT_STATE_U2"] = params["TASTT_DEFAULT_STATE_U2"]
     print(replaceMacros(TASTT_LAYER_HEADER_CHILD_STATE, params))
 
     params["TASTT_STATE_U2"] = params["ACTIVE_STATE_U2"]
@@ -741,8 +649,98 @@ def genTasttLayer(state, which_layer):
                     params["TASTT_STATE_U2"] = params[getLetterStateName(which_layer, s0, s1, s2, letter) + "_U2"]
                     print(replaceMacros(TASTT_LAYER_HEADER_CHILD_STATE, params))
 
-    params["TASTT_DEFAULT_STATE_U2"] = params["DEFAULT_STATE_U2"]
+    params["TASTT_DEFAULT_STATE_U2"] = params["TASTT_DEFAULT_STATE_U2"]
     print(replaceMacros(TASTT_LAYER_FOOTER, params))
 
 for i in range(0, NUM_LAYERS):
     genTasttLayer(state, i)
+
+def genTasttResizeLayer(state):
+    # Generate return-home transition
+    params["TASTT_RETURN_HOME_TRANSITION_U2"] = get_u2("1101", state)
+    params["TASTT_STATE_TRANSITION_U2"] = params["TASTT_RETURN_HOME_TRANSITION_U2"]
+    params["BOOL_PARAM"] = getDummyParam()
+    params["THRESHOLD"] = str(0)
+    params["MODE"] = str(2)  # See comment above TASTT_BOOL_STATE_UNARY_TRANSITION.
+    params["TASTT_DEFAULT_STATE_U2"] = get_u2("1102", state)
+    params["DST_STATE_U2"] = params["TASTT_DEFAULT_STATE_U2"]
+    print(replaceMacros(TASTT_BOOL_STATE_UNARY_TRANSITION, params))
+
+    # Default state.
+    params["TASTT_STATE_U2"] = params["TASTT_DEFAULT_STATE_U2"]
+    params["TASTT_STATE_NAME"] = getDefaultStateName()
+    params["TASTT_STATE_TRANSITION_U2"] = get_u2("1101", state)
+    print(replaceMacros(TASTT_UNARY_STATE, params))
+
+    # Active state transition.
+    params["BOOL_PARAM"] = generate_utils.getResizeEnableParam()
+    params["THRESHOLD"] = str(1)
+    params["MODE"] = str(1)  # See comment above TASTT_BOOL_STATE_UNARY_TRANSITION.
+    params["ACTIVE_STATE_U2"] = get_u2("1102", state)
+    params["DST_STATE_U2"] = params["ACTIVE_STATE_U2"]
+    print(replaceMacros(TASTT_BOOL_STATE_UNARY_TRANSITION, params))
+
+    # Active state.
+    params["TASTT_STATE_U2"] = params["ACTIVE_STATE_U2"]
+    params["TASTT_STATE_NAME"] = "TaSTT_Resize_Enabled"
+    print(replaceMacros(TASTT_NARY_STATE_HEADER, params))
+
+    for e0 in range(0, 2):
+        for e1 in range(0, 2):
+            params[getResizeStateName(e0, e1) + "_TRANSITION_U2"] = get_u2("1101", state)
+            params["TASTT_STATE_TRANSITION_U2"] = params[getResizeStateName(e0, e1) + "_TRANSITION_U2"]
+            print(replaceMacros(TASTT_NARY_STATE_HEADER_TRANSITION, params))
+
+    print(replaceMacros(TASTT_NARY_STATE_FOOTER, params))
+    
+    # Animation transitions.
+    for e0 in range(0, 2):
+        params["THRESHOLD0"] = str(e0)
+        params["BOOL_PARAM0"] = generate_utils.getResize0Param()
+        params["MODE0"] = str(2 - e0)  # See comment above TASTT_BOOL_STATE_UNARY_TRANSITION.
+        for e1 in range(0, 2):
+            params["THRESHOLD1"] = str(e1)
+            params["BOOL_PARAM1"] = generate_utils.getResize1Param()
+            params["MODE1"] = str(2 - e1)  # See comment above TASTT_BOOL_STATE_UNARY_TRANSITION.
+
+            params["TASTT_STATE_TRANSITION_U2"] = params[getResizeStateName(e0, e1) + "_TRANSITION_U2"]
+
+            params[getResizeStateName(e0, e1) + "_U2"] = get_u2("1102", state)
+            params["DST_STATE_U2"] = params[getResizeStateName(e0, e1) + "_U2"]
+
+            print(replaceMacros(TASTT_BOOL_STATE_BINARY_TRANSITION, params))
+
+    # Animation states.
+    for e0 in range(0, 2):
+        for e1 in range(0, 2):
+            params["TASTT_STATE_NAME"] = getResizeStateName(e0, e1)
+            params["TASTT_STATE_U2"] = params[getResizeStateName(e0, e1) + "_U2"]
+            params["TASTT_STATE_TRANSITION_U2"] = params["TASTT_RETURN_HOME_TRANSITION_U2"]
+            anim_meta_filename="Animations/"
+            if e0 == 0 and e1 == 0:
+                anim_meta_filename += "TaSTT_Backplate_Resize_00_to_50.anim.meta"
+            elif e0 == 0 and e1 == 1:
+                anim_meta_filename += "TaSTT_Backplate_Resize_50_to_100.anim.meta"
+            elif e0 == 1 and e1 == 0:
+                anim_meta_filename += "TaSTT_Backplate_Resize_100_to_50.anim.meta"
+            elif e0 == 1 and e1 == 1:
+                anim_meta_filename += "TaSTT_Backplate_Resize_50_to_00.anim.meta"
+            params["TASTT_ANIM_GUID"] = getAnimationGuid(anim_meta_filename)
+            print(replaceMacros(TASTT_ANIM_STATE, params))
+
+    # Layer
+    params["TASTT_LAYER_U2"] = params["TASTT_RESIZE_LAYER_U2"]
+    params["TASTT_LAYER_NAME"] = params["TASTT_LAYER_NAME"]
+    print(replaceMacros(TASTT_LAYER_HEADER, params))
+
+    params["TASTT_STATE_U2"] = params["TASTT_DEFAULT_STATE_U2"]
+    print(replaceMacros(TASTT_LAYER_HEADER_CHILD_STATE, params))
+    params["TASTT_STATE_U2"] = params["ACTIVE_STATE_U2"]
+    print(replaceMacros(TASTT_LAYER_HEADER_CHILD_STATE, params))
+    for e0 in range(0, 2):
+        for e1 in range(0, 2):
+            params["TASTT_STATE_U2"] = params[getResizeStateName(e0, e1) + "_U2"]
+            print(replaceMacros(TASTT_LAYER_HEADER_CHILD_STATE, params))
+    print(replaceMacros(TASTT_LAYER_FOOTER, params))
+
+genTasttResizeLayer(state)

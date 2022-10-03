@@ -1,4 +1,4 @@
-﻿Shader "Unlit/my_shader"
+﻿Shader "Unlit/TaSTT"
 {
   Properties
   {
@@ -108,6 +108,8 @@
 
     Pass
     {
+      Blend SrcAlpha OneMinusSrcAlpha
+
       CGPROGRAM
       #pragma vertex vert
       #pragma fragment frag
@@ -127,7 +129,8 @@
         float4 vertex : SV_POSITION;
       };
 
-      sampler2D _MainTex;
+      Texture2D _MainTex;
+      SamplerState sampler_linear_repeat;
       float4 _MainTex_ST;
 
       float _Letter_Row00_Col00;
@@ -237,44 +240,31 @@
 
       // Write the nth letter in the current cell and return the value of the
       // pixel.
-      float2 GetLetter(v2f i, float nth_letter)
+      float2 GetLetter(v2f i, int nth_letter)
       {
         // UV spans from [0,1] to [0,1].
         // 'U' is horizontal; cols.
         // 'V' is vertical; rows.
         //
         // I want to divide the mesh into an m x n grid.
-        // Thus given UV, I need to know a few things:
-        // 1. What grid cell I'm in. This is simply u * m, v * n.
-        float CHAR_ROWS = 6.0;
-        float CHAR_COLS = 16.0;
-        float CHAR_COL = floor(i.uv.x * CHAR_COLS);
-        float CHAR_ROW = floor(i.uv.y * CHAR_ROWS);
+        // I want to know what grid cell I'm in. This is simply u * m, v * n.
+        int CHAR_ROWS = 6;
+        int CHAR_COLS = 16;
 
         // OK, I know what cell I'm in. Now I need to know how far across it I
-        // am.
-        float CHAR_FRAC_COL = fmod(i.uv.x, 1.0 / CHAR_COLS) / (1.0 / CHAR_COLS);
-        float CHAR_FRAC_ROW = fmod(i.uv.y, 1.0 / CHAR_ROWS) / (1.0 / CHAR_ROWS);
+        // am. Produce a float in the range [0, CHAR_COLS).
+        float CHAR_FRAC_COL = i.uv.x * CHAR_COLS - floor(i.uv.x * CHAR_COLS);
+        float CHAR_FRAC_ROW = i.uv.y * CHAR_ROWS - floor(i.uv.y * CHAR_ROWS);
 
-        // TODO(yum_food) figure out what's causing the outlines around letters
-        // and remove this. This simply reduces the size of the outlines.
-        float kappa = 0.01;
-        if (CHAR_FRAC_COL < kappa || CHAR_FRAC_ROW < kappa ||
-            CHAR_FRAC_COL > 1 - kappa || CHAR_FRAC_ROW > 1 - kappa) {
-          return float2(0, 0);
-        }
-
+        // This is the number of rows and columns in the actual texture.
         float LETTER_COLS = 26.6;
         float LETTER_ROWS = 11.4;
+
         float LETTER_COL = fmod(nth_letter, floor(LETTER_COLS));
         float LETTER_ROW = floor(LETTER_ROWS) - floor(nth_letter / floor(LETTER_COLS));
-        float LETTER_UV_WD = (1.0 / LETTER_COLS);
-        float LETTER_UV_COL = (LETTER_UV_WD * LETTER_COL);
-        float LETTER_UV_HT = (1.0 / LETTER_ROWS);
-        float LETTER_UV_ROW = (LETTER_UV_HT * LETTER_ROW);
 
-        LETTER_UV_ROW += LETTER_UV_HT * CHAR_FRAC_ROW - LETTER_UV_HT * 0.6;
-        LETTER_UV_COL += LETTER_UV_WD * CHAR_FRAC_COL;
+        float LETTER_UV_ROW = (LETTER_ROW + CHAR_FRAC_ROW - 0.6) / LETTER_ROWS;
+        float LETTER_UV_COL = (LETTER_COL + CHAR_FRAC_COL) / LETTER_COLS;
 
         float2 uv;
         uv.x = LETTER_UV_COL;
@@ -505,11 +495,7 @@
       {
         float letter = GetLetterParameter(i);
         float2 uv = GetLetter(i, letter);
-        fixed4 ret = tex2D(_MainTex, uv);
-        if (uv.x == 0 || uv.y == 0 || uv.x == 1 || uv.y == 1) {
-          ret.xyz = 0;
-          ret.w = 0;
-        }
+        fixed4 ret = _MainTex.Sample(sampler_linear_repeat, uv);
         return ret;
       }
       ENDCG

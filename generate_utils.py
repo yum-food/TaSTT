@@ -19,8 +19,19 @@ NUM_LAYERS=ceil((BOARD_ROWS * BOARD_COLS) / (2**INDEX_BITS))
 #   1 bit: enable bit (turns layer off while we index to a new slot)
 NUM_PARAM_BITS=(NUM_LAYERS * (8 + INDEX_BITS + 1))
 
+# Implementation detail. We use this parameter to return from the terminal
+# state of the FX layer to the starting state.
 def getDummyParam():
     return "TaSTT_Dummy"
+
+def getResizeEnableParam():
+    return "TaSTT_Resize_Enable"
+
+def getResize0Param():
+    return "TaSTT_Resize_0"
+
+def getResize1Param():
+    return "TaSTT_Resize_1"
 
 # Each layer controls a group of cells. There's only one letter per layer, thus
 # this is also the name of the parameter which sets the letter for a layer.
