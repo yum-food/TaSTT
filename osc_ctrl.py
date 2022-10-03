@@ -19,7 +19,7 @@ from generate_utils import BOARD_COLS
 
 #CELL_TX_TIME_S=3.0
 #CELL_TX_TIME_S=1.0
-CELL_TX_TIME_S=0.3
+CELL_TX_TIME_S=0.1
 
 def usage():
     print("python3 -m pip install python-osc")
@@ -55,17 +55,24 @@ def generateEncoding(state):
     state.encoding['_'] = 70
     state.encoding["'"] = 71
     state.encoding['"'] = 72
+generateEncoding(state)
 
+# Encodes a list of lines into the character set used by the board.
+# Pads lines with spaces and adds lines so that the total number of
+# lines sent is a multiple of the number of rows in the board.
 def encodeMessage(lines):
     result = []
+    # Pad the number of lines up to a multiple of BOARD_ROWS.
+    print("Pad {} lines".format(BOARD_ROWS - (len(lines) % BOARD_ROWS)))
+    lines += [" "] * ((BOARD_ROWS - len(lines)) % BOARD_ROWS)
     for line in lines:
+        print("encode line {}".format(line))
         for char in line:
             result.append(state.encoding[char])
         result += [state.encoding[' ']] * (BOARD_COLS - len(line))
-    #print("Encoded message: {}".format(result))
     return result
 
-def updateCell(cell_idx, letter_encoded, s0, s1, s2):
+def updateCell(cell_idx, letter_encoded, s0, s1, s2, s3):
     addr="/avatar/parameters/" + getLayerParam(cell_idx)
     client.send_message(addr, letter_encoded)
 
@@ -78,6 +85,9 @@ def updateCell(cell_idx, letter_encoded, s0, s1, s2):
     addr="/avatar/parameters/" + getSelectParam(cell_idx, 2)
     client.send_message(addr, s2)
 
+    addr="/avatar/parameters/" + getSelectParam(cell_idx, 3)
+    client.send_message(addr, s3)
+
 def enable():
     addr="/avatar/parameters/" + getEnableParam()
     client.send_message(addr, True)
@@ -87,7 +97,7 @@ def disable():
     client.send_message(addr, False)
 
 # Send a cell all at once.
-# `which_cell` is an integer in the range [0,8).
+# `which_cell` is an integer in the range [0,2**INDEX_BITS).
 def sendMessageCellDiscrete(msg_cell, which_cell):
     # Disable each layer.
     disable()
@@ -95,16 +105,17 @@ def sendMessageCellDiscrete(msg_cell, which_cell):
     time.sleep(CELL_TX_TIME_S / 3.0)
 
     # Really long messages just wrap back around.
-    which_cell = (which_cell % 8)
+    which_cell = (which_cell % (2 ** generate_utils.INDEX_BITS))
 
-    s0 = ((floor(which_cell / 4) % 2) == 1)
-    s1 = ((floor(which_cell / 2) % 2) == 1)
-    s2 = ((floor(which_cell / 1) % 2) == 1)
+    s0 = ((floor(which_cell / 8) % 2) == 1)
+    s1 = ((floor(which_cell / 4) % 2) == 1)
+    s2 = ((floor(which_cell / 2) % 2) == 1)
+    s3 = ((floor(which_cell / 1) % 2) == 1)
 
-    print("Cell s0/s1/s2: {}/{}/{}".format(s0,s1,s2))
+    print("Cell s0/s1/s2/s3: {}/{}/{}/{}".format(s0,s1,s2,s3))
     # Seek each layer to the current cell.
     for i in range(0, len(msg_cell)):
-        updateCell(i, msg_cell[i], s0, s1, s2)
+        updateCell(i, msg_cell[i], s0, s1, s2, s3)
 
     # Wait for convergence.
     time.sleep(CELL_TX_TIME_S / 3.0)
@@ -116,58 +127,6 @@ def sendMessageCellDiscrete(msg_cell, which_cell):
 
     # Wait for convergence.
     time.sleep(CELL_TX_TIME_S / 3.0)
-
-# Send a cell smoothly spread out over the course of CELL_TX_TIME_S.
-# `which_cell` is an integer in the range [0,8).
-# TODO(yum_food) because we can only reliably update entire cells at once,
-# this method does not work :(
-def sendMessageCellContinuous(msg_cell, which_cell):
-    s0 = ((floor(which_cell / 4) % 2) == 1)
-    s1 = ((floor(which_cell / 2) % 2) == 1)
-    s2 = ((floor(which_cell / 1) % 2) == 1)
-
-    time_quanta = 20
-    dt = CELL_TX_TIME_S / (time_quanta * 1.0)
-
-    # key: time quantum \elem [0, 100)
-    # value: idx to handle
-    update_times = {}
-    enable_times = {}
-    disable_times = {}
-
-    for i in range(0, len(msg_cell)):
-        update_time = int(((i / NUM_LAYERS) + 0.000) * time_quanta) % time_quanta
-        enable_time = int(((i / NUM_LAYERS) + 0.333) * time_quanta) % time_quanta
-        disable_time = int(((i / NUM_LAYERS) + 0.666) * time_quanta) % time_quanta
-
-        update_times[update_time] = i
-        enable_times[enable_time] = i
-        disable_times[disable_time] = i
-
-    begin = time.time_ns()
-
-    for t in range(0, time_quanta):
-        if t in update_times:
-            #print("update cell: {}".format(which_cell))
-            which_cell = update_times[t]
-            updateCell(which_cell, msg_cell[which_cell], s0, s1, s2)
-        if t in enable_times:
-            #print("enable cell: {}".format(which_cell))
-            which_cell = enable_times[t]
-            addr="/avatar/parameters/" + getEnableParam(which_cell)
-            client.send_message(addr, True)
-        if t in disable_times:
-            #print("disable cell: {}".format(which_cell))
-            which_cell = disable_times[t]
-            addr="/avatar/parameters/" + getEnableParam(which_cell)
-            client.send_message(addr, False)
-
-        time.sleep(dt)
-
-    end = time.time_ns()
-    delta_t_s = (end - begin) / (1000.0 * 1000.0 * 1000.0)
-    if delta_t_s < CELL_TX_TIME_S:
-        time.sleep(CELL_TX_TIME_S - delta_t_s)
 
 # The board is broken down into contiguous collections of characters called
 # cells. Each cell contains `NUM_LAYERS` characters. We can update one cell
@@ -271,11 +230,9 @@ def closeBoard():
 
 if __name__ == "__main__":
     generateEncoding(state)
-    for line in fileinput.input():
-        clear()
-        sendMessage(line)
-        time.sleep(1)
-    #with open("lorum_ipsum.txt", "r") as f:
-    #    for line in f:
-    #        sendMessage(line)
 
+    clear()
+    for line in fileinput.input():
+        sendMessage(line)
+        time.sleep(1 + len(line) / 40.0)
+    clear()

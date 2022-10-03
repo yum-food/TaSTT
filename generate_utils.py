@@ -6,9 +6,12 @@ def replaceMacros(lines, macro_defs):
         lines = lines.replace("%" + k + "%", v)
     return lines
 
-BOARD_ROWS=6
-BOARD_COLS=16
-INDEX_BITS=3
+# Note, (BOARD_ROWS * BOARD_COLS % NUM_LAYERS) must equal 0. If not, writing to
+# the last cell will (with the current implementation) wrap around to the front
+# of the board.
+BOARD_ROWS=8
+BOARD_COLS=22
+INDEX_BITS=4
 CHARS_PER_CELL=80
 
 NUM_LAYERS=ceil((BOARD_ROWS * BOARD_COLS) / (2**INDEX_BITS))
@@ -44,17 +47,17 @@ def getSelectParam(which_layer, which_select):
 def getEnableParam():
     return "TaSTT_Enable"
 
-def getBoardIndex(which_layer, s0, s1, s2):
+def getBoardIndex(which_layer, s0, s1, s2, s3):
     # Because we divide the board into a multiple of 8 cells, some cells may
     # describe animations which don't exist, depending on the size of the board.
     # We work around this by simply wrapping those animations back to the top
     # of the board, and rely on the OSC controller to simply not reference
     # those cells.
-    return ((s0 * 4 + s1 * 2 + s2) * NUM_LAYERS + which_layer) % (BOARD_ROWS * BOARD_COLS)
+    return ((s0 * 8 + s1 * 4 + s2 * 2 + s3) * NUM_LAYERS + which_layer) % (BOARD_ROWS * BOARD_COLS)
 
 # Mapping from layer to shader param.
-def getShaderParam(which_layer, s0, s1, s2):
-    index = getBoardIndex(which_layer, s0, s1, s2)
+def getShaderParam(which_layer, s0, s1, s2, s3):
+    index = getBoardIndex(which_layer, s0, s1, s2, s3)
 
     col = index % BOARD_COLS
     row = floor(index / BOARD_COLS)

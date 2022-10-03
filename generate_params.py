@@ -66,3 +66,6 @@ for i in range(0, generate_utils.NUM_LAYERS):
 
     params["PARAM_NAME"] = generate_utils.getSelectParam(i, 2)
     print(generate_utils.replaceMacros(BOOL_PARAM, params))
+
+    params["PARAM_NAME"] = generate_utils.getSelectParam(i, 3)
+    print(generate_utils.replaceMacros(BOOL_PARAM, params))

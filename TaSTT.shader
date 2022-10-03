@@ -20,6 +20,12 @@
     _Letter_Row00_Col13("_Letter_Row00_Col13", float) = 0
     _Letter_Row00_Col14("_Letter_Row00_Col14", float) = 0
     _Letter_Row00_Col15("_Letter_Row00_Col15", float) = 0
+    _Letter_Row00_Col16("_Letter_Row00_Col16", float) = 0
+    _Letter_Row00_Col17("_Letter_Row00_Col17", float) = 0
+    _Letter_Row00_Col18("_Letter_Row00_Col18", float) = 0
+    _Letter_Row00_Col19("_Letter_Row00_Col19", float) = 0
+    _Letter_Row00_Col20("_Letter_Row00_Col20", float) = 0
+    _Letter_Row00_Col21("_Letter_Row00_Col21", float) = 0
     _Letter_Row01_Col00("_Letter_Row01_Col00", float) = 0
     _Letter_Row01_Col01("_Letter_Row01_Col01", float) = 0
     _Letter_Row01_Col02("_Letter_Row01_Col02", float) = 0
@@ -36,6 +42,12 @@
     _Letter_Row01_Col13("_Letter_Row01_Col13", float) = 0
     _Letter_Row01_Col14("_Letter_Row01_Col14", float) = 0
     _Letter_Row01_Col15("_Letter_Row01_Col15", float) = 0
+    _Letter_Row01_Col16("_Letter_Row01_Col16", float) = 0
+    _Letter_Row01_Col17("_Letter_Row01_Col17", float) = 0
+    _Letter_Row01_Col18("_Letter_Row01_Col18", float) = 0
+    _Letter_Row01_Col19("_Letter_Row01_Col19", float) = 0
+    _Letter_Row01_Col20("_Letter_Row01_Col20", float) = 0
+    _Letter_Row01_Col21("_Letter_Row01_Col21", float) = 0
     _Letter_Row02_Col00("_Letter_Row02_Col00", float) = 0
     _Letter_Row02_Col01("_Letter_Row02_Col01", float) = 0
     _Letter_Row02_Col02("_Letter_Row02_Col02", float) = 0
@@ -52,6 +64,12 @@
     _Letter_Row02_Col13("_Letter_Row02_Col13", float) = 0
     _Letter_Row02_Col14("_Letter_Row02_Col14", float) = 0
     _Letter_Row02_Col15("_Letter_Row02_Col15", float) = 0
+    _Letter_Row02_Col16("_Letter_Row02_Col16", float) = 0
+    _Letter_Row02_Col17("_Letter_Row02_Col17", float) = 0
+    _Letter_Row02_Col18("_Letter_Row02_Col18", float) = 0
+    _Letter_Row02_Col19("_Letter_Row02_Col19", float) = 0
+    _Letter_Row02_Col20("_Letter_Row02_Col20", float) = 0
+    _Letter_Row02_Col21("_Letter_Row02_Col21", float) = 0
     _Letter_Row03_Col00("_Letter_Row03_Col00", float) = 0
     _Letter_Row03_Col01("_Letter_Row03_Col01", float) = 0
     _Letter_Row03_Col02("_Letter_Row03_Col02", float) = 0
@@ -68,6 +86,12 @@
     _Letter_Row03_Col13("_Letter_Row03_Col13", float) = 0
     _Letter_Row03_Col14("_Letter_Row03_Col14", float) = 0
     _Letter_Row03_Col15("_Letter_Row03_Col15", float) = 0
+    _Letter_Row03_Col16("_Letter_Row03_Col16", float) = 0
+    _Letter_Row03_Col17("_Letter_Row03_Col17", float) = 0
+    _Letter_Row03_Col18("_Letter_Row03_Col18", float) = 0
+    _Letter_Row03_Col19("_Letter_Row03_Col19", float) = 0
+    _Letter_Row03_Col20("_Letter_Row03_Col20", float) = 0
+    _Letter_Row03_Col21("_Letter_Row03_Col21", float) = 0
     _Letter_Row04_Col00("_Letter_Row04_Col00", float) = 0
     _Letter_Row04_Col01("_Letter_Row04_Col01", float) = 0
     _Letter_Row04_Col02("_Letter_Row04_Col02", float) = 0
@@ -84,6 +108,12 @@
     _Letter_Row04_Col13("_Letter_Row04_Col13", float) = 0
     _Letter_Row04_Col14("_Letter_Row04_Col14", float) = 0
     _Letter_Row04_Col15("_Letter_Row04_Col15", float) = 0
+    _Letter_Row04_Col16("_Letter_Row04_Col16", float) = 0
+    _Letter_Row04_Col17("_Letter_Row04_Col17", float) = 0
+    _Letter_Row04_Col18("_Letter_Row04_Col18", float) = 0
+    _Letter_Row04_Col19("_Letter_Row04_Col19", float) = 0
+    _Letter_Row04_Col20("_Letter_Row04_Col20", float) = 0
+    _Letter_Row04_Col21("_Letter_Row04_Col21", float) = 0
     _Letter_Row05_Col00("_Letter_Row05_Col00", float) = 0
     _Letter_Row05_Col01("_Letter_Row05_Col01", float) = 0
     _Letter_Row05_Col02("_Letter_Row05_Col02", float) = 0
@@ -100,6 +130,56 @@
     _Letter_Row05_Col13("_Letter_Row05_Col13", float) = 0
     _Letter_Row05_Col14("_Letter_Row05_Col14", float) = 0
     _Letter_Row05_Col15("_Letter_Row05_Col15", float) = 0
+    _Letter_Row05_Col16("_Letter_Row05_Col16", float) = 0
+    _Letter_Row05_Col17("_Letter_Row05_Col17", float) = 0
+    _Letter_Row05_Col18("_Letter_Row05_Col18", float) = 0
+    _Letter_Row05_Col19("_Letter_Row05_Col19", float) = 0
+    _Letter_Row05_Col20("_Letter_Row05_Col20", float) = 0
+    _Letter_Row05_Col21("_Letter_Row05_Col21", float) = 0
+    _Letter_Row06_Col00("_Letter_Row06_Col00", float) = 0
+    _Letter_Row06_Col01("_Letter_Row06_Col01", float) = 0
+    _Letter_Row06_Col02("_Letter_Row06_Col02", float) = 0
+    _Letter_Row06_Col03("_Letter_Row06_Col03", float) = 0
+    _Letter_Row06_Col04("_Letter_Row06_Col04", float) = 0
+    _Letter_Row06_Col05("_Letter_Row06_Col05", float) = 0
+    _Letter_Row06_Col06("_Letter_Row06_Col06", float) = 0
+    _Letter_Row06_Col07("_Letter_Row06_Col07", float) = 0
+    _Letter_Row06_Col08("_Letter_Row06_Col08", float) = 0
+    _Letter_Row06_Col09("_Letter_Row06_Col09", float) = 0
+    _Letter_Row06_Col10("_Letter_Row06_Col10", float) = 0
+    _Letter_Row06_Col11("_Letter_Row06_Col11", float) = 0
+    _Letter_Row06_Col12("_Letter_Row06_Col12", float) = 0
+    _Letter_Row06_Col13("_Letter_Row06_Col13", float) = 0
+    _Letter_Row06_Col14("_Letter_Row06_Col14", float) = 0
+    _Letter_Row06_Col15("_Letter_Row06_Col15", float) = 0
+    _Letter_Row06_Col16("_Letter_Row06_Col16", float) = 0
+    _Letter_Row06_Col17("_Letter_Row06_Col17", float) = 0
+    _Letter_Row06_Col18("_Letter_Row06_Col18", float) = 0
+    _Letter_Row06_Col19("_Letter_Row06_Col19", float) = 0
+    _Letter_Row06_Col20("_Letter_Row06_Col20", float) = 0
+    _Letter_Row06_Col21("_Letter_Row06_Col21", float) = 0
+    _Letter_Row07_Col00("_Letter_Row07_Col00", float) = 0
+    _Letter_Row07_Col01("_Letter_Row07_Col01", float) = 0
+    _Letter_Row07_Col02("_Letter_Row07_Col02", float) = 0
+    _Letter_Row07_Col03("_Letter_Row07_Col03", float) = 0
+    _Letter_Row07_Col04("_Letter_Row07_Col04", float) = 0
+    _Letter_Row07_Col05("_Letter_Row07_Col05", float) = 0
+    _Letter_Row07_Col06("_Letter_Row07_Col06", float) = 0
+    _Letter_Row07_Col07("_Letter_Row07_Col07", float) = 0
+    _Letter_Row07_Col08("_Letter_Row07_Col08", float) = 0
+    _Letter_Row07_Col09("_Letter_Row07_Col09", float) = 0
+    _Letter_Row07_Col10("_Letter_Row07_Col10", float) = 0
+    _Letter_Row07_Col11("_Letter_Row07_Col11", float) = 0
+    _Letter_Row07_Col12("_Letter_Row07_Col12", float) = 0
+    _Letter_Row07_Col13("_Letter_Row07_Col13", float) = 0
+    _Letter_Row07_Col14("_Letter_Row07_Col14", float) = 0
+    _Letter_Row07_Col15("_Letter_Row07_Col15", float) = 0
+    _Letter_Row07_Col16("_Letter_Row07_Col16", float) = 0
+    _Letter_Row07_Col17("_Letter_Row07_Col17", float) = 0
+    _Letter_Row07_Col18("_Letter_Row07_Col18", float) = 0
+    _Letter_Row07_Col19("_Letter_Row07_Col19", float) = 0
+    _Letter_Row07_Col20("_Letter_Row07_Col20", float) = 0
+    _Letter_Row07_Col21("_Letter_Row07_Col21", float) = 0
     // This does nothing, it's just used by the 'Do Nothing' animation.
     _Dummy("_Dummy", float) = 0
   }
@@ -151,6 +231,12 @@
       float _Letter_Row00_Col13;
       float _Letter_Row00_Col14;
       float _Letter_Row00_Col15;
+      float _Letter_Row00_Col16;
+      float _Letter_Row00_Col17;
+      float _Letter_Row00_Col18;
+      float _Letter_Row00_Col19;
+      float _Letter_Row00_Col20;
+      float _Letter_Row00_Col21;
       float _Letter_Row01_Col00;
       float _Letter_Row01_Col01;
       float _Letter_Row01_Col02;
@@ -167,6 +253,12 @@
       float _Letter_Row01_Col13;
       float _Letter_Row01_Col14;
       float _Letter_Row01_Col15;
+      float _Letter_Row01_Col16;
+      float _Letter_Row01_Col17;
+      float _Letter_Row01_Col18;
+      float _Letter_Row01_Col19;
+      float _Letter_Row01_Col20;
+      float _Letter_Row01_Col21;
       float _Letter_Row02_Col00;
       float _Letter_Row02_Col01;
       float _Letter_Row02_Col02;
@@ -183,6 +275,12 @@
       float _Letter_Row02_Col13;
       float _Letter_Row02_Col14;
       float _Letter_Row02_Col15;
+      float _Letter_Row02_Col16;
+      float _Letter_Row02_Col17;
+      float _Letter_Row02_Col18;
+      float _Letter_Row02_Col19;
+      float _Letter_Row02_Col20;
+      float _Letter_Row02_Col21;
       float _Letter_Row03_Col00;
       float _Letter_Row03_Col01;
       float _Letter_Row03_Col02;
@@ -199,6 +297,12 @@
       float _Letter_Row03_Col13;
       float _Letter_Row03_Col14;
       float _Letter_Row03_Col15;
+      float _Letter_Row03_Col16;
+      float _Letter_Row03_Col17;
+      float _Letter_Row03_Col18;
+      float _Letter_Row03_Col19;
+      float _Letter_Row03_Col20;
+      float _Letter_Row03_Col21;
       float _Letter_Row04_Col00;
       float _Letter_Row04_Col01;
       float _Letter_Row04_Col02;
@@ -215,6 +319,12 @@
       float _Letter_Row04_Col13;
       float _Letter_Row04_Col14;
       float _Letter_Row04_Col15;
+      float _Letter_Row04_Col16;
+      float _Letter_Row04_Col17;
+      float _Letter_Row04_Col18;
+      float _Letter_Row04_Col19;
+      float _Letter_Row04_Col20;
+      float _Letter_Row04_Col21;
       float _Letter_Row05_Col00;
       float _Letter_Row05_Col01;
       float _Letter_Row05_Col02;
@@ -231,6 +341,56 @@
       float _Letter_Row05_Col13;
       float _Letter_Row05_Col14;
       float _Letter_Row05_Col15;
+      float _Letter_Row05_Col16;
+      float _Letter_Row05_Col17;
+      float _Letter_Row05_Col18;
+      float _Letter_Row05_Col19;
+      float _Letter_Row05_Col20;
+      float _Letter_Row05_Col21;
+      float _Letter_Row06_Col00;
+      float _Letter_Row06_Col01;
+      float _Letter_Row06_Col02;
+      float _Letter_Row06_Col03;
+      float _Letter_Row06_Col04;
+      float _Letter_Row06_Col05;
+      float _Letter_Row06_Col06;
+      float _Letter_Row06_Col07;
+      float _Letter_Row06_Col08;
+      float _Letter_Row06_Col09;
+      float _Letter_Row06_Col10;
+      float _Letter_Row06_Col11;
+      float _Letter_Row06_Col12;
+      float _Letter_Row06_Col13;
+      float _Letter_Row06_Col14;
+      float _Letter_Row06_Col15;
+      float _Letter_Row06_Col16;
+      float _Letter_Row06_Col17;
+      float _Letter_Row06_Col18;
+      float _Letter_Row06_Col19;
+      float _Letter_Row06_Col20;
+      float _Letter_Row06_Col21;
+      float _Letter_Row07_Col00;
+      float _Letter_Row07_Col01;
+      float _Letter_Row07_Col02;
+      float _Letter_Row07_Col03;
+      float _Letter_Row07_Col04;
+      float _Letter_Row07_Col05;
+      float _Letter_Row07_Col06;
+      float _Letter_Row07_Col07;
+      float _Letter_Row07_Col08;
+      float _Letter_Row07_Col09;
+      float _Letter_Row07_Col10;
+      float _Letter_Row07_Col11;
+      float _Letter_Row07_Col12;
+      float _Letter_Row07_Col13;
+      float _Letter_Row07_Col14;
+      float _Letter_Row07_Col15;
+      float _Letter_Row07_Col16;
+      float _Letter_Row07_Col17;
+      float _Letter_Row07_Col18;
+      float _Letter_Row07_Col19;
+      float _Letter_Row07_Col20;
+      float _Letter_Row07_Col21;
 
       v2f vert (appdata v)
       {
@@ -250,8 +410,8 @@
         //
         // I want to divide the mesh into an m x n grid.
         // I want to know what grid cell I'm in. This is simply u * m, v * n.
-        int CHAR_ROWS = 6;
-        int CHAR_COLS = 16;
+        int CHAR_ROWS = 8;
+        int CHAR_COLS = 22;
 
         // OK, I know what cell I'm in. Now I need to know how far across it I
         // am. Produce a float in the range [0, CHAR_COLS).
@@ -278,13 +438,13 @@
       // Get the value of the parameter for the cell we're in.
       float GetLetterParameter(v2f i)
       {
-        float CHAR_ROWS = 6.0;
-        float CHAR_COLS = 16.0;
+        float CHAR_ROWS = 8.0;
+        float CHAR_COLS = 22.0;
         float CHAR_COL = floor(i.uv.x * CHAR_COLS);
         float CHAR_ROW = floor(i.uv.y * CHAR_ROWS);
 
         // ok now this is epic
-        if (CHAR_ROW == 5) {
+        if (CHAR_ROW == 7) {
           if (CHAR_COL == 0) {
             return _Letter_Row00_Col00;
           } else if (CHAR_COL == 1) {
@@ -317,8 +477,20 @@
             return _Letter_Row00_Col14;
           } else if (CHAR_COL == 15) {
             return _Letter_Row00_Col15;
+          } else if (CHAR_COL == 16) {
+            return _Letter_Row00_Col16;
+          } else if (CHAR_COL == 17) {
+            return _Letter_Row00_Col17;
+          } else if (CHAR_COL == 18) {
+            return _Letter_Row00_Col18;
+          } else if (CHAR_COL == 19) {
+            return _Letter_Row00_Col19;
+          } else if (CHAR_COL == 20) {
+            return _Letter_Row00_Col20;
+          } else if (CHAR_COL == 21) {
+            return _Letter_Row00_Col21;
           }
-        } else if (CHAR_ROW == 4) {
+        } else if (CHAR_ROW == 6) {
           if (CHAR_COL == 0) {
             return _Letter_Row01_Col00;
           } else if (CHAR_COL == 1) {
@@ -351,8 +523,20 @@
             return _Letter_Row01_Col14;
           } else if (CHAR_COL == 15) {
             return _Letter_Row01_Col15;
+          } else if (CHAR_COL == 16) {
+            return _Letter_Row01_Col16;
+          } else if (CHAR_COL == 17) {
+            return _Letter_Row01_Col17;
+          } else if (CHAR_COL == 18) {
+            return _Letter_Row01_Col18;
+          } else if (CHAR_COL == 19) {
+            return _Letter_Row01_Col19;
+          } else if (CHAR_COL == 20) {
+            return _Letter_Row01_Col20;
+          } else if (CHAR_COL == 21) {
+            return _Letter_Row01_Col21;
           }
-        } else if (CHAR_ROW == 3) {
+        } else if (CHAR_ROW == 5) {
           if (CHAR_COL == 0) {
             return _Letter_Row02_Col00;
           } else if (CHAR_COL == 1) {
@@ -385,8 +569,20 @@
             return _Letter_Row02_Col14;
           } else if (CHAR_COL == 15) {
             return _Letter_Row02_Col15;
+          } else if (CHAR_COL == 16) {
+            return _Letter_Row02_Col16;
+          } else if (CHAR_COL == 17) {
+            return _Letter_Row02_Col17;
+          } else if (CHAR_COL == 18) {
+            return _Letter_Row02_Col18;
+          } else if (CHAR_COL == 19) {
+            return _Letter_Row02_Col19;
+          } else if (CHAR_COL == 20) {
+            return _Letter_Row02_Col20;
+          } else if (CHAR_COL == 21) {
+            return _Letter_Row02_Col21;
           }
-        } else if (CHAR_ROW == 2) {
+        } else if (CHAR_ROW == 4) {
           if (CHAR_COL == 0) {
             return _Letter_Row03_Col00;
           } else if (CHAR_COL == 1) {
@@ -419,8 +615,20 @@
             return _Letter_Row03_Col14;
           } else if (CHAR_COL == 15) {
             return _Letter_Row03_Col15;
+          } else if (CHAR_COL == 16) {
+            return _Letter_Row03_Col16;
+          } else if (CHAR_COL == 17) {
+            return _Letter_Row03_Col17;
+          } else if (CHAR_COL == 18) {
+            return _Letter_Row03_Col18;
+          } else if (CHAR_COL == 19) {
+            return _Letter_Row03_Col19;
+          } else if (CHAR_COL == 20) {
+            return _Letter_Row03_Col20;
+          } else if (CHAR_COL == 21) {
+            return _Letter_Row03_Col21;
           }
-        } else if (CHAR_ROW == 1) {
+        } else if (CHAR_ROW == 3) {
           if (CHAR_COL == 0) {
             return _Letter_Row04_Col00;
           } else if (CHAR_COL == 1) {
@@ -453,8 +661,20 @@
             return _Letter_Row04_Col14;
           } else if (CHAR_COL == 15) {
             return _Letter_Row04_Col15;
+          } else if (CHAR_COL == 16) {
+            return _Letter_Row04_Col16;
+          } else if (CHAR_COL == 17) {
+            return _Letter_Row04_Col17;
+          } else if (CHAR_COL == 18) {
+            return _Letter_Row04_Col18;
+          } else if (CHAR_COL == 19) {
+            return _Letter_Row04_Col19;
+          } else if (CHAR_COL == 20) {
+            return _Letter_Row04_Col20;
+          } else if (CHAR_COL == 21) {
+            return _Letter_Row04_Col21;
           }
-        } else if (CHAR_ROW == 0) {
+        } else if (CHAR_ROW == 2) {
           if (CHAR_COL == 0) {
             return _Letter_Row05_Col00;
           } else if (CHAR_COL == 1) {
@@ -487,6 +707,110 @@
             return _Letter_Row05_Col14;
           } else if (CHAR_COL == 15) {
             return _Letter_Row05_Col15;
+          } else if (CHAR_COL == 16) {
+            return _Letter_Row05_Col16;
+          } else if (CHAR_COL == 17) {
+            return _Letter_Row05_Col17;
+          } else if (CHAR_COL == 18) {
+            return _Letter_Row05_Col18;
+          } else if (CHAR_COL == 19) {
+            return _Letter_Row05_Col19;
+          } else if (CHAR_COL == 20) {
+            return _Letter_Row05_Col20;
+          } else if (CHAR_COL == 21) {
+            return _Letter_Row05_Col21;
+          }
+        } else if (CHAR_ROW == 1) {
+          if (CHAR_COL == 0) {
+            return _Letter_Row06_Col00;
+          } else if (CHAR_COL == 1) {
+            return _Letter_Row06_Col01;
+          } else if (CHAR_COL == 2) {
+            return _Letter_Row06_Col02;
+          } else if (CHAR_COL == 3) {
+            return _Letter_Row06_Col03;
+          } else if (CHAR_COL == 4) {
+            return _Letter_Row06_Col04;
+          } else if (CHAR_COL == 5) {
+            return _Letter_Row06_Col05;
+          } else if (CHAR_COL == 6) {
+            return _Letter_Row06_Col06;
+          } else if (CHAR_COL == 7) {
+            return _Letter_Row06_Col07;
+          } else if (CHAR_COL == 8) {
+            return _Letter_Row06_Col08;
+          } else if (CHAR_COL == 9) {
+            return _Letter_Row06_Col09;
+          } else if (CHAR_COL == 10) {
+            return _Letter_Row06_Col10;
+          } else if (CHAR_COL == 11) {
+            return _Letter_Row06_Col11;
+          } else if (CHAR_COL == 12) {
+            return _Letter_Row06_Col12;
+          } else if (CHAR_COL == 13) {
+            return _Letter_Row06_Col13;
+          } else if (CHAR_COL == 14) {
+            return _Letter_Row06_Col14;
+          } else if (CHAR_COL == 15) {
+            return _Letter_Row06_Col15;
+          } else if (CHAR_COL == 16) {
+            return _Letter_Row06_Col16;
+          } else if (CHAR_COL == 17) {
+            return _Letter_Row06_Col17;
+          } else if (CHAR_COL == 18) {
+            return _Letter_Row06_Col18;
+          } else if (CHAR_COL == 19) {
+            return _Letter_Row06_Col19;
+          } else if (CHAR_COL == 20) {
+            return _Letter_Row06_Col20;
+          } else if (CHAR_COL == 21) {
+            return _Letter_Row06_Col21;
+          }
+        } else if (CHAR_ROW == 0) {
+          if (CHAR_COL == 0) {
+            return _Letter_Row07_Col00;
+          } else if (CHAR_COL == 1) {
+            return _Letter_Row07_Col01;
+          } else if (CHAR_COL == 2) {
+            return _Letter_Row07_Col02;
+          } else if (CHAR_COL == 3) {
+            return _Letter_Row07_Col03;
+          } else if (CHAR_COL == 4) {
+            return _Letter_Row07_Col04;
+          } else if (CHAR_COL == 5) {
+            return _Letter_Row07_Col05;
+          } else if (CHAR_COL == 6) {
+            return _Letter_Row07_Col06;
+          } else if (CHAR_COL == 7) {
+            return _Letter_Row07_Col07;
+          } else if (CHAR_COL == 8) {
+            return _Letter_Row07_Col08;
+          } else if (CHAR_COL == 9) {
+            return _Letter_Row07_Col09;
+          } else if (CHAR_COL == 10) {
+            return _Letter_Row07_Col10;
+          } else if (CHAR_COL == 11) {
+            return _Letter_Row07_Col11;
+          } else if (CHAR_COL == 12) {
+            return _Letter_Row07_Col12;
+          } else if (CHAR_COL == 13) {
+            return _Letter_Row07_Col13;
+          } else if (CHAR_COL == 14) {
+            return _Letter_Row07_Col14;
+          } else if (CHAR_COL == 15) {
+            return _Letter_Row07_Col15;
+          } else if (CHAR_COL == 16) {
+            return _Letter_Row07_Col16;
+          } else if (CHAR_COL == 17) {
+            return _Letter_Row07_Col17;
+          } else if (CHAR_COL == 18) {
+            return _Letter_Row07_Col18;
+          } else if (CHAR_COL == 19) {
+            return _Letter_Row07_Col19;
+          } else if (CHAR_COL == 20) {
+            return _Letter_Row07_Col20;
+          } else if (CHAR_COL == 21) {
+            return _Letter_Row07_Col21;
           }
         }
 

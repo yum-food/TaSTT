@@ -11,16 +11,16 @@ set -o pipefail
 [ -d generated/animations ] && rm -rf generated || true
 mkdir -p generated/animations
 
-for row in `seq 0 5`; do
+for row in `seq 0 7`; do
   ROW_PADDED=$(printf '%02d' $row)
-  for col in `seq 0 16`; do
+  for col in `seq 0 21`; do
     COL_PADDED=$(printf '%02d' $col)
     LETTER_SHADER_PARAM=_Letter_Row${ROW_PADDED}_Col${COL_PADDED}
     for letter in `seq 0 79`; do
       LETTER_PADDED=$(printf '%02d' $letter)
       ANIM_NAME=${LETTER_SHADER_PARAM}_Letter${LETTER_PADDED}
       FILENAME=generated/animations/${ANIM_NAME}.anim
-      cat template.anim | \
+      cat template.anim.txt | \
         sed \
             -e "s/%LETTER_VALUE%/$letter/g" \
             -e "s/%LETTER_SHADER_PARAM%/$LETTER_SHADER_PARAM/g" \

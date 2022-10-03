@@ -149,6 +149,9 @@ def genAnimator(state):
         params["ANIMATOR_PARAMETER_NAME"] = getSelectParam(i, 2)
         print(replaceMacros(ANIMATOR_PARAMETER_BOOL, params))
 
+        params["ANIMATOR_PARAMETER_NAME"] = getSelectParam(i, 3)
+        print(replaceMacros(ANIMATOR_PARAMETER_BOOL, params))
+
 
     print(replaceMacros(ANIMATOR_LAYER_HEADER, params))
 
@@ -487,14 +490,17 @@ def getS1StateName(which_layer, s0, s1):
 def getS2StateName(which_layer, s0, s1, s2):
     return "TaSTT_L%02d_S%02d_S%02d_S%02d" % (which_layer, s0, s1, s2)
 
-def getLetterStateName(which_layer, s0, s1, s2, letter):
-    return "TaSTT_L%02d_S%02d_S%02d_S%02d_L%03d" % (which_layer, s0, s1, s2, letter)
+def getS3StateName(which_layer, s0, s1, s2, s3):
+    return "TaSTT_L%02d_S%02d_S%02d_S%02d_S%02d" % (which_layer, s0, s1, s2, s3)
+
+def getLetterStateName(which_layer, s0, s1, s2, s3, letter):
+    return "TaSTT_L%02d_S%02d_S%02d_S%02d_S%02d_L%03d" % (which_layer, s0, s1, s2, s3, letter)
 
 def getResizeStateName(e0, e1):
     return "TaSTT_Resize_E%d_E%d" % (e0, e1)
 
-def getReturnHomeTransitionName(which_layer, s0, s1, s2, letter):
-    return "TASTT_RETURN_HOME_TRANSITION_L%02d_S%02d_S%02d_S%02d_L%03d" % (which_layer, s0, s1, s2, letter)
+def getReturnHomeTransitionName(which_layer, s0, s1, s2, s3, letter):
+    return "TASTT_RETURN_HOME_TRANSITION_L%02d_S%02d_S%02d_S%02d_S%02d_L%03d" % (which_layer, s0, s1, s2, s3, letter)
 
 def getReturnHomeTransitionNameResizeLayer(e0, e1):
     return "TASTT_RETURN_HOME_TRANSITION_E%d_E%d" % (e0, e1)
@@ -586,52 +592,80 @@ def genTasttLayer(state, which_layer):
             for s2 in range(0,2):
                 params["TASTT_STATE_U2"] = params[getS2StateName(which_layer, s0, s1, s2) + "_U2"]
                 params["TASTT_STATE_NAME"] = getS2StateName(which_layer, s0, s1, s2)
-                print(replaceMacros(TASTT_NARY_STATE_HEADER, params))
-                for letter in range(0, CHARS_PER_CELL):
-                    params[getLetterStateName(which_layer, s0, s1, s2, letter) + "_TRANSITION_U2"] = get_u2("1101", state)
-                    params["TASTT_STATE_TRANSITION_U2"] = params[getLetterStateName(which_layer, s0, s1, s2, letter) + "_TRANSITION_U2"]
-                    print(replaceMacros(TASTT_NARY_STATE_HEADER_TRANSITION, params))
-                print(replaceMacros(TASTT_NARY_STATE_FOOTER, params))
+                params[getS3StateName(which_layer, s0, s1, s2, 0) + "_TRANSITION_U2"] = get_u2("1101", state)
+                params["TASTT_STATE_TRANSITION_0_U2"] = params[getS3StateName(which_layer, s0, s1, s2, 0) + "_TRANSITION_U2"]
+                params[getS3StateName(which_layer, s0, s1, s2, 1) + "_TRANSITION_U2"] = get_u2("1101", state)
+                params["TASTT_STATE_TRANSITION_1_U2"] = params[getS3StateName(which_layer, s0, s1, s2, 1) + "_TRANSITION_U2"]
+                print(replaceMacros(TASTT_BINARY_STATE, params))
+
+    # S3 state transition.
+    for s0 in range(0,2):
+        for s1 in range(0,2):
+            for s2 in range(0,2):
+                for s3 in range(0,2):
+                    params["TASTT_STATE_TRANSITION_U2"] = params[getS3StateName(which_layer, s0, s1, s2, s3) + "_TRANSITION_U2"]
+                    params["BOOL_PARAM"] = getSelectParam(which_layer, 3)
+                    params["THRESHOLD"] = str(s3)
+                    params["MODE"] = str(2 - s3)  # See comment above TASTT_BOOL_STATE_UNARY_TRANSITION.
+                    params[getS3StateName(which_layer, s0, s1, s2, s3) + "_U2"] = get_u2("1102", state)
+                    params["DST_STATE_U2"] = params[getS3StateName(which_layer, s0, s1, s2, s3) + "_U2"]
+                    print(replaceMacros(TASTT_BOOL_STATE_UNARY_TRANSITION, params))
+
+    # S3 state.
+    for s0 in range(0,2):
+        for s1 in range(0,2):
+            for s2 in range(0,2):
+                for s3 in range(0,2):
+                    params["TASTT_STATE_U2"] = params[getS3StateName(which_layer, s0, s1, s2, s3) + "_U2"]
+                    params["TASTT_STATE_NAME"] = getS3StateName(which_layer, s0, s1, s2, s3)
+                    print(replaceMacros(TASTT_NARY_STATE_HEADER, params))
+                    for letter in range(0, CHARS_PER_CELL):
+                        params[getLetterStateName(which_layer, s0, s1, s2, s3, letter) + "_TRANSITION_U2"] = get_u2("1101", state)
+                        params["TASTT_STATE_TRANSITION_U2"] = params[getLetterStateName(which_layer, s0, s1, s2, s3, letter) + "_TRANSITION_U2"]
+                        print(replaceMacros(TASTT_NARY_STATE_HEADER_TRANSITION, params))
+                    print(replaceMacros(TASTT_NARY_STATE_FOOTER, params))
 
     # Letter state transition.
     for s0 in range(0,2):
         for s1 in range(0,2):
             for s2 in range(0,2):
-                for letter in range(0, CHARS_PER_CELL):
-                    params["TASTT_STATE_TRANSITION_U2"] = params[getLetterStateName(which_layer, s0, s1, s2, letter) + "_TRANSITION_U2"]
-                    params["INT_PARAM"] = getLayerParam(which_layer)
-                    params["TRANSITION_THRESHOLD"] = str(letter)
-                    params[getLetterStateName(which_layer, s0, s1, s2, letter) + "_U2"] = get_u2("1102", state)
-                    params["DST_STATE_U2"] = params[getLetterStateName(which_layer, s0, s1, s2, letter) + "_U2"]
-                    print(replaceMacros(TASTT_INT_STATE_TRANSITION, params))
+                for s3 in range(0,2):
+                    for letter in range(0, CHARS_PER_CELL):
+                        params["TASTT_STATE_TRANSITION_U2"] = params[getLetterStateName(which_layer, s0, s1, s2, s3, letter) + "_TRANSITION_U2"]
+                        params["INT_PARAM"] = getLayerParam(which_layer)
+                        params["TRANSITION_THRESHOLD"] = str(letter)
+                        params[getLetterStateName(which_layer, s0, s1, s2, s3, letter) + "_U2"] = get_u2("1102", state)
+                        params["DST_STATE_U2"] = params[getLetterStateName(which_layer, s0, s1, s2, s3, letter) + "_U2"]
+                        print(replaceMacros(TASTT_INT_STATE_TRANSITION, params))
 
     # Letter state.
     for s0 in range(0,2):
         for s1 in range(0,2):
             for s2 in range(0,2):
-                for letter in range(0, CHARS_PER_CELL):
-                    params["TASTT_STATE_U2"] = params[getLetterStateName(which_layer, s0, s1, s2, letter) + "_U2"]
-                    params["TASTT_STATE_NAME"] = getLetterStateName(which_layer, s0, s1, s2, letter)
-                    transition_name = getReturnHomeTransitionName(which_layer, s0, s1, s2, letter) + "_U2"
-                    params[transition_name] = get_u2("1101", state)
-                    params["TASTT_STATE_TRANSITION_U2"] = params[transition_name]
-                    anim_meta_filename = getAnimationPath(getShaderParam(which_layer, s0, s1, s2), letter) + ".meta"
-                    params["TASTT_ANIM_GUID"] = getAnimationGuid(anim_meta_filename)
-                    print(replaceMacros(TASTT_ANIM_STATE, params))
+                for s3 in range(0,2):
+                    for letter in range(0, CHARS_PER_CELL):
+                        params["TASTT_STATE_U2"] = params[getLetterStateName(which_layer, s0, s1, s2, s3, letter) + "_U2"]
+                        params["TASTT_STATE_NAME"] = getLetterStateName(which_layer, s0, s1, s2, s3, letter)
+                        transition_name = getReturnHomeTransitionName(which_layer, s0, s1, s2, s3, letter) + "_U2"
+                        params[transition_name] = get_u2("1101", state)
+                        params["TASTT_STATE_TRANSITION_U2"] = params[transition_name]
+                        anim_meta_filename = getAnimationPath(getShaderParam(which_layer, s0, s1, s2, s3), letter) + ".meta"
+                        params["TASTT_ANIM_GUID"] = getAnimationGuid(anim_meta_filename)
+                        print(replaceMacros(TASTT_ANIM_STATE, params))
 
     # Return-home transitions.
     for s0 in range(0,2):
         for s1 in range(0,2):
             for s2 in range(0,2):
-                for letter in range(0, CHARS_PER_CELL):
-                    transition_name = getReturnHomeTransitionName(which_layer, s0, s1, s2, letter) + "_U2"
-                    params["TASTT_STATE_TRANSITION_U2"] = params[transition_name]
-                    params["BOOL_PARAM"] = getDummyParam()
-                    params["THRESHOLD"] = str(0)
-                    params["MODE"] = str(2)  # See comment above TASTT_BOOL_STATE_UNARY_TRANSITION.
-                    params["DST_STATE_U2"] = params["TASTT_DEFAULT_STATE_U2"]
-                    print(replaceMacros(TASTT_BOOL_STATE_UNARY_TRANSITION, params))
-
+                for s3 in range(0,2):
+                    for letter in range(0, CHARS_PER_CELL):
+                        transition_name = getReturnHomeTransitionName(which_layer, s0, s1, s2, s3, letter) + "_U2"
+                        params["TASTT_STATE_TRANSITION_U2"] = params[transition_name]
+                        params["BOOL_PARAM"] = getDummyParam()
+                        params["THRESHOLD"] = str(0)
+                        params["MODE"] = str(2)  # See comment above TASTT_BOOL_STATE_UNARY_TRANSITION.
+                        params["DST_STATE_U2"] = params["TASTT_DEFAULT_STATE_U2"]
+                        print(replaceMacros(TASTT_BOOL_STATE_UNARY_TRANSITION, params))
 
     # TaSTT layer.
     params["TASTT_LAYER_U2"] = params[getLayerParam(which_layer) + "_LAYER_U2"]
@@ -663,9 +697,17 @@ def genTasttLayer(state, which_layer):
     for s0 in range(0,2):
         for s1 in range(0,2):
             for s2 in range(0,2):
-                for letter in range(0, CHARS_PER_CELL):
-                    params["TASTT_STATE_U2"] = params[getLetterStateName(which_layer, s0, s1, s2, letter) + "_U2"]
+                for s3 in range(0,2):
+                    params["TASTT_STATE_U2"] = params[getS3StateName(which_layer, s0, s1, s2, s3) + "_U2"]
                     print(replaceMacros(TASTT_LAYER_HEADER_CHILD_STATE, params))
+
+    for s0 in range(0,2):
+        for s1 in range(0,2):
+            for s2 in range(0,2):
+                for s3 in range(0,2):
+                    for letter in range(0, CHARS_PER_CELL):
+                        params["TASTT_STATE_U2"] = params[getLetterStateName(which_layer, s0, s1, s2, s3, letter) + "_U2"]
+                        print(replaceMacros(TASTT_LAYER_HEADER_CHILD_STATE, params))
 
     params["TASTT_DEFAULT_STATE_U2"] = params["TASTT_DEFAULT_STATE_U2"]
     print(replaceMacros(TASTT_LAYER_FOOTER, params))
