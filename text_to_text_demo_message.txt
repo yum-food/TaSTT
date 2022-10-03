@@ -1,0 +1,9 @@
+
+Hello, my name is yum_food.
+I'm a VRChat mute: a player that chooses not to use their microphone.
+This repository contains the code for an in-game chat bubble.
+It is designed with the core goals of being low latency, reliable, and free - free as in freedom, and as in beer.
+All code is written from scratch and permissively licensed.
+This project is in the exploratory phase. Once the core set of features are implemented, I will focus on productizing.
+Until then, use with caution.
+Contributions welcome!

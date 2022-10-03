@@ -5,19 +5,25 @@ local machine translation to turn your voice into text, then sends it into
 VRChat via OSC. A few parameters, a machine-generated FX layer, and a
 custom shader display the text in game.
 
+![Text-to-text demo](Images/text_to_text_demo.gif)
+
 Features:
+* 8x22 display grid, 80 characters per slot.
+* Text-to-text interface.
+* Speech-to-text interface (planned)
 * Free as in beer.
 * Free as in freedom.
-* Privacy respecting. Speech-to-text done locally using an open source language
-  model.
-* Low-latency.
-* Stable.
-* Configurable.
-* 6x14 display grid, 80 characters per slot.
-  * Each parameter - grid size, characters per slot, may be dialed up or down
-    as desired.
+* Hackable.
 * 100% from-scratch implementation.
 * Permissive MIT license.
+
+Contents:
+1. [Motivation](#motivation)
+2. [Design overview](#design-overview)
+3. [Contributing](#contributing)
+4. [Backlog](#backlog)
+
+Made with love by yum\_food.
 
 ### Motivation
 
@@ -30,7 +36,7 @@ reason or another:
 
 1. RabidCrab's STT costs money and relies on cloud-based translation. I have
    struggled with latency, quality, and reliability issues. It's also
-   closed-source, and uses quite a few parameters.
+   closed-source.
 2. The in-game text box is only visible to your friends list, making it
    useless for those who like to make new friends.
 
@@ -41,37 +47,106 @@ expressive communication tools for mutes.
 
 ### Design overview
 
-There are roughly 4 important pieces here:
+There are currently 4 important pieces:
 
-1. TaSTT.shader. A simple CG shader. Has one parameter per cell in the display.
-2. generate\_animations.sh. Generates one animation per (row, column, letter).
+1. `TaSTT.shader`. A simple unlit shader. Has one parameter per cell in the
+   display.
+2. `generate\_animations.sh`. Generates one animation per (row, column, letter).
    These animations allow us to write the shader's parameters from an FX layer.
-3. generate\_fx.py. Generates a colossal FX layer which maps (row, column,
+3. `generate\_fx.py`. Generates a colossal FX layer which maps (row, column,
    letter, active) to exactly one of TaSTT.shader's parameters.
-4. osc\_ctrl.py. Sends OSC messages to VRChat, which it dutifully passes along
+4. `osc\_ctrl.py`. Sends OSC messages to VRChat, which it dutifully passes along
    to the generated FX layer.
+
+#### Parameters & board indexing
+
+There are 2 obvious ways to tell the board how to display a message:
+
+1. Independently parameterize every character slot. If we want to display
+   a 140-character tweet, this means using (140 characters) * (8 bits
+   per character) == 1120 bits of parameter memory. VRChat only gives us 256!
+2. Parameterize one character slot. We could have an 8-bit letter, an 8-bit row
+   select, and an 8-bit column select. To avoid overwriting cells while we seek,
+   we could include a 1-bit enable. This approach works, and uses very few
+   parameter bits, but it requires us to update the same parameter very quickly.
+   Experimental results with this were not promising; remote viewers would see
+   the wrong letters pretty often.
+
+Thus I settled on a hybrid approach: we divide the board into `cells`,
+inside of which we can independently address each character slot. There
+are currently 16 cells.
+
+Since the board has (22 columns) * (8 rows) == 176 character slots, each cell
+contains (176 characters) / (16 cells) = 11 characters.
+
+To update a cell, we do this for every single character:
+1. Select the cell. Since there are 16 cells, this requires 4 bits.
+2. Select the letter. Since we support 256 letters per cell, this requires 8 bits.
+
+To avoid overwriting cells while we seek around, we also have a single boolean
+which enables/disables updating any cells.
+
+Thus the total amount of parameter memory used is dictated by this equation:
+
+```
+ROWS * COLS * (log2(CELLS) + 8) / CELLS + 1
+```
+
+This is currently 133 bits.
+
+#### FX controller design
+
+The FX controller (AKA animator) is pretty simple. There is one layer for each
+character in a cell. Thus the layer has to work out which cell it's in, then
+work out which letter we want to write in that cell, then run an animation for
+that letter.
+
+Here's a layer where I manually moved things around to show the structure of
+the decision tree:
+
+![One FX layer with 4-bit indexing](Images/four_bit_indexing.png)
+
+### Contributing
+
+Contributions welcome. Send a pull request to this repository.
+
+To use the STT:
+
+1. Enable Windows Subsystem for Linux. This is a lightweight Linux virtual
+   machine that runs on your Windows host. You can access the Windows
+   filesystem at /mnt/c/....
+2. $ cd /mnt/c/path/to/your/unity/project
+2. $ cd Assets
+3. $ git clone https://github.com/yum\_food/TaSTT
+4. $ cd TaSTT
+5. $ ./generate.sh
+6. Put TaSTT\_fx.controller and TaSTT\_params.asset on your avatar.
+7. Upload (or build & test).
+8. Open powershell.
+9. Navigate to TaSTT.
+10. $ python3 ./osc\_ctrl.py
+11. Start typing. Your messages should show display in-game.
 
 ### Backlog
 
 1. Better Unity integrations
-1.1. Port all scripts to Unity-native C# scripts.
-1.2. Support appending to existing FX layers.
-1.3. Use VRCSDK to generate FX layer instead of generating the serialized files.
-1.4. Optimize FX layer. Unity takes quite a while to load in the current one.
+   1. Port all scripts to Unity-native C# scripts.
+   2. Support appending to existing FX layers.
+   3. Use VRCSDK to generate FX layer instead of generating the serialized files.
+   4. Optimize FX layer. Unity takes quite a while to load in the current one.
      Some redesign is likely needed.
 2. In-game usability features.
-2.1. Resizing (talk to friends far away).
-2.2. Basic toggles (hide it when not needed).
-2.3. World mounting (leave it in a fixed position in world space).
-2.4. Avatar mounting (attach it to your hand).
-2.5. Controller triggers (avoid having to use the radial menu every time you
+   1. Resizing (talk to friends far away).
+   2. Basic toggles (hide it when not needed).
+   3. World mounting (leave it in a fixed position in world space).
+   4. Avatar mounting (attach it to your hand).
+   5. Controller triggers (avoid having to use the radial menu every time you
      want to speak).
 3. General usability features.
-3.1. Error detection & correction.
-3.2. Text-to-text interface. Type in terminal, show in game.
+   1. Error detection & correction.
+   2. Text-to-text interface. Type in terminal, show in game.
 4. Optimization
-4.1. Utilize the avatar 3.0 SDK's ability to drive parameters to reduce the
+   1. Utilize the avatar 3.0 SDK's ability to drive parameters to reduce the
      total # of parameters (and therefore OSC messages & sync events). Note
      that the parameter memory usage may not decrease.
-
-Made with love by yum\_food.
+5. Bugfixes

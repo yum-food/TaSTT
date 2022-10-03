@@ -1,3 +1,7 @@
+# Ignore vim swap files.
+*.sw[po]
+# Ignore generated Unity assets.
 *.meta
 generated
-*.swp
+*.controller
+*.asset

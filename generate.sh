@@ -16,6 +16,15 @@ echo 'their Unity GUID, which is generated during import.'
 set -o xtrace
 read -r line
 
+set +o xtrace
+echo 'Now that animations have been generated, close Unity again.'
+echo 'Unity can only really handle importing the generated FX layer at startup.'
+echo 'If it reimports it at runtime, it hangs for a long time. No idea why!'
+echo
+echo 'Press enter once Unity is closed again.'
+set -o xtrace
+read -r line
+
 echo 'Generating FX layer'
 
 ./generate_fx.py > TaSTT_fx.controller
