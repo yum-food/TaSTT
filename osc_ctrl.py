@@ -62,10 +62,8 @@ generateEncoding(state)
 # lines sent is a multiple of the number of rows in the board.
 def encodeMessage(lines):
     result = []
-    # Pad the number of lines up to a multiple of BOARD_ROWS.
-    #print("Pad {} lines".format(BOARD_ROWS - (len(lines) % BOARD_ROWS)))
-    lines += [" "] * ((BOARD_ROWS - len(lines)) % BOARD_ROWS)
-    for line in lines:
+    lines_tmp = lines + [" "] * ((BOARD_ROWS - len(lines)) % BOARD_ROWS)
+    for line in lines_tmp:
         #print("encode line {}".format(line))
         for char in line:
             if not char in state.encoding:
@@ -168,25 +166,102 @@ class OscTxState:
     last_msg_encoded = []
     empty_cells_to_send_per_call = 1
 
+    # 0 indicates it's closed. 1 indicates half size. 2 indicates full size.
+    board_size = 0
+
+def resizeBoard(num_lines, tx_state, shrink_only):
+
+    resize_params = []
+
+    resize_param0 = None
+    resize_param1 = None
+
+    if num_lines > BOARD_ROWS / 2:
+        # Board must be expanded to full size.
+        if shrink_only:
+            return
+
+        if tx_state.board_size == 2:
+            return
+        elif tx_state.board_size == 1:
+            resize_params.append((False, True))
+        else:
+            resize_params.append((False, False))
+            resize_params.append((False, True))
+        tx_state.board_size = 2
+    elif num_lines == 0:
+        if not shrink_only:
+            return
+        # Board must be shrunk to 0 size
+        if tx_state.board_size == 0:
+            return
+        elif tx_state.board_size == 1:
+            resize_params.append((True, True))
+        else:
+            resize_params.append((True, False))
+            resize_params.append((True, True))
+        tx_state.board_size = 0
+    else:
+        # Board must be expanded or shrunk to half size.
+        if tx_state.board_size == 0:
+            if shrink_only:
+                return
+            resize_params.append((False, False))
+        elif tx_state.board_size == 1:
+            return
+        else:
+            if not shrink_only:
+                return
+            resize_params.append((True, False))
+        tx_state.board_size = 1
+
+    for resize_param_pair in resize_params:
+        print("Resizing board... "),
+        addr="/avatar/parameters/" + generate_utils.getResize0Param()
+        client.send_message(addr, resize_param_pair[0])
+        addr="/avatar/parameters/" + generate_utils.getResize1Param()
+        client.send_message(addr, resize_param_pair[1])
+
+        time.sleep(0.25)
+
+        addr="/avatar/parameters/" + generate_utils.getResizeEnableParam()
+        client.send_message(addr, True)
+
+        # The animation is 0.5 seconds, with another 0.5 second buffer after. We
+        # want to stop in that buffer.
+        time.sleep(0.5)
+
+        addr="/avatar/parameters/" + generate_utils.getResizeEnableParam()
+        client.send_message(addr, False)
+
+    # Wait a while for the animation to complete.
+    time.sleep(1)
+    print("done")
+
+
 # Send a message to the board, but only overwrite cells that we know need to
 # change.
+# This may take multiple calls to complete. Returns True once it's done.
 def sendMessageLazy(msg, tx_state):
     lines = splitMessage(msg)
+    resizeBoard(len(lines), tx_state, shrink_only=False)
+
     msg_encoded = encodeMessage(lines)
     msg_encoded_len = len(msg_encoded)
 
     empty_cells_sent = 0
     n_cells = ceil(msg_encoded_len / NUM_LAYERS)
     for cell in range(0, n_cells):
-        if cell > 0 and cell % (2 ** generate_utils.INDEX_BITS) == 0:
-            # TODO(yum_food) support messages longer than one page
-            print("Page limit exceeded, no support yet")
-            return
-
         cell_begin = cell * NUM_LAYERS
         cell_end = (cell + 1) * NUM_LAYERS
         cell_msg = msg_encoded[cell_begin:cell_end]
         last_cell_msg = []
+
+        if cell > 0 and cell % (2 ** generate_utils.INDEX_BITS) == 0:
+            # TODO(yum_food) support messages longer than one page
+            print("Page limit exceeded, no support yet")
+            tx_state.last_msg_encoded = msg_encoded[0:cell_begin]
+            return True
 
         # Skip cells we've already sent. This makes the board much more
         # responsive.
@@ -199,12 +274,14 @@ def sendMessageLazy(msg, tx_state):
             if empty_cells_sent >= tx_state.empty_cells_to_send_per_call:
                 print("empty cell budget exceeded")
                 tx_state.last_msg_encoded = msg_encoded[0:cell_end]
-                return
+                return False
             empty_cells_sent += 1
 
         sendMessageCellDiscrete(cell_msg, cell)
 
     tx_state.last_msg_encoded = msg_encoded
+    resizeBoard(len(lines), tx_state, shrink_only=True)
+    return True
 
 def sendMessage(msg, page_sleep_s):
     lines = splitMessage(msg)
@@ -243,30 +320,6 @@ def sendRawMessage(msg):
 def clear():
     sendRawMessage([state.encoding[' ']] * BOARD_ROWS * BOARD_COLS)
 
-def openBoard():
-    print("Opening board... "),
-    addr="/avatar/parameters/" + generate_utils.getResize0Param()
-    client.send_message(addr, False)
-    addr="/avatar/parameters/" + generate_utils.getResize1Param()
-    client.send_message(addr, False)
-
-    time.sleep(CELL_TX_TIME_S / 3.0)
-
-    addr="/avatar/parameters/" + generate_utils.getResizeEnableParam()
-    client.send_message(addr, True)
-
-    # The animation is 0.5 seconds, with another 0.5 second buffer after. We
-    # want to stop in that buffer.
-    time.sleep(0.7)
-
-    addr="/avatar/parameters/" + generate_utils.getResizeEnableParam()
-    client.send_message(addr, False)
-
-    # Wait for the 1-second animation to complete, plus a wide margin for
-    # safety.
-    time.sleep(0.3 + 1)
-    print("done")
-
 def closeBoard():
     print("Closing board... "),
     addr="/avatar/parameters/" + generate_utils.getResize0Param()
@@ -292,10 +345,8 @@ def closeBoard():
 if __name__ == "__main__":
     generateEncoding(state)
 
-    #closeBoard()
-    clear()
+    tx_state = OscTxState()
     for line in fileinput.input():
-        page_sleep_s = 3
-        sendMessage(line, page_sleep_s)
-        #time.sleep(2 + len(line) / 40.0)
+        while not sendMessageLazy(line, tx_state):
+            continue
     clear()
