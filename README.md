@@ -13,6 +13,7 @@ Features:
 * Speech-to-text interface.
 * Free as in beer.
 * Free as in freedom.
+* Privacy-respecting: transcription is done on your GPU, not in the cloud.
 * Hackable.
 * 100% from-scratch implementation.
 * Permissive MIT license.
@@ -47,7 +48,7 @@ expressive communication tools for mutes.
 
 ### Design overview
 
-There are currently 4 important pieces:
+There are currently 5 important pieces:
 
 1. `TaSTT.shader`. A simple unlit shader. Has one parameter per cell in the
    display.
@@ -82,6 +83,7 @@ Since the board has (22 columns) * (8 rows) == 176 character slots, each cell
 contains (176 characters) / (16 cells) = 11 characters.
 
 To update a cell, we do this for every single character:
+
 1. Select the cell. Since there are 16 cells, this requires 4 bits.
 2. Select the letter. Since we support 256 letters per cell, this requires 8 bits.
 
@@ -108,6 +110,14 @@ the decision tree:
 
 ![One FX layer with 4-bit indexing](Images/four_bit_indexing.png)
 
+From top down, we first check if updating the board is enabled. If no, we stay
+in the first state. Then we check which cell we're in. This is divided into 4
+binary checks, each looking at a boolean parameter. Finally, we fire one of 80
+animations based on the value of the current layer's Letter parameter.
+
+In the pictured FX layer, there are 16 cells each controlling 80 animations,
+for a total of 1280 animations. There are 11 such layers.
+
 ### Contributing
 
 Contributions welcome. Send a pull request to this repository.
@@ -119,7 +129,7 @@ To use the STT:
    filesystem at /mnt/c/....
 2. `$ cd /mnt/c/path/to/your/unity/project`
 2. `$ cd Assets`
-3. `$ git clone https://github.com/yum_food/TaSTT`
+3. `$ git clone https://github.com/yum\_food/TaSTT`
 4. `$ cd TaSTT`
 5. `$ ./generate.sh`
 6. Put TaSTT\_fx.controller and TaSTT\_params.asset on your avatar.
@@ -128,8 +138,6 @@ To use the STT:
 9. Navigate to TaSTT.
 10. `$ python3 ./osc_ctrl.py`
 11. Start typing. Your messages should show display in-game.
-12. `$ python3 ./transcribe.py`
-11. Start talking. Your voice should be transcribed and display in-game.
 
 ### Backlog
 
@@ -137,8 +145,6 @@ To use the STT:
    1. Port all scripts to Unity-native C# scripts.
    2. Support appending to existing FX layers.
    3. Use VRCSDK to generate FX layer instead of generating the serialized files.
-   4. Optimize FX layer. Unity takes quite a while to load in the current one.
-     Some redesign is likely needed.
 2. In-game usability features.
    1. Resizing (talk to friends far away).
    2. Basic toggles (hide it when not needed).
@@ -149,9 +155,13 @@ To use the STT:
 3. General usability features.
    1. Error detection & correction.
    2. ~~Text-to-text interface. Type in terminal, show in game.~~ DONE
+   3. ~~Speech-to-text interface. Speak out loud, show in game.~~ DONE
 4. Optimization
    1. Utilize the avatar 3.0 SDK's ability to drive parameters to reduce the
      total # of parameters (and therefore OSC messages & sync events). Note
      that the parameter memory usage may not decrease.
+   2. Optimize FX layer. We have 14k animations and a 1.2 million line FX
+      layer. Something must be rethought to bring these numbers down.
 5. Bugfixes
    1. The whisper STT says "Thank you." when there's no audio?
+

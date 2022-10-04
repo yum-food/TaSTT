@@ -84,7 +84,7 @@ ANIMATOR_PARAMETER_INT = """
   - m_Name: %ANIMATOR_PARAMETER_NAME%
     m_Type: 3
     m_DefaultFloat: 0
-    m_DefaultInt: 0
+    m_DefaultInt: 64
     m_DefaultBool: 0
     m_Controller: {fileID: 0}
 """[1:][:-1]
