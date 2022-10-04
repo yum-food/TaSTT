@@ -17,9 +17,9 @@ from generate_utils import NUM_LAYERS
 from generate_utils import BOARD_ROWS
 from generate_utils import BOARD_COLS
 
-#CELL_TX_TIME_S=3.0
-#CELL_TX_TIME_S=1.0
-CELL_TX_TIME_S=0.1
+# Based on a couple experiments, this seems like about as fast as we can go
+# before players start losing events.
+CELL_TX_TIME_S=0.3
 
 def usage():
     print("python3 -m pip install python-osc")
@@ -63,11 +63,14 @@ generateEncoding(state)
 def encodeMessage(lines):
     result = []
     # Pad the number of lines up to a multiple of BOARD_ROWS.
-    print("Pad {} lines".format(BOARD_ROWS - (len(lines) % BOARD_ROWS)))
+    #print("Pad {} lines".format(BOARD_ROWS - (len(lines) % BOARD_ROWS)))
     lines += [" "] * ((BOARD_ROWS - len(lines)) % BOARD_ROWS)
     for line in lines:
-        print("encode line {}".format(line))
+        #print("encode line {}".format(line))
         for char in line:
+            if not char in state.encoding:
+                print("skip unrecognized char {}".format(char))
+                continue
             result.append(state.encoding[char])
         result += [state.encoding[' ']] * (BOARD_COLS - len(line))
     return result
@@ -112,7 +115,6 @@ def sendMessageCellDiscrete(msg_cell, which_cell):
     s2 = ((floor(which_cell / 2) % 2) == 1)
     s3 = ((floor(which_cell / 1) % 2) == 1)
 
-    print("Cell s0/s1/s2/s3: {}/{}/{}/{}".format(s0,s1,s2,s3))
     # Seek each layer to the current cell.
     for i in range(0, len(msg_cell)):
         updateCell(i, msg_cell[i], s0, s1, s2, s3)
@@ -121,8 +123,6 @@ def sendMessageCellDiscrete(msg_cell, which_cell):
     time.sleep(CELL_TX_TIME_S / 3.0)
 
     # Enable each layer.
-    # TODO(yum_food) for some reason, if we don't active every layer, the
-    # desired subset won't reliably fire. Why?
     enable()
 
     # Wait for convergence.
@@ -163,7 +163,50 @@ def splitMessage(msg):
 
     return lines
 
-def sendMessage(msg):
+class OscTxState:
+    # The message last sent to the board.
+    last_msg_encoded = []
+    empty_cells_to_send_per_call = 1
+
+# Send a message to the board, but only overwrite cells that we know need to
+# change.
+def sendMessageLazy(msg, tx_state):
+    lines = splitMessage(msg)
+    msg_encoded = encodeMessage(lines)
+    msg_encoded_len = len(msg_encoded)
+
+    empty_cells_sent = 0
+    n_cells = ceil(msg_encoded_len / NUM_LAYERS)
+    for cell in range(0, n_cells):
+        if cell > 0 and cell % (2 ** generate_utils.INDEX_BITS) == 0:
+            # TODO(yum_food) support messages longer than one page
+            print("Page limit exceeded, no support yet")
+            return
+
+        cell_begin = cell * NUM_LAYERS
+        cell_end = (cell + 1) * NUM_LAYERS
+        cell_msg = msg_encoded[cell_begin:cell_end]
+        last_cell_msg = []
+
+        # Skip cells we've already sent. This makes the board much more
+        # responsive.
+        if cell_end < len(tx_state.last_msg_encoded):
+            last_cell_msg = tx_state.last_msg_encoded[cell_begin:cell_end]
+        if cell_msg == last_cell_msg:
+            continue
+
+        if cell_msg == [state.encoding[' ']] * NUM_LAYERS:
+            if empty_cells_sent >= tx_state.empty_cells_to_send_per_call:
+                print("empty cell budget exceeded")
+                tx_state.last_msg_encoded = msg_encoded[0:cell_end]
+                return
+            empty_cells_sent += 1
+
+        sendMessageCellDiscrete(cell_msg, cell)
+
+    tx_state.last_msg_encoded = msg_encoded
+
+def sendMessage(msg, page_sleep_s):
     lines = splitMessage(msg)
     msg = encodeMessage(lines)
     msg_len = len(msg)
@@ -175,14 +218,18 @@ def sendMessage(msg):
     n_cells = ceil(msg_len / NUM_LAYERS)
     print("n_cells: {}".format(n_cells))
     for cell in range(0, n_cells):
+        if cell > 0 and cell % (2 ** generate_utils.INDEX_BITS) == 0:
+            print("Sleeping before sending next page")
+            time.sleep(page_sleep_s)
+
         cell_begin = cell * NUM_LAYERS
         cell_end = (cell + 1) * NUM_LAYERS
         cell_msg = msg[cell_begin:cell_end]
         print("Send cell {}".format(cell))
         sendMessageCellDiscrete(cell_msg, cell)
-        #sendMessageCellContinuous(cell_msg, cell)
 
     #closeBoard()
+    #clear()
 
 def sendRawMessage(msg):
     n_cells = ceil(len(msg) / NUM_LAYERS)
@@ -190,49 +237,65 @@ def sendRawMessage(msg):
         cell_begin = cell * NUM_LAYERS
         cell_end = (cell + 1) * NUM_LAYERS
         cell_msg = msg[cell_begin:cell_end]
-        print("Send cell {}".format(cell))
+        #print("Send cell {}".format(cell))
         sendMessageCellDiscrete(cell_msg, cell)
 
 def clear():
     sendRawMessage([state.encoding[' ']] * BOARD_ROWS * BOARD_COLS)
 
 def openBoard():
+    print("Opening board... "),
     addr="/avatar/parameters/" + generate_utils.getResize0Param()
     client.send_message(addr, False)
     addr="/avatar/parameters/" + generate_utils.getResize1Param()
     client.send_message(addr, False)
 
-    time.sleep(0.3)
+    time.sleep(CELL_TX_TIME_S / 3.0)
 
     addr="/avatar/parameters/" + generate_utils.getResizeEnableParam()
     client.send_message(addr, True)
 
-    time.sleep(0.3)
+    # The animation is 0.5 seconds, with another 0.5 second buffer after. We
+    # want to stop in that buffer.
+    time.sleep(0.7)
 
     addr="/avatar/parameters/" + generate_utils.getResizeEnableParam()
     client.send_message(addr, False)
+
+    # Wait for the 1-second animation to complete, plus a wide margin for
+    # safety.
+    time.sleep(0.3 + 1)
+    print("done")
 
 def closeBoard():
+    print("Closing board... "),
     addr="/avatar/parameters/" + generate_utils.getResize0Param()
     client.send_message(addr, True)
     addr="/avatar/parameters/" + generate_utils.getResize1Param()
     client.send_message(addr, True)
 
-    time.sleep(0.1)
+    time.sleep(CELL_TX_TIME_S / 3.0)
 
     addr="/avatar/parameters/" + generate_utils.getResizeEnableParam()
     client.send_message(addr, True)
 
-    time.sleep(0.1)
+    # The animation is 0.5 seconds, with another 0.5 second buffer after. We
+    # want to stop in that buffer.
+    time.sleep(0.7)
 
     addr="/avatar/parameters/" + generate_utils.getResizeEnableParam()
     client.send_message(addr, False)
+
+    time.sleep(1)
+    print("done")
 
 if __name__ == "__main__":
     generateEncoding(state)
 
+    #closeBoard()
     clear()
     for line in fileinput.input():
-        sendMessage(line)
-        time.sleep(1 + len(line) / 40.0)
+        page_sleep_s = 3
+        sendMessage(line, page_sleep_s)
+        #time.sleep(2 + len(line) / 40.0)
     clear()
