@@ -10,7 +10,7 @@ custom shader display the text in game.
 Features:
 * 8x22 display grid, 80 characters per slot.
 * Text-to-text interface.
-* Speech-to-text interface (planned)
+* Speech-to-text interface.
 * Free as in beer.
 * Free as in freedom.
 * Hackable.
@@ -51,12 +51,14 @@ There are currently 4 important pieces:
 
 1. `TaSTT.shader`. A simple unlit shader. Has one parameter per cell in the
    display.
-2. `generate\_animations.sh`. Generates one animation per (row, column, letter).
+2. `generate_animations.sh`. Generates one animation per (row, column, letter).
    These animations allow us to write the shader's parameters from an FX layer.
-3. `generate\_fx.py`. Generates a colossal FX layer which maps (row, column,
+3. `generate_fx.py`. Generates a colossal FX layer which maps (row, column,
    letter, active) to exactly one of TaSTT.shader's parameters.
-4. `osc\_ctrl.py`. Sends OSC messages to VRChat, which it dutifully passes along
+4. `osc_ctrl.py`. Sends OSC messages to VRChat, which it dutifully passes along
    to the generated FX layer.
+5. `transcribe.py`. Uses OpenAI's whisper neural network to transcribe audio
+   and sends it to the board using osc_ctrl.
 
 #### Parameters & board indexing
 
@@ -115,17 +117,19 @@ To use the STT:
 1. Enable Windows Subsystem for Linux. This is a lightweight Linux virtual
    machine that runs on your Windows host. You can access the Windows
    filesystem at /mnt/c/....
-2. $ cd /mnt/c/path/to/your/unity/project
-2. $ cd Assets
-3. $ git clone https://github.com/yum\_food/TaSTT
-4. $ cd TaSTT
-5. $ ./generate.sh
+2. `$ cd /mnt/c/path/to/your/unity/project`
+2. `$ cd Assets`
+3. `$ git clone https://github.com/yum_food/TaSTT`
+4. `$ cd TaSTT`
+5. `$ ./generate.sh`
 6. Put TaSTT\_fx.controller and TaSTT\_params.asset on your avatar.
 7. Upload (or build & test).
 8. Open powershell.
 9. Navigate to TaSTT.
-10. $ python3 ./osc\_ctrl.py
+10. `$ python3 ./osc_ctrl.py`
 11. Start typing. Your messages should show display in-game.
+12. `$ python3 ./transcribe.py`
+11. Start talking. Your voice should be transcribed and display in-game.
 
 ### Backlog
 
@@ -144,9 +148,10 @@ To use the STT:
      want to speak).
 3. General usability features.
    1. Error detection & correction.
-   2. Text-to-text interface. Type in terminal, show in game.
+   2. ~~Text-to-text interface. Type in terminal, show in game.~~ DONE
 4. Optimization
    1. Utilize the avatar 3.0 SDK's ability to drive parameters to reduce the
      total # of parameters (and therefore OSC messages & sync events). Note
      that the parameter memory usage may not decrease.
 5. Bugfixes
+   1. The whisper STT says "Thank you." when there's no audio?
