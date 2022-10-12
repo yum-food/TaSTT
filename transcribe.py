@@ -22,7 +22,9 @@ class AudioState:
 
     # The maximum length that recordAudio() will put into frames before it
     # starts dropping from the start.
-    MAX_LENGTH_S = 30
+    MAX_LENGTH_S = 90
+    # The minimum length that recordAudio() will wait for before saving audio.
+    MIN_LENGTH_S = 3
 
     # PyAudio object
     p = None
@@ -50,15 +52,19 @@ def getMicStream():
     print("Finding index mic...")
     got_match = False
     device_index = -1
+    mic_str = "Focusrite"
+    index_str = "Digital Audio Interface"
+    target_str = mic_str
     while got_match == False:
         for i in range(0, numdevices):
             if (audio_state.p.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0:
                 device_name = audio_state.p.get_device_info_by_host_api_device_index(0, i).get('name')
-                #print("Input Device id ", i, " - ", device_name)
-                if "Digital Audio Interface" in device_name:
+                print("Input Device id ", i, " - ", device_name)
+                if target_str in device_name:
                     print("Got match: {}".format(device_name))
                     device_index = i
                     got_match = True
+                    break
         if got_match == False:
             print("No match, sleeping")
             time.sleep(3)
@@ -87,6 +93,10 @@ def recordAudio(audio_state):
 
 # Saves audio. recordAudio() may continue running while this takes place.
 def saveAudio(audio_state, filename):
+    min_frames = int(audio_state.RATE * audio_state.MIN_LENGTH_S / audio_state.CHUNK)
+    if len(audio_state.frames) < min_frames:
+        return
+
     wf = wave.open(filename, 'wb')
     wf.setnchannels(audio_state.CHANNELS)
     wf.setsampwidth(audio_state.p.get_sample_size(audio_state.FORMAT))
@@ -106,19 +116,16 @@ def resetAudio(audio_state):
 
 # Transcribe the audio recorded in a file.
 def transcribe(model, filename):
-    print("Loading audio")
-    audio = whisper.load_audio(filename)
-    audio = whisper.pad_or_trim(audio)
-    mel = whisper.log_mel_spectrogram(audio).to(model.device)
-    options = whisper.DecodingOptions(language = "en")
-    result = whisper.decode(model, mel, options)
-    print("Transcribed text: {}".format(result.text))
-    return result.text
+    result = whisper.transcribe(model=model, audio=filename, language="en")
+    return result["text"]
 
 def transcribeAudio(audio_state, model):
     while audio_state.transcribe_audio == True:
-        print("Saving audio")
         saveAudio(audio_state, "audio.wav")
+
+        if not os.path.isfile("audio.wav"):
+            time.sleep(0.1)
+            continue
 
         print("Beginning transcription")
         text = transcribe(model, "audio.wav")
@@ -126,6 +133,8 @@ def transcribeAudio(audio_state, model):
         audio_state.text_lock.acquire()
         audio_state.text = text
         audio_state.text_lock.release()
+
+        print("Transcription: {}".format(audio_state.text))
 
         # Pace this out
         time.sleep(0.2)
@@ -143,6 +152,9 @@ def sendAudio(audio_state):
         time.sleep(0.05)
 
 if __name__ == "__main__":
+    if os.path.isfile("audio.wav"):
+        os.remove("audio.wav")
+
     audio_state = getMicStream()
 
     record_audio_thd = threading.Thread(target = recordAudio, args = [audio_state])
@@ -157,9 +169,9 @@ if __name__ == "__main__":
     transcribe_audio_thd.daemon = True
     transcribe_audio_thd.start()
 
-    send_audio_thd = threading.Thread(target = sendAudio, args = [audio_state])
-    send_audio_thd.daemon = True
-    send_audio_thd.start()
+    #send_audio_thd = threading.Thread(target = sendAudio, args = [audio_state])
+    #send_audio_thd.daemon = True
+    #send_audio_thd.start()
 
     print("Press enter to start a new message")
     for line in fileinput.input():

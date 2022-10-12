@@ -244,7 +244,7 @@ def resizeBoard(num_lines, tx_state, shrink_only):
 # This may take multiple calls to complete. Returns True once it's done.
 def sendMessageLazy(msg, tx_state):
     lines = splitMessage(msg)
-    resizeBoard(len(lines), tx_state, shrink_only=False)
+    #resizeBoard(len(lines), tx_state, shrink_only=False)
 
     msg_encoded = encodeMessage(lines)
     msg_encoded_len = len(msg_encoded)
@@ -280,7 +280,7 @@ def sendMessageLazy(msg, tx_state):
         sendMessageCellDiscrete(cell_msg, cell)
 
     tx_state.last_msg_encoded = msg_encoded
-    resizeBoard(len(lines), tx_state, shrink_only=True)
+    #resizeBoard(len(lines), tx_state, shrink_only=True)
     return True
 
 def sendMessage(msg, page_sleep_s):
@@ -319,28 +319,6 @@ def sendRawMessage(msg):
 
 def clear():
     sendRawMessage([state.encoding[' ']] * BOARD_ROWS * BOARD_COLS)
-
-def closeBoard():
-    print("Closing board... "),
-    addr="/avatar/parameters/" + generate_utils.getResize0Param()
-    client.send_message(addr, True)
-    addr="/avatar/parameters/" + generate_utils.getResize1Param()
-    client.send_message(addr, True)
-
-    time.sleep(CELL_TX_TIME_S / 3.0)
-
-    addr="/avatar/parameters/" + generate_utils.getResizeEnableParam()
-    client.send_message(addr, True)
-
-    # The animation is 0.5 seconds, with another 0.5 second buffer after. We
-    # want to stop in that buffer.
-    time.sleep(0.7)
-
-    addr="/avatar/parameters/" + generate_utils.getResizeEnableParam()
-    client.send_message(addr, False)
-
-    time.sleep(1)
-    print("done")
 
 if __name__ == "__main__":
     generateEncoding(state)

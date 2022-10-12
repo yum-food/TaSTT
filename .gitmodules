@@ -1,0 +1,3 @@
+[submodule "World-Constraint"]
+	path = World-Constraint
+	url = https://github.com/VRLabs/World-Constraint

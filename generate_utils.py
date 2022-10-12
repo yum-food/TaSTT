@@ -36,6 +36,12 @@ def getResize0Param():
 def getResize1Param():
     return "TaSTT_Resize_1"
 
+def getHipToggleParam():
+    return "TaSTT_Hip_Toggle"
+
+def getHandToggleParam():
+    return "TaSTT_Hand_Toggle"
+
 # Each layer controls a group of cells. There's only one letter per layer, thus
 # this is also the name of the parameter which sets the letter for a layer.
 def getLayerParam(which_layer):

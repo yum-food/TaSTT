@@ -6,7 +6,7 @@ AnimationClip:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: TaSTT_Lock_World_Enable
+  m_Name: TaSTT_Lock_Hand_Disable
   serializedVersion: 6
   m_Legacy: 0
   m_Compressed: 0
@@ -23,17 +23,17 @@ AnimationClip:
       - serializedVersion: 3
         time: 0
         value: 0
-        inSlope: Infinity
-        outSlope: Infinity
-        tangentMode: 103
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
         weightedMode: 0
         inWeight: 0
         outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    attribute: m_Enabled
-    path: World Constraint/Container
+    attribute: m_Sources.Array.data[0].weight
+    path: World Constraint/Container/TaSTT
     classID: 1773428102
     script: {fileID: 0}
   m_PPtrCurves: []
@@ -45,11 +45,11 @@ AnimationClip:
   m_ClipBindingConstant:
     genericBindings:
     - serializedVersion: 2
-      path: 3572513839
-      attribute: 3305885265
+      path: 1272388438
+      attribute: 15
       script: {fileID: 0}
       typeID: 1773428102
-      customType: 0
+      customType: 35
       isPPtrCurve: 0
     pptrCurveMapping: []
   m_AnimationClipSettings:
@@ -79,17 +79,17 @@ AnimationClip:
       - serializedVersion: 3
         time: 0
         value: 0
-        inSlope: Infinity
-        outSlope: Infinity
-        tangentMode: 103
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
         weightedMode: 0
         inWeight: 0
         outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    attribute: m_Enabled
-    path: World Constraint/Container
+    attribute: m_Sources.Array.data[0].weight
+    path: World Constraint/Container/TaSTT
     classID: 1773428102
     script: {fileID: 0}
   m_EulerEditorCurves: []

@@ -136,6 +136,12 @@ def genAnimator(state):
     params["ANIMATOR_PARAMETER_NAME"] = getEnableParam()
     print(replaceMacros(ANIMATOR_PARAMETER_BOOL, params))
 
+    params["ANIMATOR_PARAMETER_NAME"] = generate_utils.getHandToggleParam()
+    print(replaceMacros(ANIMATOR_PARAMETER_BOOL, params))
+
+    params["ANIMATOR_PARAMETER_NAME"] = generate_utils.getHipToggleParam()
+    print(replaceMacros(ANIMATOR_PARAMETER_BOOL, params))
+
     for i in range(0, NUM_LAYERS):
         params["ANIMATOR_PARAMETER_NAME"] = getLayerParam(i)
         print(replaceMacros(ANIMATOR_PARAMETER_INT, params))
@@ -152,7 +158,6 @@ def genAnimator(state):
         params["ANIMATOR_PARAMETER_NAME"] = getSelectParam(i, 3)
         print(replaceMacros(ANIMATOR_PARAMETER_BOOL, params))
 
-
     print(replaceMacros(ANIMATOR_LAYER_HEADER, params))
 
     for i in range(0, NUM_LAYERS):
@@ -160,6 +165,16 @@ def genAnimator(state):
         params["TASTT_LAYER_U2"] = params[getLayerParam(i) + "_LAYER_U2"]
         params["TASTT_LAYER_NAME"] = getLayerParam(i)
         print(replaceMacros(ANIMATOR_LAYER_TASTT, params))
+
+    params["TASTT_HAND_TOGGLE_LAYER_U2"] = get_u2("1107", state)
+    params["TASTT_LAYER_U2"] = params["TASTT_HAND_TOGGLE_LAYER_U2"]
+    params["TASTT_LAYER_NAME"] = generate_utils.getHandToggleParam()
+    print(replaceMacros(ANIMATOR_LAYER_TASTT, params))
+
+    params["TASTT_HIP_TOGGLE_LAYER_U2"] = get_u2("1107", state)
+    params["TASTT_LAYER_U2"] = params["TASTT_HIP_TOGGLE_LAYER_U2"]
+    params["TASTT_LAYER_NAME"] = generate_utils.getHipToggleParam()
+    print(replaceMacros(ANIMATOR_LAYER_TASTT, params))
 
     params["TASTT_RESIZE_LAYER_U2"] = get_u2("1107", state)
     params["TASTT_LAYER_U2"] = params["TASTT_RESIZE_LAYER_U2"]
@@ -745,7 +760,7 @@ def genTasttResizeLayer(state):
             print(replaceMacros(TASTT_NARY_STATE_HEADER_TRANSITION, params))
 
     print(replaceMacros(TASTT_NARY_STATE_FOOTER, params))
-    
+
     # Animation transitions.
     for e0 in range(0, 2):
         params["THRESHOLD0"] = str(e0)
@@ -796,7 +811,6 @@ def genTasttResizeLayer(state):
 
     # Layer
     params["TASTT_LAYER_U2"] = params["TASTT_RESIZE_LAYER_U2"]
-    params["TASTT_LAYER_NAME"] = params["TASTT_LAYER_NAME"]
     print(replaceMacros(TASTT_LAYER_HEADER, params))
 
     params["TASTT_STATE_U2"] = params["TASTT_DEFAULT_STATE_U2"]
@@ -810,3 +824,99 @@ def genTasttResizeLayer(state):
     print(replaceMacros(TASTT_LAYER_FOOTER, params))
 
 genTasttResizeLayer(state)
+
+def genTasttHipToggleLayer(state):
+    # Default state.
+    params["TASTT_HIP_TOGGLE_ON_U2"] = get_u2("1102", state)
+    params["TASTT_DEFAULT_STATE_U2"] = params["TASTT_HIP_TOGGLE_ON_U2"]
+    params["TASTT_STATE_U2"] = params["TASTT_HIP_TOGGLE_ON_U2"]
+    params["TASTT_STATE_NAME"] = generate_utils.getHipToggleParam() + "_ON"
+    params["TASTT_STATE_TRANSITION_U2"] = get_u2("1101", state)
+    anim_meta_filename = "Animations/TaSTT_Lock_World_Enable.anim.meta"
+    params["TASTT_ANIM_GUID"] = getAnimationGuid(anim_meta_filename)
+    print(replaceMacros(TASTT_ANIM_STATE, params))
+
+    # Active state transition.
+    params["BOOL_PARAM"] = generate_utils.getHipToggleParam()
+    params["THRESHOLD"] = str(0)
+    params["MODE"] = str(2)  # See comment above TASTT_BOOL_STATE_UNARY_TRANSITION.
+    params["TASTT_HIP_TOGGLE_OFF_U2"] = get_u2("1102", state)
+    params["DST_STATE_U2"] = params["TASTT_HIP_TOGGLE_OFF_U2"]
+    print(replaceMacros(TASTT_BOOL_STATE_UNARY_TRANSITION, params))
+
+    # Active state.
+    params["TASTT_STATE_U2"] = params["TASTT_HIP_TOGGLE_OFF_U2"]
+    params["TASTT_STATE_NAME"] = generate_utils.getHipToggleParam() + "_OFF"
+    params["TASTT_STATE_TRANSITION_U2"] = get_u2("1101", state)
+    anim_meta_filename = "Animations/TaSTT_Lock_World_Disable.anim.meta"
+    params["TASTT_ANIM_GUID"] = getAnimationGuid(anim_meta_filename)
+    print(replaceMacros(TASTT_ANIM_STATE, params))
+
+    # Default state transition.
+    params["BOOL_PARAM"] = generate_utils.getHipToggleParam()
+    params["THRESHOLD"] = str(1)
+    params["MODE"] = str(1)  # See comment above TASTT_BOOL_STATE_UNARY_TRANSITION.
+    params["DST_STATE_U2"] = params["TASTT_HIP_TOGGLE_ON_U2"]
+    print(replaceMacros(TASTT_BOOL_STATE_UNARY_TRANSITION, params))
+
+    # Layer
+    params["TASTT_LAYER_U2"] = params["TASTT_HIP_TOGGLE_LAYER_U2"]
+    params["TASTT_LAYER_NAME"] = generate_utils.getHipToggleParam()
+    print(replaceMacros(TASTT_LAYER_HEADER, params))
+
+    params["TASTT_STATE_U2"] = params["TASTT_HIP_TOGGLE_ON_U2"]
+    print(replaceMacros(TASTT_LAYER_HEADER_CHILD_STATE, params))
+    params["TASTT_STATE_U2"] = params["TASTT_HIP_TOGGLE_OFF_U2"]
+    print(replaceMacros(TASTT_LAYER_HEADER_CHILD_STATE, params))
+
+    print(replaceMacros(TASTT_LAYER_FOOTER, params))
+
+genTasttHipToggleLayer(state)
+
+def genTasttHandToggleLayer(state):
+    # Default state.
+    params["TASTT_HAND_TOGGLE_ON_U2"] = get_u2("1102", state)
+    params["TASTT_DEFAULT_STATE_U2"] = params["TASTT_HAND_TOGGLE_ON_U2"]
+    params["TASTT_STATE_U2"] = params["TASTT_HAND_TOGGLE_ON_U2"]
+    params["TASTT_STATE_NAME"] = generate_utils.getHandToggleParam() + "_ON"
+    params["TASTT_STATE_TRANSITION_U2"] = get_u2("1101", state)
+    anim_meta_filename = "Animations/TaSTT_Lock_Hand_Enable.anim.meta"
+    params["TASTT_ANIM_GUID"] = getAnimationGuid(anim_meta_filename)
+    print(replaceMacros(TASTT_ANIM_STATE, params))
+
+    # Active state transition.
+    params["BOOL_PARAM"] = generate_utils.getHandToggleParam()
+    params["THRESHOLD"] = str(0)
+    params["MODE"] = str(2)  # See comment above TASTT_BOOL_STATE_UNARY_TRANSITION.
+    params["TASTT_HAND_TOGGLE_OFF_U2"] = get_u2("1102", state)
+    params["DST_STATE_U2"] = params["TASTT_HAND_TOGGLE_OFF_U2"]
+    print(replaceMacros(TASTT_BOOL_STATE_UNARY_TRANSITION, params))
+
+    # Active state.
+    params["TASTT_STATE_U2"] = params["TASTT_HAND_TOGGLE_OFF_U2"]
+    params["TASTT_STATE_NAME"] = generate_utils.getHandToggleParam() + "_OFF"
+    params["TASTT_STATE_TRANSITION_U2"] = get_u2("1101", state)
+    anim_meta_filename = "Animations/TaSTT_Lock_Hand_Disable.anim.meta"
+    params["TASTT_ANIM_GUID"] = getAnimationGuid(anim_meta_filename)
+    print(replaceMacros(TASTT_ANIM_STATE, params))
+
+    # Default state transition.
+    params["BOOL_PARAM"] = generate_utils.getHandToggleParam()
+    params["THRESHOLD"] = str(1)
+    params["MODE"] = str(1)  # See comment above TASTT_BOOL_STATE_UNARY_TRANSITION.
+    params["DST_STATE_U2"] = params["TASTT_HAND_TOGGLE_ON_U2"]
+    print(replaceMacros(TASTT_BOOL_STATE_UNARY_TRANSITION, params))
+
+    # Layer
+    params["TASTT_LAYER_U2"] = params["TASTT_HAND_TOGGLE_LAYER_U2"]
+    params["TASTT_LAYER_NAME"] = generate_utils.getHandToggleParam()
+    print(replaceMacros(TASTT_LAYER_HEADER, params))
+
+    params["TASTT_STATE_U2"] = params["TASTT_HAND_TOGGLE_ON_U2"]
+    print(replaceMacros(TASTT_LAYER_HEADER_CHILD_STATE, params))
+    params["TASTT_STATE_U2"] = params["TASTT_HAND_TOGGLE_OFF_U2"]
+    print(replaceMacros(TASTT_LAYER_HEADER_CHILD_STATE, params))
+
+    print(replaceMacros(TASTT_LAYER_FOOTER, params))
+
+genTasttHandToggleLayer(state)

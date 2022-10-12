@@ -54,6 +54,12 @@ print(generate_utils.replaceMacros(BOOL_PARAM, params))
 params["PARAM_NAME"] = generate_utils.getEnableParam()
 print(generate_utils.replaceMacros(BOOL_PARAM, params))
 
+params["PARAM_NAME"] = generate_utils.getHandToggleParam()
+print(generate_utils.replaceMacros(BOOL_PARAM, params))
+
+params["PARAM_NAME"] = generate_utils.getHipToggleParam()
+print(generate_utils.replaceMacros(BOOL_PARAM, params))
+
 for i in range(0, generate_utils.NUM_LAYERS):
     params["PARAM_NAME"] = generate_utils.getLayerParam(i)
     print(generate_utils.replaceMacros(INT_PARAM, params))
