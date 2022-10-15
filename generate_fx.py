@@ -86,7 +86,7 @@ ANIMATOR_PARAMETER_INT = """
     m_DefaultFloat: 0
     m_DefaultInt: 64
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: %ANIMATOR_HEADER_U2%}
 """[1:][:-1]
 
 ANIMATOR_PARAMETER_BOOL = """
@@ -95,7 +95,7 @@ ANIMATOR_PARAMETER_BOOL = """
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
-    m_Controller: {fileID: 0}
+    m_Controller: {fileID: %ANIMATOR_HEADER_U2%}
 """[1:][:-1]
 
 ANIMATOR_LAYER_HEADER = """
