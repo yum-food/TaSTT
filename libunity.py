@@ -5,9 +5,147 @@ import copy
 import enum
 import os
 import pickle
+import random
 import sys
 # python3 -m pip install pyyaml
 import yaml
+
+WRITE_DEFAULTS_ANIM_TEMPLATE = """
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!74 &7400000
+AnimationClip:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: TaSTT_Reset_Animations
+  serializedVersion: 6
+  m_Legacy: 0
+  m_Compressed: 0
+  m_UseHighQualityCurve: 1
+  m_RotationCurves: []
+  m_CompressedRotationCurves: []
+  m_EulerCurves: []
+  m_PositionCurves: []
+  m_ScaleCurves: []
+  m_FloatCurves:
+  - curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.016666668
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    attribute: REPLACEME_ATTRIBUTE
+    path: REPLACEME_PATH
+    classID: 137
+    script: {fileID: 0}
+  m_PPtrCurves: []
+  m_SampleRate: 60
+  m_WrapMode: 0
+  m_Bounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
+  m_ClipBindingConstant:
+    genericBindings:
+    - serializedVersion: 2
+      path: 2794480623
+      attribute: 2284639795
+      script: {fileID: 0}
+      typeID: 137
+      customType: 22
+      isPPtrCurve: 0
+    pptrCurveMapping: []
+  m_AnimationClipSettings:
+    serializedVersion: 2
+    m_AdditiveReferencePoseClip: {fileID: 0}
+    m_AdditiveReferencePoseTime: 0
+    m_StartTime: 0
+    m_StopTime: 0
+    m_OrientationOffsetY: 0
+    m_Level: 0
+    m_CycleOffset: 0
+    m_HasAdditiveReferencePose: 0
+    m_LoopTime: 1
+    m_LoopBlend: 0
+    m_LoopBlendOrientation: 0
+    m_LoopBlendPositionY: 0
+    m_LoopBlendPositionXZ: 0
+    m_KeepOriginalOrientation: 0
+    m_KeepOriginalPositionY: 1
+    m_KeepOriginalPositionXZ: 0
+    m_HeightFromFeet: 0
+    m_Mirror: 0
+  m_EditorCurves:
+  - curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.016666668
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    attribute: REPLACEME_ATTRIBUTE
+    path: REPLACEME_PATH
+    classID: 137
+    script: {fileID: 0}
+  m_EulerEditorCurves: []
+  m_HasGenericRootTransform: 0
+  m_HasMotionFloatCurves: 0
+  m_Events: []
+"""[1:][:-1]
+
+METADATA_TEMPLATE = """
+fileFormatVersion: 2
+guid: REPLACEME_GUID
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 7400000
+  userData:
+  assetBundleName:
+  assetBundleVariant:
+"""[1:][:-1]
+
+class Metadata:
+    def __init__(self):
+        self.guid = "%032x" % random.randrange(16 ** 32)
+
+    def __str__(self):
+        return METADATA_TEMPLATE.replace("REPLACEME_GUID", self.guid)
 
 class Node:
     def __init__(self):
@@ -22,6 +160,20 @@ class Sequence(Node):
     def __init__(self):
         super().__init__()
         self.sequence = []
+
+    def copy(self):
+        new = Sequence()
+        new.anchor = self.anchor
+        new.parent = self.parent
+
+        for v in self.sequence:
+            if hasattr(v, "copy"):
+                new.sequence.append(v.copy())
+                new.sequence[-1].parent = new
+            else:
+                new.sequence.append(v)
+
+        return new
 
     def prettyPrint(self, first_indent=None, leading_newline=None):
         depth = 0
@@ -80,6 +232,20 @@ class Mapping(Node):
     def __init__(self):
         super().__init__()
         self.mapping = {}
+
+    def copy(self):
+        new = Mapping()
+        new.anchor = self.anchor
+        new.parent = self.parent
+
+        for k, v in self.mapping.items():
+            if hasattr(v, "copy"):
+                new.mapping[k] = v.copy()
+                new.mapping[k].parent = new
+            else:
+                new.mapping[k] = v
+
+        return new
 
     def prettyPrint(self, first_indent=None, leading_newline=True):
         depth = 0
@@ -177,10 +343,15 @@ class UnityDocument(Mapping):
     def classId(self):
         return classId(self.anchor)
 
+# Class representing a Unity AnimatorController. Implements manipulations, like
+# merging and reanchoring.
 class UnityAnimator():
     def __init__(self):
         self.nodes = []
         self.id_to_node = {}
+
+    def __str__(self):
+        return unityAnimatorToString(self.nodes)
 
     def addNodes(self, nodes):
         for node in nodes:
@@ -205,7 +376,6 @@ class UnityAnimator():
             self.class_to_next_id[classId(anchor)] = next_id
             self.id_mapping[anchor] = new_id
 
-        #print("Map {} to {}".format(anchor, self.id_mapping[anchor]), file=sys.stderr)
         return self.id_mapping[anchor]
 
     def mergeIterator(self, v):
@@ -219,6 +389,12 @@ class UnityAnimator():
                     v.mapping['fileID'] = str(new_id)
         if hasattr(v, "forEach"):
             v.forEach(self.mergeIterator)
+
+    def peekNodeOfClass(self, classId):
+        for node in self.nodes:
+            if node.classId() == classId:
+                return node
+        return None
 
     def popNodeOfClass(self, classId):
         result = None
@@ -290,6 +466,88 @@ class UnityAnimator():
         self.pushNode(merged_anim)
         self.addNodes(nodes)
         self.addNodes(other.nodes)
+
+    def fixWriteDefaults(self, guid_map, generated_anim_path):
+        # TODO(yum) we should have an Animation class which encapsulates all
+        # this stuff.
+        parser = UnityParser()
+        parser.parse(WRITE_DEFAULTS_ANIM_TEMPLATE)
+        new_anim = UnityAnimator()
+        new_anim.addNodes(parser.nodes)
+
+        new_clip = new_anim.peekNodeOfClass('74').mapping['AnimationClip']
+        curve_template = new_clip.mapping['m_FloatCurves'].sequence[0]
+        new_clip.mapping['m_FloatCurves'].sequence = []
+        new_clip.mapping['m_EditorCurves'].sequence = []
+
+        # Keep track of the (attribute, path) tuples we've already set to avoid
+        # animating the same thing twice.
+        attributes_set = set()
+
+        animator_state_id = '1102'
+        for node in self.nodes:
+            if node.classId() != animator_state_id:
+                continue
+
+            # Looking at an animator state.
+            if node.mapping['AnimatorState'].mapping['m_WriteDefaultValues'] != '1':
+                continue
+
+            # Disable write defaults.
+            node.mapping['AnimatorState'].mapping['m_WriteDefaultValues'] = '0'
+
+            # Looking at an animator state with write defaults.
+            motion = node.mapping['AnimatorState'].mapping['m_Motion']
+            # Some animations have write defaults but don't trigger an
+            # animation. No idea what that's about. For now, just ignore.
+            if not 'guid' in motion.mapping:
+                continue
+            guid = motion.mapping['guid']
+
+            # Again, not really sure what's going on here, just ignore and
+            # revisit if we hit problems.
+            if not guid in guid_map.keys():
+                continue
+
+            # OK, we found an animation with write defaults, and we know where
+            # the animation lives. Crack it open and see what it's writing.
+            animation_path = guid_map[guid]
+            print("Animation has write defaults: {}".format(animation_path), file=sys.stderr)
+            parser = UnityParser()
+            parser.parseFile(animation_path)
+            anim = UnityAnimator()
+            anim.addNodes(parser.nodes)
+
+            clip = anim.peekNodeOfClass('74')
+
+            for curve in clip.mapping['AnimationClip'].mapping['m_FloatCurves'].sequence:
+                attr = curve.mapping['attribute']
+                path = curve.mapping['path']
+                if (attr, path) in attributes_set:
+                    continue
+                #print("Fix attr/path {}/{}".format(attr, path), file=sys.stderr)
+                attributes_set.add((attr, path))
+
+                new_curve = curve_template.copy()
+                new_curve.mapping['attribute'] = attr
+                new_curve.mapping['path'] = path
+
+                new_clip.mapping['m_FloatCurves'].sequence.append(new_curve)
+                new_clip.mapping['m_EditorCurves'].sequence.append(new_curve)
+
+                #print("len float curves: {}".format(len(new_clip.mapping['m_FloatCurves'].sequence)), file=sys.stderr)
+
+        #print("generated animation: {}".format(str(new_anim)), file=sys.stderr)
+        with open(generated_anim_path, "w") as f:
+            f.write(str(new_anim))
+
+        meta = Metadata()
+        with open(generated_anim_path + ".meta", "w") as f:
+            f.write(str(meta))
+
+        # OK, we have an animation and a GUID. Let's generate a layer now.
+        # TODO(yum)
+
 
 def unityAnimatorToString(nodes):
     lines = []
@@ -363,10 +621,7 @@ class UnityParser:
         lines.append("...\n")
         return '\n'.join(lines)
 
-    def parse(self, yaml_file):
-        yaml_str = ""
-        with open(yaml_file, "r") as f:
-            yaml_str = f.read()
+    def parse(self, yaml_str):
         yaml_str = self.cleanYaml(yaml_str)
 
         for event in yaml.parse(yaml_str):
@@ -438,6 +693,12 @@ class UnityParser:
                 raise Exception("Unhandled event {}".format(event))
             continue
 
+    def parseFile(self, yaml_file):
+        yaml_str = ""
+        with open(yaml_file, "r") as f:
+            yaml_str = f.read()
+        return self.parse(yaml_str)
+
 def getGuidMap(d):
     result = {}
     for f in os.scandir(d):
@@ -452,7 +713,7 @@ def getGuidMap(d):
                 for line in f:
                     if line.startswith("guid"):
                         guid = line.split()[1]
-                        result[path[:-len(suffix)]] = guid
+                        result[guid] = path[:-len(suffix)]
     return result
 
 if __name__ == "__main__":
@@ -468,23 +729,15 @@ if __name__ == "__main__":
             "generated by a previous call to `guid_map`")
     args = parser.parse_args()
 
-    guid_map = {}
-    if args.guid_map:
-        with open(args.guid_map, 'rb') as f:
-            guid_map = pickle.load(f)
-
     if args.cmd == "merge":
         if not args.fx0 or not args.fx1:
-            print("Usage: ./libunity.py merge --fx0 my_fx.controller --fx1 " +
-                    "my_other_fx.controller")
-            sys.exit(1)
+            print("--fx0 and --fx1 required")
+            parser.print_help()
+            parser.exit(1)
 
         print("Parsing {}".format(args.fx0), file=sys.stderr)
         parser0 = UnityParser()
-        try:
-            parser0.parse(args.fx0)
-        except Exception as e:
-            print("exception: {}".format(e))
+        parser0.parseFile(args.fx0)
 
         anim0 = UnityAnimator()
         anim0.addNodes(parser0.nodes)
@@ -492,10 +745,7 @@ if __name__ == "__main__":
         arg1 = "TaSTT_fx.controller"
         print("Parsing {}".format(args.fx1), file=sys.stderr)
         parser1 = UnityParser()
-        try:
-            parser1.parse(args.fx1)
-        except Exception as e:
-            print("exception: {}".format(e))
+        parser1.parseFile(args.fx1)
 
         anim1 = UnityAnimator()
         anim1.addNodes(parser1.nodes)
@@ -507,9 +757,9 @@ if __name__ == "__main__":
         print(unityAnimatorToString(anim0.nodes))
     elif args.cmd == "guid_map":
         if not args.project_root or not args.save_to:
-            print("Usage: ./libunity.py guid_map --project_root " +
-                    "/path/to/unity/assets --save_to /path/to/guid.map")
-            sys.exit(1)
+            print("--project_root and --save_to required")
+            parser.print_help()
+            parser.exit(1)
 
         print("Looking up GUIDs under {}".format(args.project_root),
                 file=sys.stderr)
@@ -517,6 +767,25 @@ if __name__ == "__main__":
         print("Saving to {}".format(args.save_to), file=sys.stderr)
         with open(args.save_to, 'wb') as f:
             pickle.dump(guid_map, f)
+    elif args.cmd == "fix_write_defaults":
+        if not args.fx0 or not args.guid_map:
+            print("--fx0 and --guid_map required")
+            parser.print_help()
+            parser.exit(1)
+
+        guid_map = {}
+        with open(args.guid_map, 'rb') as f:
+            guid_map = pickle.load(f)
+
+        print("Parsing {}".format(args.fx0), file=sys.stderr)
+        parser0 = UnityParser()
+        parser0.parseFile(args.fx0)
+
+        anim = UnityAnimator()
+        anim.addNodes(parser0.nodes)
+        anim.fixWriteDefaults(guid_map, "generated/animations/TaSTT_Reset_Animation.anim")
+        print(str(anim))
+
     else:
         print("Unrecognized command: {}".format(args.cmd))
 
