@@ -140,6 +140,35 @@ NativeFormatImporter:
   assetBundleVariant:
 """[1:][:-1]
 
+ANIMATION_STATE_TEMPLATE = """
+--- !u!1102 &110200000
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: REPLACEME_ANIMATION_NAME
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 0
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 7400000, guid: REPLACEME_ANIMATION_GUID, type: 2}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+"""[1:][:-1]
+
 class Metadata:
     def __init__(self):
         self.guid = "%032x" % random.randrange(16 ** 32)
@@ -204,13 +233,16 @@ class Sequence(Node):
     def __str__(self):
         return self.prettyPrint()
 
-    def addChildMapping(self, anchor = None):
+    def addChildMapping(self, anchor = None, add_to_head = False):
         child = Mapping()
         child.anchor = anchor
         child.parent = self
         child.sequence = []
 
-        self.sequence.append(child)
+        if add_to_head:
+            self.sequence = [child] + self.sequence
+        else:
+            self.sequence.append(child)
 
         return child
 
@@ -349,6 +381,7 @@ class UnityAnimator():
     def __init__(self):
         self.nodes = []
         self.id_to_node = {}
+        self.class_to_next_id = {}
 
     def __str__(self):
         return unityAnimatorToString(self.nodes)
@@ -356,27 +389,41 @@ class UnityAnimator():
     def addNodes(self, nodes):
         for node in nodes:
             self.nodes.append(node)
-            if node.anchor == None:
+            anchor = node.anchor
+            if anchor == None:
                 raise Exception("Node is missing anchor: {}".format(str(node)))
-            if node.anchor in self.id_to_node:
-                raise Exception("Duplicate anchor: {}, node 1: {}, node 2: {}".format(node.anchor, str(node), str(self.id_to_node[node.anchor])))
-            self.id_to_node[node.anchor] = node
+            if anchor in self.id_to_node:
+                raise Exception("Duplicate anchor: {}, node 1: {}, node 2: {}".format(anchor, str(node), str(self.id_to_node[anchor])))
+            self.id_to_node[anchor] = node
+
+            if classId(anchor) in self.class_to_next_id:
+                cur_next = self.class_to_next_id[classId(anchor)]
+                self.class_to_next_id[classId(anchor)] = max(int(anchor), cur_next)
+            else:
+                self.class_to_next_id[classId(anchor)] = int(anchor)
+
+        for k in self.class_to_next_id.keys():
+            self.class_to_next_id[k] += 1
+
+    def allocateId(self, class_id):
+        new_id = None
+        if class_id in self.class_to_next_id:
+            new_id = self.class_to_next_id[class_id]
+            self.class_to_next_id[class_id] += 1
+        else:
+            new_id = int("%s%05d" % (class_id, 0))
+            next_id = new_id + 1
+            self.class_to_next_id[class_id] = next_id
+
+        return new_id
 
     def getUniqueId(self, anchor):
         if anchor in self.id_mapping.keys():
             return self.id_mapping[anchor]
 
-        if classId(anchor) in self.class_to_next_id:
-            new_id = self.class_to_next_id[classId(anchor)]
-            self.class_to_next_id[classId(anchor)] += 1
-            self.id_mapping[anchor] = new_id
-        else:
-            new_id = int("%s%05d" % (classId(anchor), 0))
-            next_id = new_id + 1
-            self.class_to_next_id[classId(anchor)] = next_id
-            self.id_mapping[anchor] = new_id
-
-        return self.id_mapping[anchor]
+        new_id = allocateId(classId(anchor))
+        self.id_mapping[anchor] = new_id
+        return new_id
 
     def mergeIterator(self, v):
         if hasattr(v, "mapping"):
@@ -467,6 +514,113 @@ class UnityAnimator():
         self.addNodes(nodes)
         self.addNodes(other.nodes)
 
+    # TODO(yum) support overwriting duplicates
+    def addParameter(self, param_name, param_type):
+        unity_type = None
+        if param_type == float:
+            unity_type = '1'
+        elif param_type == int:
+            unity_type = '3'
+        elif param_type == bool:
+            unity_type = '4'
+        anim = self.peekNodeOfClass('91')
+        params = anim.mapping['AnimatorController'].mapping['m_AnimatorParameters']
+        param = params.addChildMapping()
+        param.mapping['m_Name'] = param_name
+        param.mapping['m_Type'] = unity_type
+        param.mapping['m_DefaultFloat'] = '0'
+        param.mapping['m_DefaultInt'] = '0'
+        param.mapping['m_DefaultBool'] = '0'
+        ctrl = param.addChildMapping('m_Controller')
+        ctrl.mapping['fileID'] = anim.anchor
+
+    def addLayer(self, layer_name):
+        # Add layer to controller
+        anim = self.peekNodeOfClass('91')
+        layers = anim.mapping['AnimatorController'].mapping['m_AnimatorLayers']
+        layer = layers.addChildMapping(add_to_head = True)
+        layer.mapping['serializedVersion'] = '5'
+        layer.mapping['m_Name'] = layer_name
+        new_id = self.allocateId('1107')
+        layer.addChildMapping('m_StateMachine').mapping['fileID'] = str(new_id)
+        layer.addChildMapping('m_Mask').mapping['fileID'] = '0'
+        layer.addChildSequence('m_Motions')
+        layer.addChildSequence('m_Behaviours')
+        layer.mapping['m_BlendingMode'] = '0'
+        layer.mapping['m_SyncedLayerIndex'] = '-1'
+        layer.mapping['m_DefaultWeight'] = '1'
+        layer.mapping['m_IKPass'] = '0'
+        layer.mapping['m_SyncedLayerAffectsTiming'] = '0'
+        layer.addChildMapping('m_Controller').mapping['fileID'] = anim.anchor
+
+        # Create layer object
+        layer = UnityDocument()
+        layer.anchor = str(new_id)
+        mach = layer.addChildMapping('AnimatorStateMachine')
+
+        mach.mapping['serializedVersion'] = '6'
+
+        mach.mapping['m_ObjectHideFlags'] = '1'
+        mach.addChildMapping('m_CorrespondingSourceObject').mapping['fileID'] = '0'
+        mach.addChildMapping('m_PrefabInstance').mapping['fileID'] = '0'
+        mach.addChildMapping('m_PrefabAsset').mapping['fileID'] = '0'
+        mach.mapping['m_Name'] = layer_name
+        mach.addChildSequence('m_ChildStates')
+        mach.addChildSequence('m_ChildStateMachines')
+        mach.addChildSequence('m_AnyStateTransitions')
+        mach.addChildSequence('m_EntryTransitions')
+        mach.addChildMapping('m_StateMachineTransitions')
+        mach.addChildSequence('m_StateMachineBehaviours')
+        pos = mach.addChildMapping('m_AnyStatePosition')
+        pos.mapping['x'] = '50'
+        pos.mapping['y'] = '20'
+        pos.mapping['z'] = '0'
+        pos = mach.addChildMapping('m_EntryPosition')
+        pos.mapping['x'] = '50'
+        pos.mapping['y'] = '120'
+        pos.mapping['z'] = '0'
+        pos = mach.addChildMapping('m_ExitPosition')
+        pos.mapping['x'] = '800'
+        pos.mapping['y'] = '120'
+        pos.mapping['z'] = '0'
+        pos = mach.addChildMapping('m_ParentStateMachinePosition')
+        pos.mapping['x'] = '800'
+        pos.mapping['y'] = '20'
+        pos.mapping['z'] = '0'
+        mach.addChildMapping('m_DefaultState')
+
+        self.nodes.append(layer)
+        return layer
+
+    def addAnimatorState(self, layer, state_name, anim_guid, is_default_state = False):
+        # Create animation state
+        parser = UnityParser()
+        parser.parse(ANIMATION_STATE_TEMPLATE)
+        new_anim = UnityAnimator()
+        new_anim.addNodes(parser.nodes)
+        node = new_anim.nodes[0]
+
+        new_id = self.allocateId('1102')
+        node.anchor = str(new_id)
+        state = node.mapping['AnimatorState']
+        state.mapping['m_Name'] = state_name
+        state.mapping['m_Motion'].mapping['guid'] = anim_guid
+        self.nodes.append(node)
+
+        # Add state to layer
+        child_state = layer.mapping['AnimatorStateMachine'].mapping['m_ChildStates'].addChildMapping()
+        child_state.mapping['serializedVersion'] = '1'
+        child_state.addChildMapping('m_State').mapping['fileID'] = str(new_id)
+        state_pos = child_state.addChildMapping('m_Position')
+        state_pos.mapping['x'] = '280'
+        state_pos.mapping['y'] = '80'
+        state_pos.mapping['z'] = '0'
+
+        if is_default_state:
+            layer.mapping['AnimatorStateMachine'].mapping['m_DefaultState'].mapping['fileID'] = str(new_id)
+
+        return node
+
     def fixWriteDefaults(self, guid_map, generated_anim_path):
         # TODO(yum) we should have an Animation class which encapsulates all
         # this stuff.
@@ -546,8 +700,10 @@ class UnityAnimator():
             f.write(str(meta))
 
         # OK, we have an animation and a GUID. Let's generate a layer now.
-        # TODO(yum)
-
+        layer = self.addLayer('TaSTT_Reset_Animations')
+        state = self.addAnimatorState(layer, 'TaSTT_Reset_Animations', meta.guid, is_default_state = True)
+        #print("generated layer: {}".format(str(layer)), file=sys.stderr)
+        #print("generated state: {}".format(str(state)), file=sys.stderr)
 
 def unityAnimatorToString(nodes):
     lines = []
@@ -718,7 +874,7 @@ def getGuidMap(d):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("cmd", type=str)
+    parser.add_argument("cmd", type=str, help="One of merge, guid_map, fix_write_defaults")
     parser.add_argument("--fx0", type=str, help="The first animator to merge")
     parser.add_argument("--fx1", type=str, help="The second animator to merge")
     parser.add_argument("--project_root", type=str, help="The path to the " +
