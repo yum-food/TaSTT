@@ -51,7 +51,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_IsActive
-    path: CustomSTT
+    path: TaSTT
     classID: 1
     script: {fileID: 0}
   - curve:
@@ -88,7 +88,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: blendShape.TaSTT_Hide_Backplate
-    path: CustomSTT
+    path: TaSTT
     classID: 137
     script: {fileID: 0}
   m_PPtrCurves: []
@@ -169,7 +169,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_IsActive
-    path: CustomSTT
+    path: TaSTT
     classID: 1
     script: {fileID: 0}
   - curve:
@@ -206,7 +206,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: blendShape.TaSTT_Hide_Backplate
-    path: CustomSTT
+    path: TaSTT
     classID: 137
     script: {fileID: 0}
   m_EulerEditorCurves: []

@@ -42,7 +42,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: material.%LETTER_SHADER_PARAM%
-    path: CustomSTT
+    path: TaSTT
     classID: 137
     script: {fileID: 0}
   m_PPtrCurves: []
@@ -107,7 +107,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: material.%LETTER_SHADER_PARAM%
-    path: CustomSTT
+    path: TaSTT
     classID: 137
     script: {fileID: 0}
   m_EulerEditorCurves: []

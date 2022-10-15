@@ -25,12 +25,8 @@ def usage():
     print("python3 -m pip install python-osc")
     print("python3 ./osc_ctrl.py")
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-i", default="127.0.0.1", help="OSC server IP")
-parser.add_argument("-p", type=int, default=9000, help="OSC server port")
-args = parser.parse_args()
-
-client = udp_client.SimpleUDPClient(args.i, args.p)
+def getClient(ip = "127.0.0.1", port = 9000):
+    return udp_client.SimpleUDPClient(ip, port)
 
 class EvilGlobalState():
     # Mapping from ascii char to encoded byte.
@@ -73,7 +69,7 @@ def encodeMessage(lines):
         result += [state.encoding[' ']] * (BOARD_COLS - len(line))
     return result
 
-def updateCell(cell_idx, letter_encoded, s0, s1, s2, s3):
+def updateCell(client, cell_idx, letter_encoded, s0, s1, s2, s3):
     addr="/avatar/parameters/" + getLayerParam(cell_idx)
     client.send_message(addr, letter_encoded)
 
@@ -89,19 +85,19 @@ def updateCell(cell_idx, letter_encoded, s0, s1, s2, s3):
     addr="/avatar/parameters/" + getSelectParam(cell_idx, 3)
     client.send_message(addr, s3)
 
-def enable():
+def enable(client):
     addr="/avatar/parameters/" + getEnableParam()
     client.send_message(addr, True)
 
-def disable():
+def disable(client):
     addr="/avatar/parameters/" + getEnableParam()
     client.send_message(addr, False)
 
 # Send a cell all at once.
 # `which_cell` is an integer in the range [0,2**INDEX_BITS).
-def sendMessageCellDiscrete(msg_cell, which_cell):
+def sendMessageCellDiscrete(client, msg_cell, which_cell):
     # Disable each layer.
-    disable()
+    disable(client)
 
     time.sleep(CELL_TX_TIME_S / 3.0)
 
@@ -115,13 +111,13 @@ def sendMessageCellDiscrete(msg_cell, which_cell):
 
     # Seek each layer to the current cell.
     for i in range(0, len(msg_cell)):
-        updateCell(i, msg_cell[i], s0, s1, s2, s3)
+        updateCell(client, i, msg_cell[i], s0, s1, s2, s3)
 
     # Wait for convergence.
     time.sleep(CELL_TX_TIME_S / 3.0)
 
     # Enable each layer.
-    enable()
+    enable(client)
 
     # Wait for convergence.
     time.sleep(CELL_TX_TIME_S / 3.0)
@@ -152,7 +148,7 @@ def splitMessage(msg):
             line += " " + word
             continue
 
-        print("append line {}".format(line))
+        #print("append line {}".format(line))
         lines.append(line)
         line = word
 
@@ -242,7 +238,7 @@ def resizeBoard(num_lines, tx_state, shrink_only):
 # Send a message to the board, but only overwrite cells that we know need to
 # change.
 # This may take multiple calls to complete. Returns True once it's done.
-def sendMessageLazy(msg, tx_state):
+def sendMessageLazy(client, msg, tx_state):
     lines = splitMessage(msg)
     #resizeBoard(len(lines), tx_state, shrink_only=False)
 
@@ -277,13 +273,13 @@ def sendMessageLazy(msg, tx_state):
                 return False
             empty_cells_sent += 1
 
-        sendMessageCellDiscrete(cell_msg, cell)
+        sendMessageCellDiscrete(client, cell_msg, cell)
 
     tx_state.last_msg_encoded = msg_encoded
     #resizeBoard(len(lines), tx_state, shrink_only=True)
     return True
 
-def sendMessage(msg, page_sleep_s):
+def sendMessage(client, msg, page_sleep_s):
     lines = splitMessage(msg)
     msg = encodeMessage(lines)
     msg_len = len(msg)
@@ -303,28 +299,35 @@ def sendMessage(msg, page_sleep_s):
         cell_end = (cell + 1) * NUM_LAYERS
         cell_msg = msg[cell_begin:cell_end]
         print("Send cell {}".format(cell))
-        sendMessageCellDiscrete(cell_msg, cell)
+        sendMessageCellDiscrete(client, cell_msg, cell)
 
     #closeBoard()
     #clear()
 
-def sendRawMessage(msg):
+def sendRawMessage(client, msg):
     n_cells = ceil(len(msg) / NUM_LAYERS)
     for cell in range(0, n_cells):
         cell_begin = cell * NUM_LAYERS
         cell_end = (cell + 1) * NUM_LAYERS
         cell_msg = msg[cell_begin:cell_end]
         #print("Send cell {}".format(cell))
-        sendMessageCellDiscrete(cell_msg, cell)
+        sendMessageCellDiscrete(client, cell_msg, cell)
 
 def clear():
     sendRawMessage([state.encoding[' ']] * BOARD_ROWS * BOARD_COLS)
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", default="127.0.0.1", help="OSC server IP")
+    parser.add_argument("-p", type=int, default=9000, help="OSC server port")
+    args = parser.parse_args()
+
+    client = getClient(args.i, args.p)
+
     generateEncoding(state)
 
     tx_state = OscTxState()
     for line in fileinput.input():
-        while not sendMessageLazy(line, tx_state):
+        while not sendMessageLazy(client, line, tx_state):
             continue
     clear()

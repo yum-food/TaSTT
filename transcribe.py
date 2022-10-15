@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 
+import argparse
 import copy
-import fileinput
 import os
 import osc_ctrl
 # python3 -m pip install pyaudio
 import pyaudio
+import sys
 import threading
 import time
 import wave
 # python3 -m pip install git+https://github.com/openai/whisper.git
 # python3 -m pip install torch -f https://download.pytorch.org/whl/torch_stable.html
-import whisper
+from whisper import transcribe as whisper_transcribe
+from whisper import load_model as whisper_load_model
 
 class AudioState:
     CHUNK = 1024
@@ -42,20 +44,27 @@ class AudioState:
     transcribe_audio = True
     send_audio = True
 
-def getMicStream():
+    osc_client = osc_ctrl.getClient()
+
+def getMicStream(which_mic):
     audio_state = AudioState()
     audio_state.p = pyaudio.PyAudio()
-
-    info = audio_state.p.get_host_api_info_by_index(0)
-    numdevices = info.get('deviceCount')
 
     print("Finding index mic...")
     got_match = False
     device_index = -1
-    mic_str = "Focusrite"
+    focusrite_str = "Focusrite"
     index_str = "Digital Audio Interface"
-    target_str = mic_str
+    if which_mic == "index":
+        target_str = index_str
+    elif which_mic == "focusrite":
+        target_str = focusrite_str
+    else:
+        raise Exception("Unrecognized mic requested: {}".format(which_mic))
     while got_match == False:
+        info = audio_state.p.get_host_api_info_by_index(0)
+        numdevices = info.get('deviceCount')
+
         for i in range(0, numdevices):
             if (audio_state.p.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0:
                 device_name = audio_state.p.get_device_info_by_host_api_device_index(0, i).get('name')
@@ -116,7 +125,7 @@ def resetAudio(audio_state):
 
 # Transcribe the audio recorded in a file.
 def transcribe(model, filename):
-    result = whisper.transcribe(model=model, audio=filename, language="en")
+    result = whisper_transcribe(model=model, audio=filename, language="en")
     return result["text"]
 
 def transcribeAudio(audio_state, model):
@@ -146,16 +155,23 @@ def sendAudio(audio_state):
         text = copy.deepcopy(audio_state.text)
         audio_state.text_lock.release()
 
-        osc_ctrl.sendMessageLazy(text, tx_state)
+        osc_ctrl.sendMessageLazy(audio_state.osc_client, text, tx_state)
 
         # Pace this out
         time.sleep(0.05)
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mic", type=str, help="Which mic to use. Options: index, focusrite. Default: index")
+    args = parser.parse_args()
+
+    if not args.mic:
+        args.mic = "index"
+
     if os.path.isfile("audio.wav"):
         os.remove("audio.wav")
 
-    audio_state = getMicStream()
+    audio_state = getMicStream(args.mic)
 
     record_audio_thd = threading.Thread(target = recordAudio, args = [audio_state])
     record_audio_thd.daemon = True
@@ -163,18 +179,18 @@ if __name__ == "__main__":
 
     print("Safe to start talking")
 
-    model = whisper.load_model("base")
+    model = whisper_load_model("base")
 
     transcribe_audio_thd = threading.Thread(target = transcribeAudio, args = [audio_state, model])
     transcribe_audio_thd.daemon = True
     transcribe_audio_thd.start()
 
-    #send_audio_thd = threading.Thread(target = sendAudio, args = [audio_state])
-    #send_audio_thd.daemon = True
-    #send_audio_thd.start()
+    send_audio_thd = threading.Thread(target = sendAudio, args = [audio_state])
+    send_audio_thd.daemon = True
+    send_audio_thd.start()
 
     print("Press enter to start a new message")
-    for line in fileinput.input():
+    for line in sys.stdin:
         resetAudio(audio_state)
         if "exit" in line or "quit" in line:
             break

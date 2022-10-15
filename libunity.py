@@ -421,7 +421,7 @@ class UnityAnimator():
         if anchor in self.id_mapping.keys():
             return self.id_mapping[anchor]
 
-        new_id = allocateId(classId(anchor))
+        new_id = self.allocateId(classId(anchor))
         self.id_mapping[anchor] = new_id
         return new_id
 
