@@ -624,7 +624,7 @@ class UnityAnimator():
         self.nodes.append(layer)
         return layer
 
-    def addAnimatorState(self, layer, state_name, anim_guid, is_default_state = False):
+    def addAnimatorState(self, layer, state_name, is_default_state = False):
         # Create animation state
         parser = UnityParser()
         parser.parse(ANIMATION_STATE_TEMPLATE)
@@ -636,7 +636,7 @@ class UnityAnimator():
         node.anchor = str(new_id)
         state = node.mapping['AnimatorState']
         state.mapping['m_Name'] = state_name
-        state.mapping['m_Motion'].mapping['guid'] = anim_guid
+        #state.mapping['m_Motion'].mapping['guid'] = anim_guid
         self.nodes.append(node)
 
         # Add state to layer
@@ -652,6 +652,9 @@ class UnityAnimator():
             layer.mapping['AnimatorStateMachine'].mapping['m_DefaultState'].mapping['fileID'] = str(new_id)
 
         return node
+
+    def setAnimatorStateAnimation(self, anim_state, anim_guid):
+        anim_state.mapping['AnimatorState'].mapping['m_Motion'].mapping['guid'] = anim_guid
 
     def addTransition(self, dst_state_id):
         # Create animation state
@@ -749,9 +752,75 @@ class UnityAnimator():
 
         # OK, we have an animation and a GUID. Let's generate a layer now.
         layer = self.addLayer('TaSTT_Reset_Animations', add_to_head = True)
-        state = self.addAnimatorState(layer, 'TaSTT_Reset_Animations', meta.guid, is_default_state = True)
-        #print("generated layer: {}".format(str(layer)), file=sys.stderr)
-        #print("generated state: {}".format(str(state)), file=sys.stderr)
+
+        reset_left_state = self.addAnimatorState(layer, 'TaSTT_Reset_Animations_Left')
+        self.setAnimatorStateAnimation(reset_left_state, meta.guid)
+        reset_right_state = self.addAnimatorState(layer, 'TaSTT_Reset_Animations_Right')
+        self.setAnimatorStateAnimation(reset_right_state, meta.guid)
+
+        # Add noop state
+        noop_state = self.addAnimatorState(layer, 'TaSTT_Reset_Animations_Noop', is_default_state = True)
+        noop_anim_meta = Metadata()
+        noop_anim_meta.load('Animations/TaSTT_Do_Nothing.anim')
+        self.setAnimatorStateAnimation(noop_state, noop_anim_meta.guid)
+        noop_trans = self.addTransition(noop_state.anchor)
+        self.addTransitionIntegerGreaterCondition(None, noop_trans,
+                'GestureLeft', 0)
+        self.addTransitionIntegerGreaterCondition(None, noop_trans,
+                'GestureRight', 0)
+        tmp_trans = layer.mapping['AnimatorStateMachine'].mapping['m_AnyStateTransitions'].addChildMapping()
+        tmp_trans.mapping['fileID'] = noop_trans.anchor
+
+        # Create any state transitions to the animated
+        # states. When Gesture{Left,Right} is 0 in either hand, AKA no gesture
+        # is being used, we fire the animation.
+        left_trans = self.addTransition(reset_left_state.anchor)
+        self.addTransitionIntegerEqualityCondition(None, left_trans,
+                'GestureLeft', 0)
+        tmp_trans = layer.mapping['AnimatorStateMachine'].mapping['m_AnyStateTransitions'].addChildMapping()
+        tmp_trans.mapping['fileID'] = left_trans.anchor
+
+        right_trans = self.addTransition(reset_right_state.anchor)
+        self.addTransitionIntegerEqualityCondition(None, right_trans,
+                'GestureRight', 0)
+        tmp_trans = layer.mapping['AnimatorStateMachine'].mapping['m_AnyStateTransitions'].addChildMapping()
+        tmp_trans.mapping['fileID'] = right_trans.anchor
+
+    def addTransitionBooleanCondition(self, from_state, trans, param, branch):
+        # Populate the transition's condition logic.
+        cond = trans.mapping['AnimatorStateTransition'].mapping['m_Conditions'].addChildMapping()
+        if branch:
+            cond.mapping['m_ConditionMode'] = '1'
+        else:
+            cond.mapping['m_ConditionMode'] = '2'
+        cond.mapping['m_ConditionEvent'] = param
+        cond.mapping['m_EventThreshold'] = '0'
+        # Register the transition with the `from_state`.
+        if from_state:
+            from_state_trans = from_state.mapping['AnimatorState'].mapping['m_Transitions'].addChildMapping()
+            from_state_trans.mapping['fileID'] = trans.anchor
+
+    def addTransitionIntegerEqualityCondition(self, from_state, trans, param, param_val):
+        # Populate the transition's condition logic.
+        cond = trans.mapping['AnimatorStateTransition'].mapping['m_Conditions'].addChildMapping()
+        cond.mapping['m_ConditionMode'] = '6'
+        cond.mapping['m_ConditionEvent'] = param
+        cond.mapping['m_EventThreshold'] = str(param_val)
+        # Register the transition with the `from_state`.
+        if from_state:
+            from_state_trans = from_state.mapping['AnimatorState'].mapping['m_Transitions'].addChildMapping()
+            from_state_trans.mapping['fileID'] = trans.anchor
+
+    def addTransitionIntegerGreaterCondition(self, from_state, trans, param, param_val):
+        # Populate the transition's condition logic.
+        cond = trans.mapping['AnimatorStateTransition'].mapping['m_Conditions'].addChildMapping()
+        cond.mapping['m_ConditionMode'] = '3'
+        cond.mapping['m_ConditionEvent'] = param
+        cond.mapping['m_EventThreshold'] = str(param_val)
+        # Register the transition with the `from_state`.
+        if from_state:
+            from_state_trans = from_state.mapping['AnimatorState'].mapping['m_Transitions'].addChildMapping()
+            from_state_trans.mapping['fileID'] = trans.anchor
 
     # TODO(yum) this should be factored out into generate_fx.py
     def addTasttToggle(self, off_anim_path, on_anim_path, toggle_param):
@@ -764,26 +833,18 @@ class UnityAnimator():
         on_anim_meta.load(on_anim_path)
 
         layer = self.addLayer('TaSTT_Toggle')
-        off_anim = self.addAnimatorState(layer, 'TaSTT_Toggle_Off', off_anim_meta.guid, is_default_state = True)
-        on_anim = self.addAnimatorState(layer, 'TaSTT_Toggle_On', on_anim_meta.guid)
+        off_anim = self.addAnimatorState(layer, 'TaSTT_Toggle_Off', is_default_state = True)
+        self.setAnimatorStateAnimation(off_anim, off_anim_meta.guid)
+        on_anim = self.addAnimatorState(layer, 'TaSTT_Toggle_On')
+        self.setAnimatorStateAnimation(on_anim, on_anim_meta.guid)
 
         # TODO(yum) make a Transition class with methods for adding boolean
         # conditions
         off_to_on = self.addTransition(on_anim.anchor)
-        cond = off_to_on.mapping['AnimatorStateTransition'].mapping['m_Conditions'].addChildMapping()
-        cond.mapping['m_ConditionMode'] = '1'
-        cond.mapping['m_ConditionEvent'] = toggle_param
-        cond.mapping['m_EventThreshold'] = '0'
-        trans = off_anim.mapping['AnimatorState'].mapping['m_Transitions'].addChildMapping()
-        trans.mapping['fileID'] = off_to_on.anchor
+        self.addTransitionBooleanCondition(off_anim, off_to_on, toggle_param, True)
 
         on_to_off = self.addTransition(off_anim.anchor)
-        cond = on_to_off.mapping['AnimatorStateTransition'].mapping['m_Conditions'].addChildMapping()
-        cond.mapping['m_ConditionMode'] = '2'
-        cond.mapping['m_ConditionEvent'] = toggle_param
-        cond.mapping['m_EventThreshold'] = '0'
-        trans = on_anim.mapping['AnimatorState'].mapping['m_Transitions'].addChildMapping()
-        trans.mapping['fileID'] = on_to_off.anchor
+        self.addTransitionBooleanCondition(on_anim, on_to_off, toggle_param, False)
 
 def unityAnimatorToString(nodes):
     lines = []
