@@ -161,6 +161,7 @@ class OscTxState:
     # The message last sent to the board.
     last_msg_encoded = []
     empty_cells_to_send_per_call = 1
+    nonempty_cells_to_send_per_call = 2
 
     # 0 indicates it's closed. 1 indicates half size. 2 indicates full size.
     board_size = 0
@@ -246,6 +247,7 @@ def sendMessageLazy(client, msg, tx_state):
     msg_encoded_len = len(msg_encoded)
 
     empty_cells_sent = 0
+    nonempty_cells_sent = 0
     n_cells = ceil(msg_encoded_len / NUM_LAYERS)
     for cell in range(0, n_cells):
         cell_begin = cell * NUM_LAYERS
@@ -272,6 +274,12 @@ def sendMessageLazy(client, msg, tx_state):
                 tx_state.last_msg_encoded = msg_encoded[0:cell_end]
                 return False
             empty_cells_sent += 1
+        else:
+            if nonempty_cells_sent >= tx_state.nonempty_cells_to_send_per_call:
+                print("nonempty cell budget exceeded")
+                tx_state.last_msg_encoded = msg_encoded[0:cell_end]
+                return False
+            nonempty_cells_sent += 1
 
         sendMessageCellDiscrete(client, cell_msg, cell)
 

@@ -12,8 +12,7 @@ import time
 import wave
 # python3 -m pip install git+https://github.com/openai/whisper.git
 # python3 -m pip install torch -f https://download.pytorch.org/whl/torch_stable.html
-from whisper import transcribe as whisper_transcribe
-from whisper import load_model as whisper_load_model
+import whisper
 
 class AudioState:
     CHUNK = 1024
@@ -24,9 +23,9 @@ class AudioState:
 
     # The maximum length that recordAudio() will put into frames before it
     # starts dropping from the start.
-    MAX_LENGTH_S = 90
+    MAX_LENGTH_S = 25
     # The minimum length that recordAudio() will wait for before saving audio.
-    MIN_LENGTH_S = 3
+    MIN_LENGTH_S = 1
 
     # PyAudio object
     p = None
@@ -38,6 +37,9 @@ class AudioState:
     frames_lock = threading.Lock()
 
     text = ""
+    # To improve temporal stability, we require two consecutive identical
+    # transcriptions before "committing" to a transcription.
+    text_candidate = ""
     text_lock = threading.Lock()
 
     record_audio = True
@@ -118,6 +120,8 @@ def saveAudio(audio_state, filename):
     wf.writeframes(b''.join(frames))
     wf.close()
 
+    print("audio save")
+
 def resetAudio(audio_state):
     audio_state.frames_lock.acquire()
     audio_state.frames = []
@@ -125,8 +129,16 @@ def resetAudio(audio_state):
 
 # Transcribe the audio recorded in a file.
 def transcribe(model, filename):
-    result = whisper_transcribe(model=model, audio=filename, language="en")
-    return result["text"]
+
+    audio = whisper.load_audio(filename)
+    audio = whisper.pad_or_trim(audio)
+    mel = whisper.log_mel_spectrogram(audio).to(model.device)
+    _, probs = model.detect_language(mel)
+    print(f"Detected language: {max(probs, key=probs.get)}")
+    options = whisper.DecodingOptions()
+    result = whisper.decode(model, mel, options)
+
+    return result.text
 
 def transcribeAudio(audio_state, model):
     while audio_state.transcribe_audio == True:
@@ -140,13 +152,18 @@ def transcribeAudio(audio_state, model):
         text = transcribe(model, "audio.wav")
 
         audio_state.text_lock.acquire()
-        audio_state.text = text
+
+        if text == audio_state.text_candidate or text.startswith(audio_state.text_candidate):
+            audio_state.text = text
+        audio_state.text_candidate = text
+
         audio_state.text_lock.release()
 
         print("Transcription: {}".format(audio_state.text))
+        print("Candidate: {}".format(audio_state.text_candidate))
 
         # Pace this out
-        time.sleep(0.2)
+        time.sleep(0.05)
 
 def sendAudio(audio_state):
     tx_state = osc_ctrl.OscTxState()
@@ -155,6 +172,7 @@ def sendAudio(audio_state):
         text = copy.deepcopy(audio_state.text)
         audio_state.text_lock.release()
 
+        print("here")
         osc_ctrl.sendMessageLazy(audio_state.osc_client, text, tx_state)
 
         # Pace this out
@@ -179,7 +197,7 @@ if __name__ == "__main__":
 
     print("Safe to start talking")
 
-    model = whisper_load_model("base")
+    model = whisper.load_model("base")
 
     transcribe_audio_thd = threading.Thread(target = transcribeAudio, args = [audio_state, model])
     transcribe_audio_thd.daemon = True
