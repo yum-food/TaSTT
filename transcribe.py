@@ -4,6 +4,9 @@ import argparse
 import copy
 import os
 import osc_ctrl
+# python3 -m pip install pydub
+from pydub import AudioSegment as pydub_AudioSegment
+from pydub import effects as pydub_effects
 # python3 -m pip install pyaudio
 import pyaudio
 import sys
@@ -120,6 +123,12 @@ def saveAudio(audio_state, filename):
     wf.writeframes(b''.join(frames))
     wf.close()
 
+    # Normalize volume. This seems to make the neural net a little more
+    # consistent.
+    raw = pydub_AudioSegment.from_wav(filename)
+    normalized = pydub_effects.normalize(raw)
+    normalized.export(filename, format="wav")
+
     print("audio save")
 
 def resetAudio(audio_state):
@@ -153,8 +162,22 @@ def transcribeAudio(audio_state, model):
 
         audio_state.text_lock.acquire()
 
+        # We use a few heuristics to handle spurious mistranscriptions and to
+        # handle events where we trim off the start of the audio clip.
+        #   1. If we get 2 consecutive identical transcriptions, we commit to
+        #       the transcription. This reduces the number of
+        #       mistranscriptions by a lot.
+        #   2. If the last transcription is a prefix of the current one, we
+        #       immediately accept it, since the transcription is obviously
+        #       somewhat stable.
+        #   3. If the transcription is somewhat long and the
+        #       first few characters change, we assume this is due to a
+        #       trim event and immediately accept the transcription.
         if text == audio_state.text_candidate or text.startswith(audio_state.text_candidate):
             audio_state.text = text
+        elif len(text) > 30 and text[0:10] != audio_state.text_candidate[0:10]:
+            audio_state.text = text
+
         audio_state.text_candidate = text
 
         audio_state.text_lock.release()
@@ -176,7 +199,7 @@ def sendAudio(audio_state):
         osc_ctrl.sendMessageLazy(audio_state.osc_client, text, tx_state)
 
         # Pace this out
-        time.sleep(0.05)
+        time.sleep(0.01)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
