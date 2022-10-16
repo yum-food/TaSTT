@@ -5,6 +5,7 @@ import copy
 import enum
 import math
 import os
+import pickle
 import random
 import sys
 # python3 -m pip install pyyaml
@@ -37,15 +38,6 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 136
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 0.016666668
         value: 0
         inSlope: 0
         outSlope: 0
@@ -109,15 +101,6 @@ AnimationClip:
         weightedMode: 0
         inWeight: 0
         outWeight: 0
-      - serializedVersion: 3
-        time: 0.016666668
-        value: 0
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 136
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
@@ -139,7 +122,7 @@ NativeFormatImporter:
   mainObjectFileID: 7400000
   userData:
   assetBundleName:
-  assetBundleVariant:
+  assetBundleVariant: 
 """[1:][:-1]
 
 ANIMATION_STATE_TEMPLATE = """
@@ -342,6 +325,11 @@ class Mapping(Node):
                 return self.prettyPrint(first_indent="")
             return "{" + lines[0] + "}"
 
+        # Empty mappings are represented by '{}'. If we don't do this, Unity
+        # will assume that they are Sequences and get very sad.
+        if len(self.mapping.keys()) == 0:
+            return "{}"
+
         if leading_newline:
             result = "\n" + result
 
@@ -455,6 +443,12 @@ class UnityAnimator():
         return new_id
 
     def getUniqueId(self, anchor):
+        # For whatever reason, generating a new ID for the MonoBehaviour
+        # embedded in VRChat's default animation ctrler makes Unity spit out
+        # warnings. Reuse the old one.
+        if classId(anchor) == "114":
+            return int(anchor)
+
         if anchor in self.id_mapping.keys():
             return self.id_mapping[anchor]
 
@@ -487,7 +481,8 @@ class UnityAnimator():
                 result = node
                 self.nodes.remove(result)
                 break
-        del self.id_to_node[result.anchor]
+        if result:
+            del self.id_to_node[result.anchor]
         return result
 
     def pushNode(self, node):
@@ -571,11 +566,11 @@ class UnityAnimator():
         ctrl = param.addChildMapping('m_Controller')
         ctrl.mapping['fileID'] = anim.anchor
 
-    def addLayer(self, layer_name):
+    def addLayer(self, layer_name, add_to_head = False):
         # Add layer to controller
         anim = self.peekNodeOfClass('91')
         layers = anim.mapping['AnimatorController'].mapping['m_AnimatorLayers']
-        layer = layers.addChildMapping(add_to_head = True)
+        layer = layers.addChildMapping(add_to_head = add_to_head)
         layer.mapping['serializedVersion'] = '5'
         layer.mapping['m_Name'] = layer_name
         new_id = self.allocateId('1107')
@@ -753,7 +748,7 @@ class UnityAnimator():
             f.write(str(meta))
 
         # OK, we have an animation and a GUID. Let's generate a layer now.
-        layer = self.addLayer('TaSTT_Reset_Animations')
+        layer = self.addLayer('TaSTT_Reset_Animations', add_to_head = True)
         state = self.addAnimatorState(layer, 'TaSTT_Reset_Animations', meta.guid, is_default_state = True)
         #print("generated layer: {}".format(str(layer)), file=sys.stderr)
         #print("generated state: {}".format(str(state)), file=sys.stderr)
@@ -845,9 +840,11 @@ class UnityParser:
     def cleanYaml(self, yaml_str):
         lines = []
         first_document = True
+        got_document = False
         for line in yaml_str.split("\n"):
             # Add end-of-document indicators.
             if line.startswith("---"):
+                got_document = True
                 if not first_document:
                     lines.append("...\n")
                 first_document = False
@@ -859,7 +856,8 @@ class UnityParser:
                 continue
             lines.append(line)
 
-        lines.append("...\n")
+        if got_document:
+            lines.append("...\n")
         return '\n'.join(lines)
 
     def parseFile(self, yaml_file):
@@ -960,6 +958,9 @@ class MulticoreUnityParser:
                     lines = []
                 first = False
             lines.append(line)
+        if len(lines) > 0:
+            documents.append("\n".join(lines))
+            lines = []
         print("Got {} documents out of {} lines".format(len(documents), n_lines), file=sys.stderr)
 
         # Divide the work evenly among the # of CPUs we have available.
@@ -1042,24 +1043,18 @@ if __name__ == "__main__":
 
     if args.cmd == "merge":
         if not args.fx0 or not args.fx1:
-            print("--fx0 and --fx1 required")
+            print("--fx0 and --fx1 required", file=sys.stderr)
             parser.print_help()
             parser.exit(1)
 
         print("Parsing {}".format(args.fx0), file=sys.stderr)
-        parser0 = UnityParser()
-        parser0.parseFile(args.fx0)
-
-        anim0 = UnityAnimator()
-        anim0.addNodes(parser0.nodes)
+        parser0 = MulticoreUnityParser()
+        anim0 = parser0.parseFile(args.fx0)
 
         arg1 = "TaSTT_fx.controller"
         print("Parsing {}".format(args.fx1), file=sys.stderr)
-        parser1 = UnityParser()
-        parser1.parseFile(args.fx1)
-
-        anim1 = UnityAnimator()
-        anim1.addNodes(parser1.nodes)
+        parser1 = MulticoreUnityParser()
+        anim1 = parser1.parseFile(args.fx1)
 
         print("Merging animators", file=sys.stderr)
         anim0.merge(anim1)
@@ -1089,11 +1084,10 @@ if __name__ == "__main__":
             guid_map = pickle.load(f)
 
         print("Parsing {}".format(args.fx0), file=sys.stderr)
-        parser0 = UnityParser()
-        parser0.parseFile(args.fx0)
+        parser0 = MulticoreUnityParser()
+        anim = parser0.parseFile(args.fx0)
 
-        anim = UnityAnimator()
-        anim.addNodes(parser0.nodes)
+        print("Fixing write defaults", file=sys.stderr)
         anim.fixWriteDefaults(guid_map, "generated/animations/TaSTT_Reset_Animation.anim")
         print(str(anim))
 
@@ -1104,11 +1098,10 @@ if __name__ == "__main__":
             parser.exit(1)
 
         print("Parsing {}".format(args.fx0), file=sys.stderr)
-        parser0 = UnityParser()
-        parser0.parseFile(args.fx0)
+        parser0 = MulticoreUnityParser()
+        anim = parser0.parseFile(args.fx0)
 
-        anim = UnityAnimator()
-        anim.addNodes(parser0.nodes)
+        print("Adding toggle", file=sys.stderr)
         anim.addTasttToggle("Animations/TaSTT_Toggle_Off.anim",
                 "Animations/TaSTT_Toggle_On.anim", "TaSTT_Toggle")
         print(str(anim))
@@ -1121,7 +1114,6 @@ if __name__ == "__main__":
 
         print("Parsing {}".format(args.fx0), file=sys.stderr)
         parser0 = MulticoreUnityParser()
-        #parser0 = UnityParser()
         anim = parser0.parseFile(args.fx0)
         print(str(anim))
 
