@@ -175,7 +175,7 @@ def transcribeAudio(audio_state, model):
         #       trim event and immediately accept the transcription.
         if text == audio_state.text_candidate or text.startswith(audio_state.text_candidate):
             audio_state.text = text
-        elif len(text) > 30 and text[0:10] != audio_state.text_candidate[0:10]:
+        elif len(text) > 30 and len(audio_state.text_candidate) >= 10 and text[0:10] != audio_state.text_candidate[0:10]:
             audio_state.text = text
 
         audio_state.text_candidate = text

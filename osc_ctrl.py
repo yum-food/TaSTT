@@ -255,12 +255,6 @@ def sendMessageLazy(client, msg, tx_state):
         cell_msg = msg_encoded[cell_begin:cell_end]
         last_cell_msg = []
 
-        if cell > 0 and cell % (2 ** generate_utils.INDEX_BITS) == 0:
-            # TODO(yum_food) support messages longer than one page
-            print("Page limit exceeded, no support yet")
-            tx_state.last_msg_encoded = msg_encoded[0:cell_begin]
-            return True
-
         # Skip cells we've already sent. This makes the board much more
         # responsive.
         if cell_end < len(tx_state.last_msg_encoded):
