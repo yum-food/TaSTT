@@ -173,11 +173,22 @@ def transcribeAudio(audio_state, model):
         #   3. If the transcription is somewhat long and the
         #       first few characters change, we assume this is due to a
         #       trim event and immediately accept the transcription.
+        commit_transcription = False
         if text == audio_state.text_candidate or text.startswith(audio_state.text_candidate):
-            audio_state.text = text
+            commit_transcription = True
         elif len(text) > 30 and len(audio_state.text_candidate) >= 10 and text[0:10] != audio_state.text_candidate[0:10]:
             audio_state.text = text
+            commit_transcription = True
 
+        if commit_transcription:
+            old_len = len(audio_state.text_candidate)
+            new_len = len(text)
+            min_len = min(old_len, new_len)
+            overlap_fraction = 0.2
+            overlap_len = int(0.2 * min_len)
+
+            if audio_state.text_candidate[old_len - overlap_len:old_len] == text_state[0:overlap_len]
+                audio_state.text = text
         audio_state.text_candidate = text
 
         audio_state.text_lock.release()

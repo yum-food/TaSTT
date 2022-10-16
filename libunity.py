@@ -169,9 +169,44 @@ AnimatorState:
   m_TimeParameter: 
 """[1:][:-1]
 
+TRANSITION_TEMPLATE = """
+--- !u!1101 &110100000
+AnimatorStateTransition:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_Conditions: []
+  m_DstStateMachine: {fileID: 0}
+  m_DstState: {fileID: 0}
+  m_Solo: 0
+  m_Mute: 0
+  m_IsExit: 0
+  serializedVersion: 3
+  m_TransitionDuration: 0
+  m_TransitionOffset: 0
+  m_ExitTime: 1.0
+  m_HasExitTime: 1
+  m_HasFixedDuration: 1
+  m_InterruptionSource: 0
+  m_OrderedInterruption: 1
+  m_CanTransitionToSelf: 1
+"""[1:][:-1]
+
 class Metadata:
     def __init__(self):
         self.guid = "%032x" % random.randrange(16 ** 32)
+
+    def load(self, path):
+        if not path.endswith(".meta"):
+            path = path + ".meta"
+
+        self.guid = None
+        with open(path, "r") as f:
+            for line in f:
+                if line.startswith("guid"):
+                    self.guid = line.split()[1]
 
     def __str__(self):
         return METADATA_TEMPLATE.replace("REPLACEME_GUID", self.guid)
@@ -621,6 +656,22 @@ class UnityAnimator():
 
         return node
 
+    def addTransition(self, dst_state_id):
+        # Create animation state
+        parser = UnityParser()
+        parser.parse(TRANSITION_TEMPLATE)
+        new_transition = UnityAnimator()
+        new_transition.addNodes(parser.nodes)
+        node = new_transition.nodes[0]
+
+        new_id = self.allocateId('1101')
+        node.anchor = str(new_id)
+        state = node.mapping['AnimatorStateTransition']
+        state.mapping['m_DstState'].mapping['fileID'] = dst_state_id
+        self.nodes.append(node)
+
+        return node
+
     def fixWriteDefaults(self, guid_map, generated_anim_path):
         # TODO(yum) we should have an Animation class which encapsulates all
         # this stuff.
@@ -704,6 +755,38 @@ class UnityAnimator():
         state = self.addAnimatorState(layer, 'TaSTT_Reset_Animations', meta.guid, is_default_state = True)
         #print("generated layer: {}".format(str(layer)), file=sys.stderr)
         #print("generated state: {}".format(str(state)), file=sys.stderr)
+
+    # TODO(yum) this should be factored out into generate_fx.py
+    def addTasttToggle(self, off_anim_path, on_anim_path, toggle_param):
+        self.addParameter(toggle_param, bool)
+
+        off_anim_meta = Metadata()
+        off_anim_meta.load(off_anim_path)
+
+        on_anim_meta = Metadata()
+        on_anim_meta.load(on_anim_path)
+
+        layer = self.addLayer('TaSTT_Toggle')
+        off_anim = self.addAnimatorState(layer, 'TaSTT_Toggle_Off', off_anim_meta.guid, is_default_state = True)
+        on_anim = self.addAnimatorState(layer, 'TaSTT_Toggle_On', on_anim_meta.guid)
+
+        # TODO(yum) make a Transition class with methods for adding boolean
+        # conditions
+        off_to_on = self.addTransition(on_anim.anchor)
+        cond = off_to_on.mapping['AnimatorStateTransition'].mapping['m_Conditions'].addChildMapping()
+        cond.mapping['m_ConditionMode'] = '1'
+        cond.mapping['m_ConditionEvent'] = toggle_param
+        cond.mapping['m_EventThreshold'] = '0'
+        trans = off_anim.mapping['AnimatorState'].mapping['m_Transitions'].addChildMapping()
+        trans.mapping['fileID'] = off_to_on.anchor
+
+        on_to_off = self.addTransition(off_anim.anchor)
+        cond = on_to_off.mapping['AnimatorStateTransition'].mapping['m_Conditions'].addChildMapping()
+        cond.mapping['m_ConditionMode'] = '2'
+        cond.mapping['m_ConditionEvent'] = toggle_param
+        cond.mapping['m_EventThreshold'] = '0'
+        trans = on_anim.mapping['AnimatorState'].mapping['m_Transitions'].addChildMapping()
+        trans.mapping['fileID'] = on_to_off.anchor
 
 def unityAnimatorToString(nodes):
     lines = []
@@ -940,6 +1023,22 @@ if __name__ == "__main__":
         anim = UnityAnimator()
         anim.addNodes(parser0.nodes)
         anim.fixWriteDefaults(guid_map, "generated/animations/TaSTT_Reset_Animation.anim")
+        print(str(anim))
+
+    elif args.cmd == "add_toggle":
+        if not args.fx0:
+            print("--fx0 required")
+            parser.print_help()
+            parser.exit(1)
+
+        print("Parsing {}".format(args.fx0), file=sys.stderr)
+        parser0 = UnityParser()
+        parser0.parseFile(args.fx0)
+
+        anim = UnityAnimator()
+        anim.addNodes(parser0.nodes)
+        anim.addTasttToggle("Animations/TaSTT_Toggle_Off.anim",
+                "Animations/TaSTT_Toggle_On.anim", "TaSTT_Toggle")
         print(str(anim))
 
     else:

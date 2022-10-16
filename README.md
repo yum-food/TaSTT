@@ -162,6 +162,8 @@ To use the STT:
      that the parameter memory usage may not decrease.
    2. Optimize FX layer. We have 14k animations and a 1.2 million line FX
       layer. Something must be rethought to bring these numbers down.
+   3. Implement multicore YAML parsing. This will make working with large
+      animators much more practical.
 5. Bugfixes
    1. The whisper STT says "Thank you." when there's no audio?
 
