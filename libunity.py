@@ -3,12 +3,14 @@
 import argparse
 import copy
 import enum
+import math
 import os
-import pickle
 import random
 import sys
 # python3 -m pip install pyyaml
 import yaml
+
+import multiprocessing as mp
 
 WRITE_DEFAULTS_ANIM_TEMPLATE = """
 %YAML 1.1
@@ -860,6 +862,12 @@ class UnityParser:
         lines.append("...\n")
         return '\n'.join(lines)
 
+    def parseFile(self, yaml_file):
+        yaml_str = ""
+        with open(yaml_file, "r") as f:
+            yaml_str = f.read()
+        return self.parse(yaml_str)
+
     def parse(self, yaml_str):
         yaml_str = self.cleanYaml(yaml_str)
 
@@ -931,6 +939,70 @@ class UnityParser:
             else:
                 raise Exception("Unhandled event {}".format(event))
             continue
+
+class MulticoreUnityParser:
+    def parseFile(self, yaml_file):
+        yaml_str = ""
+        with open(yaml_file, "r") as f:
+            yaml_str = f.read()
+        return self.parse(yaml_str)
+
+    def parse(self, yaml_str):
+        lines = []
+        documents = []
+        first = True
+        n_lines = 0
+        for line in yaml_str.split("\n"):
+            n_lines += 1
+            if line.startswith("---"):
+                if not first:
+                    documents.append("\n".join(lines))
+                    lines = []
+                first = False
+            lines.append(line)
+        print("Got {} documents out of {} lines".format(len(documents), n_lines), file=sys.stderr)
+
+        # Divide the work evenly among the # of CPUs we have available.
+        n_threads = os.cpu_count()
+        window_size = int(math.ceil(len(documents) / n_threads))
+        merge_window = []
+        merged_documents = []
+        for i in range(0, len(documents)):
+            if i > 0 and i % window_size == 0:
+                merged_documents.append("\n".join(merge_window))
+                merge_window = []
+            merge_window.append(documents[i])
+        if len(merge_window) > 0:
+            merged_documents.append("\n".join(merge_window))
+            merge_window = []
+        documents = merged_documents
+
+        mgr = mp.Manager()
+
+        print("Spawning {} threads".format(len(documents)), file=sys.stderr)
+        threads = []
+        for document in documents:
+            res = mgr.dict()
+            thread = mp.Process(target = self.parseOneSerial, args = (document, res,))
+            threads.append((thread, res))
+            thread.start()
+
+        print("Joining threads", file=sys.stderr)
+        nodes = []
+        for thread, res in threads:
+            thread.join()
+            nodes += res['nodes']
+
+        print("Creating animator", file=sys.stderr)
+        result = UnityAnimator()
+        result.addNodes(nodes)
+
+        return result
+
+    def parseOneSerial(self, document, res):
+        parser = UnityParser()
+        parser.parse(document)
+        res['nodes'] = parser.nodes
 
     def parseFile(self, yaml_file):
         yaml_str = ""
@@ -1039,6 +1111,18 @@ if __name__ == "__main__":
         anim.addNodes(parser0.nodes)
         anim.addTasttToggle("Animations/TaSTT_Toggle_Off.anim",
                 "Animations/TaSTT_Toggle_On.anim", "TaSTT_Toggle")
+        print(str(anim))
+
+    elif args.cmd == "fast_parse_test":
+        if not args.fx0:
+            print("--fx0 required")
+            parser.print_help()
+            parser.exit(1)
+
+        print("Parsing {}".format(args.fx0), file=sys.stderr)
+        parser0 = MulticoreUnityParser()
+        #parser0 = UnityParser()
+        anim = parser0.parseFile(args.fx0)
         print(str(anim))
 
     else:
