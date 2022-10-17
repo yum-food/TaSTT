@@ -241,8 +241,6 @@ def resizeBoard(num_lines, tx_state, shrink_only):
 # This may take multiple calls to complete. Returns True once it's done.
 def sendMessageLazy(client, msg, tx_state):
     lines = splitMessage(msg)
-    #resizeBoard(len(lines), tx_state, shrink_only=False)
-
     msg_encoded = encodeMessage(lines)
     msg_encoded_len = len(msg_encoded)
 

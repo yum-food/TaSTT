@@ -2,6 +2,8 @@
 
 import argparse
 import copy
+# python3 -m pip install python-Levenshtein
+from Levenshtein import distance as levenshtein_distance
 import os
 import osc_ctrl
 # python3 -m pip install pydub
@@ -142,10 +144,14 @@ def transcribe(model, filename):
     audio = whisper.load_audio(filename)
     audio = whisper.pad_or_trim(audio)
     mel = whisper.log_mel_spectrogram(audio).to(model.device)
-    _, probs = model.detect_language(mel)
-    print(f"Detected language: {max(probs, key=probs.get)}")
-    options = whisper.DecodingOptions()
+    #_, probs = model.detect_language(mel)
+    #print(f"Detected language: {max(probs, key=probs.get)}")
+    options = whisper.DecodingOptions(language = "en")
     result = whisper.decode(model, mel, options)
+
+    print("no speech prob: {}".format(result.no_speech_prob))
+    if result.no_speech_prob > 0.1:
+        return ""
 
     return result.text
 
@@ -177,28 +183,48 @@ def transcribeAudio(audio_state, model):
         if text == audio_state.text_candidate or text.startswith(audio_state.text_candidate):
             commit_transcription = True
         elif len(text) > 30 and len(audio_state.text_candidate) >= 10 and text[0:10] != audio_state.text_candidate[0:10]:
-            audio_state.text = text
             commit_transcription = True
 
-        if commit_transcription:
-            old_len = len(audio_state.text_candidate)
-            new_len = len(text)
-            min_len = min(old_len, new_len)
-            overlap_fraction = 0.2
-            overlap_len = int(0.2 * min_len)
+        print("TRANSCRIPTION")
+        print("Previous: {}".format(audio_state.text))
+        print("Current:  {}".format(text))
 
-            if audio_state.text_candidate[old_len - overlap_len:old_len] == text_state[0:overlap_len]
+        if commit_transcription:
+            window_size = 20
+            old_text = audio_state.text
+            if audio_state.text == text:
+                pass
+            elif len(text) >= window_size and len(old_text) >= window_size:
+                old_slice = old_text[len(old_text) - window_size:]
+                best_match_i = None
+                best_match_d = window_size * 1000
+                for i in range(0, 1 + len(text) - window_size):
+                    new_slice = text[i:i + window_size]
+                    #print("Consider slice {}".format(new_slice))
+                    d = levenshtein_distance(old_slice, new_slice)
+                    if d <= best_match_d and d < window_size:
+                        best_match_i = i
+                        best_match_d = d
+                if best_match_i == None:
+                    audio_state.text = text
+                else:
+                    print("Best overlap: {}, {}".format(best_match_d, text[best_match_i:best_match_i + window_size]))
+                    print("Old prefix: {}".format(old_text[0:len(old_text) - window_size]))
+                    print("New suffix: {}".format(text[best_match_i:]))
+                    #new_text = old_text[0:max(len(old_text) - window_size, 0)]
+                    new_text = old_text[0:len(old_text) - window_size]
+                    new_text += text[best_match_i:]
+                    audio_state.text = new_text
+            else:
                 audio_state.text = text
+                
+
         audio_state.text_candidate = text
 
         audio_state.text_lock.release()
 
-        print("Transcription: {}".format(audio_state.text))
-        print("Candidate: {}".format(audio_state.text_candidate))
-
         # Pace this out
         time.sleep(0.05)
-
 def sendAudio(audio_state):
     tx_state = osc_ctrl.OscTxState()
     while audio_state.send_audio == True:
@@ -206,7 +232,6 @@ def sendAudio(audio_state):
         text = copy.deepcopy(audio_state.text)
         audio_state.text_lock.release()
 
-        print("here")
         osc_ctrl.sendMessageLazy(audio_state.osc_client, text, tx_state)
 
         # Pace this out
