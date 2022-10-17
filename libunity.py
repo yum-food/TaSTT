@@ -846,6 +846,25 @@ class UnityAnimator():
         on_to_off = self.addTransition(off_anim.anchor)
         self.addTransitionBooleanCondition(on_anim, on_to_off, toggle_param, False)
 
+    def setNoopAnimations(self, guid_map, noop_anim_path):
+        noop_anim_meta = Metadata()
+        noop_anim_meta.load(noop_anim_path)
+
+        for node in self.nodes:
+            if classId(node.anchor) != "1102":
+                continue
+            motion = node.mapping['AnimatorState'].mapping['m_Motion']
+            replace = False
+            if not "guid" in motion.mapping.keys():
+                replace = True
+            elif not motion.mapping["guid"] in guid_map:
+                replace = True
+            if not replace:
+                continue
+            motion.mapping["fileID"] = "7400000"
+            motion.mapping["guid"] = noop_anim_meta.guid
+            motion.mapping["type"] = "2"
+
 def unityAnimatorToString(nodes):
     lines = []
     preamble = """
@@ -1176,6 +1195,24 @@ if __name__ == "__main__":
         print("Parsing {}".format(args.fx0), file=sys.stderr)
         parser0 = MulticoreUnityParser()
         anim = parser0.parseFile(args.fx0)
+        print(str(anim))
+
+    elif args.cmd == "set_noop_anim":
+        if not args.fx0 or not args.guid_map:
+            print("--fx0 and --guid_map required")
+            parser.print_help()
+            parser.exit(1)
+
+        guid_map = {}
+        with open(args.guid_map, 'rb') as f:
+            guid_map = pickle.load(f)
+
+        print("Parsing {}".format(args.fx0), file=sys.stderr)
+        parser = MulticoreUnityParser()
+        anim = parser.parseFile(args.fx0)
+
+        anim.setNoopAnimations(guid_map, "Animations/TaSTT_Do_Nothing.anim")
+
         print(str(anim))
 
     else:
