@@ -166,4 +166,8 @@ To use the STT:
       animators much more practical.
 5. Bugfixes
    1. The whisper STT says "Thank you." when there's no audio?
+6. Shine
+   1. Smooth scrolling.
+   2. Infinite scrolling.
+   3. Sound indicator, maybe like animal crossing :)
 
