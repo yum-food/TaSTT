@@ -1,0 +1,8 @@
+Combining TaSTT_fx with a normal animator
+
+./libunity.py merge --fx0 ../FX.controller --fx1 TaSTT_fx.controller > tst_fx.controller
+./libunity.py guid_map --project_root=$(cd ..; pwd) --save_to guid.map
+./libunity.py fix_write_defaults --guid_map guid.map --fx0 tst_fx.controller > tst_fx_1.controller
+./libunity.py guid_map --project_root=$(cd ..; pwd) --save_to guid.map
+./libunity.py add_toggle --fx0 tst_fx_1.controller > tst_fx_2.controller
+./libunity.py set_noop_anim --fx0 tst_fx_2.controller --guid_map guid.map > tst_fx_3.controller
