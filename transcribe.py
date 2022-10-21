@@ -131,8 +131,6 @@ def saveAudio(audio_state, filename):
     normalized = pydub_effects.normalize(raw)
     normalized.export(filename, format="wav")
 
-    print("audio save")
-
 def resetAudio(audio_state):
     audio_state.frames_lock.acquire()
     audio_state.frames = []
@@ -149,8 +147,8 @@ def transcribe(model, filename):
     options = whisper.DecodingOptions(language = "en")
     result = whisper.decode(model, mel, options)
 
-    print("no speech prob: {}".format(result.no_speech_prob))
     if result.no_speech_prob > 0.1:
+        print("no speech prob: {}".format(result.no_speech_prob))
         return ""
 
     return result.text
@@ -163,7 +161,6 @@ def transcribeAudio(audio_state, model):
             time.sleep(0.1)
             continue
 
-        print("Beginning transcription")
         text = transcribe(model, "audio.wav")
 
         audio_state.text_lock.acquire()
@@ -185,9 +182,7 @@ def transcribeAudio(audio_state, model):
         elif len(text) > 30 and len(audio_state.text_candidate) >= 10 and text[0:10] != audio_state.text_candidate[0:10]:
             commit_transcription = True
 
-        print("TRANSCRIPTION")
-        print("Previous: {}".format(audio_state.text))
-        print("Current:  {}".format(text))
+        print("Transcription: {}".format(audio_state.text))
 
         if commit_transcription:
             window_size = 20
@@ -202,22 +197,20 @@ def transcribeAudio(audio_state, model):
                     new_slice = text[i:i + window_size]
                     #print("Consider slice {}".format(new_slice))
                     d = levenshtein_distance(old_slice, new_slice)
-                    if d <= best_match_d and d < window_size:
+                    if d < best_match_d and d < window_size:
                         best_match_i = i
                         best_match_d = d
                 if best_match_i == None:
                     audio_state.text = text
                 else:
-                    print("Best overlap: {}, {}".format(best_match_d, text[best_match_i:best_match_i + window_size]))
-                    print("Old prefix: {}".format(old_text[0:len(old_text) - window_size]))
-                    print("New suffix: {}".format(text[best_match_i:]))
-                    #new_text = old_text[0:max(len(old_text) - window_size, 0)]
+                    #print("Best overlap: {}, {}".format(best_match_d, text[best_match_i:best_match_i + window_size]))
+                    #print("Old prefix: {}".format(old_text[0:len(old_text) - window_size]))
+                    #print("New suffix: {}".format(text[best_match_i:]))
                     new_text = old_text[0:len(old_text) - window_size]
                     new_text += text[best_match_i:]
                     audio_state.text = new_text
             else:
                 audio_state.text = text
-                
 
         audio_state.text_candidate = text
 

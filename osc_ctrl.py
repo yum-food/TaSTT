@@ -262,13 +262,13 @@ def sendMessageLazy(client, msg, tx_state):
 
         if cell_msg == [state.encoding[' ']] * NUM_LAYERS:
             if empty_cells_sent >= tx_state.empty_cells_to_send_per_call:
-                print("empty cell budget exceeded")
+                #print("empty cell budget exceeded")
                 tx_state.last_msg_encoded = msg_encoded[0:cell_end]
                 return False
             empty_cells_sent += 1
         else:
             if nonempty_cells_sent >= tx_state.nonempty_cells_to_send_per_call:
-                print("nonempty cell budget exceeded")
+                #print("nonempty cell budget exceeded")
                 tx_state.last_msg_encoded = msg_encoded[0:cell_end]
                 return False
             nonempty_cells_sent += 1
