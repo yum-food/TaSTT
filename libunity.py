@@ -715,49 +715,58 @@ class UnityAnimator():
 
                 #print("len float curves: {}".format(len(new_clip.mapping['m_FloatCurves'].sequence)), file=sys.stderr)
 
-        #print("generated animation: {}".format(str(new_anim)), file=sys.stderr)
-        with open(generated_anim_path, "w") as f:
-            f.write(str(new_anim))
+    def generateOffAnimations(self, guid_map, generated_anim_dir):
+        animator_state_id = '1102'
+        for node in self.nodes:
+            if node.class_id != animator_state_id:
+                continue
 
-        meta = Metadata()
-        with open(generated_anim_path + ".meta", "w") as f:
-            f.write(str(meta))
+            # Looking at an animation state.
+            motion = node.mapping['AnimatorState'].mapping['m_Motion']
+            if not 'guid' in motion.mapping:
+                continue
+            guid = motion.mapping['guid']
 
-        # OK, we have an animation and a GUID. Let's generate a layer now.
-        layer = self.addLayer('TaSTT_Reset_Animations', add_to_head = True)
+            # Looking at an animation.
+            if not guid in guid_map.keys():
+                continue
 
-        reset_left_state = self.addAnimatorState(layer, 'TaSTT_Reset_Animations_Left')
-        self.setAnimatorStateAnimation(reset_left_state, meta.guid)
-        reset_right_state = self.addAnimatorState(layer, 'TaSTT_Reset_Animations_Right')
-        self.setAnimatorStateAnimation(reset_right_state, meta.guid)
+            animation_path = guid_map[guid]
+            print("Checking animation at {}".format(animation_path), file=sys.stderr)
+            parser = UnityParser()
+            parser.parseFile(animation_path)
+            anim = UnityAnimator()
+            anim.addNodes(parser.nodes)
 
-        # Add noop state
-        noop_state = self.addAnimatorState(layer, 'TaSTT_Reset_Animations_Noop', is_default_state = True)
-        noop_anim_meta = Metadata()
-        noop_anim_meta.load('Animations/TaSTT_Do_Nothing.anim')
-        self.setAnimatorStateAnimation(noop_state, noop_anim_meta.guid)
-        noop_trans = self.addTransition(noop_state.anchor)
-        self.addTransitionIntegerGreaterCondition(None, noop_trans,
-                'GestureLeft', 0)
-        self.addTransitionIntegerGreaterCondition(None, noop_trans,
-                'GestureRight', 0)
-        tmp_trans = layer.mapping['AnimatorStateMachine'].mapping['m_AnyStateTransitions'].addChildMapping()
-        tmp_trans.mapping['fileID'] = noop_trans.anchor
+            clip = anim.peekNodeOfClass('74')
 
-        # Create any state transitions to the animated
-        # states. When Gesture{Left,Right} is 0 in either hand, AKA no gesture
-        # is being used, we fire the animation.
-        left_trans = self.addTransition(reset_left_state.anchor)
-        self.addTransitionIntegerEqualityCondition(None, left_trans,
-                'GestureLeft', 0)
-        tmp_trans = layer.mapping['AnimatorStateMachine'].mapping['m_AnyStateTransitions'].addChildMapping()
-        tmp_trans.mapping['fileID'] = left_trans.anchor
+            has_nonzero = False
+            curve_members = ["m_FloatCurves", "m_EditorCurves"]
+            for memb in curve_members:
+                for curve in clip.mapping['AnimationClip'].mapping[memb].sequence:
+                    attr = curve.mapping['attribute']
+                    path = curve.mapping['path']
 
-        right_trans = self.addTransition(reset_right_state.anchor)
-        self.addTransitionIntegerEqualityCondition(None, right_trans,
-                'GestureRight', 0)
-        tmp_trans = layer.mapping['AnimatorStateMachine'].mapping['m_AnyStateTransitions'].addChildMapping()
-        tmp_trans.mapping['fileID'] = right_trans.anchor
+                    for m_curve in curve.mapping['curve'].mapping['m_Curve'].sequence:
+                        if m_curve.mapping['value'] != '0':
+                            has_nonzero = True
+                        m_curve.mapping['value'] = '0'
+
+            if not has_nonzero:
+                print("Animation does not set anything nonzero")
+                continue
+
+            print("Animation sets things nonzero, fixing")
+
+            new_anim_path = "OFF_{}".format(os.path.basename(animation_path))
+            new_anim_path = "{}/{}".format(generated_anim_dir, new_anim_path)
+
+            with open(new_anim_path, "w") as f:
+                f.write(str(anim))
+
+            meta = Metadata()
+            with open(new_anim_path + ".meta", "w") as f:
+                f.write(str(meta))
 
     def addTransitionBooleanCondition(self, from_state, trans, param, branch):
         # Populate the transition's condition logic.
@@ -1156,8 +1165,28 @@ if __name__ == "__main__":
         anim = parser0.parseFile(args.fx0)
 
         print("Fixing write defaults", file=sys.stderr)
-        anim.fixWriteDefaults(guid_map, "generated/animations/TaSTT_Reset_Animation.anim")
+        anim_dir = "generated/animations/"
+        os.makedirs(anim_dir, exist_ok=True)
+        anim.fixWriteDefaults(guid_map, anim_dir + "TaSTT_Reset_Animation.anim")
         print(str(anim))
+    elif args.cmd == "gen_off_anims":
+        if not args.fx0 or not args.guid_map:
+            print("--fx0 and --guid_map required")
+            parser.print_help()
+            parser.exit(1)
+
+        guid_map = {}
+        with open(args.guid_map, 'rb') as f:
+            guid_map = pickle.load(f)
+
+        print("Parsing {}".format(args.fx0), file=sys.stderr)
+        parser0 = MulticoreUnityParser()
+        anim = parser0.parseFile(args.fx0)
+
+        print("Generating off animations", file=sys.stderr)
+        anim_dir = "generated/animations/"
+        os.makedirs(anim_dir, exist_ok=True)
+        anim.generateOffAnimations(guid_map, "generated/animations")
 
     elif args.cmd == "add_toggle":
         if not args.fx0:
