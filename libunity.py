@@ -362,43 +362,13 @@ class Mapping(Node):
         for k, v in self.mapping.items():
             cb(v)
 
-def classId(anchor):
-    # AnimatorController
-    if anchor.startswith("91"):
-        return "91"
-    # MonoBehaviour
-    if anchor.startswith("114"):
-        return "114"
-    # BlendTree
-    if anchor.startswith("206"):
-        return "206"
-    # AnimatorStateTransition
-    if anchor.startswith("1101"):
-        return "1101"
-    # AnimatorState
-    if anchor.startswith("1102"):
-        return "1102"
-    # AnimatorStateMachine
-    if anchor.startswith("1107"):
-        return "1107"
-    # AnimatorTransition
-    if anchor.startswith("1109"):
-        return "1109"
-
-    # IDK what this is lmao
-    if anchor.startswith("74"):
-        return "74"
-    if anchor.startswith("115"):
-        return "115"
-
-    raise Exception("Unrecognized object: {}".format(anchor))
-
 class UnityDocument(Mapping):
+    def __init__(self):
+        super().__init__()
+        self.class_id = None
+
     def __str__(self):
         return super().__str__()
-
-    def classId(self):
-        return classId(self.anchor)
 
 # Class representing a Unity AnimatorController. Implements manipulations, like
 # merging and reanchoring.
@@ -421,11 +391,11 @@ class UnityAnimator():
                 raise Exception("Duplicate anchor: {}, node 1: {}, node 2: {}".format(anchor, str(node), str(self.id_to_node[anchor])))
             self.id_to_node[anchor] = node
 
-            if classId(anchor) in self.class_to_next_id:
-                cur_next = self.class_to_next_id[classId(anchor)]
-                self.class_to_next_id[classId(anchor)] = max(int(anchor), cur_next)
+            if node.class_id in self.class_to_next_id:
+                cur_next = self.class_to_next_id[node.class_id]
+                self.class_to_next_id[node.class_id] = max(int(anchor), cur_next)
             else:
-                self.class_to_next_id[classId(anchor)] = int(anchor)
+                self.class_to_next_id[node.class_id] = int(anchor)
 
         for k in self.class_to_next_id.keys():
             self.class_to_next_id[k] += 1
@@ -442,18 +412,18 @@ class UnityAnimator():
 
         return new_id
 
-    def getUniqueId(self, anchor):
+    def getUniqueId(self, node):
         # For whatever reason, generating a new ID for the MonoBehaviour
         # embedded in VRChat's default animation ctrler makes Unity spit out
         # warnings. Reuse the old one.
-        if classId(anchor) == "114":
-            return int(anchor)
+        if node.class_id == "114":
+            return int(node.anchor)
 
-        if anchor in self.id_mapping.keys():
-            return self.id_mapping[anchor]
+        if node.anchor in self.id_mapping.keys():
+            return self.id_mapping[node.anchor]
 
-        new_id = self.allocateId(classId(anchor))
-        self.id_mapping[anchor] = new_id
+        new_id = self.allocateId(node.class_id)
+        self.id_mapping[node.anchor] = new_id
         return new_id
 
     def mergeIterator(self, v):
@@ -470,14 +440,14 @@ class UnityAnimator():
 
     def peekNodeOfClass(self, classId):
         for node in self.nodes:
-            if node.classId() == classId:
+            if node.class_id == classId:
                 return node
         return None
 
     def popNodeOfClass(self, classId):
         result = None
         for node in self.nodes:
-            if node.classId() == classId:
+            if node.class_id == classId:
                 result = node
                 self.nodes.remove(result)
                 break
@@ -529,13 +499,13 @@ class UnityAnimator():
         # Mapping from class ID (string) to new class ID (int)
         self.id_mapping = self.id_mapping0
         for node in self.nodes:
-            new_id = self.getUniqueId(node.anchor)
+            new_id = self.getUniqueId(node)
             node.anchor = str(new_id)
             node.forEach(self.mergeIterator)
 
         self.id_mapping = self.id_mapping1
         for node in other.nodes:
-            new_id = self.getUniqueId(node.anchor)
+            new_id = self.getUniqueId(node)
             node.anchor = str(new_id)
             node.forEach(self.mergeIterator)
 
@@ -587,6 +557,7 @@ class UnityAnimator():
 
         # Create layer object
         layer = UnityDocument()
+        layer.class_id = "1107"
         layer.anchor = str(new_id)
         mach = layer.addChildMapping('AnimatorStateMachine')
 
@@ -633,6 +604,7 @@ class UnityAnimator():
         node = new_anim.nodes[0]
 
         new_id = self.allocateId('1102')
+        node.class_id = "1102"
         node.anchor = str(new_id)
         state = node.mapping['AnimatorState']
         state.mapping['m_Name'] = state_name
@@ -665,6 +637,7 @@ class UnityAnimator():
         node = new_transition.nodes[0]
 
         new_id = self.allocateId('1101')
+        node.class_id = "1101"
         node.anchor = str(new_id)
         state = node.mapping['AnimatorStateTransition']
         state.mapping['m_DstState'].mapping['fileID'] = dst_state_id
@@ -691,7 +664,7 @@ class UnityAnimator():
 
         animator_state_id = '1102'
         for node in self.nodes:
-            if node.classId() != animator_state_id:
+            if node.class_id != animator_state_id:
                 continue
 
             # Looking at an animator state.
@@ -851,7 +824,7 @@ class UnityAnimator():
         noop_anim_meta.load(noop_anim_path)
 
         for node in self.nodes:
-            if classId(node.anchor) != "1102":
+            if node.class_id != "1102":
                 continue
             motion = node.mapping['AnimatorState'].mapping['m_Motion']
             replace = False
@@ -873,7 +846,7 @@ def unityAnimatorToString(nodes):
 """[1:][:-1]
     lines.append(preamble)
     for doc in nodes:
-        lines.append("--- !u!" + doc.classId() + " &" + doc.anchor)
+        lines.append("--- !u!" + doc.class_id + " &" + doc.anchor)
         lines.append(str(doc))
     result = '\n'.join(lines)
 
@@ -940,6 +913,19 @@ class UnityParser:
             lines.append("...\n")
         return '\n'.join(lines)
 
+    def getClassIds(self, yaml_str):
+        anchor_to_class_id = {}
+        for line in yaml_str.split("\n"):
+            if not line.startswith("---"):
+                continue
+
+            parts = line.split()
+            class_id = parts[1][3:]
+            anchor = parts[2][1:]
+            anchor_to_class_id[anchor] = class_id
+
+        return anchor_to_class_id
+
     def parseFile(self, yaml_file):
         yaml_str = ""
         with open(yaml_file, "r") as f:
@@ -947,6 +933,7 @@ class UnityParser:
         return self.parse(yaml_str)
 
     def parse(self, yaml_str):
+        anchor_to_class_id = self.getClassIds(yaml_str)
         yaml_str = self.cleanYaml(yaml_str)
 
         for event in yaml.parse(yaml_str):
@@ -978,6 +965,7 @@ class UnityParser:
                 if self.cur_node == None:
                     self.cur_node = UnityDocument()
                     self.cur_node.anchor = event.anchor
+                    self.cur_node.class_id = anchor_to_class_id[event.anchor]
                 else:
                     self.cur_node = self.cur_node.addChildMapping(self.cur_scalar)
                 self.pushState(self.MAPPING_START)
