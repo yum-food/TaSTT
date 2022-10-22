@@ -376,7 +376,7 @@ class UnityAnimator():
     def __init__(self):
         self.nodes = []
         self.id_to_node = {}
-        self.class_to_next_id = {}
+        self.next_id = 1000 * 1000
 
     def __str__(self):
         return unityAnimatorToString(self.nodes)
@@ -391,52 +391,40 @@ class UnityAnimator():
                 raise Exception("Duplicate anchor: {}, node 1: {}, node 2: {}".format(anchor, str(node), str(self.id_to_node[anchor])))
             self.id_to_node[anchor] = node
 
-            if node.class_id in self.class_to_next_id:
-                cur_next = self.class_to_next_id[node.class_id]
-                self.class_to_next_id[node.class_id] = max(int(anchor), cur_next)
-            else:
-                self.class_to_next_id[node.class_id] = int(anchor)
+            if int(anchor) > self.next_id:
+                self.next_id = int(anchor) + 1
 
-        for k in self.class_to_next_id.keys():
-            self.class_to_next_id[k] += 1
+    def allocateId(self) -> int:
+        result = self.next_id
+        self.next_id += 1
+        return result
 
-    def allocateId(self, class_id):
+    # Checks if `old_id` is in `self.id_mapping`, and if so, returns the
+    # already-generated ID. Otherwise this allocates a new ID and
+    # records it in `self.id_mapping`.
+    def mapId(self, old_id: str) -> int:
         new_id = None
-        if class_id in self.class_to_next_id:
-            new_id = self.class_to_next_id[class_id]
-            self.class_to_next_id[class_id] += 1
+        if old_id in self.id_mapping.keys():
+             new_id = self.id_mapping[old_id]
         else:
-            new_id = int("%s%05d" % (class_id, 0))
-            next_id = new_id + 1
-            self.class_to_next_id[class_id] = next_id
-
+            new_id = self.allocateId()
+            self.id_mapping[old_id] = new_id
+            print("map id {} to {}".format(old_id, new_id), file=sys.stderr)
         return new_id
 
-    def getUniqueId(self, node):
-        # For whatever reason, generating a new ID for the MonoBehaviour
-        # embedded in VRChat's default animation ctrler makes Unity spit out
-        # warnings. Reuse the old one.
-        if node.class_id == "114":
-            return int(node.anchor)
-
-        if node.anchor in self.id_mapping.keys():
-            return self.id_mapping[node.anchor]
-
-        new_id = self.allocateId(node.class_id)
-        self.id_mapping[node.anchor] = new_id
-        return new_id
-
-    def mergeIterator(self, v):
-        if hasattr(v, "mapping"):
+    # Recursively iterate every mapping under `node` and assign new IDs to
+    # every identifier. Mappings are recorded in `self.id_mapping`.
+    def mergeIterator(self, node):
+        if hasattr(node, "mapping"):
             # Don't relabel anything that's defined in an external file.
             # TODO(yum) do this.
-            if 'fileID' in v.mapping and not 'guid' in v.mapping:
-                if v.mapping['fileID'] != '0':
-                    old_id = v.mapping['fileID']
-                    new_id = self.getUniqueId(old_id)
-                    v.mapping['fileID'] = str(new_id)
-        if hasattr(v, "forEach"):
-            v.forEach(self.mergeIterator)
+            if 'fileID' in node.mapping and not 'guid' in node.mapping:
+                if node.mapping['fileID'] != '0':
+                    old_id = node.mapping['fileID']
+                    new_id = self.mapId(old_id)
+                    node.mapping['fileID'] = str(new_id)
+        if hasattr(node, "forEach"):
+            node.forEach(self.mergeIterator)
 
     def peekNodeOfClass(self, classId):
         for node in self.nodes:
@@ -459,6 +447,10 @@ class UnityAnimator():
         self.nodes.append(node)
         self.id_to_node[node.anchor] = node
 
+    # Merges two animator controllers and returns the result. Any identifiers
+    # in the animators are reassigned in a new namespace. The mappings from old
+    # identifiers to new identifiers are recorded in `self.id_mapping0` and
+    # `self.id_mapping1`.
     def mergeAnimatorControllers(self, ctrl0, ctrl1):
         ctrl0 = copy.deepcopy(ctrl0)
         ctrl1 = copy.deepcopy(ctrl1)
@@ -477,7 +469,8 @@ class UnityAnimator():
         a0.forEach(self.mergeIterator)
 
         # Hack to prevent ctrl1 from getting a new ID for the animator.
-        del self.class_to_next_id['91']
+        # TODO(yum) delete this?
+        #del self.class_to_next_id['91']
 
         self.id_mapping = self.id_mapping1
         p1.forEach(self.mergeIterator)
@@ -489,23 +482,22 @@ class UnityAnimator():
         return ctrl0
 
     def merge(self, other):
-        # Mapping from class ID (string) to next ID (int)
-        self.class_to_next_id = {}
-
         ctrl0 = self.popNodeOfClass('91')
         ctrl1 = other.popNodeOfClass('91')
+        # Merge animators and populate `self.id_mapping0` and
+        # `self.id_mapping1.
         merged_anim = self.mergeAnimatorControllers(ctrl0, ctrl1)
 
         # Mapping from class ID (string) to new class ID (int)
         self.id_mapping = self.id_mapping0
         for node in self.nodes:
-            new_id = self.getUniqueId(node)
+            new_id = self.mapId(node.anchor)
             node.anchor = str(new_id)
             node.forEach(self.mergeIterator)
 
         self.id_mapping = self.id_mapping1
         for node in other.nodes:
-            new_id = self.getUniqueId(node)
+            new_id = self.mapId(node.anchor)
             node.anchor = str(new_id)
             node.forEach(self.mergeIterator)
 
