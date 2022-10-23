@@ -393,6 +393,9 @@ class UnityAnimator():
 
             if int(anchor) > self.next_id:
                 self.next_id = int(anchor) + 1
+        # I don't know why but this fixes a bug in the `fixWriteDefaults`
+        # codepath: two documents wind up with the same anchor.
+        self.next_id += 1
 
     def allocateId(self) -> int:
         result = self.next_id
@@ -409,7 +412,6 @@ class UnityAnimator():
         else:
             new_id = self.allocateId()
             self.id_mapping[old_id] = new_id
-            print("map id {} to {}".format(old_id, new_id), file=sys.stderr)
         return new_id
 
     # Recursively iterate every mapping under `node` and assign new IDs to
@@ -535,7 +537,7 @@ class UnityAnimator():
         layer = layers.addChildMapping(add_to_head = add_to_head)
         layer.mapping['serializedVersion'] = '5'
         layer.mapping['m_Name'] = layer_name
-        new_id = self.allocateId('1107')
+        new_id = self.allocateId()
         layer.addChildMapping('m_StateMachine').mapping['fileID'] = str(new_id)
         layer.addChildMapping('m_Mask').mapping['fileID'] = '0'
         layer.addChildSequence('m_Motions')
@@ -595,7 +597,7 @@ class UnityAnimator():
         new_anim.addNodes(parser.nodes)
         node = new_anim.nodes[0]
 
-        new_id = self.allocateId('1102')
+        new_id = self.allocateId()
         node.class_id = "1102"
         node.anchor = str(new_id)
         state = node.mapping['AnimatorState']
@@ -628,7 +630,7 @@ class UnityAnimator():
         new_transition.addNodes(parser.nodes)
         node = new_transition.nodes[0]
 
-        new_id = self.allocateId('1101')
+        new_id = self.allocateId()
         node.class_id = "1101"
         node.anchor = str(new_id)
         state = node.mapping['AnimatorStateTransition']
