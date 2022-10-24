@@ -146,7 +146,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: REPLACEME_ANIMATION_GUID, type: 2}
+  m_Motion: {}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -171,10 +171,10 @@ AnimatorStateTransition:
   serializedVersion: 3
   m_TransitionDuration: 0
   m_TransitionOffset: 0
-  m_ExitTime: 1.0
-  m_HasExitTime: 1
+  m_ExitTime: 0.0
+  m_HasExitTime: 0
   m_HasFixedDuration: 1
-  m_InterruptionSource: 0
+  m_InterruptionSource: 2
   m_OrderedInterruption: 1
   m_CanTransitionToSelf: 1
 """[1:][:-1]
@@ -370,6 +370,11 @@ class UnityDocument(Mapping):
     def __str__(self):
         return super().__str__()
 
+    def copy(self):
+        result = super().copy()
+        result.class_id = self.class_id
+        return result
+
 # Class representing a Unity AnimatorController. Implements manipulations, like
 # merging and reanchoring.
 class UnityAnimator():
@@ -379,7 +384,7 @@ class UnityAnimator():
         self.next_id = 1000 * 1000
 
     def __str__(self):
-        return unityAnimatorToString(self.nodes)
+        return unityYamlToString(self.nodes)
 
     def addNodes(self, nodes):
         for node in nodes:
@@ -530,7 +535,7 @@ class UnityAnimator():
         ctrl = param.addChildMapping('m_Controller')
         ctrl.mapping['fileID'] = anim.anchor
 
-    def addLayer(self, layer_name, add_to_head = False):
+    def addLayer(self, layer_name, add_to_head = False) -> UnityDocument:
         # Add layer to controller
         anim = self.peekNodeOfClass('91')
         layers = anim.mapping['AnimatorController'].mapping['m_AnimatorLayers']
@@ -589,7 +594,8 @@ class UnityAnimator():
         self.nodes.append(layer)
         return layer
 
-    def addAnimatorState(self, layer, state_name, is_default_state = False):
+    def addAnimatorState(self, layer, state_name, is_default_state = False,
+            dx = 0, dy = 0) -> UnityDocument:
         # Create animation state
         parser = UnityParser()
         parser.parse(ANIMATION_STATE_TEMPLATE)
@@ -610,8 +616,8 @@ class UnityAnimator():
         child_state.mapping['serializedVersion'] = '1'
         child_state.addChildMapping('m_State').mapping['fileID'] = str(new_id)
         state_pos = child_state.addChildMapping('m_Position')
-        state_pos.mapping['x'] = '280'
-        state_pos.mapping['y'] = '80'
+        state_pos.mapping['x'] = str(280 + dx)
+        state_pos.mapping['y'] = str(80 + dy)
         state_pos.mapping['z'] = '0'
 
         if is_default_state:
@@ -621,8 +627,10 @@ class UnityAnimator():
 
     def setAnimatorStateAnimation(self, anim_state, anim_guid):
         anim_state.mapping['AnimatorState'].mapping['m_Motion'].mapping['guid'] = anim_guid
+        anim_state.mapping['AnimatorState'].mapping['m_Motion'].mapping['fileID'] = '7400000'
+        anim_state.mapping['AnimatorState'].mapping['m_Motion'].mapping['type'] = '2'
 
-    def addTransition(self, dst_state_id):
+    def addTransition(self, dst_state):
         # Create animation state
         parser = UnityParser()
         parser.parse(TRANSITION_TEMPLATE)
@@ -634,7 +642,7 @@ class UnityAnimator():
         node.class_id = "1101"
         node.anchor = str(new_id)
         state = node.mapping['AnimatorStateTransition']
-        state.mapping['m_DstState'].mapping['fileID'] = dst_state_id
+        state.mapping['m_DstState'].mapping['fileID'] = dst_state.anchor
         self.nodes.append(node)
 
         return node
@@ -781,7 +789,9 @@ class UnityAnimator():
         cond = trans.mapping['AnimatorStateTransition'].mapping['m_Conditions'].addChildMapping()
         cond.mapping['m_ConditionMode'] = '6'
         cond.mapping['m_ConditionEvent'] = param
-        cond.mapping['m_EventThreshold'] = str(param_val)
+        # Curiously, the typo ("treshold" only has 1 'h') is needed for this to
+        # work, but not for boolean conditions to work.
+        cond.mapping['m_EventTreshold'] = str(param_val)
         # Register the transition with the `from_state`.
         if from_state:
             from_state_trans = from_state.mapping['AnimatorState'].mapping['m_Transitions'].addChildMapping()
@@ -816,10 +826,10 @@ class UnityAnimator():
 
         # TODO(yum) make a Transition class with methods for adding boolean
         # conditions
-        off_to_on = self.addTransition(on_anim.anchor)
+        off_to_on = self.addTransition(on_anim)
         self.addTransitionBooleanCondition(off_anim, off_to_on, toggle_param, True)
 
-        on_to_off = self.addTransition(off_anim.anchor)
+        on_to_off = self.addTransition(off_anim)
         self.addTransitionBooleanCondition(on_anim, on_to_off, toggle_param, False)
 
     def setNoopAnimations(self, guid_map, noop_anim_path):
@@ -841,7 +851,7 @@ class UnityAnimator():
             motion.mapping["guid"] = noop_anim_meta.guid
             motion.mapping["type"] = "2"
 
-def unityAnimatorToString(nodes):
+def unityYamlToString(nodes):
     lines = []
     preamble = """
 %YAML 1.1
@@ -880,7 +890,7 @@ class UnityParser:
         self.prev_states = []
 
     def __str__(self):
-        return unityAnimatorToString(self.nodes)
+        return unityYamlToString(self.nodes)
 
     def pushState(self, state):
         self.prev_states.append(self.state)
@@ -1131,7 +1141,8 @@ if __name__ == "__main__":
         anim0.merge(anim1)
 
         print("Serializing", file=sys.stderr)
-        print(unityAnimatorToString(anim0.nodes))
+        print(unityYamlToString(anim0.nodes))
+
     elif args.cmd == "guid_map":
         if not args.project_root or not args.save_to:
             print("--project_root and --save_to required")
@@ -1163,6 +1174,7 @@ if __name__ == "__main__":
         os.makedirs(anim_dir, exist_ok=True)
         anim.fixWriteDefaults(guid_map, anim_dir + "TaSTT_Reset_Animation.anim")
         print(str(anim))
+
     elif args.cmd == "gen_off_anims":
         if not args.fx0 or not args.guid_map:
             print("--fx0 and --guid_map required")

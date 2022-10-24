@@ -331,3 +331,4 @@ if __name__ == "__main__":
         while not sendMessageLazy(client, line, tx_state):
             continue
     clear()
+

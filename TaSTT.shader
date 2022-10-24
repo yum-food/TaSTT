@@ -4,182 +4,182 @@
   {
     _MainTex ("Texture", 2D) = "white" {}
     // software "engineering" LULW
-    _Letter_Row00_Col00("_Letter_Row00_Col00", int) = 64
-    _Letter_Row00_Col01("_Letter_Row00_Col01", int) = 64
-    _Letter_Row00_Col02("_Letter_Row00_Col02", int) = 64
-    _Letter_Row00_Col03("_Letter_Row00_Col03", int) = 64
-    _Letter_Row00_Col04("_Letter_Row00_Col04", int) = 64
-    _Letter_Row00_Col05("_Letter_Row00_Col05", int) = 64
-    _Letter_Row00_Col06("_Letter_Row00_Col06", int) = 64
-    _Letter_Row00_Col07("_Letter_Row00_Col07", int) = 64
-    _Letter_Row00_Col08("_Letter_Row00_Col08", int) = 64
-    _Letter_Row00_Col09("_Letter_Row00_Col09", int) = 64
-    _Letter_Row00_Col10("_Letter_Row00_Col10", int) = 64
-    _Letter_Row00_Col11("_Letter_Row00_Col11", int) = 64
-    _Letter_Row00_Col12("_Letter_Row00_Col12", int) = 64
-    _Letter_Row00_Col13("_Letter_Row00_Col13", int) = 64
-    _Letter_Row00_Col14("_Letter_Row00_Col14", int) = 64
-    _Letter_Row00_Col15("_Letter_Row00_Col15", int) = 64
-    _Letter_Row00_Col16("_Letter_Row00_Col16", int) = 64
-    _Letter_Row00_Col17("_Letter_Row00_Col17", int) = 64
-    _Letter_Row00_Col18("_Letter_Row00_Col18", int) = 64
-    _Letter_Row00_Col19("_Letter_Row00_Col19", int) = 64
-    _Letter_Row00_Col20("_Letter_Row00_Col20", int) = 64
-    _Letter_Row00_Col21("_Letter_Row00_Col21", int) = 64
-    _Letter_Row01_Col00("_Letter_Row01_Col00", int) = 64
-    _Letter_Row01_Col01("_Letter_Row01_Col01", int) = 64
-    _Letter_Row01_Col02("_Letter_Row01_Col02", int) = 64
-    _Letter_Row01_Col03("_Letter_Row01_Col03", int) = 64
-    _Letter_Row01_Col04("_Letter_Row01_Col04", int) = 64
-    _Letter_Row01_Col05("_Letter_Row01_Col05", int) = 64
-    _Letter_Row01_Col06("_Letter_Row01_Col06", int) = 64
-    _Letter_Row01_Col07("_Letter_Row01_Col07", int) = 64
-    _Letter_Row01_Col08("_Letter_Row01_Col08", int) = 64
-    _Letter_Row01_Col09("_Letter_Row01_Col09", int) = 64
-    _Letter_Row01_Col10("_Letter_Row01_Col10", int) = 64
-    _Letter_Row01_Col11("_Letter_Row01_Col11", int) = 64
-    _Letter_Row01_Col12("_Letter_Row01_Col12", int) = 64
-    _Letter_Row01_Col13("_Letter_Row01_Col13", int) = 64
-    _Letter_Row01_Col14("_Letter_Row01_Col14", int) = 64
-    _Letter_Row01_Col15("_Letter_Row01_Col15", int) = 64
-    _Letter_Row01_Col16("_Letter_Row01_Col16", int) = 64
-    _Letter_Row01_Col17("_Letter_Row01_Col17", int) = 64
-    _Letter_Row01_Col18("_Letter_Row01_Col18", int) = 64
-    _Letter_Row01_Col19("_Letter_Row01_Col19", int) = 64
-    _Letter_Row01_Col20("_Letter_Row01_Col20", int) = 64
-    _Letter_Row01_Col21("_Letter_Row01_Col21", int) = 64
-    _Letter_Row02_Col00("_Letter_Row02_Col00", int) = 64
-    _Letter_Row02_Col01("_Letter_Row02_Col01", int) = 64
-    _Letter_Row02_Col02("_Letter_Row02_Col02", int) = 64
-    _Letter_Row02_Col03("_Letter_Row02_Col03", int) = 64
-    _Letter_Row02_Col04("_Letter_Row02_Col04", int) = 64
-    _Letter_Row02_Col05("_Letter_Row02_Col05", int) = 64
-    _Letter_Row02_Col06("_Letter_Row02_Col06", int) = 64
-    _Letter_Row02_Col07("_Letter_Row02_Col07", int) = 64
-    _Letter_Row02_Col08("_Letter_Row02_Col08", int) = 64
-    _Letter_Row02_Col09("_Letter_Row02_Col09", int) = 64
-    _Letter_Row02_Col10("_Letter_Row02_Col10", int) = 64
-    _Letter_Row02_Col11("_Letter_Row02_Col11", int) = 64
-    _Letter_Row02_Col12("_Letter_Row02_Col12", int) = 64
-    _Letter_Row02_Col13("_Letter_Row02_Col13", int) = 64
-    _Letter_Row02_Col14("_Letter_Row02_Col14", int) = 64
-    _Letter_Row02_Col15("_Letter_Row02_Col15", int) = 64
-    _Letter_Row02_Col16("_Letter_Row02_Col16", int) = 64
-    _Letter_Row02_Col17("_Letter_Row02_Col17", int) = 64
-    _Letter_Row02_Col18("_Letter_Row02_Col18", int) = 64
-    _Letter_Row02_Col19("_Letter_Row02_Col19", int) = 64
-    _Letter_Row02_Col20("_Letter_Row02_Col20", int) = 64
-    _Letter_Row02_Col21("_Letter_Row02_Col21", int) = 64
-    _Letter_Row03_Col00("_Letter_Row03_Col00", int) = 64
-    _Letter_Row03_Col01("_Letter_Row03_Col01", int) = 64
-    _Letter_Row03_Col02("_Letter_Row03_Col02", int) = 64
-    _Letter_Row03_Col03("_Letter_Row03_Col03", int) = 64
-    _Letter_Row03_Col04("_Letter_Row03_Col04", int) = 64
-    _Letter_Row03_Col05("_Letter_Row03_Col05", int) = 64
-    _Letter_Row03_Col06("_Letter_Row03_Col06", int) = 64
-    _Letter_Row03_Col07("_Letter_Row03_Col07", int) = 64
-    _Letter_Row03_Col08("_Letter_Row03_Col08", int) = 64
-    _Letter_Row03_Col09("_Letter_Row03_Col09", int) = 64
-    _Letter_Row03_Col10("_Letter_Row03_Col10", int) = 64
-    _Letter_Row03_Col11("_Letter_Row03_Col11", int) = 64
-    _Letter_Row03_Col12("_Letter_Row03_Col12", int) = 64
-    _Letter_Row03_Col13("_Letter_Row03_Col13", int) = 64
-    _Letter_Row03_Col14("_Letter_Row03_Col14", int) = 64
-    _Letter_Row03_Col15("_Letter_Row03_Col15", int) = 64
-    _Letter_Row03_Col16("_Letter_Row03_Col16", int) = 64
-    _Letter_Row03_Col17("_Letter_Row03_Col17", int) = 64
-    _Letter_Row03_Col18("_Letter_Row03_Col18", int) = 64
-    _Letter_Row03_Col19("_Letter_Row03_Col19", int) = 64
-    _Letter_Row03_Col20("_Letter_Row03_Col20", int) = 64
-    _Letter_Row03_Col21("_Letter_Row03_Col21", int) = 64
-    _Letter_Row04_Col00("_Letter_Row04_Col00", int) = 64
-    _Letter_Row04_Col01("_Letter_Row04_Col01", int) = 64
-    _Letter_Row04_Col02("_Letter_Row04_Col02", int) = 64
-    _Letter_Row04_Col03("_Letter_Row04_Col03", int) = 64
-    _Letter_Row04_Col04("_Letter_Row04_Col04", int) = 64
-    _Letter_Row04_Col05("_Letter_Row04_Col05", int) = 64
-    _Letter_Row04_Col06("_Letter_Row04_Col06", int) = 64
-    _Letter_Row04_Col07("_Letter_Row04_Col07", int) = 64
-    _Letter_Row04_Col08("_Letter_Row04_Col08", int) = 64
-    _Letter_Row04_Col09("_Letter_Row04_Col09", int) = 64
-    _Letter_Row04_Col10("_Letter_Row04_Col10", int) = 64
-    _Letter_Row04_Col11("_Letter_Row04_Col11", int) = 64
-    _Letter_Row04_Col12("_Letter_Row04_Col12", int) = 64
-    _Letter_Row04_Col13("_Letter_Row04_Col13", int) = 64
-    _Letter_Row04_Col14("_Letter_Row04_Col14", int) = 64
-    _Letter_Row04_Col15("_Letter_Row04_Col15", int) = 64
-    _Letter_Row04_Col16("_Letter_Row04_Col16", int) = 64
-    _Letter_Row04_Col17("_Letter_Row04_Col17", int) = 64
-    _Letter_Row04_Col18("_Letter_Row04_Col18", int) = 64
-    _Letter_Row04_Col19("_Letter_Row04_Col19", int) = 64
-    _Letter_Row04_Col20("_Letter_Row04_Col20", int) = 64
-    _Letter_Row04_Col21("_Letter_Row04_Col21", int) = 64
-    _Letter_Row05_Col00("_Letter_Row05_Col00", int) = 64
-    _Letter_Row05_Col01("_Letter_Row05_Col01", int) = 64
-    _Letter_Row05_Col02("_Letter_Row05_Col02", int) = 64
-    _Letter_Row05_Col03("_Letter_Row05_Col03", int) = 64
-    _Letter_Row05_Col04("_Letter_Row05_Col04", int) = 64
-    _Letter_Row05_Col05("_Letter_Row05_Col05", int) = 64
-    _Letter_Row05_Col06("_Letter_Row05_Col06", int) = 64
-    _Letter_Row05_Col07("_Letter_Row05_Col07", int) = 64
-    _Letter_Row05_Col08("_Letter_Row05_Col08", int) = 64
-    _Letter_Row05_Col09("_Letter_Row05_Col09", int) = 64
-    _Letter_Row05_Col10("_Letter_Row05_Col10", int) = 64
-    _Letter_Row05_Col11("_Letter_Row05_Col11", int) = 64
-    _Letter_Row05_Col12("_Letter_Row05_Col12", int) = 64
-    _Letter_Row05_Col13("_Letter_Row05_Col13", int) = 64
-    _Letter_Row05_Col14("_Letter_Row05_Col14", int) = 64
-    _Letter_Row05_Col15("_Letter_Row05_Col15", int) = 64
-    _Letter_Row05_Col16("_Letter_Row05_Col16", int) = 64
-    _Letter_Row05_Col17("_Letter_Row05_Col17", int) = 64
-    _Letter_Row05_Col18("_Letter_Row05_Col18", int) = 64
-    _Letter_Row05_Col19("_Letter_Row05_Col19", int) = 64
-    _Letter_Row05_Col20("_Letter_Row05_Col20", int) = 64
-    _Letter_Row05_Col21("_Letter_Row05_Col21", int) = 64
-    _Letter_Row06_Col00("_Letter_Row06_Col00", int) = 64
-    _Letter_Row06_Col01("_Letter_Row06_Col01", int) = 64
-    _Letter_Row06_Col02("_Letter_Row06_Col02", int) = 64
-    _Letter_Row06_Col03("_Letter_Row06_Col03", int) = 64
-    _Letter_Row06_Col04("_Letter_Row06_Col04", int) = 64
-    _Letter_Row06_Col05("_Letter_Row06_Col05", int) = 64
-    _Letter_Row06_Col06("_Letter_Row06_Col06", int) = 64
-    _Letter_Row06_Col07("_Letter_Row06_Col07", int) = 64
-    _Letter_Row06_Col08("_Letter_Row06_Col08", int) = 64
-    _Letter_Row06_Col09("_Letter_Row06_Col09", int) = 64
-    _Letter_Row06_Col10("_Letter_Row06_Col10", int) = 64
-    _Letter_Row06_Col11("_Letter_Row06_Col11", int) = 64
-    _Letter_Row06_Col12("_Letter_Row06_Col12", int) = 64
-    _Letter_Row06_Col13("_Letter_Row06_Col13", int) = 64
-    _Letter_Row06_Col14("_Letter_Row06_Col14", int) = 64
-    _Letter_Row06_Col15("_Letter_Row06_Col15", int) = 64
-    _Letter_Row06_Col16("_Letter_Row06_Col16", int) = 64
-    _Letter_Row06_Col17("_Letter_Row06_Col17", int) = 64
-    _Letter_Row06_Col18("_Letter_Row06_Col18", int) = 64
-    _Letter_Row06_Col19("_Letter_Row06_Col19", int) = 64
-    _Letter_Row06_Col20("_Letter_Row06_Col20", int) = 64
-    _Letter_Row06_Col21("_Letter_Row06_Col21", int) = 64
-    _Letter_Row07_Col00("_Letter_Row07_Col00", int) = 64
-    _Letter_Row07_Col01("_Letter_Row07_Col01", int) = 64
-    _Letter_Row07_Col02("_Letter_Row07_Col02", int) = 64
-    _Letter_Row07_Col03("_Letter_Row07_Col03", int) = 64
-    _Letter_Row07_Col04("_Letter_Row07_Col04", int) = 64
-    _Letter_Row07_Col05("_Letter_Row07_Col05", int) = 64
-    _Letter_Row07_Col06("_Letter_Row07_Col06", int) = 64
-    _Letter_Row07_Col07("_Letter_Row07_Col07", int) = 64
-    _Letter_Row07_Col08("_Letter_Row07_Col08", int) = 64
-    _Letter_Row07_Col09("_Letter_Row07_Col09", int) = 64
-    _Letter_Row07_Col10("_Letter_Row07_Col10", int) = 64
-    _Letter_Row07_Col11("_Letter_Row07_Col11", int) = 64
-    _Letter_Row07_Col12("_Letter_Row07_Col12", int) = 64
-    _Letter_Row07_Col13("_Letter_Row07_Col13", int) = 64
-    _Letter_Row07_Col14("_Letter_Row07_Col14", int) = 64
-    _Letter_Row07_Col15("_Letter_Row07_Col15", int) = 64
-    _Letter_Row07_Col16("_Letter_Row07_Col16", int) = 64
-    _Letter_Row07_Col17("_Letter_Row07_Col17", int) = 64
-    _Letter_Row07_Col18("_Letter_Row07_Col18", int) = 64
-    _Letter_Row07_Col19("_Letter_Row07_Col19", int) = 64
-    _Letter_Row07_Col20("_Letter_Row07_Col20", int) = 64
-    _Letter_Row07_Col21("_Letter_Row07_Col21", int) = 64
+    _Letter_Row00_Col00("_Letter_Row00_Col00", float) = 64
+    _Letter_Row00_Col01("_Letter_Row00_Col01", float) = 64
+    _Letter_Row00_Col02("_Letter_Row00_Col02", float) = 64
+    _Letter_Row00_Col03("_Letter_Row00_Col03", float) = 64
+    _Letter_Row00_Col04("_Letter_Row00_Col04", float) = 64
+    _Letter_Row00_Col05("_Letter_Row00_Col05", float) = 64
+    _Letter_Row00_Col06("_Letter_Row00_Col06", float) = 64
+    _Letter_Row00_Col07("_Letter_Row00_Col07", float) = 64
+    _Letter_Row00_Col08("_Letter_Row00_Col08", float) = 64
+    _Letter_Row00_Col09("_Letter_Row00_Col09", float) = 64
+    _Letter_Row00_Col10("_Letter_Row00_Col10", float) = 64
+    _Letter_Row00_Col11("_Letter_Row00_Col11", float) = 64
+    _Letter_Row00_Col12("_Letter_Row00_Col12", float) = 64
+    _Letter_Row00_Col13("_Letter_Row00_Col13", float) = 64
+    _Letter_Row00_Col14("_Letter_Row00_Col14", float) = 64
+    _Letter_Row00_Col15("_Letter_Row00_Col15", float) = 64
+    _Letter_Row00_Col16("_Letter_Row00_Col16", float) = 64
+    _Letter_Row00_Col17("_Letter_Row00_Col17", float) = 64
+    _Letter_Row00_Col18("_Letter_Row00_Col18", float) = 64
+    _Letter_Row00_Col19("_Letter_Row00_Col19", float) = 64
+    _Letter_Row00_Col20("_Letter_Row00_Col20", float) = 64
+    _Letter_Row00_Col21("_Letter_Row00_Col21", float) = 64
+    _Letter_Row01_Col00("_Letter_Row01_Col00", float) = 64
+    _Letter_Row01_Col01("_Letter_Row01_Col01", float) = 64
+    _Letter_Row01_Col02("_Letter_Row01_Col02", float) = 64
+    _Letter_Row01_Col03("_Letter_Row01_Col03", float) = 64
+    _Letter_Row01_Col04("_Letter_Row01_Col04", float) = 64
+    _Letter_Row01_Col05("_Letter_Row01_Col05", float) = 64
+    _Letter_Row01_Col06("_Letter_Row01_Col06", float) = 64
+    _Letter_Row01_Col07("_Letter_Row01_Col07", float) = 64
+    _Letter_Row01_Col08("_Letter_Row01_Col08", float) = 64
+    _Letter_Row01_Col09("_Letter_Row01_Col09", float) = 64
+    _Letter_Row01_Col10("_Letter_Row01_Col10", float) = 64
+    _Letter_Row01_Col11("_Letter_Row01_Col11", float) = 64
+    _Letter_Row01_Col12("_Letter_Row01_Col12", float) = 64
+    _Letter_Row01_Col13("_Letter_Row01_Col13", float) = 64
+    _Letter_Row01_Col14("_Letter_Row01_Col14", float) = 64
+    _Letter_Row01_Col15("_Letter_Row01_Col15", float) = 64
+    _Letter_Row01_Col16("_Letter_Row01_Col16", float) = 64
+    _Letter_Row01_Col17("_Letter_Row01_Col17", float) = 64
+    _Letter_Row01_Col18("_Letter_Row01_Col18", float) = 64
+    _Letter_Row01_Col19("_Letter_Row01_Col19", float) = 64
+    _Letter_Row01_Col20("_Letter_Row01_Col20", float) = 64
+    _Letter_Row01_Col21("_Letter_Row01_Col21", float) = 64
+    _Letter_Row02_Col00("_Letter_Row02_Col00", float) = 64
+    _Letter_Row02_Col01("_Letter_Row02_Col01", float) = 64
+    _Letter_Row02_Col02("_Letter_Row02_Col02", float) = 64
+    _Letter_Row02_Col03("_Letter_Row02_Col03", float) = 64
+    _Letter_Row02_Col04("_Letter_Row02_Col04", float) = 64
+    _Letter_Row02_Col05("_Letter_Row02_Col05", float) = 64
+    _Letter_Row02_Col06("_Letter_Row02_Col06", float) = 64
+    _Letter_Row02_Col07("_Letter_Row02_Col07", float) = 64
+    _Letter_Row02_Col08("_Letter_Row02_Col08", float) = 64
+    _Letter_Row02_Col09("_Letter_Row02_Col09", float) = 64
+    _Letter_Row02_Col10("_Letter_Row02_Col10", float) = 64
+    _Letter_Row02_Col11("_Letter_Row02_Col11", float) = 64
+    _Letter_Row02_Col12("_Letter_Row02_Col12", float) = 64
+    _Letter_Row02_Col13("_Letter_Row02_Col13", float) = 64
+    _Letter_Row02_Col14("_Letter_Row02_Col14", float) = 64
+    _Letter_Row02_Col15("_Letter_Row02_Col15", float) = 64
+    _Letter_Row02_Col16("_Letter_Row02_Col16", float) = 64
+    _Letter_Row02_Col17("_Letter_Row02_Col17", float) = 64
+    _Letter_Row02_Col18("_Letter_Row02_Col18", float) = 64
+    _Letter_Row02_Col19("_Letter_Row02_Col19", float) = 64
+    _Letter_Row02_Col20("_Letter_Row02_Col20", float) = 64
+    _Letter_Row02_Col21("_Letter_Row02_Col21", float) = 64
+    _Letter_Row03_Col00("_Letter_Row03_Col00", float) = 64
+    _Letter_Row03_Col01("_Letter_Row03_Col01", float) = 64
+    _Letter_Row03_Col02("_Letter_Row03_Col02", float) = 64
+    _Letter_Row03_Col03("_Letter_Row03_Col03", float) = 64
+    _Letter_Row03_Col04("_Letter_Row03_Col04", float) = 64
+    _Letter_Row03_Col05("_Letter_Row03_Col05", float) = 64
+    _Letter_Row03_Col06("_Letter_Row03_Col06", float) = 64
+    _Letter_Row03_Col07("_Letter_Row03_Col07", float) = 64
+    _Letter_Row03_Col08("_Letter_Row03_Col08", float) = 64
+    _Letter_Row03_Col09("_Letter_Row03_Col09", float) = 64
+    _Letter_Row03_Col10("_Letter_Row03_Col10", float) = 64
+    _Letter_Row03_Col11("_Letter_Row03_Col11", float) = 64
+    _Letter_Row03_Col12("_Letter_Row03_Col12", float) = 64
+    _Letter_Row03_Col13("_Letter_Row03_Col13", float) = 64
+    _Letter_Row03_Col14("_Letter_Row03_Col14", float) = 64
+    _Letter_Row03_Col15("_Letter_Row03_Col15", float) = 64
+    _Letter_Row03_Col16("_Letter_Row03_Col16", float) = 64
+    _Letter_Row03_Col17("_Letter_Row03_Col17", float) = 64
+    _Letter_Row03_Col18("_Letter_Row03_Col18", float) = 64
+    _Letter_Row03_Col19("_Letter_Row03_Col19", float) = 64
+    _Letter_Row03_Col20("_Letter_Row03_Col20", float) = 64
+    _Letter_Row03_Col21("_Letter_Row03_Col21", float) = 64
+    _Letter_Row04_Col00("_Letter_Row04_Col00", float) = 64
+    _Letter_Row04_Col01("_Letter_Row04_Col01", float) = 64
+    _Letter_Row04_Col02("_Letter_Row04_Col02", float) = 64
+    _Letter_Row04_Col03("_Letter_Row04_Col03", float) = 64
+    _Letter_Row04_Col04("_Letter_Row04_Col04", float) = 64
+    _Letter_Row04_Col05("_Letter_Row04_Col05", float) = 64
+    _Letter_Row04_Col06("_Letter_Row04_Col06", float) = 64
+    _Letter_Row04_Col07("_Letter_Row04_Col07", float) = 64
+    _Letter_Row04_Col08("_Letter_Row04_Col08", float) = 64
+    _Letter_Row04_Col09("_Letter_Row04_Col09", float) = 64
+    _Letter_Row04_Col10("_Letter_Row04_Col10", float) = 64
+    _Letter_Row04_Col11("_Letter_Row04_Col11", float) = 64
+    _Letter_Row04_Col12("_Letter_Row04_Col12", float) = 64
+    _Letter_Row04_Col13("_Letter_Row04_Col13", float) = 64
+    _Letter_Row04_Col14("_Letter_Row04_Col14", float) = 64
+    _Letter_Row04_Col15("_Letter_Row04_Col15", float) = 64
+    _Letter_Row04_Col16("_Letter_Row04_Col16", float) = 64
+    _Letter_Row04_Col17("_Letter_Row04_Col17", float) = 64
+    _Letter_Row04_Col18("_Letter_Row04_Col18", float) = 64
+    _Letter_Row04_Col19("_Letter_Row04_Col19", float) = 64
+    _Letter_Row04_Col20("_Letter_Row04_Col20", float) = 64
+    _Letter_Row04_Col21("_Letter_Row04_Col21", float) = 64
+    _Letter_Row05_Col00("_Letter_Row05_Col00", float) = 64
+    _Letter_Row05_Col01("_Letter_Row05_Col01", float) = 64
+    _Letter_Row05_Col02("_Letter_Row05_Col02", float) = 64
+    _Letter_Row05_Col03("_Letter_Row05_Col03", float) = 64
+    _Letter_Row05_Col04("_Letter_Row05_Col04", float) = 64
+    _Letter_Row05_Col05("_Letter_Row05_Col05", float) = 64
+    _Letter_Row05_Col06("_Letter_Row05_Col06", float) = 64
+    _Letter_Row05_Col07("_Letter_Row05_Col07", float) = 64
+    _Letter_Row05_Col08("_Letter_Row05_Col08", float) = 64
+    _Letter_Row05_Col09("_Letter_Row05_Col09", float) = 64
+    _Letter_Row05_Col10("_Letter_Row05_Col10", float) = 64
+    _Letter_Row05_Col11("_Letter_Row05_Col11", float) = 64
+    _Letter_Row05_Col12("_Letter_Row05_Col12", float) = 64
+    _Letter_Row05_Col13("_Letter_Row05_Col13", float) = 64
+    _Letter_Row05_Col14("_Letter_Row05_Col14", float) = 64
+    _Letter_Row05_Col15("_Letter_Row05_Col15", float) = 64
+    _Letter_Row05_Col16("_Letter_Row05_Col16", float) = 64
+    _Letter_Row05_Col17("_Letter_Row05_Col17", float) = 64
+    _Letter_Row05_Col18("_Letter_Row05_Col18", float) = 64
+    _Letter_Row05_Col19("_Letter_Row05_Col19", float) = 64
+    _Letter_Row05_Col20("_Letter_Row05_Col20", float) = 64
+    _Letter_Row05_Col21("_Letter_Row05_Col21", float) = 64
+    _Letter_Row06_Col00("_Letter_Row06_Col00", float) = 64
+    _Letter_Row06_Col01("_Letter_Row06_Col01", float) = 64
+    _Letter_Row06_Col02("_Letter_Row06_Col02", float) = 64
+    _Letter_Row06_Col03("_Letter_Row06_Col03", float) = 64
+    _Letter_Row06_Col04("_Letter_Row06_Col04", float) = 64
+    _Letter_Row06_Col05("_Letter_Row06_Col05", float) = 64
+    _Letter_Row06_Col06("_Letter_Row06_Col06", float) = 64
+    _Letter_Row06_Col07("_Letter_Row06_Col07", float) = 64
+    _Letter_Row06_Col08("_Letter_Row06_Col08", float) = 64
+    _Letter_Row06_Col09("_Letter_Row06_Col09", float) = 64
+    _Letter_Row06_Col10("_Letter_Row06_Col10", float) = 64
+    _Letter_Row06_Col11("_Letter_Row06_Col11", float) = 64
+    _Letter_Row06_Col12("_Letter_Row06_Col12", float) = 64
+    _Letter_Row06_Col13("_Letter_Row06_Col13", float) = 64
+    _Letter_Row06_Col14("_Letter_Row06_Col14", float) = 64
+    _Letter_Row06_Col15("_Letter_Row06_Col15", float) = 64
+    _Letter_Row06_Col16("_Letter_Row06_Col16", float) = 64
+    _Letter_Row06_Col17("_Letter_Row06_Col17", float) = 64
+    _Letter_Row06_Col18("_Letter_Row06_Col18", float) = 64
+    _Letter_Row06_Col19("_Letter_Row06_Col19", float) = 64
+    _Letter_Row06_Col20("_Letter_Row06_Col20", float) = 64
+    _Letter_Row06_Col21("_Letter_Row06_Col21", float) = 64
+    _Letter_Row07_Col00("_Letter_Row07_Col00", float) = 64
+    _Letter_Row07_Col01("_Letter_Row07_Col01", float) = 64
+    _Letter_Row07_Col02("_Letter_Row07_Col02", float) = 64
+    _Letter_Row07_Col03("_Letter_Row07_Col03", float) = 64
+    _Letter_Row07_Col04("_Letter_Row07_Col04", float) = 64
+    _Letter_Row07_Col05("_Letter_Row07_Col05", float) = 64
+    _Letter_Row07_Col06("_Letter_Row07_Col06", float) = 64
+    _Letter_Row07_Col07("_Letter_Row07_Col07", float) = 64
+    _Letter_Row07_Col08("_Letter_Row07_Col08", float) = 64
+    _Letter_Row07_Col09("_Letter_Row07_Col09", float) = 64
+    _Letter_Row07_Col10("_Letter_Row07_Col10", float) = 64
+    _Letter_Row07_Col11("_Letter_Row07_Col11", float) = 64
+    _Letter_Row07_Col12("_Letter_Row07_Col12", float) = 64
+    _Letter_Row07_Col13("_Letter_Row07_Col13", float) = 64
+    _Letter_Row07_Col14("_Letter_Row07_Col14", float) = 64
+    _Letter_Row07_Col15("_Letter_Row07_Col15", float) = 64
+    _Letter_Row07_Col16("_Letter_Row07_Col16", float) = 64
+    _Letter_Row07_Col17("_Letter_Row07_Col17", float) = 64
+    _Letter_Row07_Col18("_Letter_Row07_Col18", float) = 64
+    _Letter_Row07_Col19("_Letter_Row07_Col19", float) = 64
+    _Letter_Row07_Col20("_Letter_Row07_Col20", float) = 64
+    _Letter_Row07_Col21("_Letter_Row07_Col21", float) = 64
     // This does nothing, it's just used by the 'Do Nothing' animation.
     _Dummy("_Dummy", int) = 0
   }
@@ -195,6 +195,7 @@
       CGPROGRAM
       #pragma vertex vert
       #pragma fragment frag
+      #pragma multi_compile
 
       #include "UnityCG.cginc"
 
@@ -215,182 +216,182 @@
       SamplerState sampler_linear_repeat;
       float4 _MainTex_ST;
 
-      int _Letter_Row00_Col00;
-      int _Letter_Row00_Col01;
-      int _Letter_Row00_Col02;
-      int _Letter_Row00_Col03;
-      int _Letter_Row00_Col04;
-      int _Letter_Row00_Col05;
-      int _Letter_Row00_Col06;
-      int _Letter_Row00_Col07;
-      int _Letter_Row00_Col08;
-      int _Letter_Row00_Col09;
-      int _Letter_Row00_Col10;
-      int _Letter_Row00_Col11;
-      int _Letter_Row00_Col12;
-      int _Letter_Row00_Col13;
-      int _Letter_Row00_Col14;
-      int _Letter_Row00_Col15;
-      int _Letter_Row00_Col16;
-      int _Letter_Row00_Col17;
-      int _Letter_Row00_Col18;
-      int _Letter_Row00_Col19;
-      int _Letter_Row00_Col20;
-      int _Letter_Row00_Col21;
-      int _Letter_Row01_Col00;
-      int _Letter_Row01_Col01;
-      int _Letter_Row01_Col02;
-      int _Letter_Row01_Col03;
-      int _Letter_Row01_Col04;
-      int _Letter_Row01_Col05;
-      int _Letter_Row01_Col06;
-      int _Letter_Row01_Col07;
-      int _Letter_Row01_Col08;
-      int _Letter_Row01_Col09;
-      int _Letter_Row01_Col10;
-      int _Letter_Row01_Col11;
-      int _Letter_Row01_Col12;
-      int _Letter_Row01_Col13;
-      int _Letter_Row01_Col14;
-      int _Letter_Row01_Col15;
-      int _Letter_Row01_Col16;
-      int _Letter_Row01_Col17;
-      int _Letter_Row01_Col18;
-      int _Letter_Row01_Col19;
-      int _Letter_Row01_Col20;
-      int _Letter_Row01_Col21;
-      int _Letter_Row02_Col00;
-      int _Letter_Row02_Col01;
-      int _Letter_Row02_Col02;
-      int _Letter_Row02_Col03;
-      int _Letter_Row02_Col04;
-      int _Letter_Row02_Col05;
-      int _Letter_Row02_Col06;
-      int _Letter_Row02_Col07;
-      int _Letter_Row02_Col08;
-      int _Letter_Row02_Col09;
-      int _Letter_Row02_Col10;
-      int _Letter_Row02_Col11;
-      int _Letter_Row02_Col12;
-      int _Letter_Row02_Col13;
-      int _Letter_Row02_Col14;
-      int _Letter_Row02_Col15;
-      int _Letter_Row02_Col16;
-      int _Letter_Row02_Col17;
-      int _Letter_Row02_Col18;
-      int _Letter_Row02_Col19;
-      int _Letter_Row02_Col20;
-      int _Letter_Row02_Col21;
-      int _Letter_Row03_Col00;
-      int _Letter_Row03_Col01;
-      int _Letter_Row03_Col02;
-      int _Letter_Row03_Col03;
-      int _Letter_Row03_Col04;
-      int _Letter_Row03_Col05;
-      int _Letter_Row03_Col06;
-      int _Letter_Row03_Col07;
-      int _Letter_Row03_Col08;
-      int _Letter_Row03_Col09;
-      int _Letter_Row03_Col10;
-      int _Letter_Row03_Col11;
-      int _Letter_Row03_Col12;
-      int _Letter_Row03_Col13;
-      int _Letter_Row03_Col14;
-      int _Letter_Row03_Col15;
-      int _Letter_Row03_Col16;
-      int _Letter_Row03_Col17;
-      int _Letter_Row03_Col18;
-      int _Letter_Row03_Col19;
-      int _Letter_Row03_Col20;
-      int _Letter_Row03_Col21;
-      int _Letter_Row04_Col00;
-      int _Letter_Row04_Col01;
-      int _Letter_Row04_Col02;
-      int _Letter_Row04_Col03;
-      int _Letter_Row04_Col04;
-      int _Letter_Row04_Col05;
-      int _Letter_Row04_Col06;
-      int _Letter_Row04_Col07;
-      int _Letter_Row04_Col08;
-      int _Letter_Row04_Col09;
-      int _Letter_Row04_Col10;
-      int _Letter_Row04_Col11;
-      int _Letter_Row04_Col12;
-      int _Letter_Row04_Col13;
-      int _Letter_Row04_Col14;
-      int _Letter_Row04_Col15;
-      int _Letter_Row04_Col16;
-      int _Letter_Row04_Col17;
-      int _Letter_Row04_Col18;
-      int _Letter_Row04_Col19;
-      int _Letter_Row04_Col20;
-      int _Letter_Row04_Col21;
-      int _Letter_Row05_Col00;
-      int _Letter_Row05_Col01;
-      int _Letter_Row05_Col02;
-      int _Letter_Row05_Col03;
-      int _Letter_Row05_Col04;
-      int _Letter_Row05_Col05;
-      int _Letter_Row05_Col06;
-      int _Letter_Row05_Col07;
-      int _Letter_Row05_Col08;
-      int _Letter_Row05_Col09;
-      int _Letter_Row05_Col10;
-      int _Letter_Row05_Col11;
-      int _Letter_Row05_Col12;
-      int _Letter_Row05_Col13;
-      int _Letter_Row05_Col14;
-      int _Letter_Row05_Col15;
-      int _Letter_Row05_Col16;
-      int _Letter_Row05_Col17;
-      int _Letter_Row05_Col18;
-      int _Letter_Row05_Col19;
-      int _Letter_Row05_Col20;
-      int _Letter_Row05_Col21;
-      int _Letter_Row06_Col00;
-      int _Letter_Row06_Col01;
-      int _Letter_Row06_Col02;
-      int _Letter_Row06_Col03;
-      int _Letter_Row06_Col04;
-      int _Letter_Row06_Col05;
-      int _Letter_Row06_Col06;
-      int _Letter_Row06_Col07;
-      int _Letter_Row06_Col08;
-      int _Letter_Row06_Col09;
-      int _Letter_Row06_Col10;
-      int _Letter_Row06_Col11;
-      int _Letter_Row06_Col12;
-      int _Letter_Row06_Col13;
-      int _Letter_Row06_Col14;
-      int _Letter_Row06_Col15;
-      int _Letter_Row06_Col16;
-      int _Letter_Row06_Col17;
-      int _Letter_Row06_Col18;
-      int _Letter_Row06_Col19;
-      int _Letter_Row06_Col20;
-      int _Letter_Row06_Col21;
-      int _Letter_Row07_Col00;
-      int _Letter_Row07_Col01;
-      int _Letter_Row07_Col02;
-      int _Letter_Row07_Col03;
-      int _Letter_Row07_Col04;
-      int _Letter_Row07_Col05;
-      int _Letter_Row07_Col06;
-      int _Letter_Row07_Col07;
-      int _Letter_Row07_Col08;
-      int _Letter_Row07_Col09;
-      int _Letter_Row07_Col10;
-      int _Letter_Row07_Col11;
-      int _Letter_Row07_Col12;
-      int _Letter_Row07_Col13;
-      int _Letter_Row07_Col14;
-      int _Letter_Row07_Col15;
-      int _Letter_Row07_Col16;
-      int _Letter_Row07_Col17;
-      int _Letter_Row07_Col18;
-      int _Letter_Row07_Col19;
-      int _Letter_Row07_Col20;
-      int _Letter_Row07_Col21;
+      float _Letter_Row00_Col00;
+      float _Letter_Row00_Col01;
+      float _Letter_Row00_Col02;
+      float _Letter_Row00_Col03;
+      float _Letter_Row00_Col04;
+      float _Letter_Row00_Col05;
+      float _Letter_Row00_Col06;
+      float _Letter_Row00_Col07;
+      float _Letter_Row00_Col08;
+      float _Letter_Row00_Col09;
+      float _Letter_Row00_Col10;
+      float _Letter_Row00_Col11;
+      float _Letter_Row00_Col12;
+      float _Letter_Row00_Col13;
+      float _Letter_Row00_Col14;
+      float _Letter_Row00_Col15;
+      float _Letter_Row00_Col16;
+      float _Letter_Row00_Col17;
+      float _Letter_Row00_Col18;
+      float _Letter_Row00_Col19;
+      float _Letter_Row00_Col20;
+      float _Letter_Row00_Col21;
+      float _Letter_Row01_Col00;
+      float _Letter_Row01_Col01;
+      float _Letter_Row01_Col02;
+      float _Letter_Row01_Col03;
+      float _Letter_Row01_Col04;
+      float _Letter_Row01_Col05;
+      float _Letter_Row01_Col06;
+      float _Letter_Row01_Col07;
+      float _Letter_Row01_Col08;
+      float _Letter_Row01_Col09;
+      float _Letter_Row01_Col10;
+      float _Letter_Row01_Col11;
+      float _Letter_Row01_Col12;
+      float _Letter_Row01_Col13;
+      float _Letter_Row01_Col14;
+      float _Letter_Row01_Col15;
+      float _Letter_Row01_Col16;
+      float _Letter_Row01_Col17;
+      float _Letter_Row01_Col18;
+      float _Letter_Row01_Col19;
+      float _Letter_Row01_Col20;
+      float _Letter_Row01_Col21;
+      float _Letter_Row02_Col00;
+      float _Letter_Row02_Col01;
+      float _Letter_Row02_Col02;
+      float _Letter_Row02_Col03;
+      float _Letter_Row02_Col04;
+      float _Letter_Row02_Col05;
+      float _Letter_Row02_Col06;
+      float _Letter_Row02_Col07;
+      float _Letter_Row02_Col08;
+      float _Letter_Row02_Col09;
+      float _Letter_Row02_Col10;
+      float _Letter_Row02_Col11;
+      float _Letter_Row02_Col12;
+      float _Letter_Row02_Col13;
+      float _Letter_Row02_Col14;
+      float _Letter_Row02_Col15;
+      float _Letter_Row02_Col16;
+      float _Letter_Row02_Col17;
+      float _Letter_Row02_Col18;
+      float _Letter_Row02_Col19;
+      float _Letter_Row02_Col20;
+      float _Letter_Row02_Col21;
+      float _Letter_Row03_Col00;
+      float _Letter_Row03_Col01;
+      float _Letter_Row03_Col02;
+      float _Letter_Row03_Col03;
+      float _Letter_Row03_Col04;
+      float _Letter_Row03_Col05;
+      float _Letter_Row03_Col06;
+      float _Letter_Row03_Col07;
+      float _Letter_Row03_Col08;
+      float _Letter_Row03_Col09;
+      float _Letter_Row03_Col10;
+      float _Letter_Row03_Col11;
+      float _Letter_Row03_Col12;
+      float _Letter_Row03_Col13;
+      float _Letter_Row03_Col14;
+      float _Letter_Row03_Col15;
+      float _Letter_Row03_Col16;
+      float _Letter_Row03_Col17;
+      float _Letter_Row03_Col18;
+      float _Letter_Row03_Col19;
+      float _Letter_Row03_Col20;
+      float _Letter_Row03_Col21;
+      float _Letter_Row04_Col00;
+      float _Letter_Row04_Col01;
+      float _Letter_Row04_Col02;
+      float _Letter_Row04_Col03;
+      float _Letter_Row04_Col04;
+      float _Letter_Row04_Col05;
+      float _Letter_Row04_Col06;
+      float _Letter_Row04_Col07;
+      float _Letter_Row04_Col08;
+      float _Letter_Row04_Col09;
+      float _Letter_Row04_Col10;
+      float _Letter_Row04_Col11;
+      float _Letter_Row04_Col12;
+      float _Letter_Row04_Col13;
+      float _Letter_Row04_Col14;
+      float _Letter_Row04_Col15;
+      float _Letter_Row04_Col16;
+      float _Letter_Row04_Col17;
+      float _Letter_Row04_Col18;
+      float _Letter_Row04_Col19;
+      float _Letter_Row04_Col20;
+      float _Letter_Row04_Col21;
+      float _Letter_Row05_Col00;
+      float _Letter_Row05_Col01;
+      float _Letter_Row05_Col02;
+      float _Letter_Row05_Col03;
+      float _Letter_Row05_Col04;
+      float _Letter_Row05_Col05;
+      float _Letter_Row05_Col06;
+      float _Letter_Row05_Col07;
+      float _Letter_Row05_Col08;
+      float _Letter_Row05_Col09;
+      float _Letter_Row05_Col10;
+      float _Letter_Row05_Col11;
+      float _Letter_Row05_Col12;
+      float _Letter_Row05_Col13;
+      float _Letter_Row05_Col14;
+      float _Letter_Row05_Col15;
+      float _Letter_Row05_Col16;
+      float _Letter_Row05_Col17;
+      float _Letter_Row05_Col18;
+      float _Letter_Row05_Col19;
+      float _Letter_Row05_Col20;
+      float _Letter_Row05_Col21;
+      float _Letter_Row06_Col00;
+      float _Letter_Row06_Col01;
+      float _Letter_Row06_Col02;
+      float _Letter_Row06_Col03;
+      float _Letter_Row06_Col04;
+      float _Letter_Row06_Col05;
+      float _Letter_Row06_Col06;
+      float _Letter_Row06_Col07;
+      float _Letter_Row06_Col08;
+      float _Letter_Row06_Col09;
+      float _Letter_Row06_Col10;
+      float _Letter_Row06_Col11;
+      float _Letter_Row06_Col12;
+      float _Letter_Row06_Col13;
+      float _Letter_Row06_Col14;
+      float _Letter_Row06_Col15;
+      float _Letter_Row06_Col16;
+      float _Letter_Row06_Col17;
+      float _Letter_Row06_Col18;
+      float _Letter_Row06_Col19;
+      float _Letter_Row06_Col20;
+      float _Letter_Row06_Col21;
+      float _Letter_Row07_Col00;
+      float _Letter_Row07_Col01;
+      float _Letter_Row07_Col02;
+      float _Letter_Row07_Col03;
+      float _Letter_Row07_Col04;
+      float _Letter_Row07_Col05;
+      float _Letter_Row07_Col06;
+      float _Letter_Row07_Col07;
+      float _Letter_Row07_Col08;
+      float _Letter_Row07_Col09;
+      float _Letter_Row07_Col10;
+      float _Letter_Row07_Col11;
+      float _Letter_Row07_Col12;
+      float _Letter_Row07_Col13;
+      float _Letter_Row07_Col14;
+      float _Letter_Row07_Col15;
+      float _Letter_Row07_Col16;
+      float _Letter_Row07_Col17;
+      float _Letter_Row07_Col18;
+      float _Letter_Row07_Col19;
+      float _Letter_Row07_Col20;
+      float _Letter_Row07_Col21;
 
       v2f vert (appdata v)
       {
@@ -436,7 +437,7 @@
       }
 
       // Get the value of the parameter for the cell we're in.
-      int GetLetterParameter(v2f i)
+      float GetLetterParameter(v2f i)
       {
         float CHAR_ROWS = 8.0;
         float CHAR_COLS = 22.0;
@@ -819,7 +820,7 @@
 
       fixed4 frag (v2f i) : SV_Target
       {
-        int letter = GetLetterParameter(i);
+        float letter = floor(GetLetterParameter(i));
         float2 uv = GetLetter(i, letter);
         fixed4 ret = _MainTex.Sample(sampler_linear_repeat, uv);
         return ret;
