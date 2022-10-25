@@ -164,6 +164,11 @@ To use the STT:
       layer. Something must be rethought to bring these numbers down.
    3. Implement multicore YAML parsing. This will make working with large
       animators much more practical.
+   4. Transcription engine sleep interval increases exponentially up to 1-2
+      seconds, then jumps back to a short interval once speech is detected.
+      This should significantly cut down on idle resource consumption. Perhaps
+      there's even a more efficient way to detect the odds that anything is
+      being said, which we could use to gate transcription.
 5. Bugfixes
    1. The whisper STT says "Thank you." when there's no audio?
 6. Shine

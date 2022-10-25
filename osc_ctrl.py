@@ -327,8 +327,8 @@ def sendRawMessage(client, msg):
         #print("Send cell {}".format(cell))
         sendMessageCellDiscrete(client, cell_msg, cell)
 
-def clear():
-    sendRawMessage([state.encoding[' ']] * BOARD_ROWS * BOARD_COLS)
+def clear(client):
+    sendRawMessage(client, [state.encoding[' ']] * BOARD_ROWS * BOARD_COLS)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

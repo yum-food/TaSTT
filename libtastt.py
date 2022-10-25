@@ -337,11 +337,14 @@ def generateFXLayer(which_layer: int, anim: libunity.UnityAnimator, layer:
 
 # Generic toggle adding utility.
 # Generates the layer and parameter.
+# Returns a map containing the off and on states, as well as the
+# transitions between them.
 def generateToggle(layer_name: str,
         gen_anim_dir: str,
         off_anim_basename: str,
         on_anim_basename: str,
-        anim: libunity.UnityAnimator):
+        anim: libunity.UnityAnimator) -> typing.Dict[str,
+                libunity.UnityDocument]:
     layer = anim.addLayer(layer_name)
 
     # For simplicity, use the layer name as the parameter name.
@@ -370,7 +373,13 @@ def generateToggle(layer_name: str,
     anim.addTransitionBooleanCondition(on_state,
             on_to_off_trans, parameter_name, False)
 
-    pass
+    result = {}
+    result["off"] = off_state
+    result["on"] = on_state
+    result["off_to_on"] = off_to_on_trans
+    result["on_to_off"] = on_to_off_trans
+
+    return result
 
 def generateFX(guid_map, gen_anim_dir):
     anim = libunity.UnityAnimator()
@@ -382,11 +391,16 @@ def generateFX(guid_map, gen_anim_dir):
         print("Generating layer {}/{}".format(which_layer, len(layers.items())), file=sys.stderr)
         generateFXLayer(which_layer, anim, layer, gen_anim_dir)
 
-    generateToggle(generate_utils.getSpeechNoiseToggleParam(),
+    states = generateToggle(
+            generate_utils.getSpeechNoiseToggleParam(),
             "Animations/",
             "TaSTT_Speech_Noise_Off.anim",
             "TaSTT_Speech_Noise_On.anim",
             anim)
+    # Enable beeping only if board is out.
+    anim.addTransitionBooleanCondition(states["off"],
+            states["off_to_on"], generate_utils.getToggleParam(), True)
+
     generateToggle(generate_utils.getToggleParam(),
             "Animations/",
             "TaSTT_Toggle_Off.anim",
