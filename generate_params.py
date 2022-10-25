@@ -30,13 +30,14 @@ INT_PARAM = """
 BOOL_PARAM = """
   - name: %PARAM_NAME%
     valueType: 2
-    saved: 0
+    saved: %SAVED%
     defaultValue: 0
 """[1:][0:-1]
 
 # We're working with an 84-character board, and each FX layer is responsible
 # for 8 of those characters.
 params = {}
+params["SAVED"] = "0"
 print(generate_utils.replaceMacros(PARAM_HEADER, params))
 
 params["PARAM_NAME"] = generate_utils.getDummyParam()
@@ -54,17 +55,16 @@ print(generate_utils.replaceMacros(BOOL_PARAM, params))
 params["PARAM_NAME"] = generate_utils.getEnableParam()
 print(generate_utils.replaceMacros(BOOL_PARAM, params))
 
-params["PARAM_NAME"] = generate_utils.getHandToggleParam()
-print(generate_utils.replaceMacros(BOOL_PARAM, params))
-
-params["PARAM_NAME"] = generate_utils.getHipToggleParam()
-print(generate_utils.replaceMacros(BOOL_PARAM, params))
-
 params["PARAM_NAME"] = generate_utils.getToggleParam()
 print(generate_utils.replaceMacros(BOOL_PARAM, params))
 
 params["PARAM_NAME"] = generate_utils.getSpeechNoiseToggleParam()
 print(generate_utils.replaceMacros(BOOL_PARAM, params))
+
+params["PARAM_NAME"] = generate_utils.getSpeechNoiseEnableParam()
+params["SAVED"] = "1"
+print(generate_utils.replaceMacros(BOOL_PARAM, params))
+params["SAVED"] = "0"
 
 params["PARAM_NAME"] = generate_utils.getLockWorldParam()
 print(generate_utils.replaceMacros(BOOL_PARAM, params))

@@ -45,8 +45,14 @@ def getHandToggleParam():
 def getToggleParam():
     return "TaSTT_Toggle"
 
+# When this is set to true, the board will emit a soft beep sound. It's used to
+# grab attention when speaking.
 def getSpeechNoiseToggleParam():
     return "TaSTT_Speech_Noise_Toggle"
+
+# This is used to disable speaking noises.
+def getSpeechNoiseEnableParam():
+    return "TaSTT_Speech_Noise_Enable"
 
 def getLockWorldParam():
     return "TaSTT_Lock_World"

@@ -199,6 +199,7 @@ def generateFXController(anim: libunity.UnityAnimator) -> typing.Dict[int, libun
     anim.addParameter(generate_utils.getHipToggleParam(), bool)
     anim.addParameter(generate_utils.getHandToggleParam(), bool)
     anim.addParameter(generate_utils.getToggleParam(), bool)
+    anim.addParameter(generate_utils.getSpeechNoiseEnableParam(), bool)
 
     layers = {}
     for i in range(0, generate_utils.NUM_LAYERS):
@@ -397,6 +398,9 @@ def generateFX(guid_map, gen_anim_dir):
             "TaSTT_Speech_Noise_Off.anim",
             "TaSTT_Speech_Noise_On.anim",
             anim)
+    # Enable beeping only if user has turned it on.
+    anim.addTransitionBooleanCondition(states["off"],
+            states["off_to_on"], generate_utils.getSpeechNoiseEnableParam(), True)
     # Enable beeping only if board is out.
     anim.addTransitionBooleanCondition(states["off"],
             states["off_to_on"], generate_utils.getToggleParam(), True)
