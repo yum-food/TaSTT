@@ -10,7 +10,7 @@ Combining TaSTT_fx with a normal animator
 date
 rm -rf generated/animations
 ./libunity.py guid_map --project_root=$(cd ..; pwd) --save_to guid.map
-./libtastt.py gen_anims
+#./libtastt.py gen_anims
 ./libtastt.py gen_fx > TaSTT_fx.controller
 ./libunity.py merge --fx0 ../FXGeneric.controller --fx1 ../FXSpecific.controller > FX0.controller
 ./libunity.py add_toggle --fx0 FX0.controller > FX1.controller

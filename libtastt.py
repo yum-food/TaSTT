@@ -170,6 +170,7 @@ def generateAnimations(anim_dir, guid_map):
                     keyframe.mapping['value'] = str(letter + 0.1)
                 # Populate path to letter parameter
                 curve.mapping['attribute'] = "material.{}".format(generate_utils.getShaderParamByRowCol(row, col))
+                curve.mapping['path'] = "World Constraint/Container/TaSTT"
                 # Add curve to animation
                 clip.mapping['m_FloatCurves'].sequence.append(curve)
                 clip.mapping['m_EditorCurves'].sequence.append(curve)
@@ -332,6 +333,42 @@ def generateFXLayer(which_layer: int, anim: libunity.UnityAnimator, layer:
                         dummy_param = generate_utils.getDummyParam()
                         anim.addTransitionBooleanCondition(state,
                                 home_state_transition, dummy_param, False)
+    pass
+
+# Generic toggle adding utility.
+# Generates the layer and parameter.
+def generateToggle(layer_name: str,
+        gen_anim_dir: str,
+        off_anim_basename: str,
+        on_anim_basename: str,
+        anim: libunity.UnityAnimator):
+    layer = anim.addLayer(layer_name)
+
+    # For simplicity, use the layer name as the parameter name.
+    parameter_name = layer_name
+    anim.addParameter(parameter_name, bool)
+
+    off_state = anim.addAnimatorState(layer, layer_name + "_Off",
+            is_default_state = True)
+    on_state  = anim.addAnimatorState(layer, layer_name + "_On", dy=100)
+
+    off_anim_path = gen_anim_dir + off_anim_basename
+    off_anim_meta = libunity.Metadata()
+    off_anim_meta.load(off_anim_path)
+    on_anim_path = gen_anim_dir + on_anim_basename
+    on_anim_meta = libunity.Metadata()
+    on_anim_meta.load(on_anim_path)
+
+    anim.setAnimatorStateAnimation(off_state, off_anim_meta.guid)
+    anim.setAnimatorStateAnimation(on_state, on_anim_meta.guid)
+
+    off_to_on_trans = anim.addTransition(on_state)
+    anim.addTransitionBooleanCondition(off_state,
+            off_to_on_trans, parameter_name, True)
+
+    on_to_off_trans = anim.addTransition(off_state)
+    anim.addTransitionBooleanCondition(on_state,
+            on_to_off_trans, parameter_name, False)
 
     pass
 
@@ -344,6 +381,22 @@ def generateFX(guid_map, gen_anim_dir):
     for which_layer, layer in layers.items():
         print("Generating layer {}/{}".format(which_layer, len(layers.items())), file=sys.stderr)
         generateFXLayer(which_layer, anim, layer, gen_anim_dir)
+
+    generateToggle(generate_utils.getSpeechNoiseToggleParam(),
+            "Animations/",
+            "TaSTT_Speech_Noise_Off.anim",
+            "TaSTT_Speech_Noise_On.anim",
+            anim)
+    generateToggle(generate_utils.getToggleParam(),
+            "Animations/",
+            "TaSTT_Toggle_Off.anim",
+            "TaSTT_Toggle_On.anim",
+            anim)
+    generateToggle(generate_utils.getLockWorldParam(),
+            "Animations/",
+            "TaSTT_Lock_World_Disable.anim",
+            "TaSTT_Lock_World_Enable.anim",
+            anim)
 
     return anim
 

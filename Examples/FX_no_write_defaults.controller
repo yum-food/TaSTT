@@ -6,7 +6,7 @@ AnimatorController:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: FX2
+  m_Name: FX_no_write_defaults
   serializedVersion: 5
   m_AnimatorParameters:
   - m_Name: GestureLeftWeight

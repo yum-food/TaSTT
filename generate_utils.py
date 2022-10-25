@@ -12,7 +12,6 @@ def replaceMacros(lines, macro_defs):
 BOARD_ROWS=8
 BOARD_COLS=22
 INDEX_BITS=4
-#CHARS_PER_CELL=4
 CHARS_PER_CELL=80
 
 NUM_LAYERS=ceil((BOARD_ROWS * BOARD_COLS) / (2**INDEX_BITS))
@@ -45,6 +44,12 @@ def getHandToggleParam():
 
 def getToggleParam():
     return "TaSTT_Toggle"
+
+def getSpeechNoiseToggleParam():
+    return "TaSTT_Speech_Noise_Toggle"
+
+def getLockWorldParam():
+    return "TaSTT_Lock_World"
 
 # Each layer controls a group of cells. There's only one letter per layer, thus
 # this is also the name of the parameter which sets the letter for a layer.

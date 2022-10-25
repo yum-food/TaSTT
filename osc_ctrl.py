@@ -99,6 +99,12 @@ def sendMessageCellDiscrete(client, msg_cell, which_cell):
     # Disable each layer.
     disable(client)
 
+    empty_cell = [state.encoding[' ']] * NUM_LAYERS
+    if msg_cell != state.encoding[' '] * BOARD_COLS:
+        addr="/avatar/parameters/" + generate_utils.getSpeechNoiseToggleParam()
+        client.send_message(addr, False)
+        print("beep")
+
     time.sleep(CELL_TX_TIME_S / 3.0)
 
     # Really long messages just wrap back around.
@@ -112,6 +118,14 @@ def sendMessageCellDiscrete(client, msg_cell, which_cell):
     # Seek each layer to the current cell.
     for i in range(0, len(msg_cell)):
         updateCell(client, i, msg_cell[i], s0, s1, s2, s3)
+    if msg_cell != empty_cell:
+        addr="/avatar/parameters/" + generate_utils.getSpeechNoiseToggleParam()
+        client.send_message(addr, False)
+
+    # If we're drawing something, turn the beep on.
+    if msg_cell != empty_cell:
+        addr="/avatar/parameters/" + generate_utils.getSpeechNoiseToggleParam()
+        client.send_message(addr, True)
 
     # Wait for convergence.
     time.sleep(CELL_TX_TIME_S / 3.0)

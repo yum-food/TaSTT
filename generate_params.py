@@ -63,6 +63,12 @@ print(generate_utils.replaceMacros(BOOL_PARAM, params))
 params["PARAM_NAME"] = generate_utils.getToggleParam()
 print(generate_utils.replaceMacros(BOOL_PARAM, params))
 
+params["PARAM_NAME"] = generate_utils.getSpeechNoiseToggleParam()
+print(generate_utils.replaceMacros(BOOL_PARAM, params))
+
+params["PARAM_NAME"] = generate_utils.getLockWorldParam()
+print(generate_utils.replaceMacros(BOOL_PARAM, params))
+
 for i in range(0, generate_utils.NUM_LAYERS):
     params["PARAM_NAME"] = generate_utils.getLayerParam(i)
     print(generate_utils.replaceMacros(INT_PARAM, params))
