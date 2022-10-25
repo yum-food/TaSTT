@@ -55,6 +55,11 @@ class AudioState:
     send_audio = True
     run_control_thread = True
 
+    transcribe_sleep_duration_min_s = 0.05
+    transcribe_sleep_duration_max_s = 1.50
+    transcribe_no_change_count = 0
+    transcribe_sleep_duration = transcribe_sleep_duration_min_s
+
     osc_client = osc_ctrl.getClient()
 
 def getMicStream(which_mic):
@@ -175,7 +180,19 @@ def transcribe(model, filename):
 def transcribeAudio(audio_state, model):
     while audio_state.transcribe_audio == True:
         # Pace this out
-        time.sleep(0.05)
+        print("sleep duration: {}".format(audio_state.transcribe_sleep_duration))
+        time.sleep(audio_state.transcribe_sleep_duration)
+
+        # Increase sleep time. Code below will set sleep time back to minimum
+        # if a change is detected.
+        if audio_state.transcribe_no_change_count < 10:
+            audio_state.transcribe_no_change_count += 1
+        longer_sleep_dur = audio_state.transcribe_sleep_duration
+        longer_sleep_dur += audio_state.transcribe_sleep_duration_min_s * (1.3**audio_state.transcribe_no_change_count)
+        audio_state.transcribe_sleep_duration = min(
+                audio_state.transcribe_sleep_duration_max_s,
+                longer_sleep_dur)
+        print("next sleep duration: {}".format(audio_state.transcribe_sleep_duration))
 
         saveAudio(audio_state, audio_state.VOICE_AUDIO_FILENAME)
 
@@ -249,6 +266,12 @@ def transcribeAudio(audio_state, model):
                     audio_state.text = new_text
             else:
                 audio_state.text = text
+
+            if audio_state.text != old_text:
+                # We think the user said something, so  reset the amount of
+                # time we sleep between transcriptions to the minimum.
+                audio_state.transcribe_no_change_count = 0
+                audio_state.transcribe_sleep_duration = audio_state.transcribe_sleep_duration_min_s
 
         audio_state.text_candidate = text
 
@@ -328,7 +351,7 @@ if __name__ == "__main__":
     control_thd.daemon = True
     control_thd.start()
 
-    print("Press enter to start a new message")
+    print("Press enter or say 'Clear' to start a new message")
     for line in sys.stdin:
         resetAudio(audio_state)
         if "exit" in line or "quit" in line:

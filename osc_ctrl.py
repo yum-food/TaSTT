@@ -33,6 +33,8 @@ class EvilGlobalState():
     encoding = {}
 state = EvilGlobalState()
 
+# The characters in the TaSTT are all numbered from top left to bottom right.
+# This function provides a mapping from letter ('a') to index (26).
 def generateEncoding(state):
     for i in range(0, 26):
         state.encoding[chr(ord('A') + i)] = i
@@ -103,7 +105,6 @@ def sendMessageCellDiscrete(client, msg_cell, which_cell):
     if msg_cell != state.encoding[' '] * BOARD_COLS:
         addr="/avatar/parameters/" + generate_utils.getSpeechNoiseToggleParam()
         client.send_message(addr, False)
-        print("beep")
 
     time.sleep(CELL_TX_TIME_S / 3.0)
 
