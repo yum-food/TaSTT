@@ -231,11 +231,21 @@ def transcribeAudio(audio_state, model):
         #   3. If the transcription is somewhat long and the
         #       first few characters change, we assume this is due to a
         #       trim event and immediately accept the transcription.
+        candidate_words = ''.join(c for c in audio_state.text_candidate.lower() if (c.isalpha() or c == " ")).split()
+
+        candidate_words_are_prefix_of_text = False
+        if len(candidate_words) < len(words) and \
+                candidate_words == words[0:len(candidate_words)]:
+            candidate_words_are_prefix_of_text = True
+
         commit_transcription = False
-        if text == audio_state.text_candidate or text.startswith(audio_state.text_candidate):
+        if words == candidate_words or candidate_words_are_prefix_of_text:
             commit_transcription = True
-        elif len(text) > 30 and len(audio_state.text_candidate) >= 10 and text[0:10] != audio_state.text_candidate[0:10]:
-            commit_transcription = True
+        elif len(text) > 30 and len(audio_state.text_candidate) >= 10:
+            d = levenshtein_distance(text[0:10],
+                    audio_state.text_candidate[0:10])
+            if d > 2:
+                commit_transcription = True
 
         print("Transcription: {}".format(audio_state.text))
 
