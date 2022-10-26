@@ -2,8 +2,7 @@
 
 import argparse
 import copy
-# python3 -m pip install python-Levenshtein
-from Levenshtein import distance as levenshtein_distance
+import string_matcher
 import os
 import osc_ctrl
 # python3 -m pip install pydub
@@ -212,7 +211,7 @@ def transcribeAudio(audio_state, model):
             continue
 
         words = ''.join(c for c in text.lower() if (c.isalpha() or c == " ")).split()
-        print("words: {}".format(words))
+        #print("words: {}".format(words))
         if len(words) > 0 and words[-1] == "clear":
             audio_state.text = ""
             audio_state.text_candidate = ""
@@ -229,7 +228,7 @@ def transcribeAudio(audio_state, model):
         #       immediately accept it, since the transcription is obviously
         #       somewhat stable.
         #   3. If the transcription is somewhat long and the
-        #       first few characters change, we assume this is due to a
+        #       first few words change, we assume this is due to a
         #       trim event and immediately accept the transcription.
         candidate_words = ''.join(c for c in audio_state.text_candidate.lower() if (c.isalpha() or c == " ")).split()
 
@@ -241,47 +240,17 @@ def transcribeAudio(audio_state, model):
         commit_transcription = False
         if words == candidate_words or candidate_words_are_prefix_of_text:
             commit_transcription = True
-        elif len(text) > 30 and len(audio_state.text_candidate) >= 10:
-            d = levenshtein_distance(text[0:10],
-                    audio_state.text_candidate[0:10])
-            if d > 2:
-                commit_transcription = True
+        elif len(words) >= 3 and len(candidate_words) >= 3 and \
+                words[0:3] != candidate_words[0:3]:
+            commit_transcription = True
 
         print("Transcription: {}".format(audio_state.text))
 
         if commit_transcription:
-            window_size = 20
             old_text = audio_state.text
-            if audio_state.text == text:
-                pass
-            elif len(text) >= window_size and len(old_text) >= window_size:
-                old_slice = old_text[len(old_text) - window_size:]
-                best_match_i = None
-                best_match_d = window_size * 1000
-                for i in range(0, 1 + len(text) - window_size):
-                    new_slice = text[i:i + window_size]
-                    #print("Consider slice {}".format(new_slice))
-                    d = levenshtein_distance(old_slice, new_slice)
-                    if d < best_match_d and d < window_size:
-                        best_match_i = i
-                        best_match_d = d
-                if best_match_i == None:
-                    audio_state.text = text
-                else:
-                    #print("Best overlap: {}, {}".format(best_match_d, text[best_match_i:best_match_i + window_size]))
-                    #print("Old prefix: {}".format(old_text[0:len(old_text) - window_size]))
-                    #print("New suffix: {}".format(text[best_match_i:]))
-                    new_text = old_text[0:len(old_text) - window_size]
-                    new_text += text[best_match_i:]
-                    audio_state.text = new_text
-            else:
-                audio_state.text = text
-
-            if audio_state.text != old_text:
-                # We think the user said something, so  reset the amount of
-                # time we sleep between transcriptions to the minimum.
-                audio_state.transcribe_no_change_count = 0
-                audio_state.transcribe_sleep_duration = audio_state.transcribe_sleep_duration_min_s
+            old_words = audio_state.text.split()
+            new_words = text.split()
+            audio_state.text = string_matcher.matchStringList(old_words, new_words)
 
         audio_state.text_candidate = text
 
