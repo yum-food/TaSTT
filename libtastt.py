@@ -8,6 +8,10 @@ import pickle
 import sys
 import typing
 
+# TODO(yum) we're getting the encoding scheme from here, but I think it should
+# be in a different layer.
+import osc_ctrl
+
 LETTER_ANIMATION_TEMPLATE = """
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
@@ -140,7 +144,57 @@ AnimatorController:
   m_AnimatorLayers: []
 """
 
+# For whatever reason, running unrelated animations s.a.
+# facial expressions can have a slight effect on supposedly
+# unrelated parameters, causing letter to flip. Add a
+# little buffer to reduce the odds that this effect causes
+# a letter to change after it has been written.
+UNITY_ANIMATION_FUDGE_MARGIN = 0.1
+
+def generateClearAnimation(anim_dir, guid_map):
+    print("Generating board clearing animation", file=sys.stderr)
+
+    parser = libunity.UnityParser()
+    parser.parse(LETTER_ANIMATION_TEMPLATE)
+
+    anim_node = parser.nodes[0]
+    anim_clip = anim_node.mapping['AnimationClip']
+    curve_template = anim_clip.mapping['m_FloatCurves'].sequence[0]
+    anim_clip.mapping['m_FloatCurves'].sequence = []
+    anim_clip.mapping['m_EditorCurves'].sequence = []
+
+    encoding = osc_ctrl.generateEncoding()
+    letter = encoding[' ']
+
+    for row in range(0, generate_utils.BOARD_ROWS):
+        for col in range(0, generate_utils.BOARD_COLS):
+            curve = curve_template.copy()
+            for keyframe in curve.mapping['curve'].mapping['m_Curve'].sequence:
+                keyframe.mapping['value'] = str(letter +
+                    UNITY_ANIMATION_FUDGE_MARGIN)
+                curve.mapping['attribute'] = "material.{}".format(generate_utils.getShaderParamByRowCol(row, col))
+                curve.mapping['path'] = "World Constraint/Container/TaSTT"
+            # Add curve to animation
+            anim_clip.mapping['m_FloatCurves'].sequence.append(curve)
+            anim_clip.mapping['m_EditorCurves'].sequence.append(curve)
+    # Serialize animation to file
+    anim_name = generate_utils.getClearAnimationName()
+    anim_path = anim_dir + anim_name + ".anim"
+    with open(anim_path, "w") as f:
+        f.write(libunity.unityYamlToString([anim_node]))
+    # Generate metadata
+    meta = libunity.Metadata()
+    with open(anim_path + ".meta", "w") as f:
+        f.write(str(meta))
+    # Add metadata to guid map
+    guid_map[anim_path] = meta.guid
+    guid_map[meta.guid] = anim_path
+
 def generateAnimations(anim_dir, guid_map):
+    generateClearAnimation(args.gen_anim_dir, guid_map)
+
+    print("Generating letter animations", file=sys.stderr)
+
     parser = libunity.UnityParser()
     parser.parse(LETTER_ANIMATION_TEMPLATE)
 
@@ -151,6 +205,8 @@ def generateAnimations(anim_dir, guid_map):
     anim_clip.mapping['m_EditorCurves'].sequence = []
 
     for row in range(0, generate_utils.BOARD_ROWS):
+        print("Generating letter animations (row {}/{})".format(row,
+            generate_utils.BOARD_ROWS), file=sys.stderr)
         for col in range(0, generate_utils.BOARD_COLS):
             for letter in range(0, generate_utils.CHARS_PER_CELL):
                 # Make a deep copy of the templates
@@ -158,16 +214,11 @@ def generateAnimations(anim_dir, guid_map):
                 curve = curve_template.copy()
                 clip = node.mapping['AnimationClip']
                 # Populate animation name
-                anim_name = generate_utils.getAnimationName(row, col, letter)
+                anim_name = generate_utils.getLetterAnimationName(row, col, letter)
                 clip.mapping['m_Name'] = anim_name
                 # Populate letter value
                 for keyframe in curve.mapping['curve'].mapping['m_Curve'].sequence:
-                    # For whatever reason, running unrelated animations s.a.
-                    # facial expressions can have a slight effect on supposedly
-                    # unrelated parameters, causing letter to flip. Add a
-                    # little buffer to reduce the odds that this effect causes
-                    # a letter to change after it has been written.
-                    keyframe.mapping['value'] = str(letter + 0.1)
+                    keyframe.mapping['value'] = str(letter + UNITY_ANIMATION_FUDGE_MARGIN)
                 # Populate path to letter parameter
                 curve.mapping['attribute'] = "material.{}".format(generate_utils.getShaderParamByRowCol(row, col))
                 curve.mapping['path'] = "World Constraint/Container/TaSTT"
@@ -200,6 +251,7 @@ def generateFXController(anim: libunity.UnityAnimator) -> typing.Dict[int, libun
     anim.addParameter(generate_utils.getHandToggleParam(), bool)
     anim.addParameter(generate_utils.getToggleParam(), bool)
     anim.addParameter(generate_utils.getSpeechNoiseEnableParam(), bool)
+    anim.addParameter(generate_utils.getClearBoardParam(), bool)
 
     layers = {}
     for i in range(0, generate_utils.NUM_LAYERS):
@@ -356,15 +408,17 @@ def generateToggle(layer_name: str,
             is_default_state = True)
     on_state  = anim.addAnimatorState(layer, layer_name + "_On", dy=100)
 
-    off_anim_path = gen_anim_dir + off_anim_basename
-    off_anim_meta = libunity.Metadata()
-    off_anim_meta.load(off_anim_path)
-    on_anim_path = gen_anim_dir + on_anim_basename
-    on_anim_meta = libunity.Metadata()
-    on_anim_meta.load(on_anim_path)
+    if off_anim_basename:
+        off_anim_path = gen_anim_dir + off_anim_basename
+        off_anim_meta = libunity.Metadata()
+        off_anim_meta.load(off_anim_path)
+        anim.setAnimatorStateAnimation(off_state, off_anim_meta.guid)
 
-    anim.setAnimatorStateAnimation(off_state, off_anim_meta.guid)
-    anim.setAnimatorStateAnimation(on_state, on_anim_meta.guid)
+    if on_anim_basename:
+        on_anim_path = gen_anim_dir + on_anim_basename
+        on_anim_meta = libunity.Metadata()
+        on_anim_meta.load(on_anim_path)
+        anim.setAnimatorStateAnimation(on_state, on_anim_meta.guid)
 
     off_to_on_trans = anim.addTransition(on_state)
     anim.addTransitionBooleanCondition(off_state,
@@ -414,6 +468,12 @@ def generateFX(guid_map, gen_anim_dir):
             "Animations/",
             "TaSTT_Lock_World_Disable.anim",
             "TaSTT_Lock_World_Enable.anim",
+            anim)
+    generateToggle(
+            generate_utils.getClearBoardParam(),
+            gen_anim_dir,
+            None,  # No animation in the `off` state.
+            generate_utils.getClearAnimationName() + ".anim",
             anim)
 
     return anim

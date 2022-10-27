@@ -35,25 +35,27 @@ state = EvilGlobalState()
 
 # The characters in the TaSTT are all numbered from top left to bottom right.
 # This function provides a mapping from letter ('a') to index (26).
-def generateEncoding(state):
+def generateEncoding():
+    encoding = {}
     for i in range(0, 26):
-        state.encoding[chr(ord('A') + i)] = i
+        encoding[chr(ord('A') + i)] = i
     for i in range(26, 52):
-        state.encoding[chr(ord('a') + i - 26)] = i
+        encoding[chr(ord('a') + i - 26)] = i
     for i in range(52, 62):
-        state.encoding[chr(ord('0') + i - 52)] = i
-    state.encoding[','] = 62
-    state.encoding['.'] = 63
-    state.encoding[' '] = 64
-    state.encoding['?'] = 65
-    state.encoding['!'] = 66
-    state.encoding[';'] = 67
-    state.encoding[':'] = 68
-    state.encoding['-'] = 69
-    state.encoding['_'] = 70
-    state.encoding["'"] = 71
-    state.encoding['"'] = 72
-generateEncoding(state)
+        encoding[chr(ord('0') + i - 52)] = i
+    encoding[','] = 62
+    encoding['.'] = 63
+    encoding[' '] = 64
+    encoding['?'] = 65
+    encoding['!'] = 66
+    encoding[';'] = 67
+    encoding[':'] = 68
+    encoding['-'] = 69
+    encoding['_'] = 70
+    encoding["'"] = 71
+    encoding['"'] = 72
+    return encoding
+state.encoding = generateEncoding()
 
 # Encodes a list of lines into the character set used by the board.
 # Pads lines with spaces and adds lines so that the total number of
@@ -329,7 +331,13 @@ def sendRawMessage(client, msg):
         sendMessageCellDiscrete(client, cell_msg, cell)
 
 def clear(client):
-    sendRawMessage(client, [state.encoding[' ']] * BOARD_ROWS * BOARD_COLS)
+    addr="/avatar/parameters/" + generate_utils.getClearBoardParam()
+    client.send_message(addr, True)
+
+    time.sleep(CELL_TX_TIME_S / 3.0)
+
+    addr="/avatar/parameters/" + generate_utils.getClearBoardParam()
+    client.send_message(addr, False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -339,7 +347,7 @@ if __name__ == "__main__":
 
     client = getClient(args.i, args.p)
 
-    generateEncoding(state)
+    state.encoding = generateEncoding()
 
     tx_state = OscTxState()
     for line in fileinput.input():

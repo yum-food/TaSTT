@@ -150,6 +150,9 @@ def resetDiskAudioLocked(audio_state, filename):
 
 def resetAudioLocked(audio_state):
     audio_state.frames = []
+    audio_state.transcribe_no_change_count = 0
+    audio_state.transcribe_sleep_duration = \
+            audio_state.transcribe_sleep_duration_min_s
 
 def resetAudio(audio_state):
     audio_state.frames_lock.acquire()
@@ -170,7 +173,7 @@ def transcribe(model, filename):
     options = whisper.DecodingOptions(language = "en")
     result = whisper.decode(model, mel, options)
 
-    if result.no_speech_prob > 0.1:
+    if result.no_speech_prob > 0.2:
         print("no speech prob: {}".format(result.no_speech_prob))
         return ""
 
@@ -251,6 +254,11 @@ def transcribeAudio(audio_state, model):
             old_words = audio_state.text.split()
             new_words = text.split()
             audio_state.text = string_matcher.matchStringList(old_words, new_words)
+            if old_text != audio_state.text:
+                # We think the user said something, so  reset the amount of
+                # time we sleep between transcriptions to the minimum.
+                audio_state.transcribe_no_change_count = 0
+                audio_state.transcribe_sleep_duration = audio_state.transcribe_sleep_duration_min_s
 
         audio_state.text_candidate = text
 

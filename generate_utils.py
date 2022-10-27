@@ -54,6 +54,10 @@ def getSpeechNoiseToggleParam():
 def getSpeechNoiseEnableParam():
     return "TaSTT_Speech_Noise_Enable"
 
+# When this is set to true, the board clears.
+def getClearBoardParam():
+    return "TaSTT_Clear_Board"
+
 def getLockWorldParam():
     return "TaSTT_Lock_World"
 
@@ -112,8 +116,14 @@ def getShaderParam(which_layer, s0, s1, s2, s3):
 
     return getShaderParamByRowCol(row, col)
 
-def getAnimationName(row, col, letter):
+# The name of the animation which writes `letter` at a specific position in the
+# display.
+def getLetterAnimationName(row, col, letter):
     return "R%02dC%02dL%02d" % (row, col, letter)
+
+# The name of the animation which clears the entire board.
+def getClearAnimationName():
+    return "TaSTT_Clear_Board"
 
 def getAnimationNameByLayerAndIndex(which_layer, s0, s1, s2, s3, letter):
     index = getBoardIndex(which_layer, s0, s1, s2, s3)
