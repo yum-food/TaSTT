@@ -450,366 +450,380 @@
         float CHAR_COL = floor(uv.x * CHAR_COLS);
         float CHAR_ROW = floor(uv.y * CHAR_ROWS);
 
-        if (CHAR_ROW == 3) {
-          if (CHAR_COL == 0) {
-            return _Letter_Row00_Col00;
-          } else if (CHAR_COL == 1) {
-            return _Letter_Row00_Col01;
-          } else if (CHAR_COL == 2) {
-            return _Letter_Row00_Col02;
-          } else if (CHAR_COL == 3) {
-            return _Letter_Row00_Col03;
-          } else if (CHAR_COL == 4) {
-            return _Letter_Row00_Col04;
-          } else if (CHAR_COL == 5) {
-            return _Letter_Row00_Col05;
-          } else if (CHAR_COL == 6) {
-            return _Letter_Row00_Col06;
-          } else if (CHAR_COL == 7) {
-            return _Letter_Row00_Col07;
-          } else if (CHAR_COL == 8) {
-            return _Letter_Row00_Col08;
-          } else if (CHAR_COL == 9) {
-            return _Letter_Row00_Col09;
-          } else if (CHAR_COL == 10) {
-            return _Letter_Row00_Col10;
-          } else if (CHAR_COL == 11) {
-            return _Letter_Row00_Col11;
-          } else if (CHAR_COL == 12) {
-            return _Letter_Row00_Col12;
-          } else if (CHAR_COL == 13) {
-            return _Letter_Row00_Col13;
-          } else if (CHAR_COL == 14) {
-            return _Letter_Row00_Col14;
-          } else if (CHAR_COL == 15) {
-            return _Letter_Row00_Col15;
-          } else if (CHAR_COL == 16) {
-            return _Letter_Row00_Col16;
-          } else if (CHAR_COL == 17) {
-            return _Letter_Row00_Col17;
-          } else if (CHAR_COL == 18) {
-            return _Letter_Row00_Col18;
-          } else if (CHAR_COL == 19) {
-            return _Letter_Row00_Col19;
-          } else if (CHAR_COL == 20) {
-            return _Letter_Row00_Col20;
-          } else if (CHAR_COL == 21) {
-            return _Letter_Row00_Col21;
-          } else if (CHAR_COL == 22) {
-            return _Letter_Row00_Col22;
-          } else if (CHAR_COL == 23) {
-            return _Letter_Row00_Col23;
-          } else if (CHAR_COL == 24) {
-            return _Letter_Row00_Col24;
-          } else if (CHAR_COL == 25) {
-            return _Letter_Row00_Col25;
-          } else if (CHAR_COL == 26) {
-            return _Letter_Row00_Col26;
-          } else if (CHAR_COL == 27) {
-            return _Letter_Row00_Col27;
-          } else if (CHAR_COL == 28) {
-            return _Letter_Row00_Col28;
-          } else if (CHAR_COL == 29) {
-            return _Letter_Row00_Col29;
-          } else if (CHAR_COL == 30) {
-            return _Letter_Row00_Col30;
-          } else if (CHAR_COL == 31) {
-            return _Letter_Row00_Col31;
-          } else if (CHAR_COL == 32) {
-            return _Letter_Row00_Col32;
-          } else if (CHAR_COL == 33) {
-            return _Letter_Row00_Col33;
-          } else if (CHAR_COL == 34) {
-            return _Letter_Row00_Col34;
-          } else if (CHAR_COL == 35) {
-            return _Letter_Row00_Col35;
-          } else if (CHAR_COL == 36) {
-            return _Letter_Row00_Col36;
-          } else if (CHAR_COL == 37) {
-            return _Letter_Row00_Col37;
-          } else if (CHAR_COL == 38) {
-            return _Letter_Row00_Col38;
-          } else if (CHAR_COL == 39) {
-            return _Letter_Row00_Col39;
-          } else if (CHAR_COL == 40) {
-            return _Letter_Row00_Col40;
-          } else if (CHAR_COL == 41) {
-            return _Letter_Row00_Col41;
-          } else if (CHAR_COL == 42) {
-            return _Letter_Row00_Col42;
-          } else if (CHAR_COL == 43) {
-            return _Letter_Row00_Col43;
-          }
-        } else if (CHAR_ROW == 2) {
-          if (CHAR_COL == 0) {
-            return _Letter_Row01_Col00;
-          } else if (CHAR_COL == 1) {
-            return _Letter_Row01_Col01;
-          } else if (CHAR_COL == 2) {
-            return _Letter_Row01_Col02;
-          } else if (CHAR_COL == 3) {
-            return _Letter_Row01_Col03;
-          } else if (CHAR_COL == 4) {
-            return _Letter_Row01_Col04;
-          } else if (CHAR_COL == 5) {
-            return _Letter_Row01_Col05;
-          } else if (CHAR_COL == 6) {
-            return _Letter_Row01_Col06;
-          } else if (CHAR_COL == 7) {
-            return _Letter_Row01_Col07;
-          } else if (CHAR_COL == 8) {
-            return _Letter_Row01_Col08;
-          } else if (CHAR_COL == 9) {
-            return _Letter_Row01_Col09;
-          } else if (CHAR_COL == 10) {
-            return _Letter_Row01_Col10;
-          } else if (CHAR_COL == 11) {
-            return _Letter_Row01_Col11;
-          } else if (CHAR_COL == 12) {
-            return _Letter_Row01_Col12;
-          } else if (CHAR_COL == 13) {
-            return _Letter_Row01_Col13;
-          } else if (CHAR_COL == 14) {
-            return _Letter_Row01_Col14;
-          } else if (CHAR_COL == 15) {
-            return _Letter_Row01_Col15;
-          } else if (CHAR_COL == 16) {
-            return _Letter_Row01_Col16;
-          } else if (CHAR_COL == 17) {
-            return _Letter_Row01_Col17;
-          } else if (CHAR_COL == 18) {
-            return _Letter_Row01_Col18;
-          } else if (CHAR_COL == 19) {
-            return _Letter_Row01_Col19;
-          } else if (CHAR_COL == 20) {
-            return _Letter_Row01_Col20;
-          } else if (CHAR_COL == 21) {
-            return _Letter_Row01_Col21;
-          } else if (CHAR_COL == 22) {
-            return _Letter_Row01_Col22;
-          } else if (CHAR_COL == 23) {
-            return _Letter_Row01_Col23;
-          } else if (CHAR_COL == 24) {
-            return _Letter_Row01_Col24;
-          } else if (CHAR_COL == 25) {
-            return _Letter_Row01_Col25;
-          } else if (CHAR_COL == 26) {
-            return _Letter_Row01_Col26;
-          } else if (CHAR_COL == 27) {
-            return _Letter_Row01_Col27;
-          } else if (CHAR_COL == 28) {
-            return _Letter_Row01_Col28;
-          } else if (CHAR_COL == 29) {
-            return _Letter_Row01_Col29;
-          } else if (CHAR_COL == 30) {
-            return _Letter_Row01_Col30;
-          } else if (CHAR_COL == 31) {
-            return _Letter_Row01_Col31;
-          } else if (CHAR_COL == 32) {
-            return _Letter_Row01_Col32;
-          } else if (CHAR_COL == 33) {
-            return _Letter_Row01_Col33;
-          } else if (CHAR_COL == 34) {
-            return _Letter_Row01_Col34;
-          } else if (CHAR_COL == 35) {
-            return _Letter_Row01_Col35;
-          } else if (CHAR_COL == 36) {
-            return _Letter_Row01_Col36;
-          } else if (CHAR_COL == 37) {
-            return _Letter_Row01_Col37;
-          } else if (CHAR_COL == 38) {
-            return _Letter_Row01_Col38;
-          } else if (CHAR_COL == 39) {
-            return _Letter_Row01_Col39;
-          } else if (CHAR_COL == 40) {
-            return _Letter_Row01_Col40;
-          } else if (CHAR_COL == 41) {
-            return _Letter_Row01_Col41;
-          } else if (CHAR_COL == 42) {
-            return _Letter_Row01_Col42;
-          } else if (CHAR_COL == 43) {
-            return _Letter_Row01_Col43;
-          }
-        } else if (CHAR_ROW == 1) {
-          if (CHAR_COL == 0) {
-            return _Letter_Row02_Col00;
-          } else if (CHAR_COL == 1) {
-            return _Letter_Row02_Col01;
-          } else if (CHAR_COL == 2) {
-            return _Letter_Row02_Col02;
-          } else if (CHAR_COL == 3) {
-            return _Letter_Row02_Col03;
-          } else if (CHAR_COL == 4) {
-            return _Letter_Row02_Col04;
-          } else if (CHAR_COL == 5) {
-            return _Letter_Row02_Col05;
-          } else if (CHAR_COL == 6) {
-            return _Letter_Row02_Col06;
-          } else if (CHAR_COL == 7) {
-            return _Letter_Row02_Col07;
-          } else if (CHAR_COL == 8) {
-            return _Letter_Row02_Col08;
-          } else if (CHAR_COL == 9) {
-            return _Letter_Row02_Col09;
-          } else if (CHAR_COL == 10) {
-            return _Letter_Row02_Col10;
-          } else if (CHAR_COL == 11) {
-            return _Letter_Row02_Col11;
-          } else if (CHAR_COL == 12) {
-            return _Letter_Row02_Col12;
-          } else if (CHAR_COL == 13) {
-            return _Letter_Row02_Col13;
-          } else if (CHAR_COL == 14) {
-            return _Letter_Row02_Col14;
-          } else if (CHAR_COL == 15) {
-            return _Letter_Row02_Col15;
-          } else if (CHAR_COL == 16) {
-            return _Letter_Row02_Col16;
-          } else if (CHAR_COL == 17) {
-            return _Letter_Row02_Col17;
-          } else if (CHAR_COL == 18) {
-            return _Letter_Row02_Col18;
-          } else if (CHAR_COL == 19) {
-            return _Letter_Row02_Col19;
-          } else if (CHAR_COL == 20) {
-            return _Letter_Row02_Col20;
-          } else if (CHAR_COL == 21) {
-            return _Letter_Row02_Col21;
-          } else if (CHAR_COL == 22) {
-            return _Letter_Row02_Col22;
-          } else if (CHAR_COL == 23) {
-            return _Letter_Row02_Col23;
-          } else if (CHAR_COL == 24) {
-            return _Letter_Row02_Col24;
-          } else if (CHAR_COL == 25) {
-            return _Letter_Row02_Col25;
-          } else if (CHAR_COL == 26) {
-            return _Letter_Row02_Col26;
-          } else if (CHAR_COL == 27) {
-            return _Letter_Row02_Col27;
-          } else if (CHAR_COL == 28) {
-            return _Letter_Row02_Col28;
-          } else if (CHAR_COL == 29) {
-            return _Letter_Row02_Col29;
-          } else if (CHAR_COL == 30) {
-            return _Letter_Row02_Col30;
-          } else if (CHAR_COL == 31) {
-            return _Letter_Row02_Col31;
-          } else if (CHAR_COL == 32) {
-            return _Letter_Row02_Col32;
-          } else if (CHAR_COL == 33) {
-            return _Letter_Row02_Col33;
-          } else if (CHAR_COL == 34) {
-            return _Letter_Row02_Col34;
-          } else if (CHAR_COL == 35) {
-            return _Letter_Row02_Col35;
-          } else if (CHAR_COL == 36) {
-            return _Letter_Row02_Col36;
-          } else if (CHAR_COL == 37) {
-            return _Letter_Row02_Col37;
-          } else if (CHAR_COL == 38) {
-            return _Letter_Row02_Col38;
-          } else if (CHAR_COL == 39) {
-            return _Letter_Row02_Col39;
-          } else if (CHAR_COL == 40) {
-            return _Letter_Row02_Col40;
-          } else if (CHAR_COL == 41) {
-            return _Letter_Row02_Col41;
-          } else if (CHAR_COL == 42) {
-            return _Letter_Row02_Col42;
-          } else if (CHAR_COL == 43) {
-            return _Letter_Row02_Col43;
-          }
-        } else if (CHAR_ROW == 0) {
-          if (CHAR_COL == 0) {
-            return _Letter_Row03_Col00;
-          } else if (CHAR_COL == 1) {
-            return _Letter_Row03_Col01;
-          } else if (CHAR_COL == 2) {
-            return _Letter_Row03_Col02;
-          } else if (CHAR_COL == 3) {
-            return _Letter_Row03_Col03;
-          } else if (CHAR_COL == 4) {
-            return _Letter_Row03_Col04;
-          } else if (CHAR_COL == 5) {
-            return _Letter_Row03_Col05;
-          } else if (CHAR_COL == 6) {
-            return _Letter_Row03_Col06;
-          } else if (CHAR_COL == 7) {
-            return _Letter_Row03_Col07;
-          } else if (CHAR_COL == 8) {
-            return _Letter_Row03_Col08;
-          } else if (CHAR_COL == 9) {
-            return _Letter_Row03_Col09;
-          } else if (CHAR_COL == 10) {
-            return _Letter_Row03_Col10;
-          } else if (CHAR_COL == 11) {
-            return _Letter_Row03_Col11;
-          } else if (CHAR_COL == 12) {
-            return _Letter_Row03_Col12;
-          } else if (CHAR_COL == 13) {
-            return _Letter_Row03_Col13;
-          } else if (CHAR_COL == 14) {
-            return _Letter_Row03_Col14;
-          } else if (CHAR_COL == 15) {
-            return _Letter_Row03_Col15;
-          } else if (CHAR_COL == 16) {
-            return _Letter_Row03_Col16;
-          } else if (CHAR_COL == 17) {
-            return _Letter_Row03_Col17;
-          } else if (CHAR_COL == 18) {
-            return _Letter_Row03_Col18;
-          } else if (CHAR_COL == 19) {
-            return _Letter_Row03_Col19;
-          } else if (CHAR_COL == 20) {
-            return _Letter_Row03_Col20;
-          } else if (CHAR_COL == 21) {
-            return _Letter_Row03_Col21;
-          } else if (CHAR_COL == 22) {
-            return _Letter_Row03_Col22;
-          } else if (CHAR_COL == 23) {
-            return _Letter_Row03_Col23;
-          } else if (CHAR_COL == 24) {
-            return _Letter_Row03_Col24;
-          } else if (CHAR_COL == 25) {
-            return _Letter_Row03_Col25;
-          } else if (CHAR_COL == 26) {
-            return _Letter_Row03_Col26;
-          } else if (CHAR_COL == 27) {
-            return _Letter_Row03_Col27;
-          } else if (CHAR_COL == 28) {
-            return _Letter_Row03_Col28;
-          } else if (CHAR_COL == 29) {
-            return _Letter_Row03_Col29;
-          } else if (CHAR_COL == 30) {
-            return _Letter_Row03_Col30;
-          } else if (CHAR_COL == 31) {
-            return _Letter_Row03_Col31;
-          } else if (CHAR_COL == 32) {
-            return _Letter_Row03_Col32;
-          } else if (CHAR_COL == 33) {
-            return _Letter_Row03_Col33;
-          } else if (CHAR_COL == 34) {
-            return _Letter_Row03_Col34;
-          } else if (CHAR_COL == 35) {
-            return _Letter_Row03_Col35;
-          } else if (CHAR_COL == 36) {
-            return _Letter_Row03_Col36;
-          } else if (CHAR_COL == 37) {
-            return _Letter_Row03_Col37;
-          } else if (CHAR_COL == 38) {
-            return _Letter_Row03_Col38;
-          } else if (CHAR_COL == 39) {
-            return _Letter_Row03_Col39;
-          } else if (CHAR_COL == 40) {
-            return _Letter_Row03_Col40;
-          } else if (CHAR_COL == 41) {
-            return _Letter_Row03_Col41;
-          } else if (CHAR_COL == 42) {
-            return _Letter_Row03_Col42;
-          } else if (CHAR_COL == 43) {
-            return _Letter_Row03_Col43;
-          }
+        [forcecase] switch (CHAR_ROW)
+        {
+          case 3:
+            [forcecase] switch (CHAR_COL) {
+              case 0:
+                return _Letter_Row00_Col00;
+              case 1:
+                return _Letter_Row00_Col01;
+              case 2:
+                return _Letter_Row00_Col02;
+              case 3:
+                return _Letter_Row00_Col03;
+              case 4:
+                return _Letter_Row00_Col04;
+              case 5:
+                return _Letter_Row00_Col05;
+              case 6:
+                return _Letter_Row00_Col06;
+              case 7:
+                return _Letter_Row00_Col07;
+              case 8:
+                return _Letter_Row00_Col08;
+              case 9:
+                return _Letter_Row00_Col09;
+              case 10:
+                return _Letter_Row00_Col10;
+              case 11:
+                return _Letter_Row00_Col11;
+              case 12:
+                return _Letter_Row00_Col12;
+              case 13:
+                return _Letter_Row00_Col13;
+              case 14:
+                return _Letter_Row00_Col14;
+              case 15:
+                return _Letter_Row00_Col15;
+              case 16:
+                return _Letter_Row00_Col16;
+              case 17:
+                return _Letter_Row00_Col17;
+              case 18:
+                return _Letter_Row00_Col18;
+              case 19:
+                return _Letter_Row00_Col19;
+              case 20:
+                return _Letter_Row00_Col20;
+              case 21:
+                return _Letter_Row00_Col21;
+              case 22:
+                return _Letter_Row00_Col22;
+              case 23:
+                return _Letter_Row00_Col23;
+              case 24:
+                return _Letter_Row00_Col24;
+              case 25:
+                return _Letter_Row00_Col25;
+              case 26:
+                return _Letter_Row00_Col26;
+              case 27:
+                return _Letter_Row00_Col27;
+              case 28:
+                return _Letter_Row00_Col28;
+              case 29:
+                return _Letter_Row00_Col29;
+              case 30:
+                return _Letter_Row00_Col30;
+              case 31:
+                return _Letter_Row00_Col31;
+              case 32:
+                return _Letter_Row00_Col32;
+              case 33:
+                return _Letter_Row00_Col33;
+              case 34:
+                return _Letter_Row00_Col34;
+              case 35:
+                return _Letter_Row00_Col35;
+              case 36:
+                return _Letter_Row00_Col36;
+              case 37:
+                return _Letter_Row00_Col37;
+              case 38:
+                return _Letter_Row00_Col38;
+              case 39:
+                return _Letter_Row00_Col39;
+              case 40:
+                return _Letter_Row00_Col40;
+              case 41:
+                return _Letter_Row00_Col41;
+              case 42:
+                return _Letter_Row00_Col42;
+              case 43:
+                return _Letter_Row00_Col43;
+              default:
+                return 0;
+            }
+          case 2:
+            [forcecase] switch (CHAR_COL) {
+              case 0:
+                return _Letter_Row01_Col00;
+              case 1:
+                return _Letter_Row01_Col01;
+              case 2:
+                return _Letter_Row01_Col02;
+              case 3:
+                return _Letter_Row01_Col03;
+              case 4:
+                return _Letter_Row01_Col04;
+              case 5:
+                return _Letter_Row01_Col05;
+              case 6:
+                return _Letter_Row01_Col06;
+              case 7:
+                return _Letter_Row01_Col07;
+              case 8:
+                return _Letter_Row01_Col08;
+              case 9:
+                return _Letter_Row01_Col09;
+              case 10:
+                return _Letter_Row01_Col10;
+              case 11:
+                return _Letter_Row01_Col11;
+              case 12:
+                return _Letter_Row01_Col12;
+              case 13:
+                return _Letter_Row01_Col13;
+              case 14:
+                return _Letter_Row01_Col14;
+              case 15:
+                return _Letter_Row01_Col15;
+              case 16:
+                return _Letter_Row01_Col16;
+              case 17:
+                return _Letter_Row01_Col17;
+              case 18:
+                return _Letter_Row01_Col18;
+              case 19:
+                return _Letter_Row01_Col19;
+              case 20:
+                return _Letter_Row01_Col20;
+              case 21:
+                return _Letter_Row01_Col21;
+              case 22:
+                return _Letter_Row01_Col22;
+              case 23:
+                return _Letter_Row01_Col23;
+              case 24:
+                return _Letter_Row01_Col24;
+              case 25:
+                return _Letter_Row01_Col25;
+              case 26:
+                return _Letter_Row01_Col26;
+              case 27:
+                return _Letter_Row01_Col27;
+              case 28:
+                return _Letter_Row01_Col28;
+              case 29:
+                return _Letter_Row01_Col29;
+              case 30:
+                return _Letter_Row01_Col30;
+              case 31:
+                return _Letter_Row01_Col31;
+              case 32:
+                return _Letter_Row01_Col32;
+              case 33:
+                return _Letter_Row01_Col33;
+              case 34:
+                return _Letter_Row01_Col34;
+              case 35:
+                return _Letter_Row01_Col35;
+              case 36:
+                return _Letter_Row01_Col36;
+              case 37:
+                return _Letter_Row01_Col37;
+              case 38:
+                return _Letter_Row01_Col38;
+              case 39:
+                return _Letter_Row01_Col39;
+              case 40:
+                return _Letter_Row01_Col40;
+              case 41:
+                return _Letter_Row01_Col41;
+              case 42:
+                return _Letter_Row01_Col42;
+              case 43:
+                return _Letter_Row01_Col43;
+              default:
+                return 0;
+            }
+          case 1:
+            [forcecase] switch (CHAR_COL) {
+              case 0:
+                return _Letter_Row02_Col00;
+              case 1:
+                return _Letter_Row02_Col01;
+              case 2:
+                return _Letter_Row02_Col02;
+              case 3:
+                return _Letter_Row02_Col03;
+              case 4:
+                return _Letter_Row02_Col04;
+              case 5:
+                return _Letter_Row02_Col05;
+              case 6:
+                return _Letter_Row02_Col06;
+              case 7:
+                return _Letter_Row02_Col07;
+              case 8:
+                return _Letter_Row02_Col08;
+              case 9:
+                return _Letter_Row02_Col09;
+              case 10:
+                return _Letter_Row02_Col10;
+              case 11:
+                return _Letter_Row02_Col11;
+              case 12:
+                return _Letter_Row02_Col12;
+              case 13:
+                return _Letter_Row02_Col13;
+              case 14:
+                return _Letter_Row02_Col14;
+              case 15:
+                return _Letter_Row02_Col15;
+              case 16:
+                return _Letter_Row02_Col16;
+              case 17:
+                return _Letter_Row02_Col17;
+              case 18:
+                return _Letter_Row02_Col18;
+              case 19:
+                return _Letter_Row02_Col19;
+              case 20:
+                return _Letter_Row02_Col20;
+              case 21:
+                return _Letter_Row02_Col21;
+              case 22:
+                return _Letter_Row02_Col22;
+              case 23:
+                return _Letter_Row02_Col23;
+              case 24:
+                return _Letter_Row02_Col24;
+              case 25:
+                return _Letter_Row02_Col25;
+              case 26:
+                return _Letter_Row02_Col26;
+              case 27:
+                return _Letter_Row02_Col27;
+              case 28:
+                return _Letter_Row02_Col28;
+              case 29:
+                return _Letter_Row02_Col29;
+              case 30:
+                return _Letter_Row02_Col30;
+              case 31:
+                return _Letter_Row02_Col31;
+              case 32:
+                return _Letter_Row02_Col32;
+              case 33:
+                return _Letter_Row02_Col33;
+              case 34:
+                return _Letter_Row02_Col34;
+              case 35:
+                return _Letter_Row02_Col35;
+              case 36:
+                return _Letter_Row02_Col36;
+              case 37:
+                return _Letter_Row02_Col37;
+              case 38:
+                return _Letter_Row02_Col38;
+              case 39:
+                return _Letter_Row02_Col39;
+              case 40:
+                return _Letter_Row02_Col40;
+              case 41:
+                return _Letter_Row02_Col41;
+              case 42:
+                return _Letter_Row02_Col42;
+              case 43:
+                return _Letter_Row02_Col43;
+              default:
+                return 0;
+            }
+          case 0:
+            [forcecase] switch (CHAR_COL) {
+              case 0:
+                return _Letter_Row03_Col00;
+              case 1:
+                return _Letter_Row03_Col01;
+              case 2:
+                return _Letter_Row03_Col02;
+              case 3:
+                return _Letter_Row03_Col03;
+              case 4:
+                return _Letter_Row03_Col04;
+              case 5:
+                return _Letter_Row03_Col05;
+              case 6:
+                return _Letter_Row03_Col06;
+              case 7:
+                return _Letter_Row03_Col07;
+              case 8:
+                return _Letter_Row03_Col08;
+              case 9:
+                return _Letter_Row03_Col09;
+              case 10:
+                return _Letter_Row03_Col10;
+              case 11:
+                return _Letter_Row03_Col11;
+              case 12:
+                return _Letter_Row03_Col12;
+              case 13:
+                return _Letter_Row03_Col13;
+              case 14:
+                return _Letter_Row03_Col14;
+              case 15:
+                return _Letter_Row03_Col15;
+              case 16:
+                return _Letter_Row03_Col16;
+              case 17:
+                return _Letter_Row03_Col17;
+              case 18:
+                return _Letter_Row03_Col18;
+              case 19:
+                return _Letter_Row03_Col19;
+              case 20:
+                return _Letter_Row03_Col20;
+              case 21:
+                return _Letter_Row03_Col21;
+              case 22:
+                return _Letter_Row03_Col22;
+              case 23:
+                return _Letter_Row03_Col23;
+              case 24:
+                return _Letter_Row03_Col24;
+              case 25:
+                return _Letter_Row03_Col25;
+              case 26:
+                return _Letter_Row03_Col26;
+              case 27:
+                return _Letter_Row03_Col27;
+              case 28:
+                return _Letter_Row03_Col28;
+              case 29:
+                return _Letter_Row03_Col29;
+              case 30:
+                return _Letter_Row03_Col30;
+              case 31:
+                return _Letter_Row03_Col31;
+              case 32:
+                return _Letter_Row03_Col32;
+              case 33:
+                return _Letter_Row03_Col33;
+              case 34:
+                return _Letter_Row03_Col34;
+              case 35:
+                return _Letter_Row03_Col35;
+              case 36:
+                return _Letter_Row03_Col36;
+              case 37:
+                return _Letter_Row03_Col37;
+              case 38:
+                return _Letter_Row03_Col38;
+              case 39:
+                return _Letter_Row03_Col39;
+              case 40:
+                return _Letter_Row03_Col40;
+              case 41:
+                return _Letter_Row03_Col41;
+              case 42:
+                return _Letter_Row03_Col42;
+              case 43:
+                return _Letter_Row03_Col43;
+              default:
+                return 0;
+            }
         }
 
         return 0;
@@ -818,6 +832,13 @@
       fixed4 frag (v2f i) : SV_Target
       {
         float2 uv = i.uv;
+
+        // Derived from github.com/pema99/shader-knowledge (MIT license).
+        if (unity_CameraProjection[2][0] != 0.0 ||
+            unity_CameraProjection[2][1] != 0.0) {
+          uv.x = 1.0 - uv.x;
+        }
+
         float uv_x_margin = 0.03;
         float uv_y_margin = 0.06;
         uv = AddMarginToUV(uv, uv_x_margin, uv_y_margin);
