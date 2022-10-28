@@ -8,7 +8,7 @@ import typing
 # Find the window where the distance between these two transcriptions is
 # minimized and use it to stitch them together.
 def matchStringList(old_words: typing.List[str],
-        new_words: typing.List[str], window_size = 4) -> str:
+        new_words: typing.List[str], window_size = 6) -> str:
     if old_words == new_words:
         return " ".join(old_words)
     elif len(old_words) >= window_size and len(new_words) >= window_size:

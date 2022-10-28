@@ -317,7 +317,8 @@ if __name__ == "__main__":
     send_audio_thd.daemon = True
     send_audio_thd.start()
 
-    print("Press enter or say 'Clear' to start a new message")
+    print("Press enter or say 'Clear' to start a new message. Say 'Over' to " +
+            "pause the display (saying 'Clear' resets it again).")
     for line in sys.stdin:
         resetAudio(audio_state)
         if "exit" in line or "quit" in line:
