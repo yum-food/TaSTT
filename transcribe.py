@@ -47,17 +47,18 @@ class AudioState:
     # transcriptions before "committing" to a transcription.
     text_candidate = ""
     text_lock = threading.Lock()
-    clear_requested = False
 
     record_audio = True
     transcribe_audio = True
     send_audio = True
-    run_control_thread = True
 
     transcribe_sleep_duration_min_s = 0.05
     transcribe_sleep_duration_max_s = 1.50
     transcribe_no_change_count = 0
     transcribe_sleep_duration = transcribe_sleep_duration_min_s
+    # When the user says `over`, we stop displaying new transcriptions until
+    # they clear the board again.
+    display_paused = False
 
     osc_client = osc_ctrl.getClient()
 
@@ -140,6 +141,10 @@ def saveAudio(audio_state, filename):
     normalized.export(filename, format="wav")
 
 def resetDiskAudioLocked(audio_state, filename):
+    if os.path.isfile(audio_state.VOICE_AUDIO_FILENAME):
+        # empty out the voice file
+        open(audio_state.VOICE_AUDIO_FILENAME, "w").close()
+
     wf = wave.open(filename, 'wb')
     wf.setnchannels(audio_state.CHANNELS)
     wf.setsampwidth(audio_state.p.get_sample_size(audio_state.FORMAT))
@@ -153,6 +158,8 @@ def resetAudioLocked(audio_state):
     audio_state.transcribe_no_change_count = 0
     audio_state.transcribe_sleep_duration = \
             audio_state.transcribe_sleep_duration_min_s
+
+    resetDiskAudioLocked(audio_state, audio_state.VOICE_AUDIO_FILENAME)
 
 def resetAudio(audio_state):
     audio_state.frames_lock.acquire()
@@ -206,21 +213,20 @@ def transcribeAudio(audio_state, model):
 
         audio_state.text_lock.acquire()
 
-        if audio_state.clear_requested:
-            audio_state.text = ""
-            audio_state.text_candidate = ""
-            audio_state.clear_requested = False
-            audio_state.text_lock.release()
-            continue
-
         words = ''.join(c for c in text.lower() if (c.isalpha() or c == " ")).split()
-        #print("words: {}".format(words))
-        if len(words) > 0 and words[-1] == "clear":
-            audio_state.text = ""
-            audio_state.text_candidate = ""
-            audio_state.clear_requested = True
-            audio_state.text_lock.release()
-            continue
+
+        if len(words) > 0:
+            if words[-1] == "clear":
+                resetAudio(audio_state)
+                osc_ctrl.clear(audio_state.osc_client)
+                audio_state.text = ""
+                audio_state.text_candidate = ""
+                audio_state.text_lock.release()
+                audio_state.display_paused = False
+                continue
+            elif words[-1] == "over":
+                words = words[0:-1]
+                audio_state.display_paused = True
 
         # We use a few heuristics to handle spurious mistranscriptions and to
         # handle events where we trim off the start of the audio clip.
@@ -266,7 +272,12 @@ def transcribeAudio(audio_state, model):
 
 def sendAudio(audio_state):
     tx_state = osc_ctrl.OscTxState()
+
     while audio_state.send_audio == True:
+        if audio_state.display_paused:
+            time.sleep(0.1)
+            continue
+
         audio_state.text_lock.acquire()
         text = copy.deepcopy(audio_state.text)
         audio_state.text_lock.release()
@@ -275,34 +286,6 @@ def sendAudio(audio_state):
 
         # Pace this out
         time.sleep(0.01)
-
-def controlThread(audio_state):
-    while audio_state.run_control_thread:
-        time.sleep(0.1)
-        if audio_state.clear_requested:
-            print("here a")
-            audio_state.text_lock.acquire()
-            audio_state.frames_lock.acquire()
-
-            if os.path.isfile(audio_state.VOICE_AUDIO_FILENAME):
-                # empty out the voice file
-                open(audio_state.VOICE_AUDIO_FILENAME, "w").close()
-            resetAudioLocked(audio_state)
-            resetDiskAudioLocked(audio_state, audio_state.VOICE_AUDIO_FILENAME)
-            audio_state.clear_requested = False
-
-            # Allow audio collection to resume now. If we don't do this, then
-            # any audio spoken while the board is slowly clearing will be lost.
-            audio_state.frames_lock.release()
-
-            # Clearing can take a while, and the user might be talking in the
-            # meantime. So we drop audio state before clearing so the other
-            # threads can continue saving to it.
-            osc_ctrl.clear(audio_state.osc_client)
-
-            audio_state.text_lock.release()
-
-            print("here b")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -334,10 +317,6 @@ if __name__ == "__main__":
     send_audio_thd.daemon = True
     send_audio_thd.start()
 
-    control_thd = threading.Thread(target = controlThread, args = [audio_state])
-    control_thd.daemon = True
-    control_thd.start()
-
     print("Press enter or say 'Clear' to start a new message")
     for line in sys.stdin:
         resetAudio(audio_state)
@@ -347,8 +326,6 @@ if __name__ == "__main__":
     print("Joining threads")
     audio_state.record_audio = False
     audio_state.transcribe_audio = False
-    audio_state.run_control_thread = False
     record_audio_thd.join()
     transcribe_audio_thd.join()
-    control_thd.join()
 

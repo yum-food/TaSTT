@@ -331,6 +331,8 @@ def sendRawMessage(client, msg):
         sendMessageCellDiscrete(client, cell_msg, cell)
 
 def clear(client):
+    disable(client)
+
     addr="/avatar/parameters/" + generate_utils.getClearBoardParam()
     client.send_message(addr, True)
 
