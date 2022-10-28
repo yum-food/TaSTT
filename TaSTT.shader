@@ -26,6 +26,28 @@
     _Letter_Row00_Col19("_Letter_Row00_Col19", float) = 64
     _Letter_Row00_Col20("_Letter_Row00_Col20", float) = 64
     _Letter_Row00_Col21("_Letter_Row00_Col21", float) = 64
+    _Letter_Row00_Col22("_Letter_Row00_Col22", float) = 64
+    _Letter_Row00_Col23("_Letter_Row00_Col23", float) = 64
+    _Letter_Row00_Col24("_Letter_Row00_Col24", float) = 64
+    _Letter_Row00_Col25("_Letter_Row00_Col25", float) = 64
+    _Letter_Row00_Col26("_Letter_Row00_Col26", float) = 64
+    _Letter_Row00_Col27("_Letter_Row00_Col27", float) = 64
+    _Letter_Row00_Col28("_Letter_Row00_Col28", float) = 64
+    _Letter_Row00_Col29("_Letter_Row00_Col29", float) = 64
+    _Letter_Row00_Col30("_Letter_Row00_Col30", float) = 64
+    _Letter_Row00_Col31("_Letter_Row00_Col31", float) = 64
+    _Letter_Row00_Col32("_Letter_Row00_Col32", float) = 64
+    _Letter_Row00_Col33("_Letter_Row00_Col33", float) = 64
+    _Letter_Row00_Col34("_Letter_Row00_Col34", float) = 64
+    _Letter_Row00_Col35("_Letter_Row00_Col35", float) = 64
+    _Letter_Row00_Col36("_Letter_Row00_Col36", float) = 64
+    _Letter_Row00_Col37("_Letter_Row00_Col37", float) = 64
+    _Letter_Row00_Col38("_Letter_Row00_Col38", float) = 64
+    _Letter_Row00_Col39("_Letter_Row00_Col39", float) = 64
+    _Letter_Row00_Col40("_Letter_Row00_Col40", float) = 64
+    _Letter_Row00_Col41("_Letter_Row00_Col41", float) = 64
+    _Letter_Row00_Col42("_Letter_Row00_Col42", float) = 64
+    _Letter_Row00_Col43("_Letter_Row00_Col43", float) = 64
     _Letter_Row01_Col00("_Letter_Row01_Col00", float) = 64
     _Letter_Row01_Col01("_Letter_Row01_Col01", float) = 64
     _Letter_Row01_Col02("_Letter_Row01_Col02", float) = 64
@@ -48,6 +70,28 @@
     _Letter_Row01_Col19("_Letter_Row01_Col19", float) = 64
     _Letter_Row01_Col20("_Letter_Row01_Col20", float) = 64
     _Letter_Row01_Col21("_Letter_Row01_Col21", float) = 64
+    _Letter_Row01_Col22("_Letter_Row01_Col22", float) = 64
+    _Letter_Row01_Col23("_Letter_Row01_Col23", float) = 64
+    _Letter_Row01_Col24("_Letter_Row01_Col24", float) = 64
+    _Letter_Row01_Col25("_Letter_Row01_Col25", float) = 64
+    _Letter_Row01_Col26("_Letter_Row01_Col26", float) = 64
+    _Letter_Row01_Col27("_Letter_Row01_Col27", float) = 64
+    _Letter_Row01_Col28("_Letter_Row01_Col28", float) = 64
+    _Letter_Row01_Col29("_Letter_Row01_Col29", float) = 64
+    _Letter_Row01_Col30("_Letter_Row01_Col30", float) = 64
+    _Letter_Row01_Col31("_Letter_Row01_Col31", float) = 64
+    _Letter_Row01_Col32("_Letter_Row01_Col32", float) = 64
+    _Letter_Row01_Col33("_Letter_Row01_Col33", float) = 64
+    _Letter_Row01_Col34("_Letter_Row01_Col34", float) = 64
+    _Letter_Row01_Col35("_Letter_Row01_Col35", float) = 64
+    _Letter_Row01_Col36("_Letter_Row01_Col36", float) = 64
+    _Letter_Row01_Col37("_Letter_Row01_Col37", float) = 64
+    _Letter_Row01_Col38("_Letter_Row01_Col38", float) = 64
+    _Letter_Row01_Col39("_Letter_Row01_Col39", float) = 64
+    _Letter_Row01_Col40("_Letter_Row01_Col40", float) = 64
+    _Letter_Row01_Col41("_Letter_Row01_Col41", float) = 64
+    _Letter_Row01_Col42("_Letter_Row01_Col42", float) = 64
+    _Letter_Row01_Col43("_Letter_Row01_Col43", float) = 64
     _Letter_Row02_Col00("_Letter_Row02_Col00", float) = 64
     _Letter_Row02_Col01("_Letter_Row02_Col01", float) = 64
     _Letter_Row02_Col02("_Letter_Row02_Col02", float) = 64
@@ -70,6 +114,28 @@
     _Letter_Row02_Col19("_Letter_Row02_Col19", float) = 64
     _Letter_Row02_Col20("_Letter_Row02_Col20", float) = 64
     _Letter_Row02_Col21("_Letter_Row02_Col21", float) = 64
+    _Letter_Row02_Col22("_Letter_Row02_Col22", float) = 64
+    _Letter_Row02_Col23("_Letter_Row02_Col23", float) = 64
+    _Letter_Row02_Col24("_Letter_Row02_Col24", float) = 64
+    _Letter_Row02_Col25("_Letter_Row02_Col25", float) = 64
+    _Letter_Row02_Col26("_Letter_Row02_Col26", float) = 64
+    _Letter_Row02_Col27("_Letter_Row02_Col27", float) = 64
+    _Letter_Row02_Col28("_Letter_Row02_Col28", float) = 64
+    _Letter_Row02_Col29("_Letter_Row02_Col29", float) = 64
+    _Letter_Row02_Col30("_Letter_Row02_Col30", float) = 64
+    _Letter_Row02_Col31("_Letter_Row02_Col31", float) = 64
+    _Letter_Row02_Col32("_Letter_Row02_Col32", float) = 64
+    _Letter_Row02_Col33("_Letter_Row02_Col33", float) = 64
+    _Letter_Row02_Col34("_Letter_Row02_Col34", float) = 64
+    _Letter_Row02_Col35("_Letter_Row02_Col35", float) = 64
+    _Letter_Row02_Col36("_Letter_Row02_Col36", float) = 64
+    _Letter_Row02_Col37("_Letter_Row02_Col37", float) = 64
+    _Letter_Row02_Col38("_Letter_Row02_Col38", float) = 64
+    _Letter_Row02_Col39("_Letter_Row02_Col39", float) = 64
+    _Letter_Row02_Col40("_Letter_Row02_Col40", float) = 64
+    _Letter_Row02_Col41("_Letter_Row02_Col41", float) = 64
+    _Letter_Row02_Col42("_Letter_Row02_Col42", float) = 64
+    _Letter_Row02_Col43("_Letter_Row02_Col43", float) = 64
     _Letter_Row03_Col00("_Letter_Row03_Col00", float) = 64
     _Letter_Row03_Col01("_Letter_Row03_Col01", float) = 64
     _Letter_Row03_Col02("_Letter_Row03_Col02", float) = 64
@@ -92,96 +158,28 @@
     _Letter_Row03_Col19("_Letter_Row03_Col19", float) = 64
     _Letter_Row03_Col20("_Letter_Row03_Col20", float) = 64
     _Letter_Row03_Col21("_Letter_Row03_Col21", float) = 64
-    _Letter_Row04_Col00("_Letter_Row04_Col00", float) = 64
-    _Letter_Row04_Col01("_Letter_Row04_Col01", float) = 64
-    _Letter_Row04_Col02("_Letter_Row04_Col02", float) = 64
-    _Letter_Row04_Col03("_Letter_Row04_Col03", float) = 64
-    _Letter_Row04_Col04("_Letter_Row04_Col04", float) = 64
-    _Letter_Row04_Col05("_Letter_Row04_Col05", float) = 64
-    _Letter_Row04_Col06("_Letter_Row04_Col06", float) = 64
-    _Letter_Row04_Col07("_Letter_Row04_Col07", float) = 64
-    _Letter_Row04_Col08("_Letter_Row04_Col08", float) = 64
-    _Letter_Row04_Col09("_Letter_Row04_Col09", float) = 64
-    _Letter_Row04_Col10("_Letter_Row04_Col10", float) = 64
-    _Letter_Row04_Col11("_Letter_Row04_Col11", float) = 64
-    _Letter_Row04_Col12("_Letter_Row04_Col12", float) = 64
-    _Letter_Row04_Col13("_Letter_Row04_Col13", float) = 64
-    _Letter_Row04_Col14("_Letter_Row04_Col14", float) = 64
-    _Letter_Row04_Col15("_Letter_Row04_Col15", float) = 64
-    _Letter_Row04_Col16("_Letter_Row04_Col16", float) = 64
-    _Letter_Row04_Col17("_Letter_Row04_Col17", float) = 64
-    _Letter_Row04_Col18("_Letter_Row04_Col18", float) = 64
-    _Letter_Row04_Col19("_Letter_Row04_Col19", float) = 64
-    _Letter_Row04_Col20("_Letter_Row04_Col20", float) = 64
-    _Letter_Row04_Col21("_Letter_Row04_Col21", float) = 64
-    _Letter_Row05_Col00("_Letter_Row05_Col00", float) = 64
-    _Letter_Row05_Col01("_Letter_Row05_Col01", float) = 64
-    _Letter_Row05_Col02("_Letter_Row05_Col02", float) = 64
-    _Letter_Row05_Col03("_Letter_Row05_Col03", float) = 64
-    _Letter_Row05_Col04("_Letter_Row05_Col04", float) = 64
-    _Letter_Row05_Col05("_Letter_Row05_Col05", float) = 64
-    _Letter_Row05_Col06("_Letter_Row05_Col06", float) = 64
-    _Letter_Row05_Col07("_Letter_Row05_Col07", float) = 64
-    _Letter_Row05_Col08("_Letter_Row05_Col08", float) = 64
-    _Letter_Row05_Col09("_Letter_Row05_Col09", float) = 64
-    _Letter_Row05_Col10("_Letter_Row05_Col10", float) = 64
-    _Letter_Row05_Col11("_Letter_Row05_Col11", float) = 64
-    _Letter_Row05_Col12("_Letter_Row05_Col12", float) = 64
-    _Letter_Row05_Col13("_Letter_Row05_Col13", float) = 64
-    _Letter_Row05_Col14("_Letter_Row05_Col14", float) = 64
-    _Letter_Row05_Col15("_Letter_Row05_Col15", float) = 64
-    _Letter_Row05_Col16("_Letter_Row05_Col16", float) = 64
-    _Letter_Row05_Col17("_Letter_Row05_Col17", float) = 64
-    _Letter_Row05_Col18("_Letter_Row05_Col18", float) = 64
-    _Letter_Row05_Col19("_Letter_Row05_Col19", float) = 64
-    _Letter_Row05_Col20("_Letter_Row05_Col20", float) = 64
-    _Letter_Row05_Col21("_Letter_Row05_Col21", float) = 64
-    _Letter_Row06_Col00("_Letter_Row06_Col00", float) = 64
-    _Letter_Row06_Col01("_Letter_Row06_Col01", float) = 64
-    _Letter_Row06_Col02("_Letter_Row06_Col02", float) = 64
-    _Letter_Row06_Col03("_Letter_Row06_Col03", float) = 64
-    _Letter_Row06_Col04("_Letter_Row06_Col04", float) = 64
-    _Letter_Row06_Col05("_Letter_Row06_Col05", float) = 64
-    _Letter_Row06_Col06("_Letter_Row06_Col06", float) = 64
-    _Letter_Row06_Col07("_Letter_Row06_Col07", float) = 64
-    _Letter_Row06_Col08("_Letter_Row06_Col08", float) = 64
-    _Letter_Row06_Col09("_Letter_Row06_Col09", float) = 64
-    _Letter_Row06_Col10("_Letter_Row06_Col10", float) = 64
-    _Letter_Row06_Col11("_Letter_Row06_Col11", float) = 64
-    _Letter_Row06_Col12("_Letter_Row06_Col12", float) = 64
-    _Letter_Row06_Col13("_Letter_Row06_Col13", float) = 64
-    _Letter_Row06_Col14("_Letter_Row06_Col14", float) = 64
-    _Letter_Row06_Col15("_Letter_Row06_Col15", float) = 64
-    _Letter_Row06_Col16("_Letter_Row06_Col16", float) = 64
-    _Letter_Row06_Col17("_Letter_Row06_Col17", float) = 64
-    _Letter_Row06_Col18("_Letter_Row06_Col18", float) = 64
-    _Letter_Row06_Col19("_Letter_Row06_Col19", float) = 64
-    _Letter_Row06_Col20("_Letter_Row06_Col20", float) = 64
-    _Letter_Row06_Col21("_Letter_Row06_Col21", float) = 64
-    _Letter_Row07_Col00("_Letter_Row07_Col00", float) = 64
-    _Letter_Row07_Col01("_Letter_Row07_Col01", float) = 64
-    _Letter_Row07_Col02("_Letter_Row07_Col02", float) = 64
-    _Letter_Row07_Col03("_Letter_Row07_Col03", float) = 64
-    _Letter_Row07_Col04("_Letter_Row07_Col04", float) = 64
-    _Letter_Row07_Col05("_Letter_Row07_Col05", float) = 64
-    _Letter_Row07_Col06("_Letter_Row07_Col06", float) = 64
-    _Letter_Row07_Col07("_Letter_Row07_Col07", float) = 64
-    _Letter_Row07_Col08("_Letter_Row07_Col08", float) = 64
-    _Letter_Row07_Col09("_Letter_Row07_Col09", float) = 64
-    _Letter_Row07_Col10("_Letter_Row07_Col10", float) = 64
-    _Letter_Row07_Col11("_Letter_Row07_Col11", float) = 64
-    _Letter_Row07_Col12("_Letter_Row07_Col12", float) = 64
-    _Letter_Row07_Col13("_Letter_Row07_Col13", float) = 64
-    _Letter_Row07_Col14("_Letter_Row07_Col14", float) = 64
-    _Letter_Row07_Col15("_Letter_Row07_Col15", float) = 64
-    _Letter_Row07_Col16("_Letter_Row07_Col16", float) = 64
-    _Letter_Row07_Col17("_Letter_Row07_Col17", float) = 64
-    _Letter_Row07_Col18("_Letter_Row07_Col18", float) = 64
-    _Letter_Row07_Col19("_Letter_Row07_Col19", float) = 64
-    _Letter_Row07_Col20("_Letter_Row07_Col20", float) = 64
-    _Letter_Row07_Col21("_Letter_Row07_Col21", float) = 64
-    // This does nothing, it's just used by the 'Do Nothing' animation.
-    _Dummy("_Dummy", int) = 0
+    _Letter_Row03_Col22("_Letter_Row03_Col22", float) = 64
+    _Letter_Row03_Col23("_Letter_Row03_Col23", float) = 64
+    _Letter_Row03_Col24("_Letter_Row03_Col24", float) = 64
+    _Letter_Row03_Col25("_Letter_Row03_Col25", float) = 64
+    _Letter_Row03_Col26("_Letter_Row03_Col26", float) = 64
+    _Letter_Row03_Col27("_Letter_Row03_Col27", float) = 64
+    _Letter_Row03_Col28("_Letter_Row03_Col28", float) = 64
+    _Letter_Row03_Col29("_Letter_Row03_Col29", float) = 64
+    _Letter_Row03_Col30("_Letter_Row03_Col30", float) = 64
+    _Letter_Row03_Col31("_Letter_Row03_Col31", float) = 64
+    _Letter_Row03_Col32("_Letter_Row03_Col32", float) = 64
+    _Letter_Row03_Col33("_Letter_Row03_Col33", float) = 64
+    _Letter_Row03_Col34("_Letter_Row03_Col34", float) = 64
+    _Letter_Row03_Col35("_Letter_Row03_Col35", float) = 64
+    _Letter_Row03_Col36("_Letter_Row03_Col36", float) = 64
+    _Letter_Row03_Col37("_Letter_Row03_Col37", float) = 64
+    _Letter_Row03_Col38("_Letter_Row03_Col38", float) = 64
+    _Letter_Row03_Col39("_Letter_Row03_Col39", float) = 64
+    _Letter_Row03_Col40("_Letter_Row03_Col40", float) = 64
+    _Letter_Row03_Col41("_Letter_Row03_Col41", float) = 64
+    _Letter_Row03_Col42("_Letter_Row03_Col42", float) = 64
+    _Letter_Row03_Col43("_Letter_Row03_Col43", float) = 64
   }
   SubShader
   {
@@ -238,6 +236,28 @@
       float _Letter_Row00_Col19;
       float _Letter_Row00_Col20;
       float _Letter_Row00_Col21;
+      float _Letter_Row00_Col22;
+      float _Letter_Row00_Col23;
+      float _Letter_Row00_Col24;
+      float _Letter_Row00_Col25;
+      float _Letter_Row00_Col26;
+      float _Letter_Row00_Col27;
+      float _Letter_Row00_Col28;
+      float _Letter_Row00_Col29;
+      float _Letter_Row00_Col30;
+      float _Letter_Row00_Col31;
+      float _Letter_Row00_Col32;
+      float _Letter_Row00_Col33;
+      float _Letter_Row00_Col34;
+      float _Letter_Row00_Col35;
+      float _Letter_Row00_Col36;
+      float _Letter_Row00_Col37;
+      float _Letter_Row00_Col38;
+      float _Letter_Row00_Col39;
+      float _Letter_Row00_Col40;
+      float _Letter_Row00_Col41;
+      float _Letter_Row00_Col42;
+      float _Letter_Row00_Col43;
       float _Letter_Row01_Col00;
       float _Letter_Row01_Col01;
       float _Letter_Row01_Col02;
@@ -260,6 +280,28 @@
       float _Letter_Row01_Col19;
       float _Letter_Row01_Col20;
       float _Letter_Row01_Col21;
+      float _Letter_Row01_Col22;
+      float _Letter_Row01_Col23;
+      float _Letter_Row01_Col24;
+      float _Letter_Row01_Col25;
+      float _Letter_Row01_Col26;
+      float _Letter_Row01_Col27;
+      float _Letter_Row01_Col28;
+      float _Letter_Row01_Col29;
+      float _Letter_Row01_Col30;
+      float _Letter_Row01_Col31;
+      float _Letter_Row01_Col32;
+      float _Letter_Row01_Col33;
+      float _Letter_Row01_Col34;
+      float _Letter_Row01_Col35;
+      float _Letter_Row01_Col36;
+      float _Letter_Row01_Col37;
+      float _Letter_Row01_Col38;
+      float _Letter_Row01_Col39;
+      float _Letter_Row01_Col40;
+      float _Letter_Row01_Col41;
+      float _Letter_Row01_Col42;
+      float _Letter_Row01_Col43;
       float _Letter_Row02_Col00;
       float _Letter_Row02_Col01;
       float _Letter_Row02_Col02;
@@ -282,6 +324,28 @@
       float _Letter_Row02_Col19;
       float _Letter_Row02_Col20;
       float _Letter_Row02_Col21;
+      float _Letter_Row02_Col22;
+      float _Letter_Row02_Col23;
+      float _Letter_Row02_Col24;
+      float _Letter_Row02_Col25;
+      float _Letter_Row02_Col26;
+      float _Letter_Row02_Col27;
+      float _Letter_Row02_Col28;
+      float _Letter_Row02_Col29;
+      float _Letter_Row02_Col30;
+      float _Letter_Row02_Col31;
+      float _Letter_Row02_Col32;
+      float _Letter_Row02_Col33;
+      float _Letter_Row02_Col34;
+      float _Letter_Row02_Col35;
+      float _Letter_Row02_Col36;
+      float _Letter_Row02_Col37;
+      float _Letter_Row02_Col38;
+      float _Letter_Row02_Col39;
+      float _Letter_Row02_Col40;
+      float _Letter_Row02_Col41;
+      float _Letter_Row02_Col42;
+      float _Letter_Row02_Col43;
       float _Letter_Row03_Col00;
       float _Letter_Row03_Col01;
       float _Letter_Row03_Col02;
@@ -304,94 +368,28 @@
       float _Letter_Row03_Col19;
       float _Letter_Row03_Col20;
       float _Letter_Row03_Col21;
-      float _Letter_Row04_Col00;
-      float _Letter_Row04_Col01;
-      float _Letter_Row04_Col02;
-      float _Letter_Row04_Col03;
-      float _Letter_Row04_Col04;
-      float _Letter_Row04_Col05;
-      float _Letter_Row04_Col06;
-      float _Letter_Row04_Col07;
-      float _Letter_Row04_Col08;
-      float _Letter_Row04_Col09;
-      float _Letter_Row04_Col10;
-      float _Letter_Row04_Col11;
-      float _Letter_Row04_Col12;
-      float _Letter_Row04_Col13;
-      float _Letter_Row04_Col14;
-      float _Letter_Row04_Col15;
-      float _Letter_Row04_Col16;
-      float _Letter_Row04_Col17;
-      float _Letter_Row04_Col18;
-      float _Letter_Row04_Col19;
-      float _Letter_Row04_Col20;
-      float _Letter_Row04_Col21;
-      float _Letter_Row05_Col00;
-      float _Letter_Row05_Col01;
-      float _Letter_Row05_Col02;
-      float _Letter_Row05_Col03;
-      float _Letter_Row05_Col04;
-      float _Letter_Row05_Col05;
-      float _Letter_Row05_Col06;
-      float _Letter_Row05_Col07;
-      float _Letter_Row05_Col08;
-      float _Letter_Row05_Col09;
-      float _Letter_Row05_Col10;
-      float _Letter_Row05_Col11;
-      float _Letter_Row05_Col12;
-      float _Letter_Row05_Col13;
-      float _Letter_Row05_Col14;
-      float _Letter_Row05_Col15;
-      float _Letter_Row05_Col16;
-      float _Letter_Row05_Col17;
-      float _Letter_Row05_Col18;
-      float _Letter_Row05_Col19;
-      float _Letter_Row05_Col20;
-      float _Letter_Row05_Col21;
-      float _Letter_Row06_Col00;
-      float _Letter_Row06_Col01;
-      float _Letter_Row06_Col02;
-      float _Letter_Row06_Col03;
-      float _Letter_Row06_Col04;
-      float _Letter_Row06_Col05;
-      float _Letter_Row06_Col06;
-      float _Letter_Row06_Col07;
-      float _Letter_Row06_Col08;
-      float _Letter_Row06_Col09;
-      float _Letter_Row06_Col10;
-      float _Letter_Row06_Col11;
-      float _Letter_Row06_Col12;
-      float _Letter_Row06_Col13;
-      float _Letter_Row06_Col14;
-      float _Letter_Row06_Col15;
-      float _Letter_Row06_Col16;
-      float _Letter_Row06_Col17;
-      float _Letter_Row06_Col18;
-      float _Letter_Row06_Col19;
-      float _Letter_Row06_Col20;
-      float _Letter_Row06_Col21;
-      float _Letter_Row07_Col00;
-      float _Letter_Row07_Col01;
-      float _Letter_Row07_Col02;
-      float _Letter_Row07_Col03;
-      float _Letter_Row07_Col04;
-      float _Letter_Row07_Col05;
-      float _Letter_Row07_Col06;
-      float _Letter_Row07_Col07;
-      float _Letter_Row07_Col08;
-      float _Letter_Row07_Col09;
-      float _Letter_Row07_Col10;
-      float _Letter_Row07_Col11;
-      float _Letter_Row07_Col12;
-      float _Letter_Row07_Col13;
-      float _Letter_Row07_Col14;
-      float _Letter_Row07_Col15;
-      float _Letter_Row07_Col16;
-      float _Letter_Row07_Col17;
-      float _Letter_Row07_Col18;
-      float _Letter_Row07_Col19;
-      float _Letter_Row07_Col20;
-      float _Letter_Row07_Col21;
+      float _Letter_Row03_Col22;
+      float _Letter_Row03_Col23;
+      float _Letter_Row03_Col24;
+      float _Letter_Row03_Col25;
+      float _Letter_Row03_Col26;
+      float _Letter_Row03_Col27;
+      float _Letter_Row03_Col28;
+      float _Letter_Row03_Col29;
+      float _Letter_Row03_Col30;
+      float _Letter_Row03_Col31;
+      float _Letter_Row03_Col32;
+      float _Letter_Row03_Col33;
+      float _Letter_Row03_Col34;
+      float _Letter_Row03_Col35;
+      float _Letter_Row03_Col36;
+      float _Letter_Row03_Col37;
+      float _Letter_Row03_Col38;
+      float _Letter_Row03_Col39;
+      float _Letter_Row03_Col40;
+      float _Letter_Row03_Col41;
+      float _Letter_Row03_Col42;
+      float _Letter_Row03_Col43;
 
       v2f vert (appdata v)
       {
@@ -401,9 +399,17 @@
         return o;
       }
 
+      float2 AddMarginToUV(float2 uv, float x_frac, float y_frac)
+      {
+        float2 lo = float2(-x_frac / 2, -y_frac / 2);
+        float2 hi = float2(1.0 + x_frac / 2, 1.0 + y_frac / 2);
+
+        return clamp(lerp(lo, hi, uv), 0.0, 1.0);
+      }
+
       // Write the nth letter in the current cell and return the value of the
       // pixel.
-      float2 GetLetter(v2f i, int nth_letter)
+      float2 GetLetter(float2 uv, int nth_letter)
       {
         // UV spans from [0,1] to [0,1].
         // 'U' is horizontal; cols.
@@ -411,41 +417,40 @@
         //
         // I want to divide the mesh into an m x n grid.
         // I want to know what grid cell I'm in. This is simply u * m, v * n.
-        int CHAR_ROWS = 8;
-        int CHAR_COLS = 22;
+        int CHAR_ROWS = 4;
+        int CHAR_COLS = 44;
 
         // OK, I know what cell I'm in. Now I need to know how far across it I
         // am. Produce a float in the range [0, CHAR_COLS).
-        float CHAR_FRAC_COL = i.uv.x * CHAR_COLS - floor(i.uv.x * CHAR_COLS);
-        float CHAR_FRAC_ROW = i.uv.y * CHAR_ROWS - floor(i.uv.y * CHAR_ROWS);
+        float CHAR_FRAC_COL = uv.x * CHAR_COLS - floor(uv.x * CHAR_COLS);
+        float CHAR_FRAC_ROW = uv.y * CHAR_ROWS - floor(uv.y * CHAR_ROWS);
 
         // This is the number of rows and columns in the actual texture.
         float LETTER_COLS = 26.6;
-        float LETTER_ROWS = 11.4;
+        float LETTER_ROWS = 11.7;
 
         float LETTER_COL = fmod(nth_letter, floor(LETTER_COLS));
         float LETTER_ROW = floor(LETTER_ROWS) - floor(nth_letter / floor(LETTER_COLS));
 
-        float LETTER_UV_ROW = (LETTER_ROW + CHAR_FRAC_ROW - 0.6) / LETTER_ROWS;
+        float LETTER_UV_ROW = (LETTER_ROW + CHAR_FRAC_ROW - 0.35) / LETTER_ROWS;
         float LETTER_UV_COL = (LETTER_COL + CHAR_FRAC_COL) / LETTER_COLS;
 
-        float2 uv;
-        uv.x = LETTER_UV_COL;
-        uv.y = LETTER_UV_ROW;
+        float2 result;
+        result.x = LETTER_UV_COL;
+        result.y = LETTER_UV_ROW;
 
-        return uv;
+        return result;
       }
 
       // Get the value of the parameter for the cell we're in.
-      float GetLetterParameter(v2f i)
+      float GetLetterParameter(float2 uv)
       {
-        float CHAR_ROWS = 8.0;
-        float CHAR_COLS = 22.0;
-        float CHAR_COL = floor(i.uv.x * CHAR_COLS);
-        float CHAR_ROW = floor(i.uv.y * CHAR_ROWS);
+        float CHAR_ROWS = 4.0;
+        float CHAR_COLS = 44.0;
+        float CHAR_COL = floor(uv.x * CHAR_COLS);
+        float CHAR_ROW = floor(uv.y * CHAR_ROWS);
 
-        // ok now this is epic
-        if (CHAR_ROW == 7) {
+        if (CHAR_ROW == 3) {
           if (CHAR_COL == 0) {
             return _Letter_Row00_Col00;
           } else if (CHAR_COL == 1) {
@@ -490,8 +495,52 @@
             return _Letter_Row00_Col20;
           } else if (CHAR_COL == 21) {
             return _Letter_Row00_Col21;
+          } else if (CHAR_COL == 22) {
+            return _Letter_Row00_Col22;
+          } else if (CHAR_COL == 23) {
+            return _Letter_Row00_Col23;
+          } else if (CHAR_COL == 24) {
+            return _Letter_Row00_Col24;
+          } else if (CHAR_COL == 25) {
+            return _Letter_Row00_Col25;
+          } else if (CHAR_COL == 26) {
+            return _Letter_Row00_Col26;
+          } else if (CHAR_COL == 27) {
+            return _Letter_Row00_Col27;
+          } else if (CHAR_COL == 28) {
+            return _Letter_Row00_Col28;
+          } else if (CHAR_COL == 29) {
+            return _Letter_Row00_Col29;
+          } else if (CHAR_COL == 30) {
+            return _Letter_Row00_Col30;
+          } else if (CHAR_COL == 31) {
+            return _Letter_Row00_Col31;
+          } else if (CHAR_COL == 32) {
+            return _Letter_Row00_Col32;
+          } else if (CHAR_COL == 33) {
+            return _Letter_Row00_Col33;
+          } else if (CHAR_COL == 34) {
+            return _Letter_Row00_Col34;
+          } else if (CHAR_COL == 35) {
+            return _Letter_Row00_Col35;
+          } else if (CHAR_COL == 36) {
+            return _Letter_Row00_Col36;
+          } else if (CHAR_COL == 37) {
+            return _Letter_Row00_Col37;
+          } else if (CHAR_COL == 38) {
+            return _Letter_Row00_Col38;
+          } else if (CHAR_COL == 39) {
+            return _Letter_Row00_Col39;
+          } else if (CHAR_COL == 40) {
+            return _Letter_Row00_Col40;
+          } else if (CHAR_COL == 41) {
+            return _Letter_Row00_Col41;
+          } else if (CHAR_COL == 42) {
+            return _Letter_Row00_Col42;
+          } else if (CHAR_COL == 43) {
+            return _Letter_Row00_Col43;
           }
-        } else if (CHAR_ROW == 6) {
+        } else if (CHAR_ROW == 2) {
           if (CHAR_COL == 0) {
             return _Letter_Row01_Col00;
           } else if (CHAR_COL == 1) {
@@ -536,8 +585,52 @@
             return _Letter_Row01_Col20;
           } else if (CHAR_COL == 21) {
             return _Letter_Row01_Col21;
+          } else if (CHAR_COL == 22) {
+            return _Letter_Row01_Col22;
+          } else if (CHAR_COL == 23) {
+            return _Letter_Row01_Col23;
+          } else if (CHAR_COL == 24) {
+            return _Letter_Row01_Col24;
+          } else if (CHAR_COL == 25) {
+            return _Letter_Row01_Col25;
+          } else if (CHAR_COL == 26) {
+            return _Letter_Row01_Col26;
+          } else if (CHAR_COL == 27) {
+            return _Letter_Row01_Col27;
+          } else if (CHAR_COL == 28) {
+            return _Letter_Row01_Col28;
+          } else if (CHAR_COL == 29) {
+            return _Letter_Row01_Col29;
+          } else if (CHAR_COL == 30) {
+            return _Letter_Row01_Col30;
+          } else if (CHAR_COL == 31) {
+            return _Letter_Row01_Col31;
+          } else if (CHAR_COL == 32) {
+            return _Letter_Row01_Col32;
+          } else if (CHAR_COL == 33) {
+            return _Letter_Row01_Col33;
+          } else if (CHAR_COL == 34) {
+            return _Letter_Row01_Col34;
+          } else if (CHAR_COL == 35) {
+            return _Letter_Row01_Col35;
+          } else if (CHAR_COL == 36) {
+            return _Letter_Row01_Col36;
+          } else if (CHAR_COL == 37) {
+            return _Letter_Row01_Col37;
+          } else if (CHAR_COL == 38) {
+            return _Letter_Row01_Col38;
+          } else if (CHAR_COL == 39) {
+            return _Letter_Row01_Col39;
+          } else if (CHAR_COL == 40) {
+            return _Letter_Row01_Col40;
+          } else if (CHAR_COL == 41) {
+            return _Letter_Row01_Col41;
+          } else if (CHAR_COL == 42) {
+            return _Letter_Row01_Col42;
+          } else if (CHAR_COL == 43) {
+            return _Letter_Row01_Col43;
           }
-        } else if (CHAR_ROW == 5) {
+        } else if (CHAR_ROW == 1) {
           if (CHAR_COL == 0) {
             return _Letter_Row02_Col00;
           } else if (CHAR_COL == 1) {
@@ -582,8 +675,52 @@
             return _Letter_Row02_Col20;
           } else if (CHAR_COL == 21) {
             return _Letter_Row02_Col21;
+          } else if (CHAR_COL == 22) {
+            return _Letter_Row02_Col22;
+          } else if (CHAR_COL == 23) {
+            return _Letter_Row02_Col23;
+          } else if (CHAR_COL == 24) {
+            return _Letter_Row02_Col24;
+          } else if (CHAR_COL == 25) {
+            return _Letter_Row02_Col25;
+          } else if (CHAR_COL == 26) {
+            return _Letter_Row02_Col26;
+          } else if (CHAR_COL == 27) {
+            return _Letter_Row02_Col27;
+          } else if (CHAR_COL == 28) {
+            return _Letter_Row02_Col28;
+          } else if (CHAR_COL == 29) {
+            return _Letter_Row02_Col29;
+          } else if (CHAR_COL == 30) {
+            return _Letter_Row02_Col30;
+          } else if (CHAR_COL == 31) {
+            return _Letter_Row02_Col31;
+          } else if (CHAR_COL == 32) {
+            return _Letter_Row02_Col32;
+          } else if (CHAR_COL == 33) {
+            return _Letter_Row02_Col33;
+          } else if (CHAR_COL == 34) {
+            return _Letter_Row02_Col34;
+          } else if (CHAR_COL == 35) {
+            return _Letter_Row02_Col35;
+          } else if (CHAR_COL == 36) {
+            return _Letter_Row02_Col36;
+          } else if (CHAR_COL == 37) {
+            return _Letter_Row02_Col37;
+          } else if (CHAR_COL == 38) {
+            return _Letter_Row02_Col38;
+          } else if (CHAR_COL == 39) {
+            return _Letter_Row02_Col39;
+          } else if (CHAR_COL == 40) {
+            return _Letter_Row02_Col40;
+          } else if (CHAR_COL == 41) {
+            return _Letter_Row02_Col41;
+          } else if (CHAR_COL == 42) {
+            return _Letter_Row02_Col42;
+          } else if (CHAR_COL == 43) {
+            return _Letter_Row02_Col43;
           }
-        } else if (CHAR_ROW == 4) {
+        } else if (CHAR_ROW == 0) {
           if (CHAR_COL == 0) {
             return _Letter_Row03_Col00;
           } else if (CHAR_COL == 1) {
@@ -628,190 +765,50 @@
             return _Letter_Row03_Col20;
           } else if (CHAR_COL == 21) {
             return _Letter_Row03_Col21;
-          }
-        } else if (CHAR_ROW == 3) {
-          if (CHAR_COL == 0) {
-            return _Letter_Row04_Col00;
-          } else if (CHAR_COL == 1) {
-            return _Letter_Row04_Col01;
-          } else if (CHAR_COL == 2) {
-            return _Letter_Row04_Col02;
-          } else if (CHAR_COL == 3) {
-            return _Letter_Row04_Col03;
-          } else if (CHAR_COL == 4) {
-            return _Letter_Row04_Col04;
-          } else if (CHAR_COL == 5) {
-            return _Letter_Row04_Col05;
-          } else if (CHAR_COL == 6) {
-            return _Letter_Row04_Col06;
-          } else if (CHAR_COL == 7) {
-            return _Letter_Row04_Col07;
-          } else if (CHAR_COL == 8) {
-            return _Letter_Row04_Col08;
-          } else if (CHAR_COL == 9) {
-            return _Letter_Row04_Col09;
-          } else if (CHAR_COL == 10) {
-            return _Letter_Row04_Col10;
-          } else if (CHAR_COL == 11) {
-            return _Letter_Row04_Col11;
-          } else if (CHAR_COL == 12) {
-            return _Letter_Row04_Col12;
-          } else if (CHAR_COL == 13) {
-            return _Letter_Row04_Col13;
-          } else if (CHAR_COL == 14) {
-            return _Letter_Row04_Col14;
-          } else if (CHAR_COL == 15) {
-            return _Letter_Row04_Col15;
-          } else if (CHAR_COL == 16) {
-            return _Letter_Row04_Col16;
-          } else if (CHAR_COL == 17) {
-            return _Letter_Row04_Col17;
-          } else if (CHAR_COL == 18) {
-            return _Letter_Row04_Col18;
-          } else if (CHAR_COL == 19) {
-            return _Letter_Row04_Col19;
-          } else if (CHAR_COL == 20) {
-            return _Letter_Row04_Col20;
-          } else if (CHAR_COL == 21) {
-            return _Letter_Row04_Col21;
-          }
-        } else if (CHAR_ROW == 2) {
-          if (CHAR_COL == 0) {
-            return _Letter_Row05_Col00;
-          } else if (CHAR_COL == 1) {
-            return _Letter_Row05_Col01;
-          } else if (CHAR_COL == 2) {
-            return _Letter_Row05_Col02;
-          } else if (CHAR_COL == 3) {
-            return _Letter_Row05_Col03;
-          } else if (CHAR_COL == 4) {
-            return _Letter_Row05_Col04;
-          } else if (CHAR_COL == 5) {
-            return _Letter_Row05_Col05;
-          } else if (CHAR_COL == 6) {
-            return _Letter_Row05_Col06;
-          } else if (CHAR_COL == 7) {
-            return _Letter_Row05_Col07;
-          } else if (CHAR_COL == 8) {
-            return _Letter_Row05_Col08;
-          } else if (CHAR_COL == 9) {
-            return _Letter_Row05_Col09;
-          } else if (CHAR_COL == 10) {
-            return _Letter_Row05_Col10;
-          } else if (CHAR_COL == 11) {
-            return _Letter_Row05_Col11;
-          } else if (CHAR_COL == 12) {
-            return _Letter_Row05_Col12;
-          } else if (CHAR_COL == 13) {
-            return _Letter_Row05_Col13;
-          } else if (CHAR_COL == 14) {
-            return _Letter_Row05_Col14;
-          } else if (CHAR_COL == 15) {
-            return _Letter_Row05_Col15;
-          } else if (CHAR_COL == 16) {
-            return _Letter_Row05_Col16;
-          } else if (CHAR_COL == 17) {
-            return _Letter_Row05_Col17;
-          } else if (CHAR_COL == 18) {
-            return _Letter_Row05_Col18;
-          } else if (CHAR_COL == 19) {
-            return _Letter_Row05_Col19;
-          } else if (CHAR_COL == 20) {
-            return _Letter_Row05_Col20;
-          } else if (CHAR_COL == 21) {
-            return _Letter_Row05_Col21;
-          }
-        } else if (CHAR_ROW == 1) {
-          if (CHAR_COL == 0) {
-            return _Letter_Row06_Col00;
-          } else if (CHAR_COL == 1) {
-            return _Letter_Row06_Col01;
-          } else if (CHAR_COL == 2) {
-            return _Letter_Row06_Col02;
-          } else if (CHAR_COL == 3) {
-            return _Letter_Row06_Col03;
-          } else if (CHAR_COL == 4) {
-            return _Letter_Row06_Col04;
-          } else if (CHAR_COL == 5) {
-            return _Letter_Row06_Col05;
-          } else if (CHAR_COL == 6) {
-            return _Letter_Row06_Col06;
-          } else if (CHAR_COL == 7) {
-            return _Letter_Row06_Col07;
-          } else if (CHAR_COL == 8) {
-            return _Letter_Row06_Col08;
-          } else if (CHAR_COL == 9) {
-            return _Letter_Row06_Col09;
-          } else if (CHAR_COL == 10) {
-            return _Letter_Row06_Col10;
-          } else if (CHAR_COL == 11) {
-            return _Letter_Row06_Col11;
-          } else if (CHAR_COL == 12) {
-            return _Letter_Row06_Col12;
-          } else if (CHAR_COL == 13) {
-            return _Letter_Row06_Col13;
-          } else if (CHAR_COL == 14) {
-            return _Letter_Row06_Col14;
-          } else if (CHAR_COL == 15) {
-            return _Letter_Row06_Col15;
-          } else if (CHAR_COL == 16) {
-            return _Letter_Row06_Col16;
-          } else if (CHAR_COL == 17) {
-            return _Letter_Row06_Col17;
-          } else if (CHAR_COL == 18) {
-            return _Letter_Row06_Col18;
-          } else if (CHAR_COL == 19) {
-            return _Letter_Row06_Col19;
-          } else if (CHAR_COL == 20) {
-            return _Letter_Row06_Col20;
-          } else if (CHAR_COL == 21) {
-            return _Letter_Row06_Col21;
-          }
-        } else if (CHAR_ROW == 0) {
-          if (CHAR_COL == 0) {
-            return _Letter_Row07_Col00;
-          } else if (CHAR_COL == 1) {
-            return _Letter_Row07_Col01;
-          } else if (CHAR_COL == 2) {
-            return _Letter_Row07_Col02;
-          } else if (CHAR_COL == 3) {
-            return _Letter_Row07_Col03;
-          } else if (CHAR_COL == 4) {
-            return _Letter_Row07_Col04;
-          } else if (CHAR_COL == 5) {
-            return _Letter_Row07_Col05;
-          } else if (CHAR_COL == 6) {
-            return _Letter_Row07_Col06;
-          } else if (CHAR_COL == 7) {
-            return _Letter_Row07_Col07;
-          } else if (CHAR_COL == 8) {
-            return _Letter_Row07_Col08;
-          } else if (CHAR_COL == 9) {
-            return _Letter_Row07_Col09;
-          } else if (CHAR_COL == 10) {
-            return _Letter_Row07_Col10;
-          } else if (CHAR_COL == 11) {
-            return _Letter_Row07_Col11;
-          } else if (CHAR_COL == 12) {
-            return _Letter_Row07_Col12;
-          } else if (CHAR_COL == 13) {
-            return _Letter_Row07_Col13;
-          } else if (CHAR_COL == 14) {
-            return _Letter_Row07_Col14;
-          } else if (CHAR_COL == 15) {
-            return _Letter_Row07_Col15;
-          } else if (CHAR_COL == 16) {
-            return _Letter_Row07_Col16;
-          } else if (CHAR_COL == 17) {
-            return _Letter_Row07_Col17;
-          } else if (CHAR_COL == 18) {
-            return _Letter_Row07_Col18;
-          } else if (CHAR_COL == 19) {
-            return _Letter_Row07_Col19;
-          } else if (CHAR_COL == 20) {
-            return _Letter_Row07_Col20;
-          } else if (CHAR_COL == 21) {
-            return _Letter_Row07_Col21;
+          } else if (CHAR_COL == 22) {
+            return _Letter_Row03_Col22;
+          } else if (CHAR_COL == 23) {
+            return _Letter_Row03_Col23;
+          } else if (CHAR_COL == 24) {
+            return _Letter_Row03_Col24;
+          } else if (CHAR_COL == 25) {
+            return _Letter_Row03_Col25;
+          } else if (CHAR_COL == 26) {
+            return _Letter_Row03_Col26;
+          } else if (CHAR_COL == 27) {
+            return _Letter_Row03_Col27;
+          } else if (CHAR_COL == 28) {
+            return _Letter_Row03_Col28;
+          } else if (CHAR_COL == 29) {
+            return _Letter_Row03_Col29;
+          } else if (CHAR_COL == 30) {
+            return _Letter_Row03_Col30;
+          } else if (CHAR_COL == 31) {
+            return _Letter_Row03_Col31;
+          } else if (CHAR_COL == 32) {
+            return _Letter_Row03_Col32;
+          } else if (CHAR_COL == 33) {
+            return _Letter_Row03_Col33;
+          } else if (CHAR_COL == 34) {
+            return _Letter_Row03_Col34;
+          } else if (CHAR_COL == 35) {
+            return _Letter_Row03_Col35;
+          } else if (CHAR_COL == 36) {
+            return _Letter_Row03_Col36;
+          } else if (CHAR_COL == 37) {
+            return _Letter_Row03_Col37;
+          } else if (CHAR_COL == 38) {
+            return _Letter_Row03_Col38;
+          } else if (CHAR_COL == 39) {
+            return _Letter_Row03_Col39;
+          } else if (CHAR_COL == 40) {
+            return _Letter_Row03_Col40;
+          } else if (CHAR_COL == 41) {
+            return _Letter_Row03_Col41;
+          } else if (CHAR_COL == 42) {
+            return _Letter_Row03_Col42;
+          } else if (CHAR_COL == 43) {
+            return _Letter_Row03_Col43;
           }
         }
 
@@ -820,8 +817,13 @@
 
       fixed4 frag (v2f i) : SV_Target
       {
-        float letter = floor(GetLetterParameter(i));
-        float2 uv = GetLetter(i, letter);
+        float2 uv = i.uv;
+        float uv_x_margin = 0.03;
+        float uv_y_margin = 0.06;
+        uv = AddMarginToUV(uv, uv_x_margin, uv_y_margin);
+
+        float letter = floor(GetLetterParameter(uv));
+        uv = GetLetter(uv, letter);
         fixed4 ret = _MainTex.Sample(sampler_linear_repeat, uv);
         return ret;
       }

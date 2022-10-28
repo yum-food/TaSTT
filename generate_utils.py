@@ -9,8 +9,8 @@ def replaceMacros(lines, macro_defs):
 # Note, (BOARD_ROWS * BOARD_COLS % NUM_LAYERS) must equal 0. If not, writing to
 # the last cell will (with the current implementation) wrap around to the front
 # of the board.
-BOARD_ROWS=8
-BOARD_COLS=22
+BOARD_ROWS=4
+BOARD_COLS=44
 INDEX_BITS=4
 CHARS_PER_CELL=80
 
