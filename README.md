@@ -82,10 +82,11 @@ are currently 16 cells.
 Since the board has (22 columns) * (8 rows) == 176 character slots, each cell
 contains (176 characters) / (16 cells) = 11 characters.
 
-To update a cell, we do this for every single character:
+To update a cell, we do this:
 
 1. Select the cell. Since there are 16 cells, this requires 4 bits.
-2. Select the letter. Since we support 256 letters per cell, this requires 8 bits.
+2. For each letter in the cell, select the letter. Since we support 256 letters
+   per cell, this requires 8 bits.
 
 To avoid overwriting cells while we seek around, we also have a single boolean
 which enables/disables updating any cells.
@@ -93,10 +94,10 @@ which enables/disables updating any cells.
 Thus the total amount of parameter memory used is dictated by this equation:
 
 ```
-ROWS * COLS * (log2(CELLS) + 8) / CELLS + 1
+ROWS * COLS * 8 / CELLS + 1 + log2(CELLS)
 ```
 
-This is currently 133 bits.
+This is currently 93 bits.
 
 #### FX controller design
 
@@ -143,12 +144,12 @@ To use the STT:
 
 1. Better Unity integrations
    1. Port all scripts to Unity-native C# scripts.
-   2. Support appending to existing FX layers.
+   2. ~~Support appending to existing FX layers.~~ DONE
    3. Use VRCSDK to generate FX layer instead of generating the serialized files.
 2. In-game usability features.
    1. Resizing (talk to friends far away).
-   2. Basic toggles (hide it when not needed).
-   3. World mounting (leave it in a fixed position in world space).
+   2. ~~Basic toggles (hide it when not needed).~~ DONE
+   3. ~~World mounting (leave it in a fixed position in world space).~~ DONE
    4. Avatar mounting (attach it to your hand).
    5. Controller triggers (avoid having to use the radial menu every time you
      want to speak).
@@ -162,17 +163,17 @@ To use the STT:
      that the parameter memory usage may not decrease.
    2. Optimize FX layer. We have 14k animations and a 1.2 million line FX
       layer. Something must be rethought to bring these numbers down.
-   3. Implement multicore YAML parsing. This will make working with large
-      animators much more practical.
-   4. Transcription engine sleep interval increases exponentially up to 1-2
+   3. ~~Implement multicore YAML parsing. This will make working with large
+      animators much more practical.~~ DONE
+   4. ~~Transcription engine sleep interval increases exponentially up to 1-2
       seconds, then jumps back to a short interval once speech is detected.
       This should significantly cut down on idle resource consumption. Perhaps
       there's even a more efficient way to detect the odds that anything is
-      being said, which we could use to gate transcription.
+      being said, which we could use to gate transcription.~~ DONE
 5. Bugfixes
-   1. The whisper STT says "Thank you." when there's no audio?
+   1. ~~The whisper STT says "Thank you." when there's no audio?~~ DONE
 6. Shine
    1. Smooth scrolling.
-   2. Infinite scrolling.
-   3. Sound indicator, maybe like animal crossing :)
+   2. ~~Infinite scrolling.~~ DONE
+   3. ~~Sound indicator, maybe like animal crossing :)~~ DONE
 
