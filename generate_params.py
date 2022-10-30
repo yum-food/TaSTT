@@ -72,18 +72,18 @@ print(generate_utils.replaceMacros(BOOL_PARAM, params))
 params["PARAM_NAME"] = generate_utils.getClearBoardParam()
 print(generate_utils.replaceMacros(BOOL_PARAM, params))
 
+params["PARAM_NAME"] = generate_utils.getSelectParam(0)
+print(generate_utils.replaceMacros(BOOL_PARAM, params))
+
+params["PARAM_NAME"] = generate_utils.getSelectParam(1)
+print(generate_utils.replaceMacros(BOOL_PARAM, params))
+
+params["PARAM_NAME"] = generate_utils.getSelectParam(2)
+print(generate_utils.replaceMacros(BOOL_PARAM, params))
+
+params["PARAM_NAME"] = generate_utils.getSelectParam(3)
+print(generate_utils.replaceMacros(BOOL_PARAM, params))
+
 for i in range(0, generate_utils.NUM_LAYERS):
     params["PARAM_NAME"] = generate_utils.getLayerParam(i)
     print(generate_utils.replaceMacros(INT_PARAM, params))
-
-    params["PARAM_NAME"] = generate_utils.getSelectParam(i, 0)
-    print(generate_utils.replaceMacros(BOOL_PARAM, params))
-
-    params["PARAM_NAME"] = generate_utils.getSelectParam(i, 1)
-    print(generate_utils.replaceMacros(BOOL_PARAM, params))
-
-    params["PARAM_NAME"] = generate_utils.getSelectParam(i, 2)
-    print(generate_utils.replaceMacros(BOOL_PARAM, params))
-
-    params["PARAM_NAME"] = generate_utils.getSelectParam(i, 3)
-    print(generate_utils.replaceMacros(BOOL_PARAM, params))

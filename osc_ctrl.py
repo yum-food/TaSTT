@@ -73,21 +73,9 @@ def encodeMessage(lines):
         result += [state.encoding[' ']] * (BOARD_COLS - len(line))
     return result
 
-def updateCell(client, cell_idx, letter_encoded, s0, s1, s2, s3):
+def updateCell(client, cell_idx, letter_encoded):
     addr="/avatar/parameters/" + getLayerParam(cell_idx)
     client.send_message(addr, letter_encoded)
-
-    addr="/avatar/parameters/" + getSelectParam(cell_idx, 0)
-    client.send_message(addr, s0)
-
-    addr="/avatar/parameters/" + getSelectParam(cell_idx, 1)
-    client.send_message(addr, s1)
-
-    addr="/avatar/parameters/" + getSelectParam(cell_idx, 2)
-    client.send_message(addr, s2)
-
-    addr="/avatar/parameters/" + getSelectParam(cell_idx, 3)
-    client.send_message(addr, s3)
 
 def enable(client):
     addr="/avatar/parameters/" + getEnableParam()
@@ -118,9 +106,23 @@ def sendMessageCellDiscrete(client, msg_cell, which_cell):
     s2 = ((floor(which_cell / 2) % 2) == 1)
     s3 = ((floor(which_cell / 1) % 2) == 1)
 
-    # Seek each layer to the current cell.
+    # Seek to the current cell.
+    addr="/avatar/parameters/" + getSelectParam(0)
+    client.send_message(addr, s0)
+
+    addr="/avatar/parameters/" + getSelectParam(1)
+    client.send_message(addr, s1)
+
+    addr="/avatar/parameters/" + getSelectParam(2)
+    client.send_message(addr, s2)
+
+    addr="/avatar/parameters/" + getSelectParam(3)
+    client.send_message(addr, s3)
+
+    # Update each letter
     for i in range(0, len(msg_cell)):
-        updateCell(client, i, msg_cell[i], s0, s1, s2, s3)
+        updateCell(client, i, msg_cell[i])
+
     if msg_cell != empty_cell:
         addr="/avatar/parameters/" + generate_utils.getSpeechNoiseToggleParam()
         client.send_message(addr, False)

@@ -90,8 +90,8 @@ def getS3StateName(which_layer, s0, s1, s2, s3):
 def getLetterStateName(which_layer, s0, s1, s2, s3, letter):
     return "TaSTT_L%02d_S%02d_S%02d_S%02d_S%02d_L%03d" % (which_layer, s0, s1, s2, s3, letter)
 
-def getSelectParam(which_layer: int, which_select: int) -> str:
-    return "TaSTT_L%02d_S%02d" % (which_layer, which_select)
+def getSelectParam(which_select: int) -> str:
+    return "TaSTT_S%02d" % (which_select)
 
 def getEnableParam():
     return "TaSTT_Enable"

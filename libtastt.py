@@ -256,11 +256,11 @@ def generateFXController(anim: libunity.UnityAnimator) -> typing.Dict[int, libun
     layers = {}
     for i in range(0, generate_utils.NUM_LAYERS):
         anim.addParameter(generate_utils.getLayerParam(i), int)
-        for j in range(0, generate_utils.INDEX_BITS):
-            anim.addParameter(generate_utils.getSelectParam(i, j), bool)
 
         layer = anim.addLayer(generate_utils.getLayerName(i))
         layers[i] = layer
+    for i in range(0, generate_utils.INDEX_BITS):
+        anim.addParameter(generate_utils.getSelectParam(i), bool)
 
     return layers
 
@@ -289,7 +289,7 @@ def generateFXLayer(which_layer: int, anim: libunity.UnityAnimator, layer:
         state = s0_states[s0]
 
         s0_state_transition = anim.addTransition(state)
-        s0_param = generate_utils.getSelectParam(which_layer, 0)
+        s0_param = generate_utils.getSelectParam(0)
         anim.addTransitionBooleanCondition(active_state, s0_state_transition,
                 s0_param, s0 != 0)
 
@@ -305,7 +305,7 @@ def generateFXLayer(which_layer: int, anim: libunity.UnityAnimator, layer:
             state = s1_states[s0][s1]
 
             s1_state_transition = anim.addTransition(state)
-            s1_param = generate_utils.getSelectParam(which_layer, 1)
+            s1_param = generate_utils.getSelectParam(1)
             anim.addTransitionBooleanCondition(s0_states[s0], s1_state_transition,
                     s1_param, s1 != 0)
 
@@ -323,7 +323,7 @@ def generateFXLayer(which_layer: int, anim: libunity.UnityAnimator, layer:
                 state = s2_states[s0][s1][s2]
 
                 s2_state_transition = anim.addTransition(state)
-                s2_param = generate_utils.getSelectParam(which_layer, 2)
+                s2_param = generate_utils.getSelectParam(2)
                 anim.addTransitionBooleanCondition(s1_states[s0][s1], s2_state_transition,
                         s2_param, s2 != 0)
 
@@ -343,7 +343,7 @@ def generateFXLayer(which_layer: int, anim: libunity.UnityAnimator, layer:
                     state = s3_states[s0][s1][s2][s3]
 
                     s3_state_transition = anim.addTransition(state)
-                    s3_param = generate_utils.getSelectParam(which_layer, 3)
+                    s3_param = generate_utils.getSelectParam(3)
                     anim.addTransitionBooleanCondition(s2_states[s0][s1][s2], s3_state_transition,
                             s3_param, s3 != 0)
 
