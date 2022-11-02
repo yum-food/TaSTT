@@ -161,6 +161,10 @@ def resetAudioLocked(audio_state):
 
     resetDiskAudioLocked(audio_state, audio_state.VOICE_AUDIO_FILENAME)
 
+    audio_state.text = ""
+    audio_state.text_candidate = ""
+    osc_ctrl.clear(audio_state.osc_client)
+
 def resetAudio(audio_state):
     audio_state.frames_lock.acquire()
     resetAudioLocked(audio_state)
@@ -218,9 +222,6 @@ def transcribeAudio(audio_state, model):
         if len(words) > 0:
             if words[-1] == "clear":
                 resetAudio(audio_state)
-                osc_ctrl.clear(audio_state.osc_client)
-                audio_state.text = ""
-                audio_state.text_candidate = ""
                 audio_state.text_lock.release()
                 audio_state.display_paused = False
                 continue
@@ -259,6 +260,7 @@ def transcribeAudio(audio_state, model):
             old_text = audio_state.text
             old_words = audio_state.text.split()
             new_words = text.split()
+
             audio_state.text = string_matcher.matchStringList(old_words, new_words)
             if old_text != audio_state.text:
                 # We think the user said something, so  reset the amount of
@@ -280,9 +282,8 @@ def sendAudio(audio_state):
 
         audio_state.text_lock.acquire()
         text = copy.deepcopy(audio_state.text)
-        audio_state.text_lock.release()
-
         osc_ctrl.sendMessageLazy(audio_state.osc_client, text, tx_state)
+        audio_state.text_lock.release()
 
         # Pace this out
         time.sleep(0.01)

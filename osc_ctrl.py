@@ -180,7 +180,7 @@ class OscTxState:
     # The message last sent to the board.
     last_msg_encoded = []
     empty_cells_to_send_per_call = 1
-    nonempty_cells_to_send_per_call = 2
+    nonempty_cells_to_send_per_call = 1
 
     # 0 indicates it's closed. 1 indicates half size. 2 indicates full size.
     board_size = 0
