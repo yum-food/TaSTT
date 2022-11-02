@@ -101,23 +101,9 @@ def sendMessageCellDiscrete(client, msg_cell, which_cell):
     # Really long messages just wrap back around.
     which_cell = (which_cell % (2 ** generate_utils.INDEX_BITS))
 
-    s0 = ((floor(which_cell / 8) % 2) == 1)
-    s1 = ((floor(which_cell / 4) % 2) == 1)
-    s2 = ((floor(which_cell / 2) % 2) == 1)
-    s3 = ((floor(which_cell / 1) % 2) == 1)
-
     # Seek to the current cell.
-    addr="/avatar/parameters/" + getSelectParam(0)
-    client.send_message(addr, s0)
-
-    addr="/avatar/parameters/" + getSelectParam(1)
-    client.send_message(addr, s1)
-
-    addr="/avatar/parameters/" + getSelectParam(2)
-    client.send_message(addr, s2)
-
-    addr="/avatar/parameters/" + getSelectParam(3)
-    client.send_message(addr, s3)
+    addr="/avatar/parameters/" + getSelectParam()
+    client.send_message(addr, which_cell)
 
     # Update each letter
     for i in range(0, len(msg_cell)):

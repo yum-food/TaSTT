@@ -75,41 +75,32 @@ def getDefaultStateName(which_layer):
 def getActiveStateName(which_layer):
     return "TaSTT_L%02d_Active" % which_layer
 
-def getS0StateName(which_layer, s0):
-    return "TaSTT_L%02d_S%02d" % (which_layer, s0)
+def getSelectStateName(which_layer, select):
+    return "TaSTT_L%02d_S%02d" % (which_layer, select)
 
-def getS1StateName(which_layer, s0, s1):
-    return "TaSTT_L%02d_S%02d_S%02d" % (which_layer, s0, s1)
+def getLetterStateName(which_layer, select, letter):
+    return "TaSTT_L%02d_S%02d_L%03d" % (which_layer, select, letter)
 
-def getS2StateName(which_layer, s0, s1, s2):
-    return "TaSTT_L%02d_S%02d_S%02d_S%02d" % (which_layer, s0, s1, s2)
-
-def getS3StateName(which_layer, s0, s1, s2, s3):
-    return "TaSTT_L%02d_S%02d_S%02d_S%02d_S%02d" % (which_layer, s0, s1, s2, s3)
-
-def getLetterStateName(which_layer, s0, s1, s2, s3, letter):
-    return "TaSTT_L%02d_S%02d_S%02d_S%02d_S%02d_L%03d" % (which_layer, s0, s1, s2, s3, letter)
-
-def getSelectParam(which_select: int) -> str:
-    return "TaSTT_S%02d" % (which_select)
+def getSelectParam() -> str:
+    return "TaSTT_Select"
 
 def getEnableParam():
     return "TaSTT_Enable"
 
-def getBoardIndex(which_layer, s0, s1, s2, s3):
+def getBoardIndex(which_layer, select):
     # Because we divide the board into a multiple of 8 cells, some cells may
     # describe animations which don't exist, depending on the size of the board.
     # We work around this by simply wrapping those animations back to the top
     # of the board, and rely on the OSC controller to simply not reference
     # those cells.
-    return ((s0 * 8 + s1 * 4 + s2 * 2 + s3) * NUM_LAYERS + which_layer) % (BOARD_ROWS * BOARD_COLS)
+    return (select * NUM_LAYERS + which_layer) % (BOARD_ROWS * BOARD_COLS)
 
 def getShaderParamByRowCol(row, col):
     return "_Letter_Row%02d_Col%02d" % (row, col)
 
 # Mapping from layer to shader param.
-def getShaderParam(which_layer, s0, s1, s2, s3):
-    index = getBoardIndex(which_layer, s0, s1, s2, s3)
+def getShaderParam(which_layer, select):
+    index = getBoardIndex(which_layer, select)
 
     col = index % BOARD_COLS
     row = floor(index / BOARD_COLS)
@@ -125,8 +116,8 @@ def getLetterAnimationName(row, col, letter):
 def getClearAnimationName():
     return "TaSTT_Clear_Board"
 
-def getAnimationNameByLayerAndIndex(which_layer, s0, s1, s2, s3, letter):
-    index = getBoardIndex(which_layer, s0, s1, s2, s3)
+def getAnimationNameByLayerAndIndex(which_layer, select, letter):
+    index = getBoardIndex(which_layer, select)
 
     col = index % BOARD_COLS
     row = floor(index / BOARD_COLS)

@@ -259,8 +259,7 @@ def generateFXController(anim: libunity.UnityAnimator) -> typing.Dict[int, libun
 
         layer = anim.addLayer(generate_utils.getLayerName(i))
         layers[i] = layer
-    for i in range(0, generate_utils.INDEX_BITS):
-        anim.addParameter(generate_utils.getSelectParam(i), bool)
+    anim.addParameter(generate_utils.getSelectParam(), int)
 
     return layers
 
@@ -279,113 +278,53 @@ def generateFXLayer(which_layer: int, anim: libunity.UnityAnimator, layer:
     anim.addTransitionBooleanCondition(default_state, active_state_transition,
            enable_param, True)
 
-    s0_states = {}
-    for s0 in range(0,2):
-        dx = s0 * 200
+    select_states = {}
+    for i in range(0, 2 ** generate_utils.INDEX_BITS):
+        dx = i * 200
         dy = 200
-        s0_states[s0] = anim.addAnimatorState(layer,
-                generate_utils.getS0StateName(which_layer, s0),
-                dx = dx, dy = dy)
-        state = s0_states[s0]
 
-        s0_state_transition = anim.addTransition(state)
-        s0_param = generate_utils.getSelectParam(0)
-        anim.addTransitionBooleanCondition(active_state, s0_state_transition,
-                s0_param, s0 != 0)
+        select_states[i] = anim.addAnimatorState(layer,
+                generate_utils.getSelectStateName(which_layer, i), dx = dx, dy = dy)
+        state = select_states[i]
 
-    s1_states = {}
-    for s0 in range(0,2):
-        s1_states[s0] = {}
-        for s1 in range(0,2):
-            dx = ((s0 << 1) | (s1)) * 200
-            dy = 300
-            s1_states[s0][s1] = anim.addAnimatorState(layer,
-                    generate_utils.getS1StateName(which_layer, s0, s1),
-                    dx = dx, dy = dy)
-            state = s1_states[s0][s1]
-
-            s1_state_transition = anim.addTransition(state)
-            s1_param = generate_utils.getSelectParam(1)
-            anim.addTransitionBooleanCondition(s0_states[s0], s1_state_transition,
-                    s1_param, s1 != 0)
-
-    s2_states = {}
-    for s0 in range(0,2):
-        s2_states[s0] = {}
-        for s1 in range(0,2):
-            s2_states[s0][s1] = {}
-            for s2 in range(0,2):
-                dx = ((s0 << 2) | (s1 << 1) | (s2)) * 200
-                dy = 400
-                s2_states[s0][s1][s2] = anim.addAnimatorState(layer,
-                        generate_utils.getS2StateName(which_layer, s0, s1, s2),
-                        dx = dx, dy = dy)
-                state = s2_states[s0][s1][s2]
-
-                s2_state_transition = anim.addTransition(state)
-                s2_param = generate_utils.getSelectParam(2)
-                anim.addTransitionBooleanCondition(s1_states[s0][s1], s2_state_transition,
-                        s2_param, s2 != 0)
-
-    s3_states = {}
-    for s0 in range(0,2):
-        s3_states[s0] = {}
-        for s1 in range(0,2):
-            s3_states[s0][s1] = {}
-            for s2 in range(0,2):
-                s3_states[s0][s1][s2] = {}
-                for s3 in range(0,2):
-                    dx = ((s0 << 3) | (s1 << 2) | (s2 << 1) | (s3)) * 200
-                    dy = 500
-                    s3_states[s0][s1][s2][s3] = anim.addAnimatorState(layer,
-                            generate_utils.getS3StateName(which_layer, s0, s1, s2, s3),
-                            dx = dx, dy = dy)
-                    state = s3_states[s0][s1][s2][s3]
-
-                    s3_state_transition = anim.addTransition(state)
-                    s3_param = generate_utils.getSelectParam(3)
-                    anim.addTransitionBooleanCondition(s2_states[s0][s1][s2], s3_state_transition,
-                            s3_param, s3 != 0)
+        select_state_transition = anim.addTransition(state)
+        select_param = generate_utils.getSelectParam()
+        anim.addTransitionIntegerEqualityCondition(active_state,
+                select_state_transition, select_param, i)
 
     l_states = {}  # shorthand for `letter_states`
-    for s0 in range(0,2):
-        l_states[s0] = {}
-        for s1 in range(0,2):
-            l_states[s0][s1] = {}
-            for s2 in range(0,2):
-                l_states[s0][s1][s2] = {}
-                for s3 in range(0,2):
-                    l_states[s0][s1][s2][s3] = {}
-                    for letter in range(0, generate_utils.CHARS_PER_CELL):
-                        dy = 600
-                        l_states[s0][s1][s2][s3][letter] = anim.addAnimatorState(layer,
-                                generate_utils.getLetterStateName(which_layer,
-                                    s0, s1, s2, s3, letter),
-                                dy = dy)
-                        state = l_states[s0][s1][s2][s3][letter]
+    for i in range(0, 2 ** generate_utils.INDEX_BITS):
+        l_states[i] = {}
+        for letter in range(0, generate_utils.CHARS_PER_CELL):
+            dy = 300
+            l_states[i][letter] = anim.addAnimatorState(layer,
+                    generate_utils.getLetterStateName(which_layer,
+                        i, letter),
+                    dy = dy)
+            state = l_states[i][letter]
 
-                        animation_path = gen_anim_dir + \
-                                generate_utils.getAnimationNameByLayerAndIndex(
-                                        which_layer, s0, s1, s2, s3, letter) + \
-                                ".anim"
-                        guid = guid_map[animation_path]
-                        anim.setAnimatorStateAnimation(state, guid)
+            animation_path = gen_anim_dir + \
+                    generate_utils.getAnimationNameByLayerAndIndex(
+                            which_layer, i, letter) + \
+                    ".anim"
+            guid = guid_map[animation_path]
+            anim.setAnimatorStateAnimation(state, guid)
 
-                        # TODO(yum) see if we can get away with reusing the
-                        # same transition object, but just stitch it into every
-                        # state.
-                        l_state_transition = anim.addTransition(state)
-                        l_param = generate_utils.getLayerParam(which_layer)
-                        #print("add condition on letter {}".format(letter),
-                        #        file=sys.stderr)
-                        anim.addTransitionIntegerEqualityCondition(s3_states[s0][s1][s2][s3],
-                                l_state_transition, l_param, letter)
+            # TODO(yum) see if we can get away with reusing the
+            # same transition object, but just stitch it into every
+            # state.
+            l_state_transition = anim.addTransition(state)
+            l_param = generate_utils.getLayerParam(which_layer)
+            #print("add condition on letter {}".format(letter),
+            #        file=sys.stderr)
+            anim.addTransitionIntegerEqualityCondition(select_states[i],
+                    l_state_transition, l_param, letter)
 
-                        home_state_transition = anim.addTransition(default_state)
-                        home_state_transition.mapping['AnimatorStateTransition'].mapping['m_InterruptionSource'] = '0'
-                        dummy_param = generate_utils.getDummyParam()
-                        anim.addTransitionBooleanCondition(state,
-                                home_state_transition, dummy_param, False)
+            home_state_transition = anim.addTransition(default_state)
+            home_state_transition.mapping['AnimatorStateTransition'].mapping['m_InterruptionSource'] = '0'
+            dummy_param = generate_utils.getDummyParam()
+            anim.addTransitionBooleanCondition(state,
+                    home_state_transition, dummy_param, False)
     pass
 
 # Generic toggle adding utility.
