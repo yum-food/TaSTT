@@ -181,12 +181,21 @@ def transcribe(model, filename):
     mel = whisper.log_mel_spectrogram(audio).to(model.device)
     #_, probs = model.detect_language(mel)
     #print(f"Detected language: {max(probs, key=probs.get)}")
-    options = whisper.DecodingOptions(language = "en")
+    options = whisper.DecodingOptions(language = "en",
+            beam_size = 3)
     result = whisper.decode(model, mel, options)
 
-    if result.no_speech_prob > 0.2:
+    if result.no_speech_prob > 0.15:
         print("no speech prob: {}".format(result.no_speech_prob))
-        return ""
+        return None
+
+    if result.avg_logprob < -1.0:
+        print("avg logprob: {}".format(result.avg_logprob))
+        return None
+
+    if result.compression_ratio > 2.4:
+        print("compression ratio: {}".format(result.compression_ratio))
+        return None
 
     return result.text
 
@@ -214,6 +223,8 @@ def transcribeAudio(audio_state, model):
             continue
 
         text = transcribe(model, audio_state.VOICE_AUDIO_FILENAME)
+        if not text:
+            continue
 
         audio_state.text_lock.acquire()
 
@@ -229,44 +240,18 @@ def transcribeAudio(audio_state, model):
                 words = words[0:-1]
                 audio_state.display_paused = True
 
-        # We use a few heuristics to handle spurious mistranscriptions and to
-        # handle events where we trim off the start of the audio clip.
-        #   1. If we get 2 consecutive identical transcriptions, we commit to
-        #       the transcription. This reduces the number of
-        #       mistranscriptions by a lot.
-        #   2. If the last transcription is a prefix of the current one, we
-        #       immediately accept it, since the transcription is obviously
-        #       somewhat stable.
-        #   3. If the transcription is somewhat long and the
-        #       first few words change, we assume this is due to a
-        #       trim event and immediately accept the transcription.
-        candidate_words = ''.join(c for c in audio_state.text_candidate.lower() if (c.isalpha() or c == " ")).split()
-
-        candidate_words_are_prefix_of_text = False
-        if len(candidate_words) < len(words) and \
-                candidate_words == words[0:len(candidate_words)]:
-            candidate_words_are_prefix_of_text = True
-
-        commit_transcription = False
-        if words == candidate_words or candidate_words_are_prefix_of_text:
-            commit_transcription = True
-        elif len(words) >= 3 and len(candidate_words) >= 3 and \
-                words[0:3] != candidate_words[0:3]:
-            commit_transcription = True
-
         print("Transcription: {}".format(audio_state.text))
 
-        if commit_transcription:
-            old_text = audio_state.text
-            old_words = audio_state.text.split()
-            new_words = text.split()
+        old_text = audio_state.text
+        old_words = audio_state.text.split()
+        new_words = text.split()
 
-            audio_state.text = string_matcher.matchStringList(old_words, new_words)
-            if old_text != audio_state.text:
-                # We think the user said something, so  reset the amount of
-                # time we sleep between transcriptions to the minimum.
-                audio_state.transcribe_no_change_count = 0
-                audio_state.transcribe_sleep_duration = audio_state.transcribe_sleep_duration_min_s
+        audio_state.text = string_matcher.matchStringList(old_words, new_words)
+        if old_text != audio_state.text:
+            # We think the user said something, so  reset the amount of
+            # time we sleep between transcriptions to the minimum.
+            audio_state.transcribe_no_change_count = 0
+            audio_state.transcribe_sleep_duration = audio_state.transcribe_sleep_duration_min_s
 
         audio_state.text_candidate = text
 
