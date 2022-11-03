@@ -19,7 +19,8 @@ from generate_utils import BOARD_COLS
 
 # Based on a couple experiments, this seems like about as fast as we can go
 # before players start losing events.
-CELL_TX_TIME_S=0.3
+SYNC_FREQ_HZ = 5.0
+SYNC_DELAY_S = 1.0 / SYNC_FREQ_HZ
 
 def usage():
     print("python3 -m pip install python-osc")
@@ -88,15 +89,10 @@ def disable(client):
 # Send a cell all at once.
 # `which_cell` is an integer in the range [0,2**INDEX_BITS).
 def sendMessageCellDiscrete(client, msg_cell, which_cell):
-    # Disable each layer.
-    disable(client)
-
     empty_cell = [state.encoding[' ']] * NUM_LAYERS
     if msg_cell != state.encoding[' '] * BOARD_COLS:
         addr="/avatar/parameters/" + generate_utils.getSpeechNoiseToggleParam()
         client.send_message(addr, False)
-
-    time.sleep(CELL_TX_TIME_S / 3.0)
 
     # Really long messages just wrap back around.
     which_cell = (which_cell % (2 ** generate_utils.INDEX_BITS))
@@ -105,27 +101,24 @@ def sendMessageCellDiscrete(client, msg_cell, which_cell):
     addr="/avatar/parameters/" + getSelectParam()
     client.send_message(addr, which_cell)
 
-    # Update each letter
-    for i in range(0, len(msg_cell)):
-        updateCell(client, i, msg_cell[i])
-
     if msg_cell != empty_cell:
         addr="/avatar/parameters/" + generate_utils.getSpeechNoiseToggleParam()
         client.send_message(addr, False)
+
+    # Wait for sync.
+    time.sleep(SYNC_DELAY_S)
+
+    # Update each letter
+    for i in range(0, len(msg_cell)):
+        updateCell(client, i, msg_cell[i])
 
     # If we're drawing something, turn the beep on.
     if msg_cell != empty_cell:
         addr="/avatar/parameters/" + generate_utils.getSpeechNoiseToggleParam()
         client.send_message(addr, True)
 
-    # Wait for convergence.
-    time.sleep(CELL_TX_TIME_S / 3.0)
-
-    # Enable each layer.
-    enable(client)
-
-    # Wait for convergence.
-    time.sleep(CELL_TX_TIME_S / 3.0)
+    # Wait for sync.
+    time.sleep(SYNC_DELAY_S)
 
 # The board is broken down into contiguous collections of characters called
 # cells. Each cell contains `NUM_LAYERS` characters. We can update one cell
@@ -324,7 +317,7 @@ def clear(client):
     addr="/avatar/parameters/" + generate_utils.getClearBoardParam()
     client.send_message(addr, True)
 
-    time.sleep(CELL_TX_TIME_S / 3.0)
+    time.sleep(SYNC_DELAY_S)
 
     addr="/avatar/parameters/" + generate_utils.getClearBoardParam()
     client.send_message(addr, False)
