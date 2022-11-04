@@ -5,7 +5,7 @@ local machine translation to turn your voice into text, then sends it into
 VRChat via OSC. A few parameters, a machine-generated FX layer, and a
 custom shader display the text in game.
 
-![Text-to-text demo](Images/text_to_text_demo.gif)
+![Speech-to-text demo](Images/speech_to_text_demo.gif)
 
 Features:
 * 8x22 display grid, 80 characters per slot.

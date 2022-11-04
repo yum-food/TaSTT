@@ -101,6 +101,8 @@ def sendMessageCellDiscrete(client, msg_cell, which_cell):
     addr="/avatar/parameters/" + getSelectParam()
     client.send_message(addr, which_cell)
 
+    enable(client)
+
     if msg_cell != empty_cell:
         addr="/avatar/parameters/" + generate_utils.getSpeechNoiseToggleParam()
         client.send_message(addr, False)
