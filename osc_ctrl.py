@@ -77,7 +77,6 @@ def encodeMessage(lines):
 def updateCell(client, cell_idx, letter_encoded):
     addr="/avatar/parameters/" + generate_utils.getBlendParam(cell_idx)
     letter_remapped = (-127.5 + letter_encoded) / 127.5
-    print("Send encoded letter {} / {}".format(letter_encoded, letter_remapped))
     client.send_message(addr, letter_remapped)
 
 def enable(client):
@@ -96,33 +95,29 @@ def sendMessageCellDiscrete(client, msg_cell, which_cell):
         addr="/avatar/parameters/" + generate_utils.getSpeechNoiseToggleParam()
         client.send_message(addr, False)
 
+    if msg_cell != empty_cell:
+        addr="/avatar/parameters/" + generate_utils.getSpeechNoiseToggleParam()
+        client.send_message(addr, True)
+
     # Really long messages just wrap back around.
     which_cell = (which_cell % (2 ** generate_utils.INDEX_BITS))
+
+    enable(client)
 
     # Seek to the current cell.
     addr="/avatar/parameters/" + getSelectParam()
     client.send_message(addr, which_cell)
 
-    enable(client)
-
-    if msg_cell != empty_cell:
-        addr="/avatar/parameters/" + generate_utils.getSpeechNoiseToggleParam()
-        client.send_message(addr, False)
-
-    # Wait for sync.
-    time.sleep(SYNC_DELAY_S)
-
     # Update each letter
     for i in range(0, len(msg_cell)):
         updateCell(client, i, msg_cell[i])
 
-    # If we're drawing something, turn the beep on.
-    if msg_cell != empty_cell:
-        addr="/avatar/parameters/" + generate_utils.getSpeechNoiseToggleParam()
-        client.send_message(addr, True)
-
     # Wait for sync.
     time.sleep(SYNC_DELAY_S)
+
+    if msg_cell != empty_cell:
+        addr="/avatar/parameters/" + generate_utils.getSpeechNoiseToggleParam()
+        client.send_message(addr, False)
 
 # The board is broken down into contiguous collections of characters called
 # cells. Each cell contains `NUM_LAYERS` characters. We can update one cell
