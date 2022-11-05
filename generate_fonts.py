@@ -61,7 +61,7 @@ print("total textures {}".format(total_textures))
 
 for nth_texture in range(0, total_textures):
     # Create a 4K grayscale ("L") image
-    image = Image.new(mode="L", size=(4096,4096), color=255)
+    image = Image.new(mode="L", size=(4096,4096), color=0)
     draw = ImageDraw.Draw(image)
 
     row_begin = nth_texture * n_rows
@@ -75,7 +75,7 @@ for nth_texture in range(0, total_textures):
                 line += chr(n)
             else:
                 line += " "
-        draw.text((0, (row - row_begin) * font_pixels), line, font=font)
+        draw.text((0, (row - row_begin) * font_pixels), line, font=font, fill=255)
 
     image.save("font-%01d.png" % nth_texture)
 
