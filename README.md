@@ -158,11 +158,11 @@ To use the STT:
    2. ~~Text-to-text interface. Type in terminal, show in game.~~ DONE
    3. ~~Speech-to-text interface. Speak out loud, show in game.~~ DONE
 4. Optimization
-   1. Utilize the avatar 3.0 SDK's ability to drive parameters to reduce the
+   1. ~~Utilize the avatar 3.0 SDK's ability to drive parameters to reduce the
      total # of parameters (and therefore OSC messages & sync events). Note
-     that the parameter memory usage may not decrease.
-   2. Optimize FX layer. We have 14k animations and a 1.2 million line FX
-      layer. Something must be rethought to bring these numbers down.
+     that the parameter memory usage may not decrease.~~ DONE
+   2. ~~Optimize FX layer. We have 14k animations and a 1.2 million line FX
+      layer. Something must be rethought to bring these numbers down.~~ DONE
    3. ~~Implement multicore YAML parsing. This will make working with large
       animators much more practical.~~ DONE
    4. ~~Transcription engine sleep interval increases exponentially up to 1-2

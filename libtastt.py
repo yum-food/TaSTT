@@ -208,7 +208,10 @@ def generateAnimations(anim_dir, guid_map):
         print("Generating letter animations (row {}/{})".format(row,
             generate_utils.BOARD_ROWS), file=sys.stderr)
         for col in range(0, generate_utils.BOARD_COLS):
-            for letter in range(0, generate_utils.CHARS_PER_CELL):
+            for letter in range(0, 2):
+                if letter == 1:
+                    letter = generate_utils.CHARS_PER_CELL - 1
+
                 # Make a deep copy of the templates
                 node = anim_node.copy()
                 curve = curve_template.copy()
@@ -255,7 +258,7 @@ def generateFXController(anim: libunity.UnityAnimator) -> typing.Dict[int, libun
 
     layers = {}
     for i in range(0, generate_utils.NUM_LAYERS):
-        anim.addParameter(generate_utils.getLayerParam(i), int)
+        anim.addParameter(generate_utils.getBlendParam(i), float)
 
         layer = anim.addLayer(generate_utils.getLayerName(i))
         layers[i] = layer
@@ -283,48 +286,36 @@ def generateFXLayer(which_layer: int, anim: libunity.UnityAnimator, layer:
         dx = i * 200
         dy = 200
 
-        select_states[i] = anim.addAnimatorState(layer,
-                generate_utils.getSelectStateName(which_layer, i), dx = dx, dy = dy)
+        # Create blend tree for this region.
+        anim_lo_path = gen_anim_dir + \
+                generate_utils.getAnimationNameByLayerAndIndex(
+                        which_layer, i, 0) + \
+                ".anim"
+        guid_lo = guid_map[anim_lo_path]
+        anim_hi_path = gen_anim_dir + \
+                generate_utils.getAnimationNameByLayerAndIndex(
+                        which_layer, i, generate_utils.CHARS_PER_CELL - 1) + \
+                ".anim"
+        guid_hi = guid_map[anim_hi_path]
+
+        select_states[i] = anim.addAnimatorBlendTree(layer,
+                generate_utils.getBlendStateName(which_layer, i),
+                generate_utils.getBlendParam(which_layer),
+                guid_lo, guid_hi, dx = dx, dy = dy)
         state = select_states[i]
 
+        # Create transition to state.
         select_state_transition = anim.addTransition(state)
         select_param = generate_utils.getSelectParam()
         anim.addTransitionIntegerEqualityCondition(active_state,
                 select_state_transition, select_param, i)
 
-    l_states = {}  # shorthand for `letter_states`
-    for i in range(0, 2 ** generate_utils.INDEX_BITS):
-        l_states[i] = {}
-        for letter in range(0, generate_utils.CHARS_PER_CELL):
-            dy = 300
-            l_states[i][letter] = anim.addAnimatorState(layer,
-                    generate_utils.getLetterStateName(which_layer,
-                        i, letter),
-                    dy = dy)
-            state = l_states[i][letter]
-
-            animation_path = gen_anim_dir + \
-                    generate_utils.getAnimationNameByLayerAndIndex(
-                            which_layer, i, letter) + \
-                    ".anim"
-            guid = guid_map[animation_path]
-            anim.setAnimatorStateAnimation(state, guid)
-
-            # TODO(yum) see if we can get away with reusing the
-            # same transition object, but just stitch it into every
-            # state.
-            l_state_transition = anim.addTransition(state)
-            l_param = generate_utils.getLayerParam(which_layer)
-            #print("add condition on letter {}".format(letter),
-            #        file=sys.stderr)
-            anim.addTransitionIntegerEqualityCondition(select_states[i],
-                    l_state_transition, l_param, letter)
-
-            home_state_transition = anim.addTransition(default_state)
-            home_state_transition.mapping['AnimatorStateTransition'].mapping['m_InterruptionSource'] = '0'
-            dummy_param = generate_utils.getDummyParam()
-            anim.addTransitionBooleanCondition(state,
-                    home_state_transition, dummy_param, False)
+        # Create return-home transition.
+        home_state_transition = anim.addTransition(default_state)
+        home_state_transition.mapping['AnimatorStateTransition'].mapping['m_InterruptionSource'] = '0'
+        dummy_param = generate_utils.getDummyParam()
+        anim.addTransitionBooleanCondition(state,
+                home_state_transition, dummy_param, False)
     pass
 
 # Generic toggle adding utility.

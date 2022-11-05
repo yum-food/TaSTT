@@ -12,7 +12,7 @@ def replaceMacros(lines, macro_defs):
 BOARD_ROWS=4
 BOARD_COLS=44
 INDEX_BITS=4
-CHARS_PER_CELL=80
+CHARS_PER_CELL=256
 
 NUM_LAYERS=ceil((BOARD_ROWS * BOARD_COLS) / (2**INDEX_BITS))
 
@@ -69,6 +69,9 @@ def getLayerParam(which_layer: int) -> str:
 def getLayerName(which_layer: int) -> str:
     return getLayerParam(which_layer)
 
+def getBlendParam(which_layer: int) -> str:
+    return "TaSTT_L%02d_Blend" % which_layer
+
 def getDefaultStateName(which_layer):
     return "TaSTT_L%02d_Do_Nothing" % which_layer
 
@@ -77,6 +80,9 @@ def getActiveStateName(which_layer):
 
 def getSelectStateName(which_layer, select):
     return "TaSTT_L%02d_S%02d" % (which_layer, select)
+
+def getBlendStateName(which_layer, select):
+    return "TaSTT_L%02d_S%02d_Blend" % (which_layer, select)
 
 def getLetterStateName(which_layer, select, letter):
     return "TaSTT_L%02d_S%02d_L%03d" % (which_layer, select, letter)

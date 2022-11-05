@@ -34,6 +34,13 @@ BOOL_PARAM = """
     defaultValue: 0
 """[1:][0:-1]
 
+FLOAT_PARAM = """
+  - name: %PARAM_NAME%
+    valueType: 1
+    saved: 0
+    defaultValue: 0
+"""[1:][0:-1]
+
 # We're working with an 84-character board, and each FX layer is responsible
 # for 8 of those characters.
 params = {}
@@ -76,5 +83,5 @@ params["PARAM_NAME"] = generate_utils.getSelectParam()
 print(generate_utils.replaceMacros(INT_PARAM, params))
 
 for i in range(0, generate_utils.NUM_LAYERS):
-    params["PARAM_NAME"] = generate_utils.getLayerParam(i)
-    print(generate_utils.replaceMacros(INT_PARAM, params))
+    params["PARAM_NAME"] = generate_utils.getBlendParam(i)
+    print(generate_utils.replaceMacros(FLOAT_PARAM, params))

@@ -179,6 +179,40 @@ AnimatorStateTransition:
   m_CanTransitionToSelf: 1
 """[1:][:-1]
 
+BLEND_TREE_TEMPLATE = """
+--- !u!206 &1071664566462684110
+BlendTree:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: REPLACEME_BLEND_TREE_NAME
+  m_Childs:
+  - serializedVersion: 2
+    m_Motion: {fileID: 7400000, guid: REPLACEME_GUID_LO, type: 2}
+    m_Threshold: -1
+    m_Position: {x: 0, y: 0}
+    m_TimeScale: 1
+    m_CycleOffset: 0
+    m_DirectBlendParameter: REPLACEME_BLEND_PARAMETER
+    m_Mirror: 0
+  - serializedVersion: 2
+    m_Motion: {fileID: 7400000, guid: REPLACEME_GUID_HI, type: 2}
+    m_Threshold: 1
+    m_Position: {x: 0, y: 0}
+    m_TimeScale: 1
+    m_CycleOffset: 0
+    m_DirectBlendParameter: REPLACEME_BLEND_PARAMETER
+    m_Mirror: 0
+  m_BlendParameter: REPLACEME_BLEND_PARAMETER
+  m_BlendParameterY: REPLACEME_BLEND_PARAMETER
+  m_MinThreshold: -1
+  m_MaxThreshold: 1
+  m_UseAutomaticThresholds: 0
+  m_NormalizedBlendValues: 0
+  m_BlendType: 0
+"""[1:][:-1]
+
 class Metadata:
     def __init__(self):
         self.guid = "%032x" % random.randrange(16 ** 32)
@@ -630,6 +664,42 @@ class UnityAnimator():
         anim_state.mapping['AnimatorState'].mapping['m_Motion'].mapping['fileID'] = '7400000'
         anim_state.mapping['AnimatorState'].mapping['m_Motion'].mapping['type'] = '2'
 
+    # Adds a blend tree which uses the parameter named `param_name` to blend
+    # between anim_lo and anim_hi. Also creates the corresponding animation
+    # state.
+    def addAnimatorBlendTree(self, layer, state_name, param_name,
+            anim_guid_lo, anim_guid_hi, dx = 0, dy = 0) -> UnityDocument:
+        # Create the blend tree.
+        parser = UnityParser()
+        parser.parse(BLEND_TREE_TEMPLATE)
+        new_anim = UnityAnimator()
+        new_anim.addNodes(parser.nodes)
+        node = new_anim.nodes[0]
+
+        new_id = self.allocateId()
+        node.class_id = "206"
+        node.anchor = str(new_id)
+        tree = node.mapping['BlendTree']
+        tree.mapping['m_Name'] = state_name
+        # Low animation
+        tree.mapping['m_Childs'].sequence[0].mapping['m_Motion'].mapping['guid'] = anim_guid_lo
+        tree.mapping['m_Childs'].sequence[0].mapping['m_DirectBlendParameter'] = param_name
+        # High animation
+        tree.mapping['m_Childs'].sequence[1].mapping['m_Motion'].mapping['guid'] = anim_guid_hi
+        tree.mapping['m_Childs'].sequence[1].mapping['m_DirectBlendParameter'] = param_name
+
+        tree.mapping['m_BlendParameter'] = param_name
+        tree.mapping['m_BlendParameterY'] = param_name
+
+        self.nodes.append(node)
+
+        # Create the corresponding animation state.
+        anim_state = self.addAnimatorState(layer, state_name, False, dx = dx, dy =
+                dy)
+        anim_state.mapping['AnimatorState'].mapping['m_Motion'].mapping['fileID'] = node.anchor
+
+        return anim_state
+
     def addTransition(self, dst_state):
         # Create animation state
         parser = UnityParser()
@@ -841,12 +911,14 @@ class UnityAnimator():
                 continue
             motion = node.mapping['AnimatorState'].mapping['m_Motion']
             replace = False
-            if not "guid" in motion.mapping.keys():
-                replace = True
-            elif not motion.mapping["guid"] in guid_map:
-                replace = True
-            if not replace:
+
+            if "fileID" in motion.mapping.keys():
                 continue
+
+            if "guid" in motion.mapping.keys() and \
+                    motion.mapping["guid"] in guid_map:
+                continue
+
             motion.mapping["fileID"] = "7400000"
             motion.mapping["guid"] = noop_anim_meta.guid
             motion.mapping["type"] = "2"

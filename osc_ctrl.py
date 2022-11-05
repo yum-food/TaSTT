@@ -75,8 +75,10 @@ def encodeMessage(lines):
     return result
 
 def updateCell(client, cell_idx, letter_encoded):
-    addr="/avatar/parameters/" + getLayerParam(cell_idx)
-    client.send_message(addr, letter_encoded)
+    addr="/avatar/parameters/" + generate_utils.getBlendParam(cell_idx)
+    letter_remapped = (-127.5 + letter_encoded) / 127.5
+    print("Send encoded letter {} / {}".format(letter_encoded, letter_remapped))
+    client.send_message(addr, letter_remapped)
 
 def enable(client):
     addr="/avatar/parameters/" + getEnableParam()
