@@ -8,7 +8,7 @@ custom shader display the text in game.
 ![Speech-to-text demo](Images/speech_to_text_demo.gif)
 
 Features:
-* 8x22 display grid, 80 characters per slot.
+* 4x44 grid, 256 or 65536 characters per slot.
 * Text-to-text interface.
 * Speech-to-text interface.
 * Free as in beer.
@@ -52,10 +52,10 @@ There are currently 5 important pieces:
 
 1. `TaSTT.shader`. A simple unlit shader. Has one parameter per cell in the
    display.
-2. `generate_animations.sh`. Generates one animation per (row, column, letter).
-   These animations allow us to write the shader's parameters from an FX layer.
-3. `generate_fx.py`. Generates a colossal FX layer which maps (row, column,
-   letter, active) to exactly one of TaSTT.shader's parameters.
+2. `libunity.py`. Contains the logic required to generate and manipulate Unity
+   YAML files. Works well enough on YAMLs up to ~40k documents, 1M lines.
+3. `libtastt.py`. Contains the logic to generate TaSTT-specific Unity files,
+   namely the animations and the animator.
 4. `osc_ctrl.py`. Sends OSC messages to VRChat, which it dutifully passes along
    to the generated FX layer.
 5. `transcribe.py`. Uses OpenAI's whisper neural network to transcribe audio
@@ -63,61 +63,52 @@ There are currently 5 important pieces:
 
 #### Parameters & board indexing
 
-There are 2 obvious ways to tell the board how to display a message:
+I divide the board into 16 regions and use a single int parameter,
+`TaSTT_Select`, to select the active region. For each byte of data
+in the active region, I use a float parameter to blend between two
+animations: one with value 0, and one with value 255.
 
-1. Independently parameterize every character slot. If we want to display
-   a 140-character tweet, this means using (140 characters) * (8 bits
-   per character) == 1120 bits of parameter memory. VRChat only gives us 256!
-2. Parameterize one character slot. We could have an 8-bit letter, an 8-bit row
-   select, and an 8-bit column select. To avoid overwriting cells while we seek,
-   we could include a 1-bit enable. This approach works, and uses very few
-   parameter bits, but it requires us to update the same parameter very quickly.
-   Experimental results with this were not promising; remote viewers would see
-   the wrong letters pretty often.
+To support wide character sets, I support 2 bytes per character. This
+can be configured down to 1 byte per character to save parameter bits.
 
-Thus I settled on a hybrid approach: we divide the board into `cells`,
-inside of which we can independently address each character slot. There
-are currently 16 cells.
-
-Since the board has (22 columns) * (8 rows) == 176 character slots, each cell
-contains (176 characters) / (16 cells) = 11 characters.
-
-To update a cell, we do this:
-
-1. Select the cell. Since there are 16 cells, this requires 4 bits.
-2. For each letter in the cell, select the letter. Since we support 256 letters
-   per cell, this requires 8 bits.
-
-To avoid overwriting cells while we seek around, we also have a single boolean
-which enables/disables updating any cells.
-
-Thus the total amount of parameter memory used is dictated by this equation:
+The the total amount of parameter memory used is dictated by this equation:
 
 ```
-ROWS * COLS * 8 / CELLS + 1 + log2(CELLS)
+ROWS = 4
+COLS = 44
+CELLS = 16
+MEMORY = ROWS * COLS * (N bits per character) / CELLS + 1 + log2(CELLS)
 ```
 
-This is currently 93 bits.
+This is currently 93 bits for 1-byte characters and 181 bits for 2-byte
+characters.
 
 #### FX controller design
 
 The FX controller (AKA animator) is pretty simple. There is one layer for each
-character in a cell. Thus the layer has to work out which cell it's in, then
+character in a cell. The layer has to work out which cell it's in, then
 work out which letter we want to write in that cell, then run an animation for
 that letter.
 
-Here's a layer where I manually moved things around to show the structure of
-the decision tree:
-
-![One FX layer with 4-bit indexing](Images/four_bit_indexing.png)
+![One FX layer with 16 cells](Images/tastt_anim.png)
 
 From top down, we first check if updating the board is enabled. If no, we stay
-in the first state. Then we check which cell we're in. This is divided into 4
-binary checks, each looking at a boolean parameter. Finally, we fire one of 80
-animations based on the value of the current layer's Letter parameter.
+in the first state. Then we check which cell we're in. Finally, we drive a
+shader parameter to one of 256 possible values using a blendtree.
 
-In the pictured FX layer, there are 16 cells each controlling 80 animations,
-for a total of 1280 animations. There are 11 such layers.
+![An 8-bit blendtree](Images/tastt_blend.png)
+
+The blendtree trick lets us represent wide character sets efficiently. The
+number of animations required increases logarithmically with the size of the
+character set:
+
+```
+(N bytes per character) = ceil(log2(size of character set))
+(total animations) =
+    (2 animations per byte) *
+    (N bytes per character) *
+    (M chars per cell)
+```
 
 ### Contributing
 

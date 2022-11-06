@@ -43,9 +43,6 @@ class AudioState:
     frames_lock = threading.Lock()
 
     text = ""
-    # To improve temporal stability, we require two consecutive identical
-    # transcriptions before "committing" to a transcription.
-    text_candidate = ""
     text_lock = threading.Lock()
 
     record_audio = True
@@ -56,6 +53,9 @@ class AudioState:
     transcribe_sleep_duration_max_s = 1.50
     transcribe_no_change_count = 0
     transcribe_sleep_duration = transcribe_sleep_duration_min_s
+    # The language the user is speaking in.
+    language = whisper.tokenizer.TO_LANGUAGE_CODE["japanese"]
+
     # When the user says `over`, we stop displaying new transcriptions until
     # they clear the board again.
     display_paused = False
@@ -162,7 +162,6 @@ def resetAudioLocked(audio_state):
     resetDiskAudioLocked(audio_state, audio_state.VOICE_AUDIO_FILENAME)
 
     audio_state.text = ""
-    audio_state.text_candidate = ""
     osc_ctrl.clear(audio_state.osc_client)
 
 def resetAudio(audio_state):
@@ -171,7 +170,7 @@ def resetAudio(audio_state):
     audio_state.frames_lock.release()
 
 # Transcribe the audio recorded in a file.
-def transcribe(model, filename):
+def transcribe(audio_state, model, filename):
 
     audio_state.frames_lock.acquire()
     audio = whisper.load_audio(filename)
@@ -179,7 +178,8 @@ def transcribe(model, filename):
 
     audio = whisper.pad_or_trim(audio)
     mel = whisper.log_mel_spectrogram(audio).to(model.device)
-    options = whisper.DecodingOptions(language = "en",
+    #options = whisper.DecodingOptions(language = "en",
+    options = whisper.DecodingOptions(language = audio_state.language,
             beam_size = 5)
     result = whisper.decode(model, mel, options)
 
@@ -220,7 +220,7 @@ def transcribeAudio(audio_state, model):
             time.sleep(0.1)
             continue
 
-        text = transcribe(model, audio_state.VOICE_AUDIO_FILENAME)
+        text = transcribe(audio_state, model, audio_state.VOICE_AUDIO_FILENAME)
         if not text:
             continue
 
@@ -241,17 +241,16 @@ def transcribeAudio(audio_state, model):
         print("Transcription: {}".format(audio_state.text))
 
         old_text = audio_state.text
-        old_words = audio_state.text.split()
-        new_words = text.split()
+        #old_words = audio_state.text.split()
+        #new_words = text.split()
 
-        audio_state.text = string_matcher.matchStringList(old_words, new_words)
+        audio_state.text = string_matcher.matchStrings(audio_state.text,
+                text, window_size = 5)
         if old_text != audio_state.text:
             # We think the user said something, so  reset the amount of
             # time we sleep between transcriptions to the minimum.
             audio_state.transcribe_no_change_count = 0
             audio_state.transcribe_sleep_duration = audio_state.transcribe_sleep_duration_min_s
-
-        audio_state.text_candidate = text
 
         audio_state.text_lock.release()
 

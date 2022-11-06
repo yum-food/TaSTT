@@ -119,7 +119,7 @@ def splitMessage(msg):
                 line = ""
             word_prefix = word[0:BOARD_COLS-1] + "-"
             word_suffix = word[BOARD_COLS-1:]
-            print("append prefix {}".format(word_prefix))
+            #print("append prefix {}".format(word_prefix))
             lines.append(word_prefix)
             word = word_suffix
 
