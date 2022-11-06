@@ -13,6 +13,7 @@ BOARD_ROWS=4
 BOARD_COLS=44
 INDEX_BITS=4
 CHARS_PER_CELL=256
+BYTES_PER_CHAR=2
 
 NUM_LAYERS=ceil((BOARD_ROWS * BOARD_COLS) / (2**INDEX_BITS))
 
@@ -63,29 +64,29 @@ def getLockWorldParam():
 
 # Each layer controls a group of cells. There's only one letter per layer, thus
 # this is also the name of the parameter which sets the letter for a layer.
-def getLayerParam(which_layer: int) -> str:
-    return "TaSTT_L%02d" % which_layer
+def getLayerParam(which_layer: int, byte: int) -> str:
+    return "TaSTT_L%02dB%01d" % (which_layer, byte)
 
-def getLayerName(which_layer: int) -> str:
-    return getLayerParam(which_layer)
+def getLayerName(which_layer: int, byte: int) -> str:
+    return getLayerParam(which_layer, byte)
 
-def getBlendParam(which_layer: int) -> str:
-    return "TaSTT_L%02d_Blend" % which_layer
+def getBlendParam(which_layer: int, byte: int) -> str:
+    return "TaSTT_L%02dB%01d_Blend" % (which_layer, byte)
 
-def getDefaultStateName(which_layer):
-    return "TaSTT_L%02d_Do_Nothing" % which_layer
+def getDefaultStateName(which_layer:int , byte: int):
+    return "TaSTT_L%02dB%01d_Do_Nothing" % (which_layer, byte)
 
-def getActiveStateName(which_layer):
-    return "TaSTT_L%02d_Active" % which_layer
+def getActiveStateName(which_layer: int, byte: int):
+    return "TaSTT_L%02dB%01d_Active" % (which_layer, byte)
 
 def getSelectStateName(which_layer, select):
-    return "TaSTT_L%02d_S%02d" % (which_layer, select)
+    return "TaSTT_L%02d_S%02d_B%01d" % (which_layer, select, byte)
 
-def getBlendStateName(which_layer, select):
-    return "TaSTT_L%02d_S%02d_Blend" % (which_layer, select)
+def getBlendStateName(which_layer, select, byte):
+    return "TaSTT_L%02d_S%02d_B%01d_Blend" % (which_layer, select, byte)
 
-def getLetterStateName(which_layer, select, letter):
-    return "TaSTT_L%02d_S%02d_L%03d" % (which_layer, select, letter)
+def getLetterStateName(which_layer, select, letter, byte):
+    return "TaSTT_L%02d_S%02d_L%03d_B%01d" % (which_layer, select, letter, byte)
 
 def getSelectParam() -> str:
     return "TaSTT_Select"
@@ -101,34 +102,34 @@ def getBoardIndex(which_layer, select):
     # those cells.
     return (select * NUM_LAYERS + which_layer) % (BOARD_ROWS * BOARD_COLS)
 
-def getShaderParamByRowCol(row, col):
-    return "_Letter_Row%02d_Col%02d" % (row, col)
+def getShaderParamByRowColByte(row, col, byte):
+    return "_Letter_Row%02d_Col%02d_Byte%01d" % (row, col, byte)
 
 # Mapping from layer to shader param.
-def getShaderParam(which_layer, select):
+def getShaderParam(which_layer, select, byte):
     index = getBoardIndex(which_layer, select)
 
     col = index % BOARD_COLS
     row = floor(index / BOARD_COLS)
 
-    return getShaderParamByRowCol(row, col)
+    return getShaderParamByRowCol(row, col, byte)
 
 # The name of the animation which writes `letter` at a specific position in the
 # display.
-def getLetterAnimationName(row, col, letter):
-    return "R%02dC%02dL%02d" % (row, col, letter)
+def getLetterAnimationName(row, col, letter, nth_byte):
+    return "R%02dC%02dL%02dB%01d" % (row, col, letter, nth_byte)
 
 # The name of the animation which clears the entire board.
 def getClearAnimationName():
     return "TaSTT_Clear_Board"
 
-def getAnimationNameByLayerAndIndex(which_layer, select, letter):
+def getAnimationNameByLayerAndIndex(which_layer, select, letter, nth_byte):
     index = getBoardIndex(which_layer, select)
 
     col = index % BOARD_COLS
     row = floor(index / BOARD_COLS)
 
-    return "R%02dC%02dL%02d" % (row, col, letter)
+    return "R%02dC%02dL%02dB%01d" % (row, col, letter, nth_byte)
 
 # Returns the path to the animation for the given shader parameter + letter.
 def getAnimationPath(shader_param, letter):

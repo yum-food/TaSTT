@@ -82,6 +82,7 @@ print(generate_utils.replaceMacros(BOOL_PARAM, params))
 params["PARAM_NAME"] = generate_utils.getSelectParam()
 print(generate_utils.replaceMacros(INT_PARAM, params))
 
-for i in range(0, generate_utils.NUM_LAYERS):
-    params["PARAM_NAME"] = generate_utils.getBlendParam(i)
-    print(generate_utils.replaceMacros(FLOAT_PARAM, params))
+for byte in range(0, generate_utils.BYTES_PER_CHAR):
+    for i in range(0, generate_utils.NUM_LAYERS):
+        params["PARAM_NAME"] = generate_utils.getBlendParam(i, byte)
+        print(generate_utils.replaceMacros(FLOAT_PARAM, params))

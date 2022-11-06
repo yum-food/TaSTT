@@ -166,17 +166,18 @@ def generateClearAnimation(anim_dir, guid_map):
     encoding = osc_ctrl.generateEncoding()
     letter = encoding[' ']
 
-    for row in range(0, generate_utils.BOARD_ROWS):
-        for col in range(0, generate_utils.BOARD_COLS):
-            curve = curve_template.copy()
-            for keyframe in curve.mapping['curve'].mapping['m_Curve'].sequence:
-                keyframe.mapping['value'] = str(letter +
-                    UNITY_ANIMATION_FUDGE_MARGIN)
-                curve.mapping['attribute'] = "material.{}".format(generate_utils.getShaderParamByRowCol(row, col))
-                curve.mapping['path'] = "World Constraint/Container/TaSTT"
-            # Add curve to animation
-            anim_clip.mapping['m_FloatCurves'].sequence.append(curve)
-            anim_clip.mapping['m_EditorCurves'].sequence.append(curve)
+    for byte in range(0, generate_utils.BYTES_PER_CHAR):
+        for row in range(0, generate_utils.BOARD_ROWS):
+            for col in range(0, generate_utils.BOARD_COLS):
+                curve = curve_template.copy()
+                for keyframe in curve.mapping['curve'].mapping['m_Curve'].sequence:
+                    keyframe.mapping['value'] = str(letter +
+                        UNITY_ANIMATION_FUDGE_MARGIN)
+                    curve.mapping['attribute'] = "material.{}".format(generate_utils.getShaderParamByRowColByte(row, col, byte))
+                    curve.mapping['path'] = "World Constraint/Container/TaSTT"
+                # Add curve to animation
+                anim_clip.mapping['m_FloatCurves'].sequence.append(curve)
+                anim_clip.mapping['m_EditorCurves'].sequence.append(curve)
     # Serialize animation to file
     anim_name = generate_utils.getClearAnimationName()
     anim_path = anim_dir + anim_name + ".anim"
@@ -204,41 +205,43 @@ def generateAnimations(anim_dir, guid_map):
     anim_clip.mapping['m_FloatCurves'].sequence = []
     anim_clip.mapping['m_EditorCurves'].sequence = []
 
-    for row in range(0, generate_utils.BOARD_ROWS):
-        print("Generating letter animations (row {}/{})".format(row,
-            generate_utils.BOARD_ROWS), file=sys.stderr)
-        for col in range(0, generate_utils.BOARD_COLS):
-            for letter in range(0, 2):
-                if letter == 1:
-                    letter = generate_utils.CHARS_PER_CELL - 1
+    # To support more languages, we use 2 bytes per character, giving us a 64K character set.
+    for byte in range(0, generate_utils.BYTES_PER_CHAR):
+        for row in range(0, generate_utils.BOARD_ROWS):
+            print("Generating letter animations (row {}/{}) (byte {}/2)".format(row,
+                generate_utils.BOARD_ROWS, byte), file=sys.stderr)
+            for col in range(0, generate_utils.BOARD_COLS):
+                for letter in range(0, 2):
+                    if letter == 1:
+                        letter = generate_utils.CHARS_PER_CELL - 1
 
-                # Make a deep copy of the templates
-                node = anim_node.copy()
-                curve = curve_template.copy()
-                clip = node.mapping['AnimationClip']
-                # Populate animation name
-                anim_name = generate_utils.getLetterAnimationName(row, col, letter)
-                clip.mapping['m_Name'] = anim_name
-                # Populate letter value
-                for keyframe in curve.mapping['curve'].mapping['m_Curve'].sequence:
-                    keyframe.mapping['value'] = str(letter + UNITY_ANIMATION_FUDGE_MARGIN)
-                # Populate path to letter parameter
-                curve.mapping['attribute'] = "material.{}".format(generate_utils.getShaderParamByRowCol(row, col))
-                curve.mapping['path'] = "World Constraint/Container/TaSTT"
-                # Add curve to animation
-                clip.mapping['m_FloatCurves'].sequence.append(curve)
-                clip.mapping['m_EditorCurves'].sequence.append(curve)
-                # Serialize animation to file
-                anim_path = anim_dir + anim_name + ".anim"
-                with open(anim_path, "w") as f:
-                    f.write(libunity.unityYamlToString([node]))
-                # Generate metadata
-                meta = libunity.Metadata()
-                with open(anim_path + ".meta", "w") as f:
-                    f.write(str(meta))
-                # Add metadata to guid map
-                guid_map[anim_path] = meta.guid
-                guid_map[meta.guid] = anim_path
+                    # Make a deep copy of the templates
+                    node = anim_node.copy()
+                    curve = curve_template.copy()
+                    clip = node.mapping['AnimationClip']
+                    # Populate animation name
+                    anim_name = generate_utils.getLetterAnimationName(row, col, letter, byte)
+                    clip.mapping['m_Name'] = anim_name
+                    # Populate letter value
+                    for keyframe in curve.mapping['curve'].mapping['m_Curve'].sequence:
+                        keyframe.mapping['value'] = str(letter + UNITY_ANIMATION_FUDGE_MARGIN)
+                    # Populate path to letter parameter
+                    curve.mapping['attribute'] = "material.{}".format(generate_utils.getShaderParamByRowColByte(row, col, byte))
+                    curve.mapping['path'] = "World Constraint/Container/TaSTT"
+                    # Add curve to animation
+                    clip.mapping['m_FloatCurves'].sequence.append(curve)
+                    clip.mapping['m_EditorCurves'].sequence.append(curve)
+                    # Serialize animation to file
+                    anim_path = anim_dir + anim_name + ".anim"
+                    with open(anim_path, "w") as f:
+                        f.write(libunity.unityYamlToString([node]))
+                    # Generate metadata
+                    meta = libunity.Metadata()
+                    with open(anim_path + ".meta", "w") as f:
+                        f.write(str(meta))
+                    # Add metadata to guid map
+                    guid_map[anim_path] = meta.guid
+                    guid_map[meta.guid] = anim_path
 
 def generateFXController(anim: libunity.UnityAnimator) -> typing.Dict[int, libunity.UnityDocument]:
     parser = libunity.UnityParser()
@@ -257,24 +260,26 @@ def generateFXController(anim: libunity.UnityAnimator) -> typing.Dict[int, libun
     anim.addParameter(generate_utils.getClearBoardParam(), bool)
 
     layers = {}
-    for i in range(0, generate_utils.NUM_LAYERS):
-        anim.addParameter(generate_utils.getBlendParam(i), float)
+    for byte in range(0, generate_utils.BYTES_PER_CHAR):
+        layers[byte] = {}
+        for i in range(0, generate_utils.NUM_LAYERS):
+            anim.addParameter(generate_utils.getBlendParam(i, byte), float)
 
-        layer = anim.addLayer(generate_utils.getLayerName(i))
-        layers[i] = layer
+            layer = anim.addLayer(generate_utils.getLayerName(i, byte))
+            layers[byte][i] = layer
     anim.addParameter(generate_utils.getSelectParam(), int)
 
     return layers
 
 def generateFXLayer(which_layer: int, anim: libunity.UnityAnimator, layer:
-        libunity.UnityDocument, gen_anim_dir: str):
+        libunity.UnityDocument, gen_anim_dir: str, byte: int):
     is_default_state = True
     default_state = anim.addAnimatorState(layer,
-            generate_utils.getDefaultStateName(which_layer), is_default_state)
+            generate_utils.getDefaultStateName(which_layer, byte), is_default_state)
 
     dy = 100
     active_state = anim.addAnimatorState(layer,
-            generate_utils.getActiveStateName(which_layer), dy = dy)
+            generate_utils.getActiveStateName(which_layer, byte), dy = dy)
 
     active_state_transition = anim.addTransition(active_state)
     enable_param = generate_utils.getEnableParam()
@@ -289,18 +294,18 @@ def generateFXLayer(which_layer: int, anim: libunity.UnityAnimator, layer:
         # Create blend tree for this region.
         anim_lo_path = gen_anim_dir + \
                 generate_utils.getAnimationNameByLayerAndIndex(
-                        which_layer, i, 0) + \
+                        which_layer, i, 0, byte) + \
                 ".anim"
         guid_lo = guid_map[anim_lo_path]
         anim_hi_path = gen_anim_dir + \
                 generate_utils.getAnimationNameByLayerAndIndex(
-                        which_layer, i, generate_utils.CHARS_PER_CELL - 1) + \
+                        which_layer, i, generate_utils.CHARS_PER_CELL - 1, byte) + \
                 ".anim"
         guid_hi = guid_map[anim_hi_path]
 
         select_states[i] = anim.addAnimatorBlendTree(layer,
-                generate_utils.getBlendStateName(which_layer, i),
-                generate_utils.getBlendParam(which_layer),
+                generate_utils.getBlendStateName(which_layer, i, byte),
+                generate_utils.getBlendParam(which_layer, byte),
                 guid_lo, guid_hi, dx = dx, dy = dy)
         state = select_states[i]
 
@@ -372,9 +377,10 @@ def generateFX(guid_map, gen_anim_dir):
     layers = generateFXController(anim)
 
     # TODO(yum) parallelize
-    for which_layer, layer in layers.items():
-        print("Generating layer {}/{}".format(which_layer, len(layers.items())), file=sys.stderr)
-        generateFXLayer(which_layer, anim, layer, gen_anim_dir)
+    for byte in range(0, generate_utils.BYTES_PER_CHAR):
+        for which_layer, layer in layers[byte].items():
+            print("Generating layer {}/{}".format(which_layer, len(layers[byte].items())), file=sys.stderr)
+            generateFXLayer(which_layer, anim, layer, gen_anim_dir, byte)
 
     states = generateToggle(
             generate_utils.getSpeechNoiseToggleParam(),

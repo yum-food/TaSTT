@@ -5,8 +5,9 @@ from PIL import Image, ImageFont, ImageDraw
 import math
 
 # Use a power of 2 pixels per character so we can evenly divide the plane.
-font_pixels = 64
+font_pixels = 128
 font = ImageFont.truetype("unifont-15.0.01.ttf", font_pixels)
+font_half_sz = ImageFont.truetype("unifont-15.0.01.ttf", int(font_pixels / 2))
 
 n_rows = 64
 n_cols = 128
@@ -60,8 +61,8 @@ total_textures = math.ceil(total_rows / n_rows)
 print("total textures {}".format(total_textures))
 
 for nth_texture in range(0, total_textures):
-    # Create a 4K grayscale ("L") image
-    image = Image.new(mode="L", size=(4096,4096), color=0)
+    # Create an 8K grayscale ("L") image
+    image = Image.new(mode="1", size=(8192,8192), color=0)
     draw = ImageDraw.Draw(image)
 
     row_begin = nth_texture * n_rows
@@ -71,11 +72,19 @@ for nth_texture in range(0, total_textures):
         for col in range(0, n_cols):
             # Generate the unicode character for this spot.
             n = row * n_cols + col
+            char = None
             if n in allowlist:
-                line += chr(n)
+                char = chr(n)
             else:
-                line += " "
-        draw.text((0, (row - row_begin) * font_pixels), line, font=font, fill=255)
+                char = " "
+            # Hack: Chinese, Japanese, and Korean characters are all double
+            # width and are all on textures [1,6]. To fit them in the same
+            # grid, we use a half-size font.
+            if nth_texture == 0:
+                draw.text((col * font_pixels / 2, (row - row_begin) * font_pixels), char, font=font, fill=255)
+            else:
+                draw.text((col * font_pixels / 2, (row - row_begin) * font_pixels), char,
+                        font=font_half_sz, fill=255)
 
     image.save("font-%01d.png" % nth_texture)
 

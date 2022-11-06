@@ -38,23 +38,8 @@ state = EvilGlobalState()
 # This function provides a mapping from letter ('a') to index (26).
 def generateEncoding():
     encoding = {}
-    for i in range(0, 26):
-        encoding[chr(ord('A') + i)] = i
-    for i in range(26, 52):
-        encoding[chr(ord('a') + i - 26)] = i
-    for i in range(52, 62):
-        encoding[chr(ord('0') + i - 52)] = i
-    encoding[','] = 62
-    encoding['.'] = 63
-    encoding[' '] = 64
-    encoding['?'] = 65
-    encoding['!'] = 66
-    encoding[';'] = 67
-    encoding[':'] = 68
-    encoding['-'] = 69
-    encoding['_'] = 70
-    encoding["'"] = 71
-    encoding['"'] = 72
+    for i in range(0, 65535):
+        encoding[chr(i)] = (i % 256, int(i / 256))
     return encoding
 state.encoding = generateEncoding()
 
@@ -75,9 +60,10 @@ def encodeMessage(lines):
     return result
 
 def updateCell(client, cell_idx, letter_encoded):
-    addr="/avatar/parameters/" + generate_utils.getBlendParam(cell_idx)
-    letter_remapped = (-127.5 + letter_encoded) / 127.5
-    client.send_message(addr, letter_remapped)
+    for byte in range(0, generate_utils.BYTES_PER_CHAR):
+        addr="/avatar/parameters/" + generate_utils.getBlendParam(cell_idx, byte)
+        letter_remapped = (-127.5 + letter_encoded[byte]) / 127.5
+        client.send_message(addr, letter_remapped)
 
 def enable(client):
     addr="/avatar/parameters/" + getEnableParam()
@@ -330,6 +316,11 @@ if __name__ == "__main__":
     client = getClient(args.i, args.p)
 
     state.encoding = generateEncoding()
+
+    sendRawMessage(client, [ \
+            (65,0), \
+            (0x20,0xAD), \
+            ])
 
     tx_state = OscTxState()
     for line in fileinput.input():

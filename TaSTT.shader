@@ -2,191 +2,367 @@
 {
   Properties
   {
-    _Font_0x0000_0x1FFF ("Texture", 2D) = "white" {}
-    _Font_0x2000_0x3FFF ("Texture", 2D) = "white" {}
-    _Font_0x4000_0x5FFF ("Texture", 2D) = "white" {}
-    _Font_0x6000_0x7FFF ("Texture", 2D) = "white" {}
-    _Font_0x8000_0x9FFF ("Texture", 2D) = "white" {}
-    _Font_0xA000_0xBFFF ("Texture", 2D) = "white" {}
-    _Font_0xC000_0xDFFF ("Texture", 2D) = "white" {}
+    _Font_0x0000_0x1FFF ("Font 0 (unicode 0x0000 - 0x1FFFF)", 2D) = "white" {}
+    _Font_0x2000_0x3FFF ("Font 1 (unicode 0x2000 - 0x3FFFF)", 2D) = "white" {}
+    _Font_0x4000_0x5FFF ("Font 2 (unicode 0x4000 - 0x5FFFF)", 2D) = "white" {}
+    _Font_0x6000_0x7FFF ("Font 3 (unicode 0x6000 - 0x7FFFF)", 2D) = "white" {}
+    _Font_0x8000_0x9FFF ("Font 4 (unicode 0x8000 - 0x9FFFF)", 2D) = "white" {}
+    _Font_0xA000_0xBFFF ("Font 5 (unicode 0xA000 - 0xBFFFF)", 2D) = "white" {}
+    _Font_0xC000_0xDFFF ("Font 6 (unicode 0xC000 - 0xDFFFF)", 2D) = "white" {}
 
     // software "engineering" LULW
-    _Letter_Row00_Col00("_Letter_Row00_Col00", float) = 0
-    _Letter_Row00_Col01("_Letter_Row00_Col01", float) = 0
-    _Letter_Row00_Col02("_Letter_Row00_Col02", float) = 0
-    _Letter_Row00_Col03("_Letter_Row00_Col03", float) = 0
-    _Letter_Row00_Col04("_Letter_Row00_Col04", float) = 0
-    _Letter_Row00_Col05("_Letter_Row00_Col05", float) = 0
-    _Letter_Row00_Col06("_Letter_Row00_Col06", float) = 0
-    _Letter_Row00_Col07("_Letter_Row00_Col07", float) = 0
-    _Letter_Row00_Col08("_Letter_Row00_Col08", float) = 0
-    _Letter_Row00_Col09("_Letter_Row00_Col09", float) = 0
-    _Letter_Row00_Col10("_Letter_Row00_Col10", float) = 0
-    _Letter_Row00_Col11("_Letter_Row00_Col11", float) = 0
-    _Letter_Row00_Col12("_Letter_Row00_Col12", float) = 0
-    _Letter_Row00_Col13("_Letter_Row00_Col13", float) = 0
-    _Letter_Row00_Col14("_Letter_Row00_Col14", float) = 0
-    _Letter_Row00_Col15("_Letter_Row00_Col15", float) = 0
-    _Letter_Row00_Col16("_Letter_Row00_Col16", float) = 0
-    _Letter_Row00_Col17("_Letter_Row00_Col17", float) = 0
-    _Letter_Row00_Col18("_Letter_Row00_Col18", float) = 0
-    _Letter_Row00_Col19("_Letter_Row00_Col19", float) = 0
-    _Letter_Row00_Col20("_Letter_Row00_Col20", float) = 0
-    _Letter_Row00_Col21("_Letter_Row00_Col21", float) = 0
-    _Letter_Row00_Col22("_Letter_Row00_Col22", float) = 0
-    _Letter_Row00_Col23("_Letter_Row00_Col23", float) = 0
-    _Letter_Row00_Col24("_Letter_Row00_Col24", float) = 0
-    _Letter_Row00_Col25("_Letter_Row00_Col25", float) = 0
-    _Letter_Row00_Col26("_Letter_Row00_Col26", float) = 0
-    _Letter_Row00_Col27("_Letter_Row00_Col27", float) = 0
-    _Letter_Row00_Col28("_Letter_Row00_Col28", float) = 0
-    _Letter_Row00_Col29("_Letter_Row00_Col29", float) = 0
-    _Letter_Row00_Col30("_Letter_Row00_Col30", float) = 0
-    _Letter_Row00_Col31("_Letter_Row00_Col31", float) = 0
-    _Letter_Row00_Col32("_Letter_Row00_Col32", float) = 0
-    _Letter_Row00_Col33("_Letter_Row00_Col33", float) = 0
-    _Letter_Row00_Col34("_Letter_Row00_Col34", float) = 0
-    _Letter_Row00_Col35("_Letter_Row00_Col35", float) = 0
-    _Letter_Row00_Col36("_Letter_Row00_Col36", float) = 0
-    _Letter_Row00_Col37("_Letter_Row00_Col37", float) = 0
-    _Letter_Row00_Col38("_Letter_Row00_Col38", float) = 0
-    _Letter_Row00_Col39("_Letter_Row00_Col39", float) = 0
-    _Letter_Row00_Col40("_Letter_Row00_Col40", float) = 0
-    _Letter_Row00_Col41("_Letter_Row00_Col41", float) = 0
-    _Letter_Row00_Col42("_Letter_Row00_Col42", float) = 0
-    _Letter_Row00_Col43("_Letter_Row00_Col43", float) = 0
-    _Letter_Row01_Col00("_Letter_Row01_Col00", float) = 0
-    _Letter_Row01_Col01("_Letter_Row01_Col01", float) = 0
-    _Letter_Row01_Col02("_Letter_Row01_Col02", float) = 0
-    _Letter_Row01_Col03("_Letter_Row01_Col03", float) = 0
-    _Letter_Row01_Col04("_Letter_Row01_Col04", float) = 0
-    _Letter_Row01_Col05("_Letter_Row01_Col05", float) = 0
-    _Letter_Row01_Col06("_Letter_Row01_Col06", float) = 0
-    _Letter_Row01_Col07("_Letter_Row01_Col07", float) = 0
-    _Letter_Row01_Col08("_Letter_Row01_Col08", float) = 0
-    _Letter_Row01_Col09("_Letter_Row01_Col09", float) = 0
-    _Letter_Row01_Col10("_Letter_Row01_Col10", float) = 0
-    _Letter_Row01_Col11("_Letter_Row01_Col11", float) = 0
-    _Letter_Row01_Col12("_Letter_Row01_Col12", float) = 0
-    _Letter_Row01_Col13("_Letter_Row01_Col13", float) = 0
-    _Letter_Row01_Col14("_Letter_Row01_Col14", float) = 0
-    _Letter_Row01_Col15("_Letter_Row01_Col15", float) = 0
-    _Letter_Row01_Col16("_Letter_Row01_Col16", float) = 0
-    _Letter_Row01_Col17("_Letter_Row01_Col17", float) = 0
-    _Letter_Row01_Col18("_Letter_Row01_Col18", float) = 0
-    _Letter_Row01_Col19("_Letter_Row01_Col19", float) = 0
-    _Letter_Row01_Col20("_Letter_Row01_Col20", float) = 0
-    _Letter_Row01_Col21("_Letter_Row01_Col21", float) = 0
-    _Letter_Row01_Col22("_Letter_Row01_Col22", float) = 0
-    _Letter_Row01_Col23("_Letter_Row01_Col23", float) = 0
-    _Letter_Row01_Col24("_Letter_Row01_Col24", float) = 0
-    _Letter_Row01_Col25("_Letter_Row01_Col25", float) = 0
-    _Letter_Row01_Col26("_Letter_Row01_Col26", float) = 0
-    _Letter_Row01_Col27("_Letter_Row01_Col27", float) = 0
-    _Letter_Row01_Col28("_Letter_Row01_Col28", float) = 0
-    _Letter_Row01_Col29("_Letter_Row01_Col29", float) = 0
-    _Letter_Row01_Col30("_Letter_Row01_Col30", float) = 0
-    _Letter_Row01_Col31("_Letter_Row01_Col31", float) = 0
-    _Letter_Row01_Col32("_Letter_Row01_Col32", float) = 0
-    _Letter_Row01_Col33("_Letter_Row01_Col33", float) = 0
-    _Letter_Row01_Col34("_Letter_Row01_Col34", float) = 0
-    _Letter_Row01_Col35("_Letter_Row01_Col35", float) = 0
-    _Letter_Row01_Col36("_Letter_Row01_Col36", float) = 0
-    _Letter_Row01_Col37("_Letter_Row01_Col37", float) = 0
-    _Letter_Row01_Col38("_Letter_Row01_Col38", float) = 0
-    _Letter_Row01_Col39("_Letter_Row01_Col39", float) = 0
-    _Letter_Row01_Col40("_Letter_Row01_Col40", float) = 0
-    _Letter_Row01_Col41("_Letter_Row01_Col41", float) = 0
-    _Letter_Row01_Col42("_Letter_Row01_Col42", float) = 0
-    _Letter_Row01_Col43("_Letter_Row01_Col43", float) = 0
-    _Letter_Row02_Col00("_Letter_Row02_Col00", float) = 0
-    _Letter_Row02_Col01("_Letter_Row02_Col01", float) = 0
-    _Letter_Row02_Col02("_Letter_Row02_Col02", float) = 0
-    _Letter_Row02_Col03("_Letter_Row02_Col03", float) = 0
-    _Letter_Row02_Col04("_Letter_Row02_Col04", float) = 0
-    _Letter_Row02_Col05("_Letter_Row02_Col05", float) = 0
-    _Letter_Row02_Col06("_Letter_Row02_Col06", float) = 0
-    _Letter_Row02_Col07("_Letter_Row02_Col07", float) = 0
-    _Letter_Row02_Col08("_Letter_Row02_Col08", float) = 0
-    _Letter_Row02_Col09("_Letter_Row02_Col09", float) = 0
-    _Letter_Row02_Col10("_Letter_Row02_Col10", float) = 0
-    _Letter_Row02_Col11("_Letter_Row02_Col11", float) = 0
-    _Letter_Row02_Col12("_Letter_Row02_Col12", float) = 0
-    _Letter_Row02_Col13("_Letter_Row02_Col13", float) = 0
-    _Letter_Row02_Col14("_Letter_Row02_Col14", float) = 0
-    _Letter_Row02_Col15("_Letter_Row02_Col15", float) = 0
-    _Letter_Row02_Col16("_Letter_Row02_Col16", float) = 0
-    _Letter_Row02_Col17("_Letter_Row02_Col17", float) = 0
-    _Letter_Row02_Col18("_Letter_Row02_Col18", float) = 0
-    _Letter_Row02_Col19("_Letter_Row02_Col19", float) = 0
-    _Letter_Row02_Col20("_Letter_Row02_Col20", float) = 0
-    _Letter_Row02_Col21("_Letter_Row02_Col21", float) = 0
-    _Letter_Row02_Col22("_Letter_Row02_Col22", float) = 0
-    _Letter_Row02_Col23("_Letter_Row02_Col23", float) = 0
-    _Letter_Row02_Col24("_Letter_Row02_Col24", float) = 0
-    _Letter_Row02_Col25("_Letter_Row02_Col25", float) = 0
-    _Letter_Row02_Col26("_Letter_Row02_Col26", float) = 0
-    _Letter_Row02_Col27("_Letter_Row02_Col27", float) = 0
-    _Letter_Row02_Col28("_Letter_Row02_Col28", float) = 0
-    _Letter_Row02_Col29("_Letter_Row02_Col29", float) = 0
-    _Letter_Row02_Col30("_Letter_Row02_Col30", float) = 0
-    _Letter_Row02_Col31("_Letter_Row02_Col31", float) = 0
-    _Letter_Row02_Col32("_Letter_Row02_Col32", float) = 0
-    _Letter_Row02_Col33("_Letter_Row02_Col33", float) = 0
-    _Letter_Row02_Col34("_Letter_Row02_Col34", float) = 0
-    _Letter_Row02_Col35("_Letter_Row02_Col35", float) = 0
-    _Letter_Row02_Col36("_Letter_Row02_Col36", float) = 0
-    _Letter_Row02_Col37("_Letter_Row02_Col37", float) = 0
-    _Letter_Row02_Col38("_Letter_Row02_Col38", float) = 0
-    _Letter_Row02_Col39("_Letter_Row02_Col39", float) = 0
-    _Letter_Row02_Col40("_Letter_Row02_Col40", float) = 0
-    _Letter_Row02_Col41("_Letter_Row02_Col41", float) = 0
-    _Letter_Row02_Col42("_Letter_Row02_Col42", float) = 0
-    _Letter_Row02_Col43("_Letter_Row02_Col43", float) = 0
-    _Letter_Row03_Col00("_Letter_Row03_Col00", float) = 0
-    _Letter_Row03_Col01("_Letter_Row03_Col01", float) = 0
-    _Letter_Row03_Col02("_Letter_Row03_Col02", float) = 0
-    _Letter_Row03_Col03("_Letter_Row03_Col03", float) = 0
-    _Letter_Row03_Col04("_Letter_Row03_Col04", float) = 0
-    _Letter_Row03_Col05("_Letter_Row03_Col05", float) = 0
-    _Letter_Row03_Col06("_Letter_Row03_Col06", float) = 0
-    _Letter_Row03_Col07("_Letter_Row03_Col07", float) = 0
-    _Letter_Row03_Col08("_Letter_Row03_Col08", float) = 0
-    _Letter_Row03_Col09("_Letter_Row03_Col09", float) = 0
-    _Letter_Row03_Col10("_Letter_Row03_Col10", float) = 0
-    _Letter_Row03_Col11("_Letter_Row03_Col11", float) = 0
-    _Letter_Row03_Col12("_Letter_Row03_Col12", float) = 0
-    _Letter_Row03_Col13("_Letter_Row03_Col13", float) = 0
-    _Letter_Row03_Col14("_Letter_Row03_Col14", float) = 0
-    _Letter_Row03_Col15("_Letter_Row03_Col15", float) = 0
-    _Letter_Row03_Col16("_Letter_Row03_Col16", float) = 0
-    _Letter_Row03_Col17("_Letter_Row03_Col17", float) = 0
-    _Letter_Row03_Col18("_Letter_Row03_Col18", float) = 0
-    _Letter_Row03_Col19("_Letter_Row03_Col19", float) = 0
-    _Letter_Row03_Col20("_Letter_Row03_Col20", float) = 0
-    _Letter_Row03_Col21("_Letter_Row03_Col21", float) = 0
-    _Letter_Row03_Col22("_Letter_Row03_Col22", float) = 0
-    _Letter_Row03_Col23("_Letter_Row03_Col23", float) = 0
-    _Letter_Row03_Col24("_Letter_Row03_Col24", float) = 0
-    _Letter_Row03_Col25("_Letter_Row03_Col25", float) = 0
-    _Letter_Row03_Col26("_Letter_Row03_Col26", float) = 0
-    _Letter_Row03_Col27("_Letter_Row03_Col27", float) = 0
-    _Letter_Row03_Col28("_Letter_Row03_Col28", float) = 0
-    _Letter_Row03_Col29("_Letter_Row03_Col29", float) = 0
-    _Letter_Row03_Col30("_Letter_Row03_Col30", float) = 0
-    _Letter_Row03_Col31("_Letter_Row03_Col31", float) = 0
-    _Letter_Row03_Col32("_Letter_Row03_Col32", float) = 0
-    _Letter_Row03_Col33("_Letter_Row03_Col33", float) = 0
-    _Letter_Row03_Col34("_Letter_Row03_Col34", float) = 0
-    _Letter_Row03_Col35("_Letter_Row03_Col35", float) = 0
-    _Letter_Row03_Col36("_Letter_Row03_Col36", float) = 0
-    _Letter_Row03_Col37("_Letter_Row03_Col37", float) = 0
-    _Letter_Row03_Col38("_Letter_Row03_Col38", float) = 0
-    _Letter_Row03_Col39("_Letter_Row03_Col39", float) = 0
-    _Letter_Row03_Col40("_Letter_Row03_Col40", float) = 0
-    _Letter_Row03_Col41("_Letter_Row03_Col41", float) = 0
-    _Letter_Row03_Col42("_Letter_Row03_Col42", float) = 0
-    _Letter_Row03_Col43("_Letter_Row03_Col43", float) = 0
+    _Letter_Row00_Col00_Byte0("_Letter_Row00_Col00_Byte0", float) = 0
+    _Letter_Row00_Col01_Byte0("_Letter_Row00_Col01_Byte0", float) = 0
+    _Letter_Row00_Col02_Byte0("_Letter_Row00_Col02_Byte0", float) = 0
+    _Letter_Row00_Col03_Byte0("_Letter_Row00_Col03_Byte0", float) = 0
+    _Letter_Row00_Col04_Byte0("_Letter_Row00_Col04_Byte0", float) = 0
+    _Letter_Row00_Col05_Byte0("_Letter_Row00_Col05_Byte0", float) = 0
+    _Letter_Row00_Col06_Byte0("_Letter_Row00_Col06_Byte0", float) = 0
+    _Letter_Row00_Col07_Byte0("_Letter_Row00_Col07_Byte0", float) = 0
+    _Letter_Row00_Col08_Byte0("_Letter_Row00_Col08_Byte0", float) = 0
+    _Letter_Row00_Col09_Byte0("_Letter_Row00_Col09_Byte0", float) = 0
+    _Letter_Row00_Col10_Byte0("_Letter_Row00_Col10_Byte0", float) = 0
+    _Letter_Row00_Col11_Byte0("_Letter_Row00_Col11_Byte0", float) = 0
+    _Letter_Row00_Col12_Byte0("_Letter_Row00_Col12_Byte0", float) = 0
+    _Letter_Row00_Col13_Byte0("_Letter_Row00_Col13_Byte0", float) = 0
+    _Letter_Row00_Col14_Byte0("_Letter_Row00_Col14_Byte0", float) = 0
+    _Letter_Row00_Col15_Byte0("_Letter_Row00_Col15_Byte0", float) = 0
+    _Letter_Row00_Col16_Byte0("_Letter_Row00_Col16_Byte0", float) = 0
+    _Letter_Row00_Col17_Byte0("_Letter_Row00_Col17_Byte0", float) = 0
+    _Letter_Row00_Col18_Byte0("_Letter_Row00_Col18_Byte0", float) = 0
+    _Letter_Row00_Col19_Byte0("_Letter_Row00_Col19_Byte0", float) = 0
+    _Letter_Row00_Col20_Byte0("_Letter_Row00_Col20_Byte0", float) = 0
+    _Letter_Row00_Col21_Byte0("_Letter_Row00_Col21_Byte0", float) = 0
+    _Letter_Row00_Col22_Byte0("_Letter_Row00_Col22_Byte0", float) = 0
+    _Letter_Row00_Col23_Byte0("_Letter_Row00_Col23_Byte0", float) = 0
+    _Letter_Row00_Col24_Byte0("_Letter_Row00_Col24_Byte0", float) = 0
+    _Letter_Row00_Col25_Byte0("_Letter_Row00_Col25_Byte0", float) = 0
+    _Letter_Row00_Col26_Byte0("_Letter_Row00_Col26_Byte0", float) = 0
+    _Letter_Row00_Col27_Byte0("_Letter_Row00_Col27_Byte0", float) = 0
+    _Letter_Row00_Col28_Byte0("_Letter_Row00_Col28_Byte0", float) = 0
+    _Letter_Row00_Col29_Byte0("_Letter_Row00_Col29_Byte0", float) = 0
+    _Letter_Row00_Col30_Byte0("_Letter_Row00_Col30_Byte0", float) = 0
+    _Letter_Row00_Col31_Byte0("_Letter_Row00_Col31_Byte0", float) = 0
+    _Letter_Row00_Col32_Byte0("_Letter_Row00_Col32_Byte0", float) = 0
+    _Letter_Row00_Col33_Byte0("_Letter_Row00_Col33_Byte0", float) = 0
+    _Letter_Row00_Col34_Byte0("_Letter_Row00_Col34_Byte0", float) = 0
+    _Letter_Row00_Col35_Byte0("_Letter_Row00_Col35_Byte0", float) = 0
+    _Letter_Row00_Col36_Byte0("_Letter_Row00_Col36_Byte0", float) = 0
+    _Letter_Row00_Col37_Byte0("_Letter_Row00_Col37_Byte0", float) = 0
+    _Letter_Row00_Col38_Byte0("_Letter_Row00_Col38_Byte0", float) = 0
+    _Letter_Row00_Col39_Byte0("_Letter_Row00_Col39_Byte0", float) = 0
+    _Letter_Row00_Col40_Byte0("_Letter_Row00_Col40_Byte0", float) = 0
+    _Letter_Row00_Col41_Byte0("_Letter_Row00_Col41_Byte0", float) = 0
+    _Letter_Row00_Col42_Byte0("_Letter_Row00_Col42_Byte0", float) = 0
+    _Letter_Row00_Col43_Byte0("_Letter_Row00_Col43_Byte0", float) = 0
+    _Letter_Row01_Col00_Byte0("_Letter_Row01_Col00_Byte0", float) = 0
+    _Letter_Row01_Col01_Byte0("_Letter_Row01_Col01_Byte0", float) = 0
+    _Letter_Row01_Col02_Byte0("_Letter_Row01_Col02_Byte0", float) = 0
+    _Letter_Row01_Col03_Byte0("_Letter_Row01_Col03_Byte0", float) = 0
+    _Letter_Row01_Col04_Byte0("_Letter_Row01_Col04_Byte0", float) = 0
+    _Letter_Row01_Col05_Byte0("_Letter_Row01_Col05_Byte0", float) = 0
+    _Letter_Row01_Col06_Byte0("_Letter_Row01_Col06_Byte0", float) = 0
+    _Letter_Row01_Col07_Byte0("_Letter_Row01_Col07_Byte0", float) = 0
+    _Letter_Row01_Col08_Byte0("_Letter_Row01_Col08_Byte0", float) = 0
+    _Letter_Row01_Col09_Byte0("_Letter_Row01_Col09_Byte0", float) = 0
+    _Letter_Row01_Col10_Byte0("_Letter_Row01_Col10_Byte0", float) = 0
+    _Letter_Row01_Col11_Byte0("_Letter_Row01_Col11_Byte0", float) = 0
+    _Letter_Row01_Col12_Byte0("_Letter_Row01_Col12_Byte0", float) = 0
+    _Letter_Row01_Col13_Byte0("_Letter_Row01_Col13_Byte0", float) = 0
+    _Letter_Row01_Col14_Byte0("_Letter_Row01_Col14_Byte0", float) = 0
+    _Letter_Row01_Col15_Byte0("_Letter_Row01_Col15_Byte0", float) = 0
+    _Letter_Row01_Col16_Byte0("_Letter_Row01_Col16_Byte0", float) = 0
+    _Letter_Row01_Col17_Byte0("_Letter_Row01_Col17_Byte0", float) = 0
+    _Letter_Row01_Col18_Byte0("_Letter_Row01_Col18_Byte0", float) = 0
+    _Letter_Row01_Col19_Byte0("_Letter_Row01_Col19_Byte0", float) = 0
+    _Letter_Row01_Col20_Byte0("_Letter_Row01_Col20_Byte0", float) = 0
+    _Letter_Row01_Col21_Byte0("_Letter_Row01_Col21_Byte0", float) = 0
+    _Letter_Row01_Col22_Byte0("_Letter_Row01_Col22_Byte0", float) = 0
+    _Letter_Row01_Col23_Byte0("_Letter_Row01_Col23_Byte0", float) = 0
+    _Letter_Row01_Col24_Byte0("_Letter_Row01_Col24_Byte0", float) = 0
+    _Letter_Row01_Col25_Byte0("_Letter_Row01_Col25_Byte0", float) = 0
+    _Letter_Row01_Col26_Byte0("_Letter_Row01_Col26_Byte0", float) = 0
+    _Letter_Row01_Col27_Byte0("_Letter_Row01_Col27_Byte0", float) = 0
+    _Letter_Row01_Col28_Byte0("_Letter_Row01_Col28_Byte0", float) = 0
+    _Letter_Row01_Col29_Byte0("_Letter_Row01_Col29_Byte0", float) = 0
+    _Letter_Row01_Col30_Byte0("_Letter_Row01_Col30_Byte0", float) = 0
+    _Letter_Row01_Col31_Byte0("_Letter_Row01_Col31_Byte0", float) = 0
+    _Letter_Row01_Col32_Byte0("_Letter_Row01_Col32_Byte0", float) = 0
+    _Letter_Row01_Col33_Byte0("_Letter_Row01_Col33_Byte0", float) = 0
+    _Letter_Row01_Col34_Byte0("_Letter_Row01_Col34_Byte0", float) = 0
+    _Letter_Row01_Col35_Byte0("_Letter_Row01_Col35_Byte0", float) = 0
+    _Letter_Row01_Col36_Byte0("_Letter_Row01_Col36_Byte0", float) = 0
+    _Letter_Row01_Col37_Byte0("_Letter_Row01_Col37_Byte0", float) = 0
+    _Letter_Row01_Col38_Byte0("_Letter_Row01_Col38_Byte0", float) = 0
+    _Letter_Row01_Col39_Byte0("_Letter_Row01_Col39_Byte0", float) = 0
+    _Letter_Row01_Col40_Byte0("_Letter_Row01_Col40_Byte0", float) = 0
+    _Letter_Row01_Col41_Byte0("_Letter_Row01_Col41_Byte0", float) = 0
+    _Letter_Row01_Col42_Byte0("_Letter_Row01_Col42_Byte0", float) = 0
+    _Letter_Row01_Col43_Byte0("_Letter_Row01_Col43_Byte0", float) = 0
+    _Letter_Row02_Col00_Byte0("_Letter_Row02_Col00_Byte0", float) = 0
+    _Letter_Row02_Col01_Byte0("_Letter_Row02_Col01_Byte0", float) = 0
+    _Letter_Row02_Col02_Byte0("_Letter_Row02_Col02_Byte0", float) = 0
+    _Letter_Row02_Col03_Byte0("_Letter_Row02_Col03_Byte0", float) = 0
+    _Letter_Row02_Col04_Byte0("_Letter_Row02_Col04_Byte0", float) = 0
+    _Letter_Row02_Col05_Byte0("_Letter_Row02_Col05_Byte0", float) = 0
+    _Letter_Row02_Col06_Byte0("_Letter_Row02_Col06_Byte0", float) = 0
+    _Letter_Row02_Col07_Byte0("_Letter_Row02_Col07_Byte0", float) = 0
+    _Letter_Row02_Col08_Byte0("_Letter_Row02_Col08_Byte0", float) = 0
+    _Letter_Row02_Col09_Byte0("_Letter_Row02_Col09_Byte0", float) = 0
+    _Letter_Row02_Col10_Byte0("_Letter_Row02_Col10_Byte0", float) = 0
+    _Letter_Row02_Col11_Byte0("_Letter_Row02_Col11_Byte0", float) = 0
+    _Letter_Row02_Col12_Byte0("_Letter_Row02_Col12_Byte0", float) = 0
+    _Letter_Row02_Col13_Byte0("_Letter_Row02_Col13_Byte0", float) = 0
+    _Letter_Row02_Col14_Byte0("_Letter_Row02_Col14_Byte0", float) = 0
+    _Letter_Row02_Col15_Byte0("_Letter_Row02_Col15_Byte0", float) = 0
+    _Letter_Row02_Col16_Byte0("_Letter_Row02_Col16_Byte0", float) = 0
+    _Letter_Row02_Col17_Byte0("_Letter_Row02_Col17_Byte0", float) = 0
+    _Letter_Row02_Col18_Byte0("_Letter_Row02_Col18_Byte0", float) = 0
+    _Letter_Row02_Col19_Byte0("_Letter_Row02_Col19_Byte0", float) = 0
+    _Letter_Row02_Col20_Byte0("_Letter_Row02_Col20_Byte0", float) = 0
+    _Letter_Row02_Col21_Byte0("_Letter_Row02_Col21_Byte0", float) = 0
+    _Letter_Row02_Col22_Byte0("_Letter_Row02_Col22_Byte0", float) = 0
+    _Letter_Row02_Col23_Byte0("_Letter_Row02_Col23_Byte0", float) = 0
+    _Letter_Row02_Col24_Byte0("_Letter_Row02_Col24_Byte0", float) = 0
+    _Letter_Row02_Col25_Byte0("_Letter_Row02_Col25_Byte0", float) = 0
+    _Letter_Row02_Col26_Byte0("_Letter_Row02_Col26_Byte0", float) = 0
+    _Letter_Row02_Col27_Byte0("_Letter_Row02_Col27_Byte0", float) = 0
+    _Letter_Row02_Col28_Byte0("_Letter_Row02_Col28_Byte0", float) = 0
+    _Letter_Row02_Col29_Byte0("_Letter_Row02_Col29_Byte0", float) = 0
+    _Letter_Row02_Col30_Byte0("_Letter_Row02_Col30_Byte0", float) = 0
+    _Letter_Row02_Col31_Byte0("_Letter_Row02_Col31_Byte0", float) = 0
+    _Letter_Row02_Col32_Byte0("_Letter_Row02_Col32_Byte0", float) = 0
+    _Letter_Row02_Col33_Byte0("_Letter_Row02_Col33_Byte0", float) = 0
+    _Letter_Row02_Col34_Byte0("_Letter_Row02_Col34_Byte0", float) = 0
+    _Letter_Row02_Col35_Byte0("_Letter_Row02_Col35_Byte0", float) = 0
+    _Letter_Row02_Col36_Byte0("_Letter_Row02_Col36_Byte0", float) = 0
+    _Letter_Row02_Col37_Byte0("_Letter_Row02_Col37_Byte0", float) = 0
+    _Letter_Row02_Col38_Byte0("_Letter_Row02_Col38_Byte0", float) = 0
+    _Letter_Row02_Col39_Byte0("_Letter_Row02_Col39_Byte0", float) = 0
+    _Letter_Row02_Col40_Byte0("_Letter_Row02_Col40_Byte0", float) = 0
+    _Letter_Row02_Col41_Byte0("_Letter_Row02_Col41_Byte0", float) = 0
+    _Letter_Row02_Col42_Byte0("_Letter_Row02_Col42_Byte0", float) = 0
+    _Letter_Row02_Col43_Byte0("_Letter_Row02_Col43_Byte0", float) = 0
+    _Letter_Row03_Col00_Byte0("_Letter_Row03_Col00_Byte0", float) = 0
+    _Letter_Row03_Col01_Byte0("_Letter_Row03_Col01_Byte0", float) = 0
+    _Letter_Row03_Col02_Byte0("_Letter_Row03_Col02_Byte0", float) = 0
+    _Letter_Row03_Col03_Byte0("_Letter_Row03_Col03_Byte0", float) = 0
+    _Letter_Row03_Col04_Byte0("_Letter_Row03_Col04_Byte0", float) = 0
+    _Letter_Row03_Col05_Byte0("_Letter_Row03_Col05_Byte0", float) = 0
+    _Letter_Row03_Col06_Byte0("_Letter_Row03_Col06_Byte0", float) = 0
+    _Letter_Row03_Col07_Byte0("_Letter_Row03_Col07_Byte0", float) = 0
+    _Letter_Row03_Col08_Byte0("_Letter_Row03_Col08_Byte0", float) = 0
+    _Letter_Row03_Col09_Byte0("_Letter_Row03_Col09_Byte0", float) = 0
+    _Letter_Row03_Col10_Byte0("_Letter_Row03_Col10_Byte0", float) = 0
+    _Letter_Row03_Col11_Byte0("_Letter_Row03_Col11_Byte0", float) = 0
+    _Letter_Row03_Col12_Byte0("_Letter_Row03_Col12_Byte0", float) = 0
+    _Letter_Row03_Col13_Byte0("_Letter_Row03_Col13_Byte0", float) = 0
+    _Letter_Row03_Col14_Byte0("_Letter_Row03_Col14_Byte0", float) = 0
+    _Letter_Row03_Col15_Byte0("_Letter_Row03_Col15_Byte0", float) = 0
+    _Letter_Row03_Col16_Byte0("_Letter_Row03_Col16_Byte0", float) = 0
+    _Letter_Row03_Col17_Byte0("_Letter_Row03_Col17_Byte0", float) = 0
+    _Letter_Row03_Col18_Byte0("_Letter_Row03_Col18_Byte0", float) = 0
+    _Letter_Row03_Col19_Byte0("_Letter_Row03_Col19_Byte0", float) = 0
+    _Letter_Row03_Col20_Byte0("_Letter_Row03_Col20_Byte0", float) = 0
+    _Letter_Row03_Col21_Byte0("_Letter_Row03_Col21_Byte0", float) = 0
+    _Letter_Row03_Col22_Byte0("_Letter_Row03_Col22_Byte0", float) = 0
+    _Letter_Row03_Col23_Byte0("_Letter_Row03_Col23_Byte0", float) = 0
+    _Letter_Row03_Col24_Byte0("_Letter_Row03_Col24_Byte0", float) = 0
+    _Letter_Row03_Col25_Byte0("_Letter_Row03_Col25_Byte0", float) = 0
+    _Letter_Row03_Col26_Byte0("_Letter_Row03_Col26_Byte0", float) = 0
+    _Letter_Row03_Col27_Byte0("_Letter_Row03_Col27_Byte0", float) = 0
+    _Letter_Row03_Col28_Byte0("_Letter_Row03_Col28_Byte0", float) = 0
+    _Letter_Row03_Col29_Byte0("_Letter_Row03_Col29_Byte0", float) = 0
+    _Letter_Row03_Col30_Byte0("_Letter_Row03_Col30_Byte0", float) = 0
+    _Letter_Row03_Col31_Byte0("_Letter_Row03_Col31_Byte0", float) = 0
+    _Letter_Row03_Col32_Byte0("_Letter_Row03_Col32_Byte0", float) = 0
+    _Letter_Row03_Col33_Byte0("_Letter_Row03_Col33_Byte0", float) = 0
+    _Letter_Row03_Col34_Byte0("_Letter_Row03_Col34_Byte0", float) = 0
+    _Letter_Row03_Col35_Byte0("_Letter_Row03_Col35_Byte0", float) = 0
+    _Letter_Row03_Col36_Byte0("_Letter_Row03_Col36_Byte0", float) = 0
+    _Letter_Row03_Col37_Byte0("_Letter_Row03_Col37_Byte0", float) = 0
+    _Letter_Row03_Col38_Byte0("_Letter_Row03_Col38_Byte0", float) = 0
+    _Letter_Row03_Col39_Byte0("_Letter_Row03_Col39_Byte0", float) = 0
+    _Letter_Row03_Col40_Byte0("_Letter_Row03_Col40_Byte0", float) = 0
+    _Letter_Row03_Col41_Byte0("_Letter_Row03_Col41_Byte0", float) = 0
+    _Letter_Row03_Col42_Byte0("_Letter_Row03_Col42_Byte0", float) = 0
+    _Letter_Row03_Col43_Byte0("_Letter_Row03_Col43_Byte0", float) = 0
+    _Letter_Row00_Col00_Byte1("_Letter_Row00_Col00_Byte1", float) = 0
+    _Letter_Row00_Col01_Byte1("_Letter_Row00_Col01_Byte1", float) = 0
+    _Letter_Row00_Col02_Byte1("_Letter_Row00_Col02_Byte1", float) = 0
+    _Letter_Row00_Col03_Byte1("_Letter_Row00_Col03_Byte1", float) = 0
+    _Letter_Row00_Col04_Byte1("_Letter_Row00_Col04_Byte1", float) = 0
+    _Letter_Row00_Col05_Byte1("_Letter_Row00_Col05_Byte1", float) = 0
+    _Letter_Row00_Col06_Byte1("_Letter_Row00_Col06_Byte1", float) = 0
+    _Letter_Row00_Col07_Byte1("_Letter_Row00_Col07_Byte1", float) = 0
+    _Letter_Row00_Col08_Byte1("_Letter_Row00_Col08_Byte1", float) = 0
+    _Letter_Row00_Col09_Byte1("_Letter_Row00_Col09_Byte1", float) = 0
+    _Letter_Row00_Col10_Byte1("_Letter_Row00_Col10_Byte1", float) = 0
+    _Letter_Row00_Col11_Byte1("_Letter_Row00_Col11_Byte1", float) = 0
+    _Letter_Row00_Col12_Byte1("_Letter_Row00_Col12_Byte1", float) = 0
+    _Letter_Row00_Col13_Byte1("_Letter_Row00_Col13_Byte1", float) = 0
+    _Letter_Row00_Col14_Byte1("_Letter_Row00_Col14_Byte1", float) = 0
+    _Letter_Row00_Col15_Byte1("_Letter_Row00_Col15_Byte1", float) = 0
+    _Letter_Row00_Col16_Byte1("_Letter_Row00_Col16_Byte1", float) = 0
+    _Letter_Row00_Col17_Byte1("_Letter_Row00_Col17_Byte1", float) = 0
+    _Letter_Row00_Col18_Byte1("_Letter_Row00_Col18_Byte1", float) = 0
+    _Letter_Row00_Col19_Byte1("_Letter_Row00_Col19_Byte1", float) = 0
+    _Letter_Row00_Col20_Byte1("_Letter_Row00_Col20_Byte1", float) = 0
+    _Letter_Row00_Col21_Byte1("_Letter_Row00_Col21_Byte1", float) = 0
+    _Letter_Row00_Col22_Byte1("_Letter_Row00_Col22_Byte1", float) = 0
+    _Letter_Row00_Col23_Byte1("_Letter_Row00_Col23_Byte1", float) = 0
+    _Letter_Row00_Col24_Byte1("_Letter_Row00_Col24_Byte1", float) = 0
+    _Letter_Row00_Col25_Byte1("_Letter_Row00_Col25_Byte1", float) = 0
+    _Letter_Row00_Col26_Byte1("_Letter_Row00_Col26_Byte1", float) = 0
+    _Letter_Row00_Col27_Byte1("_Letter_Row00_Col27_Byte1", float) = 0
+    _Letter_Row00_Col28_Byte1("_Letter_Row00_Col28_Byte1", float) = 0
+    _Letter_Row00_Col29_Byte1("_Letter_Row00_Col29_Byte1", float) = 0
+    _Letter_Row00_Col30_Byte1("_Letter_Row00_Col30_Byte1", float) = 0
+    _Letter_Row00_Col31_Byte1("_Letter_Row00_Col31_Byte1", float) = 0
+    _Letter_Row00_Col32_Byte1("_Letter_Row00_Col32_Byte1", float) = 0
+    _Letter_Row00_Col33_Byte1("_Letter_Row00_Col33_Byte1", float) = 0
+    _Letter_Row00_Col34_Byte1("_Letter_Row00_Col34_Byte1", float) = 0
+    _Letter_Row00_Col35_Byte1("_Letter_Row00_Col35_Byte1", float) = 0
+    _Letter_Row00_Col36_Byte1("_Letter_Row00_Col36_Byte1", float) = 0
+    _Letter_Row00_Col37_Byte1("_Letter_Row00_Col37_Byte1", float) = 0
+    _Letter_Row00_Col38_Byte1("_Letter_Row00_Col38_Byte1", float) = 0
+    _Letter_Row00_Col39_Byte1("_Letter_Row00_Col39_Byte1", float) = 0
+    _Letter_Row00_Col40_Byte1("_Letter_Row00_Col40_Byte1", float) = 0
+    _Letter_Row00_Col41_Byte1("_Letter_Row00_Col41_Byte1", float) = 0
+    _Letter_Row00_Col42_Byte1("_Letter_Row00_Col42_Byte1", float) = 0
+    _Letter_Row00_Col43_Byte1("_Letter_Row00_Col43_Byte1", float) = 0
+    _Letter_Row01_Col00_Byte1("_Letter_Row01_Col00_Byte1", float) = 0
+    _Letter_Row01_Col01_Byte1("_Letter_Row01_Col01_Byte1", float) = 0
+    _Letter_Row01_Col02_Byte1("_Letter_Row01_Col02_Byte1", float) = 0
+    _Letter_Row01_Col03_Byte1("_Letter_Row01_Col03_Byte1", float) = 0
+    _Letter_Row01_Col04_Byte1("_Letter_Row01_Col04_Byte1", float) = 0
+    _Letter_Row01_Col05_Byte1("_Letter_Row01_Col05_Byte1", float) = 0
+    _Letter_Row01_Col06_Byte1("_Letter_Row01_Col06_Byte1", float) = 0
+    _Letter_Row01_Col07_Byte1("_Letter_Row01_Col07_Byte1", float) = 0
+    _Letter_Row01_Col08_Byte1("_Letter_Row01_Col08_Byte1", float) = 0
+    _Letter_Row01_Col09_Byte1("_Letter_Row01_Col09_Byte1", float) = 0
+    _Letter_Row01_Col10_Byte1("_Letter_Row01_Col10_Byte1", float) = 0
+    _Letter_Row01_Col11_Byte1("_Letter_Row01_Col11_Byte1", float) = 0
+    _Letter_Row01_Col12_Byte1("_Letter_Row01_Col12_Byte1", float) = 0
+    _Letter_Row01_Col13_Byte1("_Letter_Row01_Col13_Byte1", float) = 0
+    _Letter_Row01_Col14_Byte1("_Letter_Row01_Col14_Byte1", float) = 0
+    _Letter_Row01_Col15_Byte1("_Letter_Row01_Col15_Byte1", float) = 0
+    _Letter_Row01_Col16_Byte1("_Letter_Row01_Col16_Byte1", float) = 0
+    _Letter_Row01_Col17_Byte1("_Letter_Row01_Col17_Byte1", float) = 0
+    _Letter_Row01_Col18_Byte1("_Letter_Row01_Col18_Byte1", float) = 0
+    _Letter_Row01_Col19_Byte1("_Letter_Row01_Col19_Byte1", float) = 0
+    _Letter_Row01_Col20_Byte1("_Letter_Row01_Col20_Byte1", float) = 0
+    _Letter_Row01_Col21_Byte1("_Letter_Row01_Col21_Byte1", float) = 0
+    _Letter_Row01_Col22_Byte1("_Letter_Row01_Col22_Byte1", float) = 0
+    _Letter_Row01_Col23_Byte1("_Letter_Row01_Col23_Byte1", float) = 0
+    _Letter_Row01_Col24_Byte1("_Letter_Row01_Col24_Byte1", float) = 0
+    _Letter_Row01_Col25_Byte1("_Letter_Row01_Col25_Byte1", float) = 0
+    _Letter_Row01_Col26_Byte1("_Letter_Row01_Col26_Byte1", float) = 0
+    _Letter_Row01_Col27_Byte1("_Letter_Row01_Col27_Byte1", float) = 0
+    _Letter_Row01_Col28_Byte1("_Letter_Row01_Col28_Byte1", float) = 0
+    _Letter_Row01_Col29_Byte1("_Letter_Row01_Col29_Byte1", float) = 0
+    _Letter_Row01_Col30_Byte1("_Letter_Row01_Col30_Byte1", float) = 0
+    _Letter_Row01_Col31_Byte1("_Letter_Row01_Col31_Byte1", float) = 0
+    _Letter_Row01_Col32_Byte1("_Letter_Row01_Col32_Byte1", float) = 0
+    _Letter_Row01_Col33_Byte1("_Letter_Row01_Col33_Byte1", float) = 0
+    _Letter_Row01_Col34_Byte1("_Letter_Row01_Col34_Byte1", float) = 0
+    _Letter_Row01_Col35_Byte1("_Letter_Row01_Col35_Byte1", float) = 0
+    _Letter_Row01_Col36_Byte1("_Letter_Row01_Col36_Byte1", float) = 0
+    _Letter_Row01_Col37_Byte1("_Letter_Row01_Col37_Byte1", float) = 0
+    _Letter_Row01_Col38_Byte1("_Letter_Row01_Col38_Byte1", float) = 0
+    _Letter_Row01_Col39_Byte1("_Letter_Row01_Col39_Byte1", float) = 0
+    _Letter_Row01_Col40_Byte1("_Letter_Row01_Col40_Byte1", float) = 0
+    _Letter_Row01_Col41_Byte1("_Letter_Row01_Col41_Byte1", float) = 0
+    _Letter_Row01_Col42_Byte1("_Letter_Row01_Col42_Byte1", float) = 0
+    _Letter_Row01_Col43_Byte1("_Letter_Row01_Col43_Byte1", float) = 0
+    _Letter_Row02_Col00_Byte1("_Letter_Row02_Col00_Byte1", float) = 0
+    _Letter_Row02_Col01_Byte1("_Letter_Row02_Col01_Byte1", float) = 0
+    _Letter_Row02_Col02_Byte1("_Letter_Row02_Col02_Byte1", float) = 0
+    _Letter_Row02_Col03_Byte1("_Letter_Row02_Col03_Byte1", float) = 0
+    _Letter_Row02_Col04_Byte1("_Letter_Row02_Col04_Byte1", float) = 0
+    _Letter_Row02_Col05_Byte1("_Letter_Row02_Col05_Byte1", float) = 0
+    _Letter_Row02_Col06_Byte1("_Letter_Row02_Col06_Byte1", float) = 0
+    _Letter_Row02_Col07_Byte1("_Letter_Row02_Col07_Byte1", float) = 0
+    _Letter_Row02_Col08_Byte1("_Letter_Row02_Col08_Byte1", float) = 0
+    _Letter_Row02_Col09_Byte1("_Letter_Row02_Col09_Byte1", float) = 0
+    _Letter_Row02_Col10_Byte1("_Letter_Row02_Col10_Byte1", float) = 0
+    _Letter_Row02_Col11_Byte1("_Letter_Row02_Col11_Byte1", float) = 0
+    _Letter_Row02_Col12_Byte1("_Letter_Row02_Col12_Byte1", float) = 0
+    _Letter_Row02_Col13_Byte1("_Letter_Row02_Col13_Byte1", float) = 0
+    _Letter_Row02_Col14_Byte1("_Letter_Row02_Col14_Byte1", float) = 0
+    _Letter_Row02_Col15_Byte1("_Letter_Row02_Col15_Byte1", float) = 0
+    _Letter_Row02_Col16_Byte1("_Letter_Row02_Col16_Byte1", float) = 0
+    _Letter_Row02_Col17_Byte1("_Letter_Row02_Col17_Byte1", float) = 0
+    _Letter_Row02_Col18_Byte1("_Letter_Row02_Col18_Byte1", float) = 0
+    _Letter_Row02_Col19_Byte1("_Letter_Row02_Col19_Byte1", float) = 0
+    _Letter_Row02_Col20_Byte1("_Letter_Row02_Col20_Byte1", float) = 0
+    _Letter_Row02_Col21_Byte1("_Letter_Row02_Col21_Byte1", float) = 0
+    _Letter_Row02_Col22_Byte1("_Letter_Row02_Col22_Byte1", float) = 0
+    _Letter_Row02_Col23_Byte1("_Letter_Row02_Col23_Byte1", float) = 0
+    _Letter_Row02_Col24_Byte1("_Letter_Row02_Col24_Byte1", float) = 0
+    _Letter_Row02_Col25_Byte1("_Letter_Row02_Col25_Byte1", float) = 0
+    _Letter_Row02_Col26_Byte1("_Letter_Row02_Col26_Byte1", float) = 0
+    _Letter_Row02_Col27_Byte1("_Letter_Row02_Col27_Byte1", float) = 0
+    _Letter_Row02_Col28_Byte1("_Letter_Row02_Col28_Byte1", float) = 0
+    _Letter_Row02_Col29_Byte1("_Letter_Row02_Col29_Byte1", float) = 0
+    _Letter_Row02_Col30_Byte1("_Letter_Row02_Col30_Byte1", float) = 0
+    _Letter_Row02_Col31_Byte1("_Letter_Row02_Col31_Byte1", float) = 0
+    _Letter_Row02_Col32_Byte1("_Letter_Row02_Col32_Byte1", float) = 0
+    _Letter_Row02_Col33_Byte1("_Letter_Row02_Col33_Byte1", float) = 0
+    _Letter_Row02_Col34_Byte1("_Letter_Row02_Col34_Byte1", float) = 0
+    _Letter_Row02_Col35_Byte1("_Letter_Row02_Col35_Byte1", float) = 0
+    _Letter_Row02_Col36_Byte1("_Letter_Row02_Col36_Byte1", float) = 0
+    _Letter_Row02_Col37_Byte1("_Letter_Row02_Col37_Byte1", float) = 0
+    _Letter_Row02_Col38_Byte1("_Letter_Row02_Col38_Byte1", float) = 0
+    _Letter_Row02_Col39_Byte1("_Letter_Row02_Col39_Byte1", float) = 0
+    _Letter_Row02_Col40_Byte1("_Letter_Row02_Col40_Byte1", float) = 0
+    _Letter_Row02_Col41_Byte1("_Letter_Row02_Col41_Byte1", float) = 0
+    _Letter_Row02_Col42_Byte1("_Letter_Row02_Col42_Byte1", float) = 0
+    _Letter_Row02_Col43_Byte1("_Letter_Row02_Col43_Byte1", float) = 0
+    _Letter_Row03_Col00_Byte1("_Letter_Row03_Col00_Byte1", float) = 0
+    _Letter_Row03_Col01_Byte1("_Letter_Row03_Col01_Byte1", float) = 0
+    _Letter_Row03_Col02_Byte1("_Letter_Row03_Col02_Byte1", float) = 0
+    _Letter_Row03_Col03_Byte1("_Letter_Row03_Col03_Byte1", float) = 0
+    _Letter_Row03_Col04_Byte1("_Letter_Row03_Col04_Byte1", float) = 0
+    _Letter_Row03_Col05_Byte1("_Letter_Row03_Col05_Byte1", float) = 0
+    _Letter_Row03_Col06_Byte1("_Letter_Row03_Col06_Byte1", float) = 0
+    _Letter_Row03_Col07_Byte1("_Letter_Row03_Col07_Byte1", float) = 0
+    _Letter_Row03_Col08_Byte1("_Letter_Row03_Col08_Byte1", float) = 0
+    _Letter_Row03_Col09_Byte1("_Letter_Row03_Col09_Byte1", float) = 0
+    _Letter_Row03_Col10_Byte1("_Letter_Row03_Col10_Byte1", float) = 0
+    _Letter_Row03_Col11_Byte1("_Letter_Row03_Col11_Byte1", float) = 0
+    _Letter_Row03_Col12_Byte1("_Letter_Row03_Col12_Byte1", float) = 0
+    _Letter_Row03_Col13_Byte1("_Letter_Row03_Col13_Byte1", float) = 0
+    _Letter_Row03_Col14_Byte1("_Letter_Row03_Col14_Byte1", float) = 0
+    _Letter_Row03_Col15_Byte1("_Letter_Row03_Col15_Byte1", float) = 0
+    _Letter_Row03_Col16_Byte1("_Letter_Row03_Col16_Byte1", float) = 0
+    _Letter_Row03_Col17_Byte1("_Letter_Row03_Col17_Byte1", float) = 0
+    _Letter_Row03_Col18_Byte1("_Letter_Row03_Col18_Byte1", float) = 0
+    _Letter_Row03_Col19_Byte1("_Letter_Row03_Col19_Byte1", float) = 0
+    _Letter_Row03_Col20_Byte1("_Letter_Row03_Col20_Byte1", float) = 0
+    _Letter_Row03_Col21_Byte1("_Letter_Row03_Col21_Byte1", float) = 0
+    _Letter_Row03_Col22_Byte1("_Letter_Row03_Col22_Byte1", float) = 0
+    _Letter_Row03_Col23_Byte1("_Letter_Row03_Col23_Byte1", float) = 0
+    _Letter_Row03_Col24_Byte1("_Letter_Row03_Col24_Byte1", float) = 0
+    _Letter_Row03_Col25_Byte1("_Letter_Row03_Col25_Byte1", float) = 0
+    _Letter_Row03_Col26_Byte1("_Letter_Row03_Col26_Byte1", float) = 0
+    _Letter_Row03_Col27_Byte1("_Letter_Row03_Col27_Byte1", float) = 0
+    _Letter_Row03_Col28_Byte1("_Letter_Row03_Col28_Byte1", float) = 0
+    _Letter_Row03_Col29_Byte1("_Letter_Row03_Col29_Byte1", float) = 0
+    _Letter_Row03_Col30_Byte1("_Letter_Row03_Col30_Byte1", float) = 0
+    _Letter_Row03_Col31_Byte1("_Letter_Row03_Col31_Byte1", float) = 0
+    _Letter_Row03_Col32_Byte1("_Letter_Row03_Col32_Byte1", float) = 0
+    _Letter_Row03_Col33_Byte1("_Letter_Row03_Col33_Byte1", float) = 0
+    _Letter_Row03_Col34_Byte1("_Letter_Row03_Col34_Byte1", float) = 0
+    _Letter_Row03_Col35_Byte1("_Letter_Row03_Col35_Byte1", float) = 0
+    _Letter_Row03_Col36_Byte1("_Letter_Row03_Col36_Byte1", float) = 0
+    _Letter_Row03_Col37_Byte1("_Letter_Row03_Col37_Byte1", float) = 0
+    _Letter_Row03_Col38_Byte1("_Letter_Row03_Col38_Byte1", float) = 0
+    _Letter_Row03_Col39_Byte1("_Letter_Row03_Col39_Byte1", float) = 0
+    _Letter_Row03_Col40_Byte1("_Letter_Row03_Col40_Byte1", float) = 0
+    _Letter_Row03_Col41_Byte1("_Letter_Row03_Col41_Byte1", float) = 0
+    _Letter_Row03_Col42_Byte1("_Letter_Row03_Col42_Byte1", float) = 0
+    _Letter_Row03_Col43_Byte1("_Letter_Row03_Col43_Byte1", float) = 0
   }
   SubShader
   {
@@ -227,182 +403,358 @@
       Texture2D _Font_0xA000_0xBFFF;
       Texture2D _Font_0xC000_0xDFFF;
 
-      float _Letter_Row00_Col00;
-      float _Letter_Row00_Col01;
-      float _Letter_Row00_Col02;
-      float _Letter_Row00_Col03;
-      float _Letter_Row00_Col04;
-      float _Letter_Row00_Col05;
-      float _Letter_Row00_Col06;
-      float _Letter_Row00_Col07;
-      float _Letter_Row00_Col08;
-      float _Letter_Row00_Col09;
-      float _Letter_Row00_Col10;
-      float _Letter_Row00_Col11;
-      float _Letter_Row00_Col12;
-      float _Letter_Row00_Col13;
-      float _Letter_Row00_Col14;
-      float _Letter_Row00_Col15;
-      float _Letter_Row00_Col16;
-      float _Letter_Row00_Col17;
-      float _Letter_Row00_Col18;
-      float _Letter_Row00_Col19;
-      float _Letter_Row00_Col20;
-      float _Letter_Row00_Col21;
-      float _Letter_Row00_Col22;
-      float _Letter_Row00_Col23;
-      float _Letter_Row00_Col24;
-      float _Letter_Row00_Col25;
-      float _Letter_Row00_Col26;
-      float _Letter_Row00_Col27;
-      float _Letter_Row00_Col28;
-      float _Letter_Row00_Col29;
-      float _Letter_Row00_Col30;
-      float _Letter_Row00_Col31;
-      float _Letter_Row00_Col32;
-      float _Letter_Row00_Col33;
-      float _Letter_Row00_Col34;
-      float _Letter_Row00_Col35;
-      float _Letter_Row00_Col36;
-      float _Letter_Row00_Col37;
-      float _Letter_Row00_Col38;
-      float _Letter_Row00_Col39;
-      float _Letter_Row00_Col40;
-      float _Letter_Row00_Col41;
-      float _Letter_Row00_Col42;
-      float _Letter_Row00_Col43;
-      float _Letter_Row01_Col00;
-      float _Letter_Row01_Col01;
-      float _Letter_Row01_Col02;
-      float _Letter_Row01_Col03;
-      float _Letter_Row01_Col04;
-      float _Letter_Row01_Col05;
-      float _Letter_Row01_Col06;
-      float _Letter_Row01_Col07;
-      float _Letter_Row01_Col08;
-      float _Letter_Row01_Col09;
-      float _Letter_Row01_Col10;
-      float _Letter_Row01_Col11;
-      float _Letter_Row01_Col12;
-      float _Letter_Row01_Col13;
-      float _Letter_Row01_Col14;
-      float _Letter_Row01_Col15;
-      float _Letter_Row01_Col16;
-      float _Letter_Row01_Col17;
-      float _Letter_Row01_Col18;
-      float _Letter_Row01_Col19;
-      float _Letter_Row01_Col20;
-      float _Letter_Row01_Col21;
-      float _Letter_Row01_Col22;
-      float _Letter_Row01_Col23;
-      float _Letter_Row01_Col24;
-      float _Letter_Row01_Col25;
-      float _Letter_Row01_Col26;
-      float _Letter_Row01_Col27;
-      float _Letter_Row01_Col28;
-      float _Letter_Row01_Col29;
-      float _Letter_Row01_Col30;
-      float _Letter_Row01_Col31;
-      float _Letter_Row01_Col32;
-      float _Letter_Row01_Col33;
-      float _Letter_Row01_Col34;
-      float _Letter_Row01_Col35;
-      float _Letter_Row01_Col36;
-      float _Letter_Row01_Col37;
-      float _Letter_Row01_Col38;
-      float _Letter_Row01_Col39;
-      float _Letter_Row01_Col40;
-      float _Letter_Row01_Col41;
-      float _Letter_Row01_Col42;
-      float _Letter_Row01_Col43;
-      float _Letter_Row02_Col00;
-      float _Letter_Row02_Col01;
-      float _Letter_Row02_Col02;
-      float _Letter_Row02_Col03;
-      float _Letter_Row02_Col04;
-      float _Letter_Row02_Col05;
-      float _Letter_Row02_Col06;
-      float _Letter_Row02_Col07;
-      float _Letter_Row02_Col08;
-      float _Letter_Row02_Col09;
-      float _Letter_Row02_Col10;
-      float _Letter_Row02_Col11;
-      float _Letter_Row02_Col12;
-      float _Letter_Row02_Col13;
-      float _Letter_Row02_Col14;
-      float _Letter_Row02_Col15;
-      float _Letter_Row02_Col16;
-      float _Letter_Row02_Col17;
-      float _Letter_Row02_Col18;
-      float _Letter_Row02_Col19;
-      float _Letter_Row02_Col20;
-      float _Letter_Row02_Col21;
-      float _Letter_Row02_Col22;
-      float _Letter_Row02_Col23;
-      float _Letter_Row02_Col24;
-      float _Letter_Row02_Col25;
-      float _Letter_Row02_Col26;
-      float _Letter_Row02_Col27;
-      float _Letter_Row02_Col28;
-      float _Letter_Row02_Col29;
-      float _Letter_Row02_Col30;
-      float _Letter_Row02_Col31;
-      float _Letter_Row02_Col32;
-      float _Letter_Row02_Col33;
-      float _Letter_Row02_Col34;
-      float _Letter_Row02_Col35;
-      float _Letter_Row02_Col36;
-      float _Letter_Row02_Col37;
-      float _Letter_Row02_Col38;
-      float _Letter_Row02_Col39;
-      float _Letter_Row02_Col40;
-      float _Letter_Row02_Col41;
-      float _Letter_Row02_Col42;
-      float _Letter_Row02_Col43;
-      float _Letter_Row03_Col00;
-      float _Letter_Row03_Col01;
-      float _Letter_Row03_Col02;
-      float _Letter_Row03_Col03;
-      float _Letter_Row03_Col04;
-      float _Letter_Row03_Col05;
-      float _Letter_Row03_Col06;
-      float _Letter_Row03_Col07;
-      float _Letter_Row03_Col08;
-      float _Letter_Row03_Col09;
-      float _Letter_Row03_Col10;
-      float _Letter_Row03_Col11;
-      float _Letter_Row03_Col12;
-      float _Letter_Row03_Col13;
-      float _Letter_Row03_Col14;
-      float _Letter_Row03_Col15;
-      float _Letter_Row03_Col16;
-      float _Letter_Row03_Col17;
-      float _Letter_Row03_Col18;
-      float _Letter_Row03_Col19;
-      float _Letter_Row03_Col20;
-      float _Letter_Row03_Col21;
-      float _Letter_Row03_Col22;
-      float _Letter_Row03_Col23;
-      float _Letter_Row03_Col24;
-      float _Letter_Row03_Col25;
-      float _Letter_Row03_Col26;
-      float _Letter_Row03_Col27;
-      float _Letter_Row03_Col28;
-      float _Letter_Row03_Col29;
-      float _Letter_Row03_Col30;
-      float _Letter_Row03_Col31;
-      float _Letter_Row03_Col32;
-      float _Letter_Row03_Col33;
-      float _Letter_Row03_Col34;
-      float _Letter_Row03_Col35;
-      float _Letter_Row03_Col36;
-      float _Letter_Row03_Col37;
-      float _Letter_Row03_Col38;
-      float _Letter_Row03_Col39;
-      float _Letter_Row03_Col40;
-      float _Letter_Row03_Col41;
-      float _Letter_Row03_Col42;
-      float _Letter_Row03_Col43;
+      float _Letter_Row00_Col00_Byte0;
+      float _Letter_Row00_Col01_Byte0;
+      float _Letter_Row00_Col02_Byte0;
+      float _Letter_Row00_Col03_Byte0;
+      float _Letter_Row00_Col04_Byte0;
+      float _Letter_Row00_Col05_Byte0;
+      float _Letter_Row00_Col06_Byte0;
+      float _Letter_Row00_Col07_Byte0;
+      float _Letter_Row00_Col08_Byte0;
+      float _Letter_Row00_Col09_Byte0;
+      float _Letter_Row00_Col10_Byte0;
+      float _Letter_Row00_Col11_Byte0;
+      float _Letter_Row00_Col12_Byte0;
+      float _Letter_Row00_Col13_Byte0;
+      float _Letter_Row00_Col14_Byte0;
+      float _Letter_Row00_Col15_Byte0;
+      float _Letter_Row00_Col16_Byte0;
+      float _Letter_Row00_Col17_Byte0;
+      float _Letter_Row00_Col18_Byte0;
+      float _Letter_Row00_Col19_Byte0;
+      float _Letter_Row00_Col20_Byte0;
+      float _Letter_Row00_Col21_Byte0;
+      float _Letter_Row00_Col22_Byte0;
+      float _Letter_Row00_Col23_Byte0;
+      float _Letter_Row00_Col24_Byte0;
+      float _Letter_Row00_Col25_Byte0;
+      float _Letter_Row00_Col26_Byte0;
+      float _Letter_Row00_Col27_Byte0;
+      float _Letter_Row00_Col28_Byte0;
+      float _Letter_Row00_Col29_Byte0;
+      float _Letter_Row00_Col30_Byte0;
+      float _Letter_Row00_Col31_Byte0;
+      float _Letter_Row00_Col32_Byte0;
+      float _Letter_Row00_Col33_Byte0;
+      float _Letter_Row00_Col34_Byte0;
+      float _Letter_Row00_Col35_Byte0;
+      float _Letter_Row00_Col36_Byte0;
+      float _Letter_Row00_Col37_Byte0;
+      float _Letter_Row00_Col38_Byte0;
+      float _Letter_Row00_Col39_Byte0;
+      float _Letter_Row00_Col40_Byte0;
+      float _Letter_Row00_Col41_Byte0;
+      float _Letter_Row00_Col42_Byte0;
+      float _Letter_Row00_Col43_Byte0;
+      float _Letter_Row01_Col00_Byte0;
+      float _Letter_Row01_Col01_Byte0;
+      float _Letter_Row01_Col02_Byte0;
+      float _Letter_Row01_Col03_Byte0;
+      float _Letter_Row01_Col04_Byte0;
+      float _Letter_Row01_Col05_Byte0;
+      float _Letter_Row01_Col06_Byte0;
+      float _Letter_Row01_Col07_Byte0;
+      float _Letter_Row01_Col08_Byte0;
+      float _Letter_Row01_Col09_Byte0;
+      float _Letter_Row01_Col10_Byte0;
+      float _Letter_Row01_Col11_Byte0;
+      float _Letter_Row01_Col12_Byte0;
+      float _Letter_Row01_Col13_Byte0;
+      float _Letter_Row01_Col14_Byte0;
+      float _Letter_Row01_Col15_Byte0;
+      float _Letter_Row01_Col16_Byte0;
+      float _Letter_Row01_Col17_Byte0;
+      float _Letter_Row01_Col18_Byte0;
+      float _Letter_Row01_Col19_Byte0;
+      float _Letter_Row01_Col20_Byte0;
+      float _Letter_Row01_Col21_Byte0;
+      float _Letter_Row01_Col22_Byte0;
+      float _Letter_Row01_Col23_Byte0;
+      float _Letter_Row01_Col24_Byte0;
+      float _Letter_Row01_Col25_Byte0;
+      float _Letter_Row01_Col26_Byte0;
+      float _Letter_Row01_Col27_Byte0;
+      float _Letter_Row01_Col28_Byte0;
+      float _Letter_Row01_Col29_Byte0;
+      float _Letter_Row01_Col30_Byte0;
+      float _Letter_Row01_Col31_Byte0;
+      float _Letter_Row01_Col32_Byte0;
+      float _Letter_Row01_Col33_Byte0;
+      float _Letter_Row01_Col34_Byte0;
+      float _Letter_Row01_Col35_Byte0;
+      float _Letter_Row01_Col36_Byte0;
+      float _Letter_Row01_Col37_Byte0;
+      float _Letter_Row01_Col38_Byte0;
+      float _Letter_Row01_Col39_Byte0;
+      float _Letter_Row01_Col40_Byte0;
+      float _Letter_Row01_Col41_Byte0;
+      float _Letter_Row01_Col42_Byte0;
+      float _Letter_Row01_Col43_Byte0;
+      float _Letter_Row02_Col00_Byte0;
+      float _Letter_Row02_Col01_Byte0;
+      float _Letter_Row02_Col02_Byte0;
+      float _Letter_Row02_Col03_Byte0;
+      float _Letter_Row02_Col04_Byte0;
+      float _Letter_Row02_Col05_Byte0;
+      float _Letter_Row02_Col06_Byte0;
+      float _Letter_Row02_Col07_Byte0;
+      float _Letter_Row02_Col08_Byte0;
+      float _Letter_Row02_Col09_Byte0;
+      float _Letter_Row02_Col10_Byte0;
+      float _Letter_Row02_Col11_Byte0;
+      float _Letter_Row02_Col12_Byte0;
+      float _Letter_Row02_Col13_Byte0;
+      float _Letter_Row02_Col14_Byte0;
+      float _Letter_Row02_Col15_Byte0;
+      float _Letter_Row02_Col16_Byte0;
+      float _Letter_Row02_Col17_Byte0;
+      float _Letter_Row02_Col18_Byte0;
+      float _Letter_Row02_Col19_Byte0;
+      float _Letter_Row02_Col20_Byte0;
+      float _Letter_Row02_Col21_Byte0;
+      float _Letter_Row02_Col22_Byte0;
+      float _Letter_Row02_Col23_Byte0;
+      float _Letter_Row02_Col24_Byte0;
+      float _Letter_Row02_Col25_Byte0;
+      float _Letter_Row02_Col26_Byte0;
+      float _Letter_Row02_Col27_Byte0;
+      float _Letter_Row02_Col28_Byte0;
+      float _Letter_Row02_Col29_Byte0;
+      float _Letter_Row02_Col30_Byte0;
+      float _Letter_Row02_Col31_Byte0;
+      float _Letter_Row02_Col32_Byte0;
+      float _Letter_Row02_Col33_Byte0;
+      float _Letter_Row02_Col34_Byte0;
+      float _Letter_Row02_Col35_Byte0;
+      float _Letter_Row02_Col36_Byte0;
+      float _Letter_Row02_Col37_Byte0;
+      float _Letter_Row02_Col38_Byte0;
+      float _Letter_Row02_Col39_Byte0;
+      float _Letter_Row02_Col40_Byte0;
+      float _Letter_Row02_Col41_Byte0;
+      float _Letter_Row02_Col42_Byte0;
+      float _Letter_Row02_Col43_Byte0;
+      float _Letter_Row03_Col00_Byte0;
+      float _Letter_Row03_Col01_Byte0;
+      float _Letter_Row03_Col02_Byte0;
+      float _Letter_Row03_Col03_Byte0;
+      float _Letter_Row03_Col04_Byte0;
+      float _Letter_Row03_Col05_Byte0;
+      float _Letter_Row03_Col06_Byte0;
+      float _Letter_Row03_Col07_Byte0;
+      float _Letter_Row03_Col08_Byte0;
+      float _Letter_Row03_Col09_Byte0;
+      float _Letter_Row03_Col10_Byte0;
+      float _Letter_Row03_Col11_Byte0;
+      float _Letter_Row03_Col12_Byte0;
+      float _Letter_Row03_Col13_Byte0;
+      float _Letter_Row03_Col14_Byte0;
+      float _Letter_Row03_Col15_Byte0;
+      float _Letter_Row03_Col16_Byte0;
+      float _Letter_Row03_Col17_Byte0;
+      float _Letter_Row03_Col18_Byte0;
+      float _Letter_Row03_Col19_Byte0;
+      float _Letter_Row03_Col20_Byte0;
+      float _Letter_Row03_Col21_Byte0;
+      float _Letter_Row03_Col22_Byte0;
+      float _Letter_Row03_Col23_Byte0;
+      float _Letter_Row03_Col24_Byte0;
+      float _Letter_Row03_Col25_Byte0;
+      float _Letter_Row03_Col26_Byte0;
+      float _Letter_Row03_Col27_Byte0;
+      float _Letter_Row03_Col28_Byte0;
+      float _Letter_Row03_Col29_Byte0;
+      float _Letter_Row03_Col30_Byte0;
+      float _Letter_Row03_Col31_Byte0;
+      float _Letter_Row03_Col32_Byte0;
+      float _Letter_Row03_Col33_Byte0;
+      float _Letter_Row03_Col34_Byte0;
+      float _Letter_Row03_Col35_Byte0;
+      float _Letter_Row03_Col36_Byte0;
+      float _Letter_Row03_Col37_Byte0;
+      float _Letter_Row03_Col38_Byte0;
+      float _Letter_Row03_Col39_Byte0;
+      float _Letter_Row03_Col40_Byte0;
+      float _Letter_Row03_Col41_Byte0;
+      float _Letter_Row03_Col42_Byte0;
+      float _Letter_Row03_Col43_Byte0;
+      float _Letter_Row00_Col00_Byte1;
+      float _Letter_Row00_Col01_Byte1;
+      float _Letter_Row00_Col02_Byte1;
+      float _Letter_Row00_Col03_Byte1;
+      float _Letter_Row00_Col04_Byte1;
+      float _Letter_Row00_Col05_Byte1;
+      float _Letter_Row00_Col06_Byte1;
+      float _Letter_Row00_Col07_Byte1;
+      float _Letter_Row00_Col08_Byte1;
+      float _Letter_Row00_Col09_Byte1;
+      float _Letter_Row00_Col10_Byte1;
+      float _Letter_Row00_Col11_Byte1;
+      float _Letter_Row00_Col12_Byte1;
+      float _Letter_Row00_Col13_Byte1;
+      float _Letter_Row00_Col14_Byte1;
+      float _Letter_Row00_Col15_Byte1;
+      float _Letter_Row00_Col16_Byte1;
+      float _Letter_Row00_Col17_Byte1;
+      float _Letter_Row00_Col18_Byte1;
+      float _Letter_Row00_Col19_Byte1;
+      float _Letter_Row00_Col20_Byte1;
+      float _Letter_Row00_Col21_Byte1;
+      float _Letter_Row00_Col22_Byte1;
+      float _Letter_Row00_Col23_Byte1;
+      float _Letter_Row00_Col24_Byte1;
+      float _Letter_Row00_Col25_Byte1;
+      float _Letter_Row00_Col26_Byte1;
+      float _Letter_Row00_Col27_Byte1;
+      float _Letter_Row00_Col28_Byte1;
+      float _Letter_Row00_Col29_Byte1;
+      float _Letter_Row00_Col30_Byte1;
+      float _Letter_Row00_Col31_Byte1;
+      float _Letter_Row00_Col32_Byte1;
+      float _Letter_Row00_Col33_Byte1;
+      float _Letter_Row00_Col34_Byte1;
+      float _Letter_Row00_Col35_Byte1;
+      float _Letter_Row00_Col36_Byte1;
+      float _Letter_Row00_Col37_Byte1;
+      float _Letter_Row00_Col38_Byte1;
+      float _Letter_Row00_Col39_Byte1;
+      float _Letter_Row00_Col40_Byte1;
+      float _Letter_Row00_Col41_Byte1;
+      float _Letter_Row00_Col42_Byte1;
+      float _Letter_Row00_Col43_Byte1;
+      float _Letter_Row01_Col00_Byte1;
+      float _Letter_Row01_Col01_Byte1;
+      float _Letter_Row01_Col02_Byte1;
+      float _Letter_Row01_Col03_Byte1;
+      float _Letter_Row01_Col04_Byte1;
+      float _Letter_Row01_Col05_Byte1;
+      float _Letter_Row01_Col06_Byte1;
+      float _Letter_Row01_Col07_Byte1;
+      float _Letter_Row01_Col08_Byte1;
+      float _Letter_Row01_Col09_Byte1;
+      float _Letter_Row01_Col10_Byte1;
+      float _Letter_Row01_Col11_Byte1;
+      float _Letter_Row01_Col12_Byte1;
+      float _Letter_Row01_Col13_Byte1;
+      float _Letter_Row01_Col14_Byte1;
+      float _Letter_Row01_Col15_Byte1;
+      float _Letter_Row01_Col16_Byte1;
+      float _Letter_Row01_Col17_Byte1;
+      float _Letter_Row01_Col18_Byte1;
+      float _Letter_Row01_Col19_Byte1;
+      float _Letter_Row01_Col20_Byte1;
+      float _Letter_Row01_Col21_Byte1;
+      float _Letter_Row01_Col22_Byte1;
+      float _Letter_Row01_Col23_Byte1;
+      float _Letter_Row01_Col24_Byte1;
+      float _Letter_Row01_Col25_Byte1;
+      float _Letter_Row01_Col26_Byte1;
+      float _Letter_Row01_Col27_Byte1;
+      float _Letter_Row01_Col28_Byte1;
+      float _Letter_Row01_Col29_Byte1;
+      float _Letter_Row01_Col30_Byte1;
+      float _Letter_Row01_Col31_Byte1;
+      float _Letter_Row01_Col32_Byte1;
+      float _Letter_Row01_Col33_Byte1;
+      float _Letter_Row01_Col34_Byte1;
+      float _Letter_Row01_Col35_Byte1;
+      float _Letter_Row01_Col36_Byte1;
+      float _Letter_Row01_Col37_Byte1;
+      float _Letter_Row01_Col38_Byte1;
+      float _Letter_Row01_Col39_Byte1;
+      float _Letter_Row01_Col40_Byte1;
+      float _Letter_Row01_Col41_Byte1;
+      float _Letter_Row01_Col42_Byte1;
+      float _Letter_Row01_Col43_Byte1;
+      float _Letter_Row02_Col00_Byte1;
+      float _Letter_Row02_Col01_Byte1;
+      float _Letter_Row02_Col02_Byte1;
+      float _Letter_Row02_Col03_Byte1;
+      float _Letter_Row02_Col04_Byte1;
+      float _Letter_Row02_Col05_Byte1;
+      float _Letter_Row02_Col06_Byte1;
+      float _Letter_Row02_Col07_Byte1;
+      float _Letter_Row02_Col08_Byte1;
+      float _Letter_Row02_Col09_Byte1;
+      float _Letter_Row02_Col10_Byte1;
+      float _Letter_Row02_Col11_Byte1;
+      float _Letter_Row02_Col12_Byte1;
+      float _Letter_Row02_Col13_Byte1;
+      float _Letter_Row02_Col14_Byte1;
+      float _Letter_Row02_Col15_Byte1;
+      float _Letter_Row02_Col16_Byte1;
+      float _Letter_Row02_Col17_Byte1;
+      float _Letter_Row02_Col18_Byte1;
+      float _Letter_Row02_Col19_Byte1;
+      float _Letter_Row02_Col20_Byte1;
+      float _Letter_Row02_Col21_Byte1;
+      float _Letter_Row02_Col22_Byte1;
+      float _Letter_Row02_Col23_Byte1;
+      float _Letter_Row02_Col24_Byte1;
+      float _Letter_Row02_Col25_Byte1;
+      float _Letter_Row02_Col26_Byte1;
+      float _Letter_Row02_Col27_Byte1;
+      float _Letter_Row02_Col28_Byte1;
+      float _Letter_Row02_Col29_Byte1;
+      float _Letter_Row02_Col30_Byte1;
+      float _Letter_Row02_Col31_Byte1;
+      float _Letter_Row02_Col32_Byte1;
+      float _Letter_Row02_Col33_Byte1;
+      float _Letter_Row02_Col34_Byte1;
+      float _Letter_Row02_Col35_Byte1;
+      float _Letter_Row02_Col36_Byte1;
+      float _Letter_Row02_Col37_Byte1;
+      float _Letter_Row02_Col38_Byte1;
+      float _Letter_Row02_Col39_Byte1;
+      float _Letter_Row02_Col40_Byte1;
+      float _Letter_Row02_Col41_Byte1;
+      float _Letter_Row02_Col42_Byte1;
+      float _Letter_Row02_Col43_Byte1;
+      float _Letter_Row03_Col00_Byte1;
+      float _Letter_Row03_Col01_Byte1;
+      float _Letter_Row03_Col02_Byte1;
+      float _Letter_Row03_Col03_Byte1;
+      float _Letter_Row03_Col04_Byte1;
+      float _Letter_Row03_Col05_Byte1;
+      float _Letter_Row03_Col06_Byte1;
+      float _Letter_Row03_Col07_Byte1;
+      float _Letter_Row03_Col08_Byte1;
+      float _Letter_Row03_Col09_Byte1;
+      float _Letter_Row03_Col10_Byte1;
+      float _Letter_Row03_Col11_Byte1;
+      float _Letter_Row03_Col12_Byte1;
+      float _Letter_Row03_Col13_Byte1;
+      float _Letter_Row03_Col14_Byte1;
+      float _Letter_Row03_Col15_Byte1;
+      float _Letter_Row03_Col16_Byte1;
+      float _Letter_Row03_Col17_Byte1;
+      float _Letter_Row03_Col18_Byte1;
+      float _Letter_Row03_Col19_Byte1;
+      float _Letter_Row03_Col20_Byte1;
+      float _Letter_Row03_Col21_Byte1;
+      float _Letter_Row03_Col22_Byte1;
+      float _Letter_Row03_Col23_Byte1;
+      float _Letter_Row03_Col24_Byte1;
+      float _Letter_Row03_Col25_Byte1;
+      float _Letter_Row03_Col26_Byte1;
+      float _Letter_Row03_Col27_Byte1;
+      float _Letter_Row03_Col28_Byte1;
+      float _Letter_Row03_Col29_Byte1;
+      float _Letter_Row03_Col30_Byte1;
+      float _Letter_Row03_Col31_Byte1;
+      float _Letter_Row03_Col32_Byte1;
+      float _Letter_Row03_Col33_Byte1;
+      float _Letter_Row03_Col34_Byte1;
+      float _Letter_Row03_Col35_Byte1;
+      float _Letter_Row03_Col36_Byte1;
+      float _Letter_Row03_Col37_Byte1;
+      float _Letter_Row03_Col38_Byte1;
+      float _Letter_Row03_Col39_Byte1;
+      float _Letter_Row03_Col40_Byte1;
+      float _Letter_Row03_Col41_Byte1;
+      float _Letter_Row03_Col42_Byte1;
+      float _Letter_Row03_Col43_Byte1;
 
       v2f vert (appdata v)
       {
@@ -445,8 +797,8 @@
         float LETTER_COL = fmod(nth_letter, floor(LETTER_COLS));
         float LETTER_ROW = floor(LETTER_ROWS) - floor(nth_letter / floor(LETTER_COLS));
 
-        float LETTER_UV_ROW = (LETTER_ROW + CHAR_FRAC_ROW - 0.9) / LETTER_ROWS;
-        float LETTER_UV_COL = (LETTER_COL + CHAR_FRAC_COL + 0.1) / LETTER_COLS;
+        float LETTER_UV_ROW = (LETTER_ROW + CHAR_FRAC_ROW - 1.00) / LETTER_ROWS;
+        float LETTER_UV_COL = (LETTER_COL + CHAR_FRAC_COL + 0.0) / LETTER_COLS;
 
         float2 result;
         result.x = LETTER_UV_COL;
@@ -455,8 +807,32 @@
         return result;
       }
 
+      Texture2D GetTexture(int which_letter) {
+        int which_texture = (int) floor(which_letter / (64 * 64));
+
+        [forcecase] switch (which_letter)
+        {
+          case 0:
+            return _Font_0x0000_0x1FFF;
+          case 1:
+            return _Font_0x2000_0x3FFF;
+          case 2:
+            return _Font_0x4000_0x5FFF;
+          case 3:
+            return _Font_0x6000_0x7FFF;
+          case 4:
+            return _Font_0x8000_0x9FFF;
+          case 5:
+            return _Font_0xA000_0xBFFF;
+          case 6:
+            return _Font_0xC000_0xDFFF;
+          default:
+            return _Font_0x0000_0x1FFF;
+        }
+      }
+
       // Get the value of the parameter for the cell we're in.
-      float GetLetterParameter(float2 uv)
+      float2 GetLetterParameter(float2 uv)
       {
         float CHAR_ROWS = 4.0;
         float CHAR_COLS = 44.0;
@@ -468,378 +844,378 @@
           case 3:
             [forcecase] switch (CHAR_COL) {
               case 0:
-                return _Letter_Row00_Col00;
+                return float2(_Letter_Row00_Col00_Byte0, _Letter_Row00_Col00_Byte1);
               case 1:
-                return _Letter_Row00_Col01;
+                return float2(_Letter_Row00_Col01_Byte0, _Letter_Row00_Col01_Byte1);
               case 2:
-                return _Letter_Row00_Col02;
+                return float2(_Letter_Row00_Col02_Byte0, _Letter_Row00_Col02_Byte1);
               case 3:
-                return _Letter_Row00_Col03;
+                return float2(_Letter_Row00_Col03_Byte0, _Letter_Row00_Col03_Byte1);
               case 4:
-                return _Letter_Row00_Col04;
+                return float2(_Letter_Row00_Col04_Byte0, _Letter_Row00_Col04_Byte1);
               case 5:
-                return _Letter_Row00_Col05;
+                return float2(_Letter_Row00_Col05_Byte0, _Letter_Row00_Col05_Byte1);
               case 6:
-                return _Letter_Row00_Col06;
+                return float2(_Letter_Row00_Col06_Byte0, _Letter_Row00_Col06_Byte1);
               case 7:
-                return _Letter_Row00_Col07;
+                return float2(_Letter_Row00_Col07_Byte0, _Letter_Row00_Col07_Byte1);
               case 8:
-                return _Letter_Row00_Col08;
+                return float2(_Letter_Row00_Col08_Byte0, _Letter_Row00_Col08_Byte1);
               case 9:
-                return _Letter_Row00_Col09;
+                return float2(_Letter_Row00_Col09_Byte0, _Letter_Row00_Col09_Byte1);
               case 10:
-                return _Letter_Row00_Col10;
+                return float2(_Letter_Row00_Col10_Byte0, _Letter_Row00_Col10_Byte1);
               case 11:
-                return _Letter_Row00_Col11;
+                return float2(_Letter_Row00_Col11_Byte0, _Letter_Row00_Col11_Byte1);
               case 12:
-                return _Letter_Row00_Col12;
+                return float2(_Letter_Row00_Col12_Byte0, _Letter_Row00_Col12_Byte1);
               case 13:
-                return _Letter_Row00_Col13;
+                return float2(_Letter_Row00_Col13_Byte0, _Letter_Row00_Col13_Byte1);
               case 14:
-                return _Letter_Row00_Col14;
+                return float2(_Letter_Row00_Col14_Byte0, _Letter_Row00_Col14_Byte1);
               case 15:
-                return _Letter_Row00_Col15;
+                return float2(_Letter_Row00_Col15_Byte0, _Letter_Row00_Col15_Byte1);
               case 16:
-                return _Letter_Row00_Col16;
+                return float2(_Letter_Row00_Col16_Byte0, _Letter_Row00_Col16_Byte1);
               case 17:
-                return _Letter_Row00_Col17;
+                return float2(_Letter_Row00_Col17_Byte0, _Letter_Row00_Col17_Byte1);
               case 18:
-                return _Letter_Row00_Col18;
+                return float2(_Letter_Row00_Col18_Byte0, _Letter_Row00_Col18_Byte1);
               case 19:
-                return _Letter_Row00_Col19;
+                return float2(_Letter_Row00_Col19_Byte0, _Letter_Row00_Col19_Byte1);
               case 20:
-                return _Letter_Row00_Col20;
+                return float2(_Letter_Row00_Col20_Byte0, _Letter_Row00_Col20_Byte1);
               case 21:
-                return _Letter_Row00_Col21;
+                return float2(_Letter_Row00_Col21_Byte0, _Letter_Row00_Col21_Byte1);
               case 22:
-                return _Letter_Row00_Col22;
+                return float2(_Letter_Row00_Col22_Byte0, _Letter_Row00_Col22_Byte1);
               case 23:
-                return _Letter_Row00_Col23;
+                return float2(_Letter_Row00_Col23_Byte0, _Letter_Row00_Col23_Byte1);
               case 24:
-                return _Letter_Row00_Col24;
+                return float2(_Letter_Row00_Col24_Byte0, _Letter_Row00_Col24_Byte1);
               case 25:
-                return _Letter_Row00_Col25;
+                return float2(_Letter_Row00_Col25_Byte0, _Letter_Row00_Col25_Byte1);
               case 26:
-                return _Letter_Row00_Col26;
+                return float2(_Letter_Row00_Col26_Byte0, _Letter_Row00_Col26_Byte1);
               case 27:
-                return _Letter_Row00_Col27;
+                return float2(_Letter_Row00_Col27_Byte0, _Letter_Row00_Col27_Byte1);
               case 28:
-                return _Letter_Row00_Col28;
+                return float2(_Letter_Row00_Col28_Byte0, _Letter_Row00_Col28_Byte1);
               case 29:
-                return _Letter_Row00_Col29;
+                return float2(_Letter_Row00_Col29_Byte0, _Letter_Row00_Col29_Byte1);
               case 30:
-                return _Letter_Row00_Col30;
+                return float2(_Letter_Row00_Col30_Byte0, _Letter_Row00_Col30_Byte1);
               case 31:
-                return _Letter_Row00_Col31;
+                return float2(_Letter_Row00_Col31_Byte0, _Letter_Row00_Col31_Byte1);
               case 32:
-                return _Letter_Row00_Col32;
+                return float2(_Letter_Row00_Col32_Byte0, _Letter_Row00_Col32_Byte1);
               case 33:
-                return _Letter_Row00_Col33;
+                return float2(_Letter_Row00_Col33_Byte0, _Letter_Row00_Col33_Byte1);
               case 34:
-                return _Letter_Row00_Col34;
+                return float2(_Letter_Row00_Col34_Byte0, _Letter_Row00_Col34_Byte1);
               case 35:
-                return _Letter_Row00_Col35;
+                return float2(_Letter_Row00_Col35_Byte0, _Letter_Row00_Col35_Byte1);
               case 36:
-                return _Letter_Row00_Col36;
+                return float2(_Letter_Row00_Col36_Byte0, _Letter_Row00_Col36_Byte1);
               case 37:
-                return _Letter_Row00_Col37;
+                return float2(_Letter_Row00_Col37_Byte0, _Letter_Row00_Col37_Byte1);
               case 38:
-                return _Letter_Row00_Col38;
+                return float2(_Letter_Row00_Col38_Byte0, _Letter_Row00_Col38_Byte1);
               case 39:
-                return _Letter_Row00_Col39;
+                return float2(_Letter_Row00_Col39_Byte0, _Letter_Row00_Col39_Byte1);
               case 40:
-                return _Letter_Row00_Col40;
+                return float2(_Letter_Row00_Col40_Byte0, _Letter_Row00_Col40_Byte1);
               case 41:
-                return _Letter_Row00_Col41;
+                return float2(_Letter_Row00_Col41_Byte0, _Letter_Row00_Col41_Byte1);
               case 42:
-                return _Letter_Row00_Col42;
+                return float2(_Letter_Row00_Col42_Byte0, _Letter_Row00_Col42_Byte1);
               case 43:
-                return _Letter_Row00_Col43;
+                return float2(_Letter_Row00_Col43_Byte0, _Letter_Row00_Col43_Byte1);
               default:
-                return 0;
+                return float2(0, 0);
             }
           case 2:
             [forcecase] switch (CHAR_COL) {
               case 0:
-                return _Letter_Row01_Col00;
+                return float2(_Letter_Row01_Col00_Byte0, _Letter_Row01_Col00_Byte1);
               case 1:
-                return _Letter_Row01_Col01;
+                return float2(_Letter_Row01_Col01_Byte0, _Letter_Row01_Col01_Byte1);
               case 2:
-                return _Letter_Row01_Col02;
+                return float2(_Letter_Row01_Col02_Byte0, _Letter_Row01_Col02_Byte1);
               case 3:
-                return _Letter_Row01_Col03;
+                return float2(_Letter_Row01_Col03_Byte0, _Letter_Row01_Col03_Byte1);
               case 4:
-                return _Letter_Row01_Col04;
+                return float2(_Letter_Row01_Col04_Byte0, _Letter_Row01_Col04_Byte1);
               case 5:
-                return _Letter_Row01_Col05;
+                return float2(_Letter_Row01_Col05_Byte0, _Letter_Row01_Col05_Byte1);
               case 6:
-                return _Letter_Row01_Col06;
+                return float2(_Letter_Row01_Col06_Byte0, _Letter_Row01_Col06_Byte1);
               case 7:
-                return _Letter_Row01_Col07;
+                return float2(_Letter_Row01_Col07_Byte0, _Letter_Row01_Col07_Byte1);
               case 8:
-                return _Letter_Row01_Col08;
+                return float2(_Letter_Row01_Col08_Byte0, _Letter_Row01_Col08_Byte1);
               case 9:
-                return _Letter_Row01_Col09;
+                return float2(_Letter_Row01_Col09_Byte0, _Letter_Row01_Col09_Byte1);
               case 10:
-                return _Letter_Row01_Col10;
+                return float2(_Letter_Row01_Col10_Byte0, _Letter_Row01_Col10_Byte1);
               case 11:
-                return _Letter_Row01_Col11;
+                return float2(_Letter_Row01_Col11_Byte0, _Letter_Row01_Col11_Byte1);
               case 12:
-                return _Letter_Row01_Col12;
+                return float2(_Letter_Row01_Col12_Byte0, _Letter_Row01_Col12_Byte1);
               case 13:
-                return _Letter_Row01_Col13;
+                return float2(_Letter_Row01_Col13_Byte0, _Letter_Row01_Col13_Byte1);
               case 14:
-                return _Letter_Row01_Col14;
+                return float2(_Letter_Row01_Col14_Byte0, _Letter_Row01_Col14_Byte1);
               case 15:
-                return _Letter_Row01_Col15;
+                return float2(_Letter_Row01_Col15_Byte0, _Letter_Row01_Col15_Byte1);
               case 16:
-                return _Letter_Row01_Col16;
+                return float2(_Letter_Row01_Col16_Byte0, _Letter_Row01_Col16_Byte1);
               case 17:
-                return _Letter_Row01_Col17;
+                return float2(_Letter_Row01_Col17_Byte0, _Letter_Row01_Col17_Byte1);
               case 18:
-                return _Letter_Row01_Col18;
+                return float2(_Letter_Row01_Col18_Byte0, _Letter_Row01_Col18_Byte1);
               case 19:
-                return _Letter_Row01_Col19;
+                return float2(_Letter_Row01_Col19_Byte0, _Letter_Row01_Col19_Byte1);
               case 20:
-                return _Letter_Row01_Col20;
+                return float2(_Letter_Row01_Col20_Byte0, _Letter_Row01_Col20_Byte1);
               case 21:
-                return _Letter_Row01_Col21;
+                return float2(_Letter_Row01_Col21_Byte0, _Letter_Row01_Col21_Byte1);
               case 22:
-                return _Letter_Row01_Col22;
+                return float2(_Letter_Row01_Col22_Byte0, _Letter_Row01_Col22_Byte1);
               case 23:
-                return _Letter_Row01_Col23;
+                return float2(_Letter_Row01_Col23_Byte0, _Letter_Row01_Col23_Byte1);
               case 24:
-                return _Letter_Row01_Col24;
+                return float2(_Letter_Row01_Col24_Byte0, _Letter_Row01_Col24_Byte1);
               case 25:
-                return _Letter_Row01_Col25;
+                return float2(_Letter_Row01_Col25_Byte0, _Letter_Row01_Col25_Byte1);
               case 26:
-                return _Letter_Row01_Col26;
+                return float2(_Letter_Row01_Col26_Byte0, _Letter_Row01_Col26_Byte1);
               case 27:
-                return _Letter_Row01_Col27;
+                return float2(_Letter_Row01_Col27_Byte0, _Letter_Row01_Col27_Byte1);
               case 28:
-                return _Letter_Row01_Col28;
+                return float2(_Letter_Row01_Col28_Byte0, _Letter_Row01_Col28_Byte1);
               case 29:
-                return _Letter_Row01_Col29;
+                return float2(_Letter_Row01_Col29_Byte0, _Letter_Row01_Col29_Byte1);
               case 30:
-                return _Letter_Row01_Col30;
+                return float2(_Letter_Row01_Col30_Byte0, _Letter_Row01_Col30_Byte1);
               case 31:
-                return _Letter_Row01_Col31;
+                return float2(_Letter_Row01_Col31_Byte0, _Letter_Row01_Col31_Byte1);
               case 32:
-                return _Letter_Row01_Col32;
+                return float2(_Letter_Row01_Col32_Byte0, _Letter_Row01_Col32_Byte1);
               case 33:
-                return _Letter_Row01_Col33;
+                return float2(_Letter_Row01_Col33_Byte0, _Letter_Row01_Col33_Byte1);
               case 34:
-                return _Letter_Row01_Col34;
+                return float2(_Letter_Row01_Col34_Byte0, _Letter_Row01_Col34_Byte1);
               case 35:
-                return _Letter_Row01_Col35;
+                return float2(_Letter_Row01_Col35_Byte0, _Letter_Row01_Col35_Byte1);
               case 36:
-                return _Letter_Row01_Col36;
+                return float2(_Letter_Row01_Col36_Byte0, _Letter_Row01_Col36_Byte1);
               case 37:
-                return _Letter_Row01_Col37;
+                return float2(_Letter_Row01_Col37_Byte0, _Letter_Row01_Col37_Byte1);
               case 38:
-                return _Letter_Row01_Col38;
+                return float2(_Letter_Row01_Col38_Byte0, _Letter_Row01_Col38_Byte1);
               case 39:
-                return _Letter_Row01_Col39;
+                return float2(_Letter_Row01_Col39_Byte0, _Letter_Row01_Col39_Byte1);
               case 40:
-                return _Letter_Row01_Col40;
+                return float2(_Letter_Row01_Col40_Byte0, _Letter_Row01_Col40_Byte1);
               case 41:
-                return _Letter_Row01_Col41;
+                return float2(_Letter_Row01_Col41_Byte0, _Letter_Row01_Col41_Byte1);
               case 42:
-                return _Letter_Row01_Col42;
+                return float2(_Letter_Row01_Col42_Byte0, _Letter_Row01_Col42_Byte1);
               case 43:
-                return _Letter_Row01_Col43;
+                return float2(_Letter_Row01_Col43_Byte0, _Letter_Row01_Col43_Byte1);
               default:
-                return 0;
+                return float2(0, 0);
             }
           case 1:
             [forcecase] switch (CHAR_COL) {
               case 0:
-                return _Letter_Row02_Col00;
+                return float2(_Letter_Row02_Col00_Byte0, _Letter_Row02_Col00_Byte1);
               case 1:
-                return _Letter_Row02_Col01;
+                return float2(_Letter_Row02_Col01_Byte0, _Letter_Row02_Col01_Byte1);
               case 2:
-                return _Letter_Row02_Col02;
+                return float2(_Letter_Row02_Col02_Byte0, _Letter_Row02_Col02_Byte1);
               case 3:
-                return _Letter_Row02_Col03;
+                return float2(_Letter_Row02_Col03_Byte0, _Letter_Row02_Col03_Byte1);
               case 4:
-                return _Letter_Row02_Col04;
+                return float2(_Letter_Row02_Col04_Byte0, _Letter_Row02_Col04_Byte1);
               case 5:
-                return _Letter_Row02_Col05;
+                return float2(_Letter_Row02_Col05_Byte0, _Letter_Row02_Col05_Byte1);
               case 6:
-                return _Letter_Row02_Col06;
+                return float2(_Letter_Row02_Col06_Byte0, _Letter_Row02_Col06_Byte1);
               case 7:
-                return _Letter_Row02_Col07;
+                return float2(_Letter_Row02_Col07_Byte0, _Letter_Row02_Col07_Byte1);
               case 8:
-                return _Letter_Row02_Col08;
+                return float2(_Letter_Row02_Col08_Byte0, _Letter_Row02_Col08_Byte1);
               case 9:
-                return _Letter_Row02_Col09;
+                return float2(_Letter_Row02_Col09_Byte0, _Letter_Row02_Col09_Byte1);
               case 10:
-                return _Letter_Row02_Col10;
+                return float2(_Letter_Row02_Col10_Byte0, _Letter_Row02_Col10_Byte1);
               case 11:
-                return _Letter_Row02_Col11;
+                return float2(_Letter_Row02_Col11_Byte0, _Letter_Row02_Col11_Byte1);
               case 12:
-                return _Letter_Row02_Col12;
+                return float2(_Letter_Row02_Col12_Byte0, _Letter_Row02_Col12_Byte1);
               case 13:
-                return _Letter_Row02_Col13;
+                return float2(_Letter_Row02_Col13_Byte0, _Letter_Row02_Col13_Byte1);
               case 14:
-                return _Letter_Row02_Col14;
+                return float2(_Letter_Row02_Col14_Byte0, _Letter_Row02_Col14_Byte1);
               case 15:
-                return _Letter_Row02_Col15;
+                return float2(_Letter_Row02_Col15_Byte0, _Letter_Row02_Col15_Byte1);
               case 16:
-                return _Letter_Row02_Col16;
+                return float2(_Letter_Row02_Col16_Byte0, _Letter_Row02_Col16_Byte1);
               case 17:
-                return _Letter_Row02_Col17;
+                return float2(_Letter_Row02_Col17_Byte0, _Letter_Row02_Col17_Byte1);
               case 18:
-                return _Letter_Row02_Col18;
+                return float2(_Letter_Row02_Col18_Byte0, _Letter_Row02_Col18_Byte1);
               case 19:
-                return _Letter_Row02_Col19;
+                return float2(_Letter_Row02_Col19_Byte0, _Letter_Row02_Col19_Byte1);
               case 20:
-                return _Letter_Row02_Col20;
+                return float2(_Letter_Row02_Col20_Byte0, _Letter_Row02_Col20_Byte1);
               case 21:
-                return _Letter_Row02_Col21;
+                return float2(_Letter_Row02_Col21_Byte0, _Letter_Row02_Col21_Byte1);
               case 22:
-                return _Letter_Row02_Col22;
+                return float2(_Letter_Row02_Col22_Byte0, _Letter_Row02_Col22_Byte1);
               case 23:
-                return _Letter_Row02_Col23;
+                return float2(_Letter_Row02_Col23_Byte0, _Letter_Row02_Col23_Byte1);
               case 24:
-                return _Letter_Row02_Col24;
+                return float2(_Letter_Row02_Col24_Byte0, _Letter_Row02_Col24_Byte1);
               case 25:
-                return _Letter_Row02_Col25;
+                return float2(_Letter_Row02_Col25_Byte0, _Letter_Row02_Col25_Byte1);
               case 26:
-                return _Letter_Row02_Col26;
+                return float2(_Letter_Row02_Col26_Byte0, _Letter_Row02_Col26_Byte1);
               case 27:
-                return _Letter_Row02_Col27;
+                return float2(_Letter_Row02_Col27_Byte0, _Letter_Row02_Col27_Byte1);
               case 28:
-                return _Letter_Row02_Col28;
+                return float2(_Letter_Row02_Col28_Byte0, _Letter_Row02_Col28_Byte1);
               case 29:
-                return _Letter_Row02_Col29;
+                return float2(_Letter_Row02_Col29_Byte0, _Letter_Row02_Col29_Byte1);
               case 30:
-                return _Letter_Row02_Col30;
+                return float2(_Letter_Row02_Col30_Byte0, _Letter_Row02_Col30_Byte1);
               case 31:
-                return _Letter_Row02_Col31;
+                return float2(_Letter_Row02_Col31_Byte0, _Letter_Row02_Col31_Byte1);
               case 32:
-                return _Letter_Row02_Col32;
+                return float2(_Letter_Row02_Col32_Byte0, _Letter_Row02_Col32_Byte1);
               case 33:
-                return _Letter_Row02_Col33;
+                return float2(_Letter_Row02_Col33_Byte0, _Letter_Row02_Col33_Byte1);
               case 34:
-                return _Letter_Row02_Col34;
+                return float2(_Letter_Row02_Col34_Byte0, _Letter_Row02_Col34_Byte1);
               case 35:
-                return _Letter_Row02_Col35;
+                return float2(_Letter_Row02_Col35_Byte0, _Letter_Row02_Col35_Byte1);
               case 36:
-                return _Letter_Row02_Col36;
+                return float2(_Letter_Row02_Col36_Byte0, _Letter_Row02_Col36_Byte1);
               case 37:
-                return _Letter_Row02_Col37;
+                return float2(_Letter_Row02_Col37_Byte0, _Letter_Row02_Col37_Byte1);
               case 38:
-                return _Letter_Row02_Col38;
+                return float2(_Letter_Row02_Col38_Byte0, _Letter_Row02_Col38_Byte1);
               case 39:
-                return _Letter_Row02_Col39;
+                return float2(_Letter_Row02_Col39_Byte0, _Letter_Row02_Col39_Byte1);
               case 40:
-                return _Letter_Row02_Col40;
+                return float2(_Letter_Row02_Col40_Byte0, _Letter_Row02_Col40_Byte1);
               case 41:
-                return _Letter_Row02_Col41;
+                return float2(_Letter_Row02_Col41_Byte0, _Letter_Row02_Col41_Byte1);
               case 42:
-                return _Letter_Row02_Col42;
+                return float2(_Letter_Row02_Col42_Byte0, _Letter_Row02_Col42_Byte1);
               case 43:
-                return _Letter_Row02_Col43;
+                return float2(_Letter_Row02_Col43_Byte0, _Letter_Row02_Col43_Byte1);
               default:
-                return 0;
+                return float2(0, 0);
             }
           case 0:
             [forcecase] switch (CHAR_COL) {
               case 0:
-                return _Letter_Row03_Col00;
+                return float2(_Letter_Row03_Col00_Byte0, _Letter_Row03_Col00_Byte1);
               case 1:
-                return _Letter_Row03_Col01;
+                return float2(_Letter_Row03_Col01_Byte0, _Letter_Row03_Col01_Byte1);
               case 2:
-                return _Letter_Row03_Col02;
+                return float2(_Letter_Row03_Col02_Byte0, _Letter_Row03_Col02_Byte1);
               case 3:
-                return _Letter_Row03_Col03;
+                return float2(_Letter_Row03_Col03_Byte0, _Letter_Row03_Col03_Byte1);
               case 4:
-                return _Letter_Row03_Col04;
+                return float2(_Letter_Row03_Col04_Byte0, _Letter_Row03_Col04_Byte1);
               case 5:
-                return _Letter_Row03_Col05;
+                return float2(_Letter_Row03_Col05_Byte0, _Letter_Row03_Col05_Byte1);
               case 6:
-                return _Letter_Row03_Col06;
+                return float2(_Letter_Row03_Col06_Byte0, _Letter_Row03_Col06_Byte1);
               case 7:
-                return _Letter_Row03_Col07;
+                return float2(_Letter_Row03_Col07_Byte0, _Letter_Row03_Col07_Byte1);
               case 8:
-                return _Letter_Row03_Col08;
+                return float2(_Letter_Row03_Col08_Byte0, _Letter_Row03_Col08_Byte1);
               case 9:
-                return _Letter_Row03_Col09;
+                return float2(_Letter_Row03_Col09_Byte0, _Letter_Row03_Col09_Byte1);
               case 10:
-                return _Letter_Row03_Col10;
+                return float2(_Letter_Row03_Col10_Byte0, _Letter_Row03_Col10_Byte1);
               case 11:
-                return _Letter_Row03_Col11;
+                return float2(_Letter_Row03_Col11_Byte0, _Letter_Row03_Col11_Byte1);
               case 12:
-                return _Letter_Row03_Col12;
+                return float2(_Letter_Row03_Col12_Byte0, _Letter_Row03_Col12_Byte1);
               case 13:
-                return _Letter_Row03_Col13;
+                return float2(_Letter_Row03_Col13_Byte0, _Letter_Row03_Col13_Byte1);
               case 14:
-                return _Letter_Row03_Col14;
+                return float2(_Letter_Row03_Col14_Byte0, _Letter_Row03_Col14_Byte1);
               case 15:
-                return _Letter_Row03_Col15;
+                return float2(_Letter_Row03_Col15_Byte0, _Letter_Row03_Col15_Byte1);
               case 16:
-                return _Letter_Row03_Col16;
+                return float2(_Letter_Row03_Col16_Byte0, _Letter_Row03_Col16_Byte1);
               case 17:
-                return _Letter_Row03_Col17;
+                return float2(_Letter_Row03_Col17_Byte0, _Letter_Row03_Col17_Byte1);
               case 18:
-                return _Letter_Row03_Col18;
+                return float2(_Letter_Row03_Col18_Byte0, _Letter_Row03_Col18_Byte1);
               case 19:
-                return _Letter_Row03_Col19;
+                return float2(_Letter_Row03_Col19_Byte0, _Letter_Row03_Col19_Byte1);
               case 20:
-                return _Letter_Row03_Col20;
+                return float2(_Letter_Row03_Col20_Byte0, _Letter_Row03_Col20_Byte1);
               case 21:
-                return _Letter_Row03_Col21;
+                return float2(_Letter_Row03_Col21_Byte0, _Letter_Row03_Col21_Byte1);
               case 22:
-                return _Letter_Row03_Col22;
+                return float2(_Letter_Row03_Col22_Byte0, _Letter_Row03_Col22_Byte1);
               case 23:
-                return _Letter_Row03_Col23;
+                return float2(_Letter_Row03_Col23_Byte0, _Letter_Row03_Col23_Byte1);
               case 24:
-                return _Letter_Row03_Col24;
+                return float2(_Letter_Row03_Col24_Byte0, _Letter_Row03_Col24_Byte1);
               case 25:
-                return _Letter_Row03_Col25;
+                return float2(_Letter_Row03_Col25_Byte0, _Letter_Row03_Col25_Byte1);
               case 26:
-                return _Letter_Row03_Col26;
+                return float2(_Letter_Row03_Col26_Byte0, _Letter_Row03_Col26_Byte1);
               case 27:
-                return _Letter_Row03_Col27;
+                return float2(_Letter_Row03_Col27_Byte0, _Letter_Row03_Col27_Byte1);
               case 28:
-                return _Letter_Row03_Col28;
+                return float2(_Letter_Row03_Col28_Byte0, _Letter_Row03_Col28_Byte1);
               case 29:
-                return _Letter_Row03_Col29;
+                return float2(_Letter_Row03_Col29_Byte0, _Letter_Row03_Col29_Byte1);
               case 30:
-                return _Letter_Row03_Col30;
+                return float2(_Letter_Row03_Col30_Byte0, _Letter_Row03_Col30_Byte1);
               case 31:
-                return _Letter_Row03_Col31;
+                return float2(_Letter_Row03_Col31_Byte0, _Letter_Row03_Col31_Byte1);
               case 32:
-                return _Letter_Row03_Col32;
+                return float2(_Letter_Row03_Col32_Byte0, _Letter_Row03_Col32_Byte1);
               case 33:
-                return _Letter_Row03_Col33;
+                return float2(_Letter_Row03_Col33_Byte0, _Letter_Row03_Col33_Byte1);
               case 34:
-                return _Letter_Row03_Col34;
+                return float2(_Letter_Row03_Col34_Byte0, _Letter_Row03_Col34_Byte1);
               case 35:
-                return _Letter_Row03_Col35;
+                return float2(_Letter_Row03_Col35_Byte0, _Letter_Row03_Col35_Byte1);
               case 36:
-                return _Letter_Row03_Col36;
+                return float2(_Letter_Row03_Col36_Byte0, _Letter_Row03_Col36_Byte1);
               case 37:
-                return _Letter_Row03_Col37;
+                return float2(_Letter_Row03_Col37_Byte0, _Letter_Row03_Col37_Byte1);
               case 38:
-                return _Letter_Row03_Col38;
+                return float2(_Letter_Row03_Col38_Byte0, _Letter_Row03_Col38_Byte1);
               case 39:
-                return _Letter_Row03_Col39;
+                return float2(_Letter_Row03_Col39_Byte0, _Letter_Row03_Col39_Byte1);
               case 40:
-                return _Letter_Row03_Col40;
+                return float2(_Letter_Row03_Col40_Byte0, _Letter_Row03_Col40_Byte1);
               case 41:
-                return _Letter_Row03_Col41;
+                return float2(_Letter_Row03_Col41_Byte0, _Letter_Row03_Col41_Byte1);
               case 42:
-                return _Letter_Row03_Col42;
+                return float2(_Letter_Row03_Col42_Byte0, _Letter_Row03_Col42_Byte1);
               case 43:
-                return _Letter_Row03_Col43;
+                return float2(_Letter_Row03_Col43_Byte0, _Letter_Row03_Col43_Byte1);
               default:
-                return 0;
+                return float2(0, 0);
             }
         }
 
-        return 0;
+        return float2(0, 0);
       }
 
       fixed4 frag (v2f i) : SV_Target
@@ -856,10 +1232,31 @@
         float uv_y_margin = 0.06;
         uv = AddMarginToUV(uv, uv_x_margin, uv_y_margin);
 
-        float letter = floor(GetLetterParameter(uv));
+        int2 letter_bytes = (int2) floor(GetLetterParameter(uv));
+        int letter = letter_bytes[0] | (letter_bytes[1] << 8);
+
         uv = GetLetter(uv, letter);
-        fixed4 ret = _Font_0x0000_0x1FFF.Sample(sampler_linear_repeat, uv);
-        return ret;
+
+        int which_texture = (int) floor(letter / (64 * 128));
+        [forcecase] switch (which_texture)
+        {
+          case 0:
+            return _Font_0x0000_0x1FFF.Sample(sampler_linear_repeat, uv);
+          case 1:
+            return _Font_0x2000_0x3FFF.Sample(sampler_linear_repeat, uv);
+          case 2:
+            return _Font_0x4000_0x5FFF.Sample(sampler_linear_repeat, uv);
+          case 3:
+            return _Font_0x6000_0x7FFF.Sample(sampler_linear_repeat, uv);
+          case 4:
+            return _Font_0x8000_0x9FFF.Sample(sampler_linear_repeat, uv);
+          case 5:
+            return _Font_0xA000_0xBFFF.Sample(sampler_linear_repeat, uv);
+          case 6:
+            return _Font_0xC000_0xDFFF.Sample(sampler_linear_repeat, uv);
+          default:
+            return _Font_0x0000_0x1FFF.Sample(sampler_linear_repeat, uv);
+        }
       }
       ENDCG
     }
