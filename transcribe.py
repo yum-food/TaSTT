@@ -54,7 +54,7 @@ class AudioState:
     transcribe_no_change_count = 0
     transcribe_sleep_duration = transcribe_sleep_duration_min_s
     # The language the user is speaking in.
-    language = whisper.tokenizer.TO_LANGUAGE_CODE["japanese"]
+    language = whisper.tokenizer.TO_LANGUAGE_CODE["english"]
 
     # When the user says `over`, we stop displaying new transcriptions until
     # they clear the board again.
@@ -273,12 +273,17 @@ def sendAudio(audio_state):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--mic", type=str, help="Which mic to use. Options: index, focusrite. Default: index")
+    parser.add_argument("--language", type=str, help="Which language to use. Ex: english, japanese, chinese, french, german.")
     args = parser.parse_args()
 
     if not args.mic:
         args.mic = "index"
 
+    if not args.language:
+        args.language = "english"
+
     audio_state = getMicStream(args.mic)
+    audio_state.language = whisper.tokenizer.TO_LANGUAGE_CODE[args.language]
 
     if os.path.isfile(audio_state.VOICE_AUDIO_FILENAME):
         # empty out the voice file
