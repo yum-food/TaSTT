@@ -163,8 +163,7 @@ def generateClearAnimation(anim_dir, guid_map):
     anim_clip.mapping['m_FloatCurves'].sequence = []
     anim_clip.mapping['m_EditorCurves'].sequence = []
 
-    encoding = osc_ctrl.generateEncoding()
-    letter = encoding[' ']
+    letter = 0
 
     for byte in range(0, generate_utils.BYTES_PER_CHAR):
         for row in range(0, generate_utils.BOARD_ROWS):
