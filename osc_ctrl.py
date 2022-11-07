@@ -77,9 +77,6 @@ def disable(client):
 # `which_cell` is an integer in the range [0,2**INDEX_BITS).
 def sendMessageCellDiscrete(client, msg_cell, which_cell):
     empty_cell = [state.encoding[' ']] * NUM_LAYERS
-    if msg_cell != state.encoding[' '] * BOARD_COLS:
-        addr="/avatar/parameters/" + generate_utils.getSpeechNoiseToggleParam()
-        client.send_message(addr, False)
 
     if msg_cell != empty_cell:
         addr="/avatar/parameters/" + generate_utils.getSpeechNoiseToggleParam()

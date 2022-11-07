@@ -1,16 +1,23 @@
 ## TaSTT: A deliciously free STT
 
 TaSTT (pronounced "tasty") is a free speech-to-text tool for VRChat. It uses
-local machine translation to turn your voice into text, then sends it into
+local machine transcription to turn your voice into text, then sends it into
 VRChat via OSC. A few parameters, a machine-generated FX layer, and a
 custom shader display the text in game.
 
 ![Speech-to-text demo](Images/speech_to_text_demo.gif)
 
 Features:
+
 * 4x44 grid, 256 or 65536 characters per slot.
 * Text-to-text interface.
 * Speech-to-text interface.
+* Multiple language support.
+  * Transcription within the same language works for many languages.
+  * Translation from N languages to English is supported.
+  * Translation from English into other languages is added case by case. This
+    is a limitation of the state of the art in machine translation: fine-tuned
+    English->other language models far outperform English->many language models.
 * Free as in beer.
 * Free as in freedom.
 * Privacy-respecting: transcription is done on your GPU, not in the cloud.
@@ -35,7 +42,7 @@ reliable as possible.
 There are existing tools which help here, but they are all imperfect for one
 reason or another:
 
-1. RabidCrab's STT costs money and relies on cloud-based translation. I have
+1. RabidCrab's STT costs money and relies on cloud-based transcription. I have
    struggled with latency, quality, and reliability issues. It's also
    closed-source.
 2. The in-game text box is only visible to your friends list, making it
@@ -148,6 +155,8 @@ To use the STT:
    1. Error detection & correction.
    2. ~~Text-to-text interface. Type in terminal, show in game.~~ DONE
    3. ~~Speech-to-text interface. Speak out loud, show in game.~~ DONE
+   4. Translation into non-English. Whisper natively supports translating N
+      languages into English, but not the other way around.
 4. Optimization
    1. ~~Utilize the avatar 3.0 SDK's ability to drive parameters to reduce the
      total # of parameters (and therefore OSC messages & sync events). Note
