@@ -912,7 +912,8 @@ class UnityAnimator():
             motion = node.mapping['AnimatorState'].mapping['m_Motion']
             replace = False
 
-            if "fileID" in motion.mapping.keys():
+            if "fileID" in motion.mapping.keys() and \
+                    motion.mapping["fileID"] != "0":
                 continue
 
             if "guid" in motion.mapping.keys() and \
