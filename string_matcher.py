@@ -61,14 +61,22 @@ def matchStrings(old_text: str, new_text: str, window_size = 3) -> str:
         best_match_j = None
         best_match_d = window_size * 1000
 
-        for i in range(0, 1 + len(old_text) - window_size):
+        # The number of old slices to look at. Since the old text can grow
+        # unboundedly, it's crucial that we don't compare to every possible
+        # slice in the old and new transcriptions (O(N^2) time complexity).
+        # This is still wildly inefficient, but good enough for continuous
+        # transcription in a game bound by a single CPU core, like VRChat.
+        max_old_slices = 50
+        old_n_slices = min(max_old_slices, len(old_text))
+        last_old_window = len(old_text) - window_size
+        first_old_window = max(last_old_window - old_n_slices, 0)
+
+        for i in range(first_old_window, last_old_window + 1):
             old_slice = old_text[i:i + window_size]
 
             for j in range(0, 1 + len(new_text) - window_size):
                 new_slice = new_text[j:j + window_size]
-                cur_d = 0
-                for k in range(0, window_size):
-                    cur_d += levenshtein_distance(old_slice[k], new_slice[k])
+                cur_d = levenshtein_distance(old_slice, new_slice)
                 if cur_d <= best_match_d:
                     best_match_i = i
                     best_match_j = j
@@ -120,13 +128,18 @@ if __name__ == "__main__":
     in2 = "okay what about now looks like it sort of works key word being sort of looks"
     bad_out = "Okay, what about now? Looks like it sort of works. Key word being sort of works key word being sort of looks"
     good_out = "Okay, what about now? Looks like it sort of works. Key word being sort of looks"
-    print(matchStrings(in1, in2))
+    assert(matchStrings(in1, in2) == good_out)
 
     in1 = "This repository can take"
     in2 = "This repository contains the code for"
     bad_out  = "This repository can tode for"
     good_out = "This repository contains the code for"
-    print(matchStrings(in1, in2))
+    assert(matchStrings(in1, in2) == good_out)
+
+    in1 = "a" * 10 * 1000
+    in2 = "b" * 10 * 1000
+    # This should be fast (< 1 second)
+    matchStrings(in1, in2)
 
     print("Tests passed.")
 
