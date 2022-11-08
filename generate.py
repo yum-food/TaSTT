@@ -16,7 +16,7 @@ state.encoding = osc_ctrl.generateEncoding()
 
 osc_ctrl.clear(client)
 
-i = 0xC000
+i = 0x3400
 line = ""
 while True:
     for j in range(0, 256):

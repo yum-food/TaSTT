@@ -786,9 +786,19 @@
         int CHAR_COLS = 44;
 
         // OK, I know what cell I'm in. Now I need to know how far across it I
-        // am. Produce a float in the range [0, CHAR_COLS).
+        // am. Produce a float in the range [0, 1).
         float CHAR_FRAC_COL = uv.x * CHAR_COLS - floor(uv.x * CHAR_COLS);
         float CHAR_FRAC_ROW = uv.y * CHAR_ROWS - floor(uv.y * CHAR_ROWS);
+
+        // Avoid rendering pixels right on the edge of the slot. If we were to
+        // do this, then that value would get stretched due to clamping
+        // (AddMarginToUV), resulting in long lines on the edge of the display.
+        if (CHAR_FRAC_ROW < 0.01 ||
+            CHAR_FRAC_COL < 0.01 ||
+            CHAR_FRAC_ROW > 0.99 ||
+            CHAR_FRAC_COL > 0.99) {
+          return float2(0, 0);
+        }
 
         // This is the number of rows and columns in the actual texture.
         float LETTER_COLS = 128.0;
@@ -797,8 +807,8 @@
         float LETTER_COL = fmod(nth_letter, floor(LETTER_COLS));
         float LETTER_ROW = floor(LETTER_ROWS) - floor(nth_letter / floor(LETTER_COLS));
 
-        float LETTER_UV_ROW = (LETTER_ROW + CHAR_FRAC_ROW - 0.99) / LETTER_ROWS;
-        float LETTER_UV_COL = (LETTER_COL + CHAR_FRAC_COL - 0.01) / LETTER_COLS;
+        float LETTER_UV_ROW = (LETTER_ROW + CHAR_FRAC_ROW - 1.0) / LETTER_ROWS;
+        float LETTER_UV_COL = (LETTER_COL + CHAR_FRAC_COL) / LETTER_COLS;
 
         float2 result;
         result.x = LETTER_UV_COL;
@@ -1229,7 +1239,7 @@
         }
 
         float uv_x_margin = 0.03;
-        float uv_y_margin = 0.06;
+        float uv_y_margin = 0.03;
         uv = AddMarginToUV(uv, uv_x_margin, uv_y_margin);
 
         int2 letter_bytes = (int2) floor(GetLetterParameter(uv));
