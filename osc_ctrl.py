@@ -235,27 +235,26 @@ def sendMessageLazy(client, msg, tx_state):
 
         # Skip cells we've already sent. This makes the board much more
         # responsive.
-        if cell_end < len(tx_state.last_msg_encoded):
+        if cell_end <= len(tx_state.last_msg_encoded):
             last_cell_msg = tx_state.last_msg_encoded[cell_begin:cell_end]
         if cell_msg == last_cell_msg:
             continue
 
         if cell_msg == [state.encoding[' ']] * NUM_LAYERS:
             if empty_cells_sent >= tx_state.empty_cells_to_send_per_call:
-                #print("empty cell budget exceeded")
-                tx_state.last_msg_encoded = msg_encoded[0:cell_end]
                 return False
             empty_cells_sent += 1
         else:
             if nonempty_cells_sent >= tx_state.nonempty_cells_to_send_per_call:
-                #print("nonempty cell budget exceeded")
-                tx_state.last_msg_encoded = msg_encoded[0:cell_end]
                 return False
             nonempty_cells_sent += 1
 
         sendMessageCellDiscrete(client, cell_msg, cell)
+        # Pad last msg encoded to the end of the array
+        tx_state.last_msg_encoded += [state.encoding[" "]] * (cell_end -
+                len(tx_state.last_msg_encoded))
+        tx_state.last_msg_encoded[cell_begin:cell_end] = cell_msg
 
-    tx_state.last_msg_encoded = msg_encoded
     #resizeBoard(len(lines), tx_state, shrink_only=True)
     return True
 
