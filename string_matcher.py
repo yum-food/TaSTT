@@ -66,7 +66,7 @@ def matchStrings(old_text: str, new_text: str, window_size = 3) -> str:
         # slice in the old and new transcriptions (O(N^2) time complexity).
         # This is still wildly inefficient, but good enough for continuous
         # transcription in a game bound by a single CPU core, like VRChat.
-        max_old_slices = 50
+        max_old_slices = 300
         old_n_slices = min(max_old_slices, len(old_text))
         last_old_window = len(old_text) - window_size
         first_old_window = max(last_old_window - old_n_slices, 0)
@@ -136,7 +136,7 @@ if __name__ == "__main__":
     good_out = "This repository contains the code for"
     assert(matchStrings(in1, in2) == good_out)
 
-    in1 = "a" * 10 * 1000
+    in1 = "a" * 1000
     in2 = "b" * 10 * 1000
     # This should be fast (< 1 second)
     matchStrings(in1, in2)

@@ -16,10 +16,14 @@ state.encoding = osc_ctrl.generateEncoding()
 
 osc_ctrl.clear(client)
 
-i = 0x3400
+time.sleep(1)
+
+#i = 0xAC00
+#i = 0x3000
+i = 0x0000
 line = ""
 while True:
-    for j in range(0, 256):
+    for j in range(0, 1024):
         letter = chr(i)
         line += letter
         i = i + 1

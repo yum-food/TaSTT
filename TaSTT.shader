@@ -807,7 +807,7 @@
         float LETTER_COL = fmod(nth_letter, floor(LETTER_COLS));
         float LETTER_ROW = floor(LETTER_ROWS) - floor(nth_letter / floor(LETTER_COLS));
 
-        float LETTER_UV_ROW = (LETTER_ROW + CHAR_FRAC_ROW - 1.0) / LETTER_ROWS;
+        float LETTER_UV_ROW = (LETTER_ROW + CHAR_FRAC_ROW - 1.00) / LETTER_ROWS;
         float LETTER_UV_COL = (LETTER_COL + CHAR_FRAC_COL) / LETTER_COLS;
 
         float2 result;
