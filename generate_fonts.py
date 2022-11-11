@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# python3 -m pip install pillow
+# License: HPND license.
 from PIL import Image, ImageFont, ImageDraw
 
 import math

@@ -9,6 +9,7 @@ import pickle
 import random
 import sys
 # python3 -m pip install pyyaml
+# License: MIT.
 import yaml
 
 import multiprocessing as mp

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-# python3 -m pip install python-Levenshtein
-from Levenshtein import distance as levenshtein_distance
+# python3 -m pip install editdistance
+# License: MIT.
+import editdistance
 
 import typing
 
@@ -26,7 +27,7 @@ def matchStringList(old_words: typing.List[str],
             new_slice = new_words[i:i + window_size]
             cur_d = 0
             for j in range(0, window_size):
-                cur_d += levenshtein_distance(old_slice[j], new_slice[j])
+                cur_d += editdistance.eval(old_slice[j], new_slice[j])
             if cur_d < best_match_d:
                 best_match_i = i
                 best_match_d = cur_d
@@ -76,7 +77,7 @@ def matchStrings(old_text: str, new_text: str, window_size = 3) -> str:
 
             for j in range(0, 1 + len(new_text) - window_size):
                 new_slice = new_text[j:j + window_size]
-                cur_d = levenshtein_distance(old_slice, new_slice)
+                cur_d = editdistance.eval(old_slice, new_slice)
                 if cur_d <= best_match_d:
                     best_match_i = i
                     best_match_j = j

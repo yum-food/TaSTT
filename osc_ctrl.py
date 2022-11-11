@@ -6,7 +6,10 @@ import time
 import fileinput
 import generate_utils
 
+# python3 -m pip install python-osc
+# License: public domain.
 from pythonosc import udp_client
+
 from math import ceil
 from math import floor
 from generate_utils import getLayerParam

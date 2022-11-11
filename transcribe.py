@@ -6,9 +6,11 @@ import string_matcher
 import os
 import osc_ctrl
 # python3 -m pip install pydub
+# License: MIT.
 from pydub import AudioSegment as pydub_AudioSegment
 from pydub import effects as pydub_effects
 # python3 -m pip install pyaudio
+# License: MIT.
 import pyaudio
 import sys
 import threading
@@ -16,6 +18,7 @@ import time
 import wave
 # python3 -m pip install git+https://github.com/openai/whisper.git
 # python3 -m pip install torch -f https://download.pytorch.org/whl/torch_stable.html
+# License: MIT.
 import whisper
 
 class AudioState:
@@ -270,20 +273,9 @@ def sendAudio(audio_state):
         # Pace this out
         time.sleep(0.01)
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--mic", type=str, help="Which mic to use. Options: index, focusrite. Default: index")
-    parser.add_argument("--language", type=str, help="Which language to use. Ex: english, japanese, chinese, french, german.")
-    args = parser.parse_args()
-
-    if not args.mic:
-        args.mic = "index"
-
-    if not args.language:
-        args.language = "english"
-
-    audio_state = getMicStream(args.mic)
-    audio_state.language = whisper.tokenizer.TO_LANGUAGE_CODE[args.language]
+def transcribeLoop(mic: str, language: str):
+    audio_state = getMicStream(mic)
+    audio_state.language = whisper.tokenizer.TO_LANGUAGE_CODE[language]
 
     if os.path.isfile(audio_state.VOICE_AUDIO_FILENAME):
         # empty out the voice file
@@ -317,4 +309,19 @@ if __name__ == "__main__":
     audio_state.transcribe_audio = False
     record_audio_thd.join()
     transcribe_audio_thd.join()
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mic", type=str, help="Which mic to use. Options: index, focusrite. Default: index")
+    parser.add_argument("--language", type=str, help="Which language to use. Ex: english, japanese, chinese, french, german.")
+    args = parser.parse_args()
+
+    if not args.mic:
+        args.mic = "index"
+
+    if not args.language:
+        args.language = "english"
+
+    transcribeLoop(args.mic, args.language)
 
