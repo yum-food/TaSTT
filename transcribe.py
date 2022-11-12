@@ -2,6 +2,7 @@
 
 import argparse
 import copy
+from datetime import datetime
 import os
 import osc_ctrl
 # python3 -m pip install pydub
@@ -44,6 +45,7 @@ class AudioState:
 
     text = ""
     committed_text = ""
+    text_ts = datetime.now()
     frames = []
     # Locks access to `text`, `frames`, and audio stored on disk.
     lock = threading.Lock()
@@ -244,8 +246,12 @@ def transcribeAudio(audio_state, model):
             audio_state.lock.release()
             continue
 
-        # Hack: two consecutive identical transcriptions get "committed".
-        if text == audio_state.text:
+        # Hack: transcriptions that remain the same for N seconds get
+        # committed.
+        now = datetime.now()
+        dt = now - audio_state.text_ts
+        dt_s = dt.seconds  + float(dt.microseconds) / (1000 * 1000)
+        if dt_s >= 1 and text == audio_state.text:
             print("Commit!")
             old_commit = audio_state.committed_text
             resetAudioLocked(audio_state)
@@ -253,6 +259,8 @@ def transcribeAudio(audio_state, model):
             audio_state.lock.release()
             continue
         else:
+            if text != audio_state.text:
+                audio_state.text_ts = now
             print("text: {}".format(text))
             print("audio_state.text: {}".format(audio_state.text))
 
@@ -285,6 +293,7 @@ def sendAudio(audio_state):
             continue
 
         audio_state.lock.acquire()
+
         text = audio_state.committed_text + " " + audio_state.text
         osc_ctrl.sendMessageLazy(audio_state.osc_client, text, audio_state.tx_state)
         audio_state.lock.release()
@@ -339,8 +348,12 @@ def transcribeLoop(mic: str, language: str):
     print("Press enter or say 'Clear' to start a new message. Say 'Over' to " +
             "pause the display (saying 'Clear' resets it again).")
     for line in sys.stdin:
-        resetAudio(audio_state)
+        audio_state.lock.acquire()
+        resetAudioLocked(audio_state)
         resetDisplayLocked(audio_state)
+        audio_state.drop_transcription = True
+        audio_state.display_paused = False
+        audio_state.lock.release()
         if "exit" in line or "quit" in line:
             break
 

@@ -290,7 +290,7 @@ def clear(client, tx_state):
     addr="/avatar/parameters/" + generate_utils.getClearBoardParam()
     client.send_message(addr, False)
 
-    tx_state.last_message_encoded = []
+    tx_state.last_msg_encoded = []
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
