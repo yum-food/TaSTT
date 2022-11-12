@@ -2,7 +2,6 @@
 
 import argparse
 import copy
-import string_matcher
 import os
 import osc_ctrl
 # python3 -m pip install pydub
@@ -12,6 +11,7 @@ from pydub import effects as pydub_effects
 # python3 -m pip install pyaudio
 # License: MIT.
 import pyaudio
+import steamvr
 import sys
 import threading
 import time
@@ -42,21 +42,29 @@ class AudioState:
     # PyAudio stream object
     stream = None
 
-    frames = []
-    frames_lock = threading.Lock()
-
     text = ""
-    text_lock = threading.Lock()
+    committed_text = ""
+    frames = []
+    # Locks access to `text`, `frames`, and audio stored on disk.
+    lock = threading.Lock()
 
-    record_audio = True
-    transcribe_audio = True
-    send_audio = True
+    # Used to tell the threads when to stop.
+    run_app = True
 
     transcribe_sleep_duration_min_s = 0.05
     transcribe_sleep_duration_max_s = 1.50
     transcribe_no_change_count = 0
     transcribe_sleep_duration = transcribe_sleep_duration_min_s
-    # The language the user is speaking in.
+
+    tx_state = osc_ctrl.OscTxState()
+
+    # The transcription thread transcribes without holding locks, then
+    # blocks on it. Thus we need some way to tell the transcription
+    # thread to drop that transcription.
+    drop_transcription = False
+
+    # The language the user is speaking in. Default is English but user may set
+    # this to whatever they want.
     language = whisper.tokenizer.TO_LANGUAGE_CODE["english"]
 
     # When the user says `over`, we stop displaying new transcriptions until
@@ -104,18 +112,18 @@ def getMicStream(which_mic):
 
     return audio_state
 
-# Continuously records audio as long as audio_state.record_audio is set.
+# Continuously records audio as long as audio_state.run_app is set.
 def recordAudio(audio_state):
     print("Recording audio")
-    while audio_state.record_audio:
+    while audio_state.run_app:
         data = audio_state.stream.read(audio_state.CHUNK)
 
-        audio_state.frames_lock.acquire()
+        audio_state.lock.acquire()
         audio_state.frames.append(data)
         max_frames = int(audio_state.RATE * audio_state.MAX_LENGTH_S / audio_state.CHUNK)
         if len(audio_state.frames) > max_frames:
             audio_state.frames = audio_state.frames[-1 * max_frames :]
-        audio_state.frames_lock.release()
+        audio_state.lock.release()
 
     print("Done recording")
 
@@ -130,9 +138,9 @@ def saveAudio(audio_state, filename):
     wf.setsampwidth(audio_state.p.get_sample_size(audio_state.FORMAT))
     wf.setframerate(audio_state.RATE)
 
-    audio_state.frames_lock.acquire()
+    audio_state.lock.acquire()
     frames = copy.deepcopy(audio_state.frames)
-    audio_state.frames_lock.release()
+    audio_state.lock.release()
 
     wf.writeframes(b''.join(frames))
     wf.close()
@@ -164,20 +172,23 @@ def resetAudioLocked(audio_state):
 
     resetDiskAudioLocked(audio_state, audio_state.VOICE_AUDIO_FILENAME)
 
+    audio_state.committed_text = ""
     audio_state.text = ""
-    osc_ctrl.clear(audio_state.osc_client)
+
+def resetDisplayLocked(audio_state):
+    osc_ctrl.clear(audio_state.osc_client, audio_state.tx_state)
 
 def resetAudio(audio_state):
-    audio_state.frames_lock.acquire()
+    audio_state.lock.acquire()
     resetAudioLocked(audio_state)
-    audio_state.frames_lock.release()
+    audio_state.lock.release()
 
 # Transcribe the audio recorded in a file.
 def transcribe(audio_state, model, filename):
 
-    audio_state.frames_lock.acquire()
+    audio_state.lock.acquire()
     audio = whisper.load_audio(filename)
-    audio_state.frames_lock.release()
+    audio_state.lock.release()
 
     audio = whisper.pad_or_trim(audio)
     mel = whisper.log_mel_spectrogram(audio).to(model.device)
@@ -186,7 +197,7 @@ def transcribe(audio_state, model, filename):
             beam_size = 5)
     result = whisper.decode(model, mel, options)
 
-    if result.no_speech_prob > 0.15:
+    if result.no_speech_prob > 0.60:
         print("no speech prob: {}".format(result.no_speech_prob))
         return None
 
@@ -201,7 +212,7 @@ def transcribe(audio_state, model, filename):
     return result.text
 
 def transcribeAudio(audio_state, model):
-    while audio_state.transcribe_audio == True:
+    while audio_state.run_app == True:
         # Pace this out
         print("sleep duration: {}".format(audio_state.transcribe_sleep_duration))
         time.sleep(audio_state.transcribe_sleep_duration)
@@ -226,18 +237,29 @@ def transcribeAudio(audio_state, model):
         text = transcribe(audio_state, model, audio_state.VOICE_AUDIO_FILENAME)
         if not text:
             continue
+        audio_state.lock.acquire()
 
-        audio_state.text_lock.acquire()
+        if audio_state.drop_transcription:
+            audio_state.drop_transcription = False
+            audio_state.lock.release()
+            continue
+
+        # Hack: two consecutive identical transcriptions get "committed".
+        if text == audio_state.text:
+            print("Commit!")
+            old_commit = audio_state.committed_text
+            resetAudioLocked(audio_state)
+            audio_state.committed_text = old_commit + " " + text
+            audio_state.lock.release()
+            continue
+        else:
+            print("text: {}".format(text))
+            print("audio_state.text: {}".format(audio_state.text))
 
         words = ''.join(c for c in text.lower() if (c.isalpha() or c == " ")).split()
 
         if len(words) > 0:
-            if words[-1] == "clear":
-                resetAudio(audio_state)
-                audio_state.text_lock.release()
-                audio_state.display_paused = False
-                continue
-            elif words[-1] == "over":
+            if words[-1] == "over":
                 words = words[0:-1]
                 audio_state.display_paused = True
 
@@ -247,31 +269,44 @@ def transcribeAudio(audio_state, model):
         #old_words = audio_state.text.split()
         #new_words = text.split()
 
-        audio_state.text = string_matcher.matchStrings(audio_state.text,
-                text, window_size = 5)
+        audio_state.text = text
         if old_text != audio_state.text:
             # We think the user said something, so  reset the amount of
             # time we sleep between transcriptions to the minimum.
             audio_state.transcribe_no_change_count = 0
             audio_state.transcribe_sleep_duration = audio_state.transcribe_sleep_duration_min_s
 
-        audio_state.text_lock.release()
+        audio_state.lock.release()
 
 def sendAudio(audio_state):
-    tx_state = osc_ctrl.OscTxState()
-
-    while audio_state.send_audio == True:
+    while audio_state.run_app == True:
         if audio_state.display_paused:
             time.sleep(0.1)
             continue
 
-        audio_state.text_lock.acquire()
-        text = copy.deepcopy(audio_state.text)
-        osc_ctrl.sendMessageLazy(audio_state.osc_client, text, tx_state)
-        audio_state.text_lock.release()
+        audio_state.lock.acquire()
+        text = audio_state.committed_text + " " + audio_state.text
+        osc_ctrl.sendMessageLazy(audio_state.osc_client, text, audio_state.tx_state)
+        audio_state.lock.release()
 
         # Pace this out
         time.sleep(0.01)
+
+def readControllerInput(audio_state):
+    session = steamvr.SessionState()
+    while audio_state.run_app == True:
+        time.sleep(0.05)
+
+        event = steamvr.pollButtonPress(session)
+
+        if event == steamvr.EVENT_RISING_EDGE:
+            print("event get")
+            audio_state.lock.acquire()
+            resetAudioLocked(audio_state)
+            resetDisplayLocked(audio_state)
+            audio_state.drop_transcription = True
+            audio_state.display_paused = False
+            audio_state.lock.release()
 
 def transcribeLoop(mic: str, language: str):
     audio_state = getMicStream(mic)
@@ -297,18 +332,24 @@ def transcribeLoop(mic: str, language: str):
     send_audio_thd.daemon = True
     send_audio_thd.start()
 
+    controller_input_thd = threading.Thread(target = readControllerInput, args = [audio_state])
+    controller_input_thd.daemon = True
+    controller_input_thd.start()
+
     print("Press enter or say 'Clear' to start a new message. Say 'Over' to " +
             "pause the display (saying 'Clear' resets it again).")
     for line in sys.stdin:
         resetAudio(audio_state)
+        resetDisplayLocked(audio_state)
         if "exit" in line or "quit" in line:
             break
 
     print("Joining threads")
-    audio_state.record_audio = False
-    audio_state.transcribe_audio = False
+    audio_state.run_app = False
+    audio_state.run_app = False
     record_audio_thd.join()
     transcribe_audio_thd.join()
+    controller_input_thd.join()
 
 
 if __name__ == "__main__":

@@ -16,9 +16,6 @@ class SessionState:
         # Whether the configured input event is high or low.
         self.event_high = False
 
-def getState() -> SessionState:
-    return SessionState()
-
 # Checks if the given button on the given controller is pressed.
 # Defaults to joystick click / left hand.
 # Returns three values:
@@ -40,12 +37,21 @@ def pollButtonPress(
     if state.unPacketNum == session_state.last_packet:
         return EVENT_NONE
 
-    #print("button pressed: %016x" % state.ulButtonPressed)
+    # Clicking joysticks and moving joysticks fire the same events. To
+    # differentiate movement from clicking, we create a dead zone: if the event
+    # fires while the stick isn't moved far from center, we assume it's a
+    # click, not movement.
+    dead_zone_radius = 0.5
+
     # This is the ID of event for the joystick being clicked.
     joy_click = vr.k_EButton_Axis0
     joy_click_mask = (1 << joy_click)
     ret = EVENT_NONE
-    if (state.ulButtonPressed & joy_click_mask) != 0:
+    if (state.ulButtonPressed & joy_click_mask) != 0 and\
+            (state.rAxis[0].x**2 + state.rAxis[0].y**2 < dead_zone_radius**2):
+        #print("button pressed: %016x" % state.ulButtonPressed)
+        #for i in range(0, 5):
+        #    print("axis {} x: {} y: {}".format(i, state.rAxis[i].x, state.rAxis[i].y))
         if not session_state.event_high:
             ret = EVENT_RISING_EDGE
         session_state.event_high = True
@@ -64,6 +70,4 @@ if __name__ == "__main__":
             print("rising edge")
         elif event == EVENT_FALLING_EDGE:
             print("falling edge")
-
-
 

@@ -243,6 +243,15 @@ def sendMessageLazy(client, msg, tx_state):
         if cell_msg == last_cell_msg:
             continue
 
+        # Skip cells on previous pages. This mitigates a bug where updating the
+        # earlier part of a transcription causes that text to overwrite text
+        # from a later part of the transcription.
+        page = floor(cell / (2 ** generate_utils.INDEX_BITS))
+        last_cell = (len(tx_state.last_msg_encoded) / NUM_LAYERS) - 1
+        last_page = floor(last_cell / (2 ** generate_utils.INDEX_BITS))
+        if page < last_page:
+            continue
+
         if cell_msg == [state.encoding[' ']] * NUM_LAYERS:
             if empty_cells_sent >= tx_state.empty_cells_to_send_per_call:
                 return False
@@ -261,31 +270,6 @@ def sendMessageLazy(client, msg, tx_state):
     #resizeBoard(len(lines), tx_state, shrink_only=True)
     return True
 
-def sendMessage(client, msg, page_sleep_s):
-    lines = splitMessage(msg)
-    msg = encodeMessage(lines)
-    msg_len = len(msg)
-
-    print("Encoded message: {}".format(msg))
-
-    #openBoard()
-
-    n_cells = ceil(msg_len / NUM_LAYERS)
-    print("n_cells: {}".format(n_cells))
-    for cell in range(0, n_cells):
-        if cell > 0 and cell % (2 ** generate_utils.INDEX_BITS) == 0:
-            print("Sleeping before sending next page")
-            time.sleep(page_sleep_s)
-
-        cell_begin = cell * NUM_LAYERS
-        cell_end = (cell + 1) * NUM_LAYERS
-        cell_msg = msg[cell_begin:cell_end]
-        print("Send cell {}".format(cell))
-        sendMessageCellDiscrete(client, cell_msg, cell)
-
-    #closeBoard()
-    #clear()
-
 def sendRawMessage(client, msg):
     n_cells = ceil(len(msg) / NUM_LAYERS)
     for cell in range(0, n_cells):
@@ -295,7 +279,7 @@ def sendRawMessage(client, msg):
         #print("Send cell {}".format(cell))
         sendMessageCellDiscrete(client, cell_msg, cell)
 
-def clear(client):
+def clear(client, tx_state):
     disable(client)
 
     addr="/avatar/parameters/" + generate_utils.getClearBoardParam()
@@ -305,6 +289,8 @@ def clear(client):
 
     addr="/avatar/parameters/" + generate_utils.getClearBoardParam()
     client.send_message(addr, False)
+
+    tx_state.last_message_encoded = []
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -325,5 +311,5 @@ if __name__ == "__main__":
     for line in fileinput.input():
         while not sendMessageLazy(client, line, tx_state):
             continue
-    clear()
+    clear(client, tx_state)
 
