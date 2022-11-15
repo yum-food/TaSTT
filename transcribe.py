@@ -13,6 +13,7 @@ from pydub import effects as pydub_effects
 # License: MIT.
 import pyaudio
 import steamvr
+import string_matcher
 import sys
 import threading
 import time
@@ -45,7 +46,6 @@ class AudioState:
 
     text = ""
     committed_text = ""
-    text_ts = datetime.now()
     frames = []
     # Locks access to `text`, `frames`, and audio stored on disk.
     lock = threading.Lock()
@@ -193,25 +193,21 @@ def transcribe(audio_state, model, filename):
     audio_state.lock.release()
 
     audio = whisper.pad_or_trim(audio)
-    mel = whisper.log_mel_spectrogram(audio).to(model.device)
-    #options = whisper.DecodingOptions(language = "en",
-    options = whisper.DecodingOptions(language = audio_state.language,
-            beam_size = 5)
-    result = whisper.decode(model, mel, options)
 
-    if result.no_speech_prob > 0.60:
-        print("no speech prob: {}".format(result.no_speech_prob))
-        return None
+    result = whisper.transcribe(model, audio, language=audio_state.language)
 
-    if result.avg_logprob < -1.0:
-        print("avg logprob: {}".format(result.avg_logprob))
-        return None
+    for segment in result["segments"]:
+        if segment["no_speech_prob"] > 0.60:
+            print("no speech prob: {}".format(segment["no_speech_prob"]))
+            return None
+        if segment["avg_logprob"] < -1.0:
+            print("avg logprob: {}".format(segment["avg_logprob"]))
+            return None
+        if segment["compression_ratio"] > 2.4:
+            print("compression ratio: {}".format(segment["compression_ratio"]))
+            return None
 
-    if result.compression_ratio > 2.4:
-        print("compression ratio: {}".format(result.compression_ratio))
-        return None
-
-    return result.text
+    return result["text"]
 
 def transcribeAudio(audio_state, model):
     while audio_state.run_app == True:
@@ -246,24 +242,6 @@ def transcribeAudio(audio_state, model):
             audio_state.lock.release()
             continue
 
-        # Hack: transcriptions that remain the same for N seconds get
-        # committed.
-        now = datetime.now()
-        dt = now - audio_state.text_ts
-        dt_s = dt.seconds  + float(dt.microseconds) / (1000 * 1000)
-        if dt_s >= 1 and text == audio_state.text:
-            print("Commit!")
-            old_commit = audio_state.committed_text
-            resetAudioLocked(audio_state)
-            audio_state.committed_text = old_commit + " " + text
-            audio_state.lock.release()
-            continue
-        else:
-            if text != audio_state.text:
-                audio_state.text_ts = now
-            print("text: {}".format(text))
-            print("audio_state.text: {}".format(audio_state.text))
-
         words = ''.join(c for c in text.lower() if (c.isalpha() or c == " ")).split()
 
         if len(words) > 0:
@@ -277,7 +255,8 @@ def transcribeAudio(audio_state, model):
         #old_words = audio_state.text.split()
         #new_words = text.split()
 
-        audio_state.text = text
+        audio_state.text = string_matcher.matchStrings(audio_state.text,
+                text, window_size = 5)
         if old_text != audio_state.text:
             # We think the user said something, so  reset the amount of
             # time we sleep between transcriptions to the minimum.

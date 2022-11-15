@@ -157,6 +157,9 @@ To use the STT:
    3. ~~Speech-to-text interface. Speak out loud, show in game.~~ DONE
    4. Translation into non-English. Whisper natively supports translating N
       languages into English, but not the other way around.
+   5. Display text in overlay. Enables (1) lower latency view of TaSTT's
+      transcription state; (2) checking transcriptions ahead of time; (3)
+      checking transcriptions without having to see the board in game.
 4. Optimization
    1. ~~Utilize the avatar 3.0 SDK's ability to drive parameters to reduce the
      total # of parameters (and therefore OSC messages & sync events). Note
