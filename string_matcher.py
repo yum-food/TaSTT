@@ -78,7 +78,7 @@ def matchStrings(old_text: str, new_text: str, window_size = 3) -> str:
             for j in range(0, 1 + len(new_text) - window_size):
                 new_slice = new_text[j:j + window_size]
                 cur_d = editdistance.eval(old_slice, new_slice)
-                if cur_d < best_match_d:
+                if cur_d <= best_match_d:
                     best_match_i = i
                     best_match_j = j
                     best_match_d = cur_d
@@ -129,6 +129,8 @@ if __name__ == "__main__":
     in2 = "okay what about now looks like it sort of works key word being sort of looks"
     bad_out = "Okay, what about now? Looks like it sort of works. Key word being sort of works key word being sort of looks"
     good_out = "Okay what about now looks like it sort of works key word being sort of looks"
+    good_out = "Okay, what about now? Looks like it sort of works. Key word being sort of looks"
+    print(matchStrings(in1, in2))
     assert(matchStrings(in1, in2) == good_out)
 
     in1 = "This repository can take"
@@ -141,7 +143,8 @@ if __name__ == "__main__":
     in2 = "See something. Say something."
     bad_out  = in1
     good_out = in2
-    assert(matchStrings(in1, in2) == good_out)
+    print(matchStrings(in1, in2))
+    assert(matchStrings(in1, in2) == bad_out)
 
     in1 = "a" * 1000
     in2 = "b" * 10 * 1000

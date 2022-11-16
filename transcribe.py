@@ -12,6 +12,7 @@ from pydub import effects as pydub_effects
 # python3 -m pip install pyaudio
 # License: MIT.
 import pyaudio
+import numpy as np
 import steamvr
 import string_matcher
 import sys
@@ -32,7 +33,7 @@ class AudioState:
 
     # The maximum length that recordAudio() will put into frames before it
     # starts dropping from the start.
-    MAX_LENGTH_S = 25
+    MAX_LENGTH_S = 30
     # The minimum length that recordAudio() will wait for before saving audio.
     MIN_LENGTH_S = 1
 
@@ -192,22 +193,33 @@ def transcribe(audio_state, model, filename):
     audio = whisper.load_audio(filename)
     audio_state.lock.release()
 
-    audio = whisper.pad_or_trim(audio)
+    audio = whisper.pad_or_trim(audio, length = audio_state.RATE *
+            audio_state.MAX_LENGTH_S)
+    mel = whisper.log_mel_spectrogram(audio).to(model.device)
 
-    result = whisper.transcribe(model, audio, language=audio_state.language)
+    result = None
+    #for temp in (0.00, 0.05, 0.10, 0.15, 0.20):
+    for temp in (0.00, 0.05):
+        print("temp: {}".format(temp))
+        options = whisper.DecodingOptions(language = audio_state.language,
+                beam_size = 5, temperature = temp)
+        result = whisper.decode(model, mel, options)
 
-    for segment in result["segments"]:
-        if segment["no_speech_prob"] > 0.60:
-            print("no speech prob: {}".format(segment["no_speech_prob"]))
-            return None
-        if segment["avg_logprob"] < -1.0:
-            print("avg logprob: {}".format(segment["avg_logprob"]))
-            return None
-        if segment["compression_ratio"] > 2.4:
-            print("compression ratio: {}".format(segment["compression_ratio"]))
+        if result.avg_logprob < -1.0:
+            print("avg logprob: {}".format(result.avg_logprob))
+            continue
+
+        if result.compression_ratio > 2.4:
+            print("compression ratio: {}".format(result.compression_ratio))
+            continue
+
+        if result.no_speech_prob > 0.60:
+            print("no speech prob: {}".format(result.no_speech_prob))
             return None
 
-    return result["text"]
+        return result.text
+
+    return None
 
 def transcribeAudio(audio_state, model):
     while audio_state.run_app == True:
@@ -256,7 +268,8 @@ def transcribeAudio(audio_state, model):
         #new_words = text.split()
 
         audio_state.text = string_matcher.matchStrings(audio_state.text,
-                text, window_size = 5)
+                text, window_size = 30)
+        #audio_state.text = text
         if old_text != audio_state.text:
             # We think the user said something, so  reset the amount of
             # time we sleep between transcriptions to the minimum.
