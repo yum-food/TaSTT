@@ -70,9 +70,7 @@ class AudioState:
     # this to whatever they want.
     language = whisper.tokenizer.TO_LANGUAGE_CODE["english"]
 
-    # When the user says `over`, we stop displaying new transcriptions until
-    # they clear the board again.
-    display_paused = False
+    audio_paused = False
 
     osc_client = osc_ctrl.getClient()
 
@@ -120,6 +118,10 @@ def recordAudio(audio_state):
     print("Recording audio")
     while audio_state.run_app:
         data = audio_state.stream.read(audio_state.CHUNK)
+
+        if audio_state.audio_paused:
+            time.sleep(0.1)
+            continue
 
         audio_state.lock.acquire()
         audio_state.frames.append(data)
@@ -199,7 +201,8 @@ def transcribe(audio_state, model, filename):
 
     result = None
     #for temp in (0.00, 0.05, 0.10, 0.15, 0.20):
-    for temp in (0.00, 0.05):
+    #for temp in (0.00, 0.05):
+    for temp in (0.00,):
         print("temp: {}".format(temp))
         options = whisper.DecodingOptions(language = audio_state.language,
                 beam_size = 5, temperature = temp)
@@ -256,11 +259,6 @@ def transcribeAudio(audio_state, model):
 
         words = ''.join(c for c in text.lower() if (c.isalpha() or c == " ")).split()
 
-        if len(words) > 0:
-            if words[-1] == "over":
-                words = words[0:-1]
-                audio_state.display_paused = True
-
         print("Transcription: {}".format(audio_state.text))
 
         old_text = audio_state.text
@@ -280,14 +278,12 @@ def transcribeAudio(audio_state, model):
 
 def sendAudio(audio_state):
     while audio_state.run_app == True:
-        if audio_state.display_paused:
-            time.sleep(0.1)
-            continue
-
         audio_state.lock.acquire()
 
         text = audio_state.committed_text + " " + audio_state.text
-        osc_ctrl.sendMessageLazy(audio_state.osc_client, text, audio_state.tx_state)
+        is_paging = not osc_ctrl.sendMessageLazy(audio_state.osc_client, text,
+                audio_state.tx_state)
+        osc_ctrl.indicatePaging(audio_state.osc_client, is_paging)
         audio_state.lock.release()
 
         # Pace this out
@@ -295,19 +291,31 @@ def sendAudio(audio_state):
 
 def readControllerInput(audio_state):
     session = steamvr.SessionState()
+    RECORD_STATE = 0
+    PAUSE_STATE = 1
+    state = PAUSE_STATE
     while audio_state.run_app == True:
         time.sleep(0.05)
 
         event = steamvr.pollButtonPress(session)
 
         if event == steamvr.EVENT_RISING_EDGE:
-            print("event get")
-            audio_state.lock.acquire()
-            resetAudioLocked(audio_state)
-            resetDisplayLocked(audio_state)
-            audio_state.drop_transcription = True
-            audio_state.display_paused = False
-            audio_state.lock.release()
+            if state == RECORD_STATE:
+                state = PAUSE_STATE
+                osc_ctrl.indicateSpeech(audio_state.osc_client, False)
+
+                audio_state.audio_paused = True
+            elif state == PAUSE_STATE:
+                state = RECORD_STATE
+                osc_ctrl.indicateSpeech(audio_state.osc_client, True)
+
+                audio_state.lock.acquire()
+                resetAudioLocked(audio_state)
+                resetDisplayLocked(audio_state)
+                audio_state.drop_transcription = True
+                audio_state.audio_paused = False
+                audio_state.lock.release()
+
 
 def transcribeLoop(mic: str, language: str):
     audio_state = getMicStream(mic)
@@ -337,14 +345,13 @@ def transcribeLoop(mic: str, language: str):
     controller_input_thd.daemon = True
     controller_input_thd.start()
 
-    print("Press enter or say 'Clear' to start a new message. Say 'Over' to " +
-            "pause the display (saying 'Clear' resets it again).")
+    print("Press enter to start a new message.")
     for line in sys.stdin:
         audio_state.lock.acquire()
         resetAudioLocked(audio_state)
         resetDisplayLocked(audio_state)
         audio_state.drop_transcription = True
-        audio_state.display_paused = False
+        audio_state.audio_paused = False
         audio_state.lock.release()
         if "exit" in line or "quit" in line:
             break

@@ -190,8 +190,53 @@ def generateClearAnimation(anim_dir, guid_map):
     guid_map[anim_path] = meta.guid
     guid_map[meta.guid] = anim_path
 
+# Generate a toggle animation for a shader parameter.
+def generateToggleAnimations(anim_dir, shader_param, guid_map):
+    print("Generating shader toggle animation", file=sys.stderr)
+
+    parser = libunity.UnityParser()
+    parser.parse(LETTER_ANIMATION_TEMPLATE)
+
+    # 0.0 represents false, 1.0 represents true. Don't forget that we add
+    # `UNITY_ANIMATION_FUDGE_MARGIN` to everything.
+    for shader_value in range(0, 2):
+        anim_node = parser.nodes[0]
+        anim_clip = anim_node.mapping['AnimationClip']
+        curve_template = anim_clip.mapping['m_FloatCurves'].sequence[0]
+        anim_clip.mapping['m_FloatCurves'].sequence = []
+        anim_clip.mapping['m_EditorCurves'].sequence = []
+
+        curve = curve_template.copy()
+        for keyframe in curve.mapping['curve'].mapping['m_Curve'].sequence:
+            keyframe.mapping['value'] = str(float(shader_value) +
+                UNITY_ANIMATION_FUDGE_MARGIN)
+            curve.mapping['attribute'] = "material.{}".format(shader_param)
+            curve.mapping['path'] = "World Constraint/Container/TaSTT"
+        # Add curve to animation
+        anim_clip.mapping['m_FloatCurves'].sequence.append(curve)
+        anim_clip.mapping['m_EditorCurves'].sequence.append(curve)
+
+        # Serialize animation to file
+        anim_name = generate_utils.getClearAnimationName()
+        anim_suffix = "_Off"
+        if shader_value == 1:
+            anim_suffix = "_On"
+        anim_path = anim_dir + shader_param + anim_suffix + ".anim"
+        with open(anim_path, "w") as f:
+            f.write(libunity.unityYamlToString([anim_node]))
+        # Generate metadata
+        meta = libunity.Metadata()
+        with open(anim_path + ".meta", "w") as f:
+            f.write(str(meta))
+        # Add metadata to guid map
+        guid_map[anim_path] = meta.guid
+        guid_map[meta.guid] = anim_path
+
 def generateAnimations(anim_dir, guid_map):
     generateClearAnimation(args.gen_anim_dir, guid_map)
+
+    generateToggleAnimations(args.gen_anim_dir, generate_utils.getIndicator0Param(), guid_map)
+    generateToggleAnimations(args.gen_anim_dir, generate_utils.getIndicator1Param(), guid_map)
 
     print("Generating letter animations", file=sys.stderr)
 
@@ -257,6 +302,8 @@ def generateFXController(anim: libunity.UnityAnimator) -> typing.Dict[int, libun
     anim.addParameter(generate_utils.getToggleParam(), bool)
     anim.addParameter(generate_utils.getSpeechNoiseEnableParam(), bool)
     anim.addParameter(generate_utils.getClearBoardParam(), bool)
+    anim.addParameter(generate_utils.getIndicator0Param(), bool)
+    anim.addParameter(generate_utils.getIndicator1Param(), bool)
 
     layers = {}
     for byte in range(0, generate_utils.BYTES_PER_CHAR):
@@ -409,6 +456,16 @@ def generateFX(guid_map, gen_anim_dir):
             gen_anim_dir,
             None,  # No animation in the `off` state.
             generate_utils.getClearAnimationName() + ".anim",
+            anim)
+    generateToggle(generate_utils.getIndicator0Param(),
+            gen_anim_dir,
+            generate_utils.getIndicator0Param() + "_Off.anim",
+            generate_utils.getIndicator0Param() + "_On.anim",
+            anim)
+    generateToggle(generate_utils.getIndicator1Param(),
+            gen_anim_dir,
+            generate_utils.getIndicator1Param() + "_Off.anim",
+            generate_utils.getIndicator1Param() + "_On.anim",
             anim)
 
     return anim

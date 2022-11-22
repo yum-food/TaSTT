@@ -10,6 +10,11 @@
     _Font_0xA000_0xBFFF ("Font 5 (unicode 0xA000 - 0xBFFFF)", 2D) = "white" {}
     _Font_0xC000_0xDFFF ("Font 6 (unicode 0xC000 - 0xDFFFF)", 2D) = "white" {}
 
+    TaSTT_Backplate("TaSTT_Backplate", 2D) = "black" {}
+
+    TaSTT_Indicator_0("TaSTT_Indicator_0", float) = 0
+    TaSTT_Indicator_1("TaSTT_Indicator_1", float) = 0
+
     // software "engineering" LULW
     _Letter_Row00_Col00_Byte0("_Letter_Row00_Col00_Byte0", float) = 0
     _Letter_Row00_Col01_Byte0("_Letter_Row00_Col01_Byte0", float) = 0
@@ -403,6 +408,15 @@
       Texture2D _Font_0xA000_0xBFFF;
       Texture2D _Font_0xC000_0xDFFF;
 
+      float TaSTT_Indicator_0;
+      static const fixed4 TaSTT_Indicator_0_Off_Color = fixed4(0.0, 1.0, 0.0, 2) * 0.7;
+      static const fixed4 TaSTT_Indicator_0_On_Color  = fixed4(0.8, 0.2, 0.0, 2) * 0.9;
+      float TaSTT_Indicator_1;
+      static const fixed4 TaSTT_Indicator_1_Off_Color = fixed4(0.0, 1.0, 0.0, 2) * 0.7;
+      static const fixed4 TaSTT_Indicator_1_On_Color  = fixed4(0.8, 0.2, 0.0, 2) * 0.9;
+
+      Texture2D TaSTT_Backplate;
+
       float _Letter_Row00_Col00_Byte0;
       float _Letter_Row00_Col01_Byte0;
       float _Letter_Row00_Col02_Byte0;
@@ -764,12 +778,27 @@
         return o;
       }
 
-      float2 AddMarginToUV(float2 uv, float x_frac, float y_frac)
+      float2 AddMarginToUV(float2 uv, float2 margin)
       {
-        float2 lo = float2(-x_frac / 2, -y_frac / 2);
-        float2 hi = float2(1.0 + x_frac / 2, 1.0 + y_frac / 2);
+        float2 lo = float2(-margin.x / 2, -margin.y / 2);
+        float2 hi = float2(1.0 + margin.x / 2, 1.0 + margin.y / 2);
 
         return clamp(lerp(lo, hi, uv), 0.0, 1.0);
+      }
+
+      bool InMargin(float2 uv, float2 margin)
+      {
+        return uv.x < margin.x / 2 ||
+            uv.x > 1 - margin.x / 2 ||
+            uv.y < margin.y / 2 ||
+            uv.y > 1 - margin.y / 2;
+      }
+
+      // dist = sqrt(dx^2 + dy^2) = sqrt(<dx,dy> * <dx,dy>)
+      bool InRadius2(float2 uv, float2 pos, float radius2)
+      {
+        float2 delta = uv - pos;
+        return dot(delta, delta) < radius2;
       }
 
       // Write the nth letter in the current cell and return the value of the
@@ -1238,34 +1267,88 @@
           uv.x = 1.0 - uv.x;
         }
 
-        float uv_x_margin = 0.03;
-        float uv_y_margin = 0.03;
-        uv = AddMarginToUV(uv, uv_x_margin, uv_y_margin);
+        float2 uv_margin = float2(0.03, 0.06);
+        if (InMargin(uv, uv_margin)) {
+          // Margin is uv_margin/2 wide/tall.
+          // We want a circle whose radius is ~80% of that.
+          float radius_factor = 0.95;
+          float radius = (uv_margin.x / 2) * radius_factor;
+          // We want this circle to be centered halfway through the margin
+          // vertically, and at 1.5x the margin width horizontally.
+          float2 indicator_center = float2(
+            uv_margin.x * 0.5 + radius,
+            uv_margin.y * 0.5 * 0.5
+          );
+          // Finally, translate it to the top of the board instead of the
+          // bottom.
+          indicator_center.y = 1.0 - indicator_center.y;
 
-        int2 letter_bytes = (int2) floor(GetLetterParameter(uv));
-        int letter = letter_bytes[0] | (letter_bytes[1] << 8);
+          if (InRadius2(uv, indicator_center, radius * radius)) {
+            if (floor(TaSTT_Indicator_0) == 0.0) {
+              return TaSTT_Indicator_0_Off_Color;
+            } else {
+              return TaSTT_Indicator_0_On_Color;
+            }
+          }
 
-        uv = GetLetter(uv, letter);
+          // Next, draw the second indicator. Same size as before, just shifted
+          // over a little.
+          indicator_center.x += radius * 2.5;
+          if (InRadius2(uv, indicator_center, radius * radius)) {
+            if (floor(TaSTT_Indicator_1) == 0.0) {
+              return TaSTT_Indicator_1_Off_Color;
+            } else {
+              return TaSTT_Indicator_1_On_Color;
+            }
+          }
 
-        int which_texture = (int) floor(letter / (64 * 128));
-        [forcecase] switch (which_texture)
-        {
-          case 0:
-            return _Font_0x0000_0x1FFF.Sample(sampler_linear_repeat, uv);
-          case 1:
-            return _Font_0x2000_0x3FFF.Sample(sampler_linear_repeat, uv);
-          case 2:
-            return _Font_0x4000_0x5FFF.Sample(sampler_linear_repeat, uv);
-          case 3:
-            return _Font_0x6000_0x7FFF.Sample(sampler_linear_repeat, uv);
-          case 4:
-            return _Font_0x8000_0x9FFF.Sample(sampler_linear_repeat, uv);
-          case 5:
-            return _Font_0xA000_0xBFFF.Sample(sampler_linear_repeat, uv);
-          case 6:
-            return _Font_0xC000_0xDFFF.Sample(sampler_linear_repeat, uv);
-          default:
-            return _Font_0x0000_0x1FFF.Sample(sampler_linear_repeat, uv);
+          return fixed4(1,1,1,1);
+        } else {
+          uv_margin *= 2;
+          uv = AddMarginToUV(uv, uv_margin);
+
+          int2 letter_bytes = (int2) floor(GetLetterParameter(uv));
+          int letter = letter_bytes[0] | (letter_bytes[1] << 8);
+
+          uv = GetLetter(uv, letter);
+
+          fixed4 background = TaSTT_Backplate.Sample(sampler_linear_repeat, uv);
+          fixed4 text;
+
+          int which_texture = (int) floor(letter / (64 * 128));
+          [forcecase] switch (which_texture)
+          {
+            case 0:
+              text = _Font_0x0000_0x1FFF.Sample(sampler_linear_repeat, uv);
+              break;
+            case 1:
+              text = _Font_0x2000_0x3FFF.Sample(sampler_linear_repeat, uv);
+              break;
+            case 2:
+              text = _Font_0x4000_0x5FFF.Sample(sampler_linear_repeat, uv);
+              break;
+            case 3:
+              text = _Font_0x6000_0x7FFF.Sample(sampler_linear_repeat, uv);
+              break;
+            case 4:
+              text = _Font_0x8000_0x9FFF.Sample(sampler_linear_repeat, uv);
+              break;
+            case 5:
+              text = _Font_0xA000_0xBFFF.Sample(sampler_linear_repeat, uv);
+              break;
+            case 6:
+              text = _Font_0xC000_0xDFFF.Sample(sampler_linear_repeat, uv);
+              break;
+            default:
+              text = _Font_0x0000_0x1FFF.Sample(sampler_linear_repeat, uv);
+              break;
+          }
+          fixed4 black = fixed4(0,0,0,0);
+          if (text.r == black.r && text.g == black.g && text.b == black.b && text.a == black.a) {
+            return background;
+          } else {
+            return text;
+          }
         }
       }
       ENDCG

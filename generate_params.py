@@ -62,6 +62,12 @@ print(generate_utils.replaceMacros(BOOL_PARAM, params))
 params["PARAM_NAME"] = generate_utils.getEnableParam()
 print(generate_utils.replaceMacros(BOOL_PARAM, params))
 
+params["PARAM_NAME"] = generate_utils.getIndicator0Param()
+print(generate_utils.replaceMacros(BOOL_PARAM, params))
+
+params["PARAM_NAME"] = generate_utils.getIndicator1Param()
+print(generate_utils.replaceMacros(BOOL_PARAM, params))
+
 params["PARAM_NAME"] = generate_utils.getToggleParam()
 print(generate_utils.replaceMacros(BOOL_PARAM, params))
 

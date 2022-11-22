@@ -521,6 +521,11 @@ class UnityAnimator():
         p0.sequence += p1.sequence
         a0.sequence += a1.sequence
 
+        for elm in p0.sequence:
+            elm.mapping['m_Controller'].mapping['fileID'] = ctrl0.anchor
+        for elm in a0.sequence:
+            elm.mapping['m_Controller'].mapping['fileID'] = ctrl0.anchor
+
         return ctrl0
 
     def merge(self, other):

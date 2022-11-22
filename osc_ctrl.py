@@ -292,6 +292,14 @@ def clear(client, tx_state):
 
     tx_state.last_msg_encoded = []
 
+def indicateSpeech(client, is_speaking: bool):
+    addr = "/avatar/parameters/" + generate_utils.getIndicator0Param()
+    client.send_message(addr, is_speaking)
+
+def indicatePaging(client, is_paging: bool):
+    addr = "/avatar/parameters/" + generate_utils.getIndicator1Param()
+    client.send_message(addr, is_paging)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", default="127.0.0.1", help="OSC server IP")

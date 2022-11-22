@@ -94,6 +94,12 @@ def getSelectParam() -> str:
 def getEnableParam():
     return "TaSTT_Enable"
 
+def getIndicator0Param():
+    return "TaSTT_Indicator_0"
+
+def getIndicator1Param():
+    return "TaSTT_Indicator_1"
+
 def getBoardIndex(which_layer, select):
     # Because we divide the board into a multiple of 8 cells, some cells may
     # describe animations which don't exist, depending on the size of the board.

@@ -78,7 +78,7 @@ def matchStrings(old_text: str, new_text: str, window_size = 3) -> str:
             for j in range(0, 1 + len(new_text) - window_size):
                 new_slice = new_text[j:j + window_size]
                 cur_d = editdistance.eval(old_slice, new_slice)
-                if cur_d <= best_match_d:
+                if cur_d < best_match_d:
                     best_match_i = i
                     best_match_j = j
                     best_match_d = cur_d
