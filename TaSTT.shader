@@ -408,12 +408,34 @@
       Texture2D _Font_0xA000_0xBFFF;
       Texture2D _Font_0xC000_0xDFFF;
 
+      float3 HUEtoRGB(in float H)
+      {
+        float R = abs(H * 6 - 3) - 1;
+        float G = 2 - abs(H * 6 - 2);
+        float B = 2 - abs(H * 6 - 4);
+        return saturate(float3(R, G, B));
+      }
+
+      float3 HSVtoRGB(in float3 HSV)
+      {
+        float3 RGB = HUEtoRGB(HSV.x);
+        return ((RGB - 1) * HSV.y + 1) * HSV.z;
+      }
+
       float TaSTT_Indicator_0;
-      static const fixed4 TaSTT_Indicator_0_Off_Color = fixed4(0.0, 1.0, 0.0, 2) * 0.7;
-      static const fixed4 TaSTT_Indicator_0_On_Color  = fixed4(0.8, 0.2, 0.0, 2) * 0.9;
       float TaSTT_Indicator_1;
-      static const fixed4 TaSTT_Indicator_1_Off_Color = fixed4(0.0, 1.0, 0.0, 2) * 0.7;
-      static const fixed4 TaSTT_Indicator_1_On_Color  = fixed4(0.8, 0.2, 0.0, 2) * 0.9;
+      static const float3 TaSTT_Indicator_Color_0 = HSVtoRGB(float3(0.00, 0.7, 1.0));
+      static const float3 TaSTT_Indicator_Color_1 = HSVtoRGB(float3(0.07, 0.7, 1.0));
+      static const float3 TaSTT_Indicator_Color_2 = HSVtoRGB(float3(0.30, 0.7, 1.0));
+
+      fixed4 float3tofixed4(in float3 f3, in float alpha)
+      {
+        return fixed4(
+          f3.r,
+          f3.g,
+          f3.b,
+          alpha);
+      }
 
       Texture2D TaSTT_Backplate;
 
@@ -1284,21 +1306,15 @@
           indicator_center.y = 1.0 - indicator_center.y;
 
           if (InRadius2(uv, indicator_center, radius * radius)) {
-            if (floor(TaSTT_Indicator_0) == 0.0) {
-              return TaSTT_Indicator_0_Off_Color;
+            if (floor(TaSTT_Indicator_0) == 1.0) {
+              // Actively speaking
+              return float3tofixed4(TaSTT_Indicator_Color_2, 1.0);
+            } else if (floor(TaSTT_Indicator_1) == 1.0) {
+              // Done speaking, waiting for paging.
+              return float3tofixed4(TaSTT_Indicator_Color_1, 1.0);
             } else {
-              return TaSTT_Indicator_0_On_Color;
-            }
-          }
-
-          // Next, draw the second indicator. Same size as before, just shifted
-          // over a little.
-          indicator_center.x += radius * 2.5;
-          if (InRadius2(uv, indicator_center, radius * radius)) {
-            if (floor(TaSTT_Indicator_1) == 0.0) {
-              return TaSTT_Indicator_1_Off_Color;
-            } else {
-              return TaSTT_Indicator_1_On_Color;
+              // Neither speaking nor paging.
+              return float3tofixed4(TaSTT_Indicator_Color_0, 1.0);
             }
           }
 

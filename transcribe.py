@@ -288,8 +288,9 @@ def sendAudio(audio_state):
         audio_state.transcribe_lock.acquire()
 
         text = audio_state.committed_text + " " + audio_state.text
-        is_paging = not osc_ctrl.sendMessageLazy(audio_state.osc_client, text,
+        ret = osc_ctrl.sendMessageLazy(audio_state.osc_client, text,
                 audio_state.tx_state)
+        is_paging = (ret == osc_ctrl.SEND_MSG_LAZY_SENT_NON_EMPTY)
         osc_ctrl.indicatePaging(audio_state.osc_client, is_paging)
         audio_state.transcribe_lock.release()
 
@@ -301,12 +302,15 @@ def readControllerInput(audio_state):
     RECORD_STATE = 0
     PAUSE_STATE = 1
     state = PAUSE_STATE
+    osc_ctrl.indicateSpeech(audio_state.osc_client, False)
+    osc_ctrl.indicatePaging(audio_state.osc_client, False)
     while audio_state.run_app == True:
         time.sleep(0.05)
 
         event = steamvr.pollButtonPress(session)
 
         if event == steamvr.EVENT_RISING_EDGE:
+            print("event get")
             if state == RECORD_STATE:
                 state = PAUSE_STATE
                 osc_ctrl.indicateSpeech(audio_state.osc_client, False)

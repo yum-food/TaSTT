@@ -221,7 +221,14 @@ def resizeBoard(num_lines, tx_state, shrink_only):
 
 # Send a message to the board, but only overwrite cells that we know need to
 # change.
-# This may take multiple calls to complete. Returns True once it's done.
+# This may take multiple calls to complete.
+# Returns 3 possible values:
+#   0: Done sending.
+#   1: Exhausted empty cell budget.
+#   2: Exhausted nonempty cell budget.
+SEND_MSG_LAZY_DONE = 0
+SEND_MSG_LAZY_SENT_EMPTY = 1
+SEND_MSG_LAZY_SENT_NON_EMPTY = 2
 def sendMessageLazy(client, msg, tx_state):
     lines = splitMessage(msg)
     msg_encoded = encodeMessage(lines)
@@ -243,22 +250,13 @@ def sendMessageLazy(client, msg, tx_state):
         if cell_msg == last_cell_msg:
             continue
 
-        # Skip cells on previous pages. This mitigates a bug where updating the
-        # earlier part of a transcription causes that text to overwrite text
-        # from a later part of the transcription.
-        page = floor(cell / (2 ** generate_utils.INDEX_BITS))
-        last_cell = (len(tx_state.last_msg_encoded) / NUM_LAYERS) - 1
-        last_page = floor(last_cell / (2 ** generate_utils.INDEX_BITS))
-        if page < last_page:
-            pass
-
         if cell_msg == [state.encoding[' ']] * NUM_LAYERS:
             if empty_cells_sent >= tx_state.empty_cells_to_send_per_call:
-                return False
+                return SEND_MSG_LAZY_SENT_EMPTY
             empty_cells_sent += 1
         else:
             if nonempty_cells_sent >= tx_state.nonempty_cells_to_send_per_call:
-                return False
+                return SEND_MSG_LAZY_SENT_NON_EMPTY
             nonempty_cells_sent += 1
 
         sendMessageCellDiscrete(client, cell_msg, cell)
@@ -268,7 +266,7 @@ def sendMessageLazy(client, msg, tx_state):
         tx_state.last_msg_encoded[cell_begin:cell_end] = cell_msg
 
     #resizeBoard(len(lines), tx_state, shrink_only=True)
-    return True
+    return SEND_MSG_LAZY_DONE
 
 def sendRawMessage(client, msg):
     n_cells = ceil(len(msg) / NUM_LAYERS)
@@ -317,7 +315,7 @@ if __name__ == "__main__":
 
     tx_state = OscTxState()
     for line in fileinput.input():
-        while not sendMessageLazy(client, line, tx_state):
+        while sendMessageLazy(client, line, tx_state) != SEND_MSG_LAZY_DONE:
             continue
     clear(client, tx_state)
 
