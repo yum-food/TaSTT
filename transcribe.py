@@ -33,7 +33,8 @@ class AudioState:
 
     # The maximum length that recordAudio() will put into frames before it
     # starts dropping from the start.
-    MAX_LENGTH_S = 30
+    MAX_LENGTH_S = 10
+    MAX_LENGTH_S_WHISPER = 30
     # The minimum length that recordAudio() will wait for before saving audio.
     MIN_LENGTH_S = 1
 
@@ -202,7 +203,7 @@ def transcribe(audio_state, model, filename):
     audio_state.transcribe_lock.release()
 
     audio = whisper.pad_or_trim(audio, length = audio_state.RATE *
-            audio_state.MAX_LENGTH_S)
+            audio_state.MAX_LENGTH_S_WHISPER)
     mel = whisper.log_mel_spectrogram(audio).to(model.device)
 
     result = None

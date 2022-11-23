@@ -250,7 +250,7 @@ def sendMessageLazy(client, msg, tx_state):
         last_cell = (len(tx_state.last_msg_encoded) / NUM_LAYERS) - 1
         last_page = floor(last_cell / (2 ** generate_utils.INDEX_BITS))
         if page < last_page:
-            continue
+            pass
 
         if cell_msg == [state.encoding[' ']] * NUM_LAYERS:
             if empty_cells_sent >= tx_state.empty_cells_to_send_per_call:
