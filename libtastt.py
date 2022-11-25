@@ -294,9 +294,6 @@ def generateFXController(anim: libunity.UnityAnimator) -> typing.Dict[int, libun
 
     anim.addParameter(generate_utils.getEnableParam(), bool)
     anim.addParameter(generate_utils.getDummyParam(), bool)
-    anim.addParameter(generate_utils.getResizeEnableParam(), bool)
-    anim.addParameter(generate_utils.getResize0Param(), bool)
-    anim.addParameter(generate_utils.getResize1Param(), bool)
     anim.addParameter(generate_utils.getHipToggleParam(), bool)
     anim.addParameter(generate_utils.getHandToggleParam(), bool)
     anim.addParameter(generate_utils.getToggleParam(), bool)

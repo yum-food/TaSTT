@@ -143,5 +143,5 @@ for nth_texture in range(0, total_textures):
             draw.text((col * font_pixels / 2, (row - row_begin) * font_pixels +
                 font_info.dy), char, font=font_info.font, fill=255)
 
-    image.save("font-%01d.png" % nth_texture)
+    image.save("Fonts/Bitmaps/font-%01d.png" % nth_texture)
 

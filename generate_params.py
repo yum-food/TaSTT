@@ -50,15 +50,6 @@ print(generate_utils.replaceMacros(PARAM_HEADER, params))
 params["PARAM_NAME"] = generate_utils.getDummyParam()
 print(generate_utils.replaceMacros(BOOL_PARAM, params))
 
-params["PARAM_NAME"] = generate_utils.getResizeEnableParam()
-print(generate_utils.replaceMacros(BOOL_PARAM, params))
-
-params["PARAM_NAME"] = generate_utils.getResize0Param()
-print(generate_utils.replaceMacros(BOOL_PARAM, params))
-
-params["PARAM_NAME"] = generate_utils.getResize1Param()
-print(generate_utils.replaceMacros(BOOL_PARAM, params))
-
 params["PARAM_NAME"] = generate_utils.getEnableParam()
 print(generate_utils.replaceMacros(BOOL_PARAM, params))
 

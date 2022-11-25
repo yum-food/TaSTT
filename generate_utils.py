@@ -28,15 +28,6 @@ NUM_PARAM_BITS=(NUM_LAYERS * (8 + INDEX_BITS + 1))
 def getDummyParam():
     return "TaSTT_Dummy"
 
-def getResizeEnableParam():
-    return "TaSTT_Resize_Enable"
-
-def getResize0Param():
-    return "TaSTT_Resize_0"
-
-def getResize1Param():
-    return "TaSTT_Resize_1"
-
 def getHipToggleParam():
     return "TaSTT_Hip_Toggle"
 
