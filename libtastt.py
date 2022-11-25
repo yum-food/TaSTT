@@ -232,6 +232,48 @@ def generateToggleAnimations(anim_dir, shader_param, guid_map):
         guid_map[anim_path] = meta.guid
         guid_map[meta.guid] = anim_path
 
+# Generate a toggle animation for a shader parameter.
+def generateFloatAnimation(anim_name: str, anim_dir: str,
+        path: str, attribute: str,
+        value: float,
+        guid_map: typing.Dict[str, str]) -> str:
+    print("Generating float toggle animation {}/{}".format(path,attribute),
+            file=sys.stderr)
+
+    parser = libunity.UnityParser()
+    parser.parse(LETTER_ANIMATION_TEMPLATE)
+
+    # 0.0 represents false, 1.0 represents true. Don't forget that we add
+    # `UNITY_ANIMATION_FUDGE_MARGIN` to everything.
+    anim_node = parser.nodes[0]
+    anim_clip = anim_node.mapping['AnimationClip']
+    curve_template = anim_clip.mapping['m_FloatCurves'].sequence[0]
+    anim_clip.mapping['m_FloatCurves'].sequence = []
+    anim_clip.mapping['m_EditorCurves'].sequence = []
+
+    curve = curve_template.copy()
+    for keyframe in curve.mapping['curve'].mapping['m_Curve'].sequence:
+        keyframe.mapping['value'] = str(value)
+        curve.mapping['attribute'] = attribute
+        curve.mapping['path'] = path
+    # Add curve to animation
+    anim_clip.mapping['m_FloatCurves'].sequence.append(curve)
+    anim_clip.mapping['m_EditorCurves'].sequence.append(curve)
+
+    # Serialize animation to file
+    anim_path = anim_dir + anim_name + ".anim"
+    with open(anim_path, "w") as f:
+        f.write(libunity.unityYamlToString([anim_node]))
+    # Generate metadata
+    meta = libunity.Metadata()
+    with open(anim_path + ".meta", "w") as f:
+        f.write(str(meta))
+    # Add metadata to guid map
+    guid_map[anim_path] = meta.guid
+    guid_map[meta.guid] = anim_path
+
+    return meta.guid
+
 def generateAnimations(anim_dir, guid_map):
     generateClearAnimation(args.gen_anim_dir, guid_map)
 
@@ -301,6 +343,7 @@ def generateFXController(anim: libunity.UnityAnimator) -> typing.Dict[int, libun
     anim.addParameter(generate_utils.getClearBoardParam(), bool)
     anim.addParameter(generate_utils.getIndicator0Param(), bool)
     anim.addParameter(generate_utils.getIndicator1Param(), bool)
+    anim.addParameter(generate_utils.getScaleParam(), float)
 
     layers = {}
     for byte in range(0, generate_utils.BYTES_PER_CHAR):
@@ -414,6 +457,30 @@ def generateToggle(layer_name: str,
 
     return result
 
+def generateScaleLayer(anim: libunity.UnityAnimator,
+        gen_anim_dir: str,
+        guid_map: typing.Dict[str, str]):
+
+    scale_layer = anim.addLayer(generate_utils.getScaleParam())
+
+    path = "World Constraint/Container/TaSTT"
+    attribute = "blendShape.Scale"
+
+    guid_lo = generateFloatAnimation("TaSTT_Scale_0", gen_anim_dir,
+            path, attribute,
+            0.0, guid_map)
+    guid_hi = generateFloatAnimation("TaSTT_Scale_100", gen_anim_dir,
+            path, attribute,
+            100.0, guid_map)
+
+    anim.addAnimatorBlendTree(scale_layer,
+            generate_utils.getScaleParam(),
+            generate_utils.getScaleParam(),
+            guid_lo, guid_hi,
+            lo_threshold = 0.0, hi_threshold = 1.0);
+
+    pass
+
 def generateFX(guid_map, gen_anim_dir):
     anim = libunity.UnityAnimator()
 
@@ -464,6 +531,7 @@ def generateFX(guid_map, gen_anim_dir):
             generate_utils.getIndicator1Param() + "_Off.anim",
             generate_utils.getIndicator1Param() + "_On.anim",
             anim)
+    generateScaleLayer(anim, gen_anim_dir, guid_map)
 
     return anim
 

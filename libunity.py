@@ -674,7 +674,9 @@ class UnityAnimator():
     # between anim_lo and anim_hi. Also creates the corresponding animation
     # state.
     def addAnimatorBlendTree(self, layer, state_name, param_name,
-            anim_guid_lo, anim_guid_hi, dx = 0, dy = 0) -> UnityDocument:
+            anim_guid_lo, anim_guid_hi, dx = 0, dy = 0,
+            lo_threshold = -1.0, hi_threshold = 1.0,
+            is_default_state = False) -> UnityDocument:
         # Create the blend tree.
         parser = UnityParser()
         parser.parse(BLEND_TREE_TEMPLATE)
@@ -690,9 +692,11 @@ class UnityAnimator():
         # Low animation
         tree.mapping['m_Childs'].sequence[0].mapping['m_Motion'].mapping['guid'] = anim_guid_lo
         tree.mapping['m_Childs'].sequence[0].mapping['m_DirectBlendParameter'] = param_name
+        tree.mapping['m_Childs'].sequence[0].mapping['m_Threshold'] = str(lo_threshold)
         # High animation
         tree.mapping['m_Childs'].sequence[1].mapping['m_Motion'].mapping['guid'] = anim_guid_hi
         tree.mapping['m_Childs'].sequence[1].mapping['m_DirectBlendParameter'] = param_name
+        tree.mapping['m_Childs'].sequence[1].mapping['m_Threshold'] = str(hi_threshold)
 
         tree.mapping['m_BlendParameter'] = param_name
         tree.mapping['m_BlendParameterY'] = param_name
@@ -700,7 +704,7 @@ class UnityAnimator():
         self.nodes.append(node)
 
         # Create the corresponding animation state.
-        anim_state = self.addAnimatorState(layer, state_name, False, dx = dx, dy =
+        anim_state = self.addAnimatorState(layer, state_name, is_default_state, dx = dx, dy =
                 dy)
         anim_state.mapping['AnimatorState'].mapping['m_Motion'].mapping['fileID'] = node.anchor
 

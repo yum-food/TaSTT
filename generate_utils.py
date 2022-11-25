@@ -37,6 +37,9 @@ def getHandToggleParam():
 def getToggleParam():
     return "TaSTT_Toggle"
 
+def getScaleParam():
+    return "TaSTT_Scale"
+
 # When this is set to true, the board will emit a soft beep sound. It's used to
 # grab attention when speaking.
 def getSpeechNoiseToggleParam():
