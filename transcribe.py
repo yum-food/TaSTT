@@ -13,6 +13,9 @@ from pydub import effects as pydub_effects
 # License: MIT.
 import pyaudio
 import numpy as np
+# python3 -m pip install playsound==1.2.2
+# License: MIT.
+from playsound import playsound
 import steamvr
 import string_matcher
 import sys
@@ -314,11 +317,13 @@ def readControllerInput(audio_state):
             if state == RECORD_STATE:
                 state = PAUSE_STATE
                 osc_ctrl.indicateSpeech(audio_state.osc_client, False)
+                playsound(os.path.abspath("Sounds/Noise_Off.wav"))
 
                 audio_state.audio_paused = True
             elif state == PAUSE_STATE:
                 state = RECORD_STATE
                 osc_ctrl.indicateSpeech(audio_state.osc_client, True)
+                playsound(os.path.abspath("Sounds/Noise_On.wav"))
 
                 audio_state.transcribe_lock.acquire()
                 audio_state.audio_lock.acquire()

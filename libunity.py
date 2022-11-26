@@ -797,7 +797,49 @@ class UnityAnimator():
 
                 #print("len float curves: {}".format(len(new_clip.mapping['m_FloatCurves'].sequence)), file=sys.stderr)
 
-    def generateOffAnimations(self, guid_map, generated_anim_dir):
+    def generateOffAnimationForGuid(self, guid_map, generated_anim_dir, guid):
+        # Looking at an animation.
+        if not guid in guid_map.keys():
+            return
+
+        animation_path = guid_map[guid]
+        print("Checking animation at {}".format(animation_path), file=sys.stderr)
+        parser = UnityParser()
+        parser.parseFile(animation_path)
+        anim = UnityAnimator()
+        anim.addNodes(parser.nodes)
+
+        clip = anim.peekNodeOfClass('74')
+
+        has_nonzero = False
+        curve_members = ["m_FloatCurves", "m_EditorCurves"]
+        for memb in curve_members:
+            for curve in clip.mapping['AnimationClip'].mapping[memb].sequence:
+                attr = curve.mapping['attribute']
+                path = curve.mapping['path']
+
+                for m_curve in curve.mapping['curve'].mapping['m_Curve'].sequence:
+                    if m_curve.mapping['value'] != '0':
+                        has_nonzero = True
+                    m_curve.mapping['value'] = '0'
+
+        if not has_nonzero:
+            print("Animation does not set anything nonzero")
+            return
+
+        print("Animation sets things nonzero, fixing")
+
+        new_anim_path = "OFF_{}".format(os.path.basename(animation_path))
+        new_anim_path = "{}/{}".format(generated_anim_dir, new_anim_path)
+
+        with open(new_anim_path, "w") as f:
+            f.write(str(anim))
+
+        meta = Metadata()
+        with open(new_anim_path + ".meta", "w") as f:
+            f.write(str(meta))
+
+    def generateOffAnimationsAnimStates(self, guid_map, generated_anim_dir):
         animator_state_id = '1102'
         for node in self.nodes:
             if node.class_id != animator_state_id:
@@ -808,47 +850,27 @@ class UnityAnimator():
             if not 'guid' in motion.mapping:
                 continue
             guid = motion.mapping['guid']
+            self.generateOffAnimationForGuid(guid_map, generated_anim_dir, guid)
 
-            # Looking at an animation.
-            if not guid in guid_map.keys():
+
+    def generateOffAnimationsBlendTrees(self, guid_map, generated_anim_dir):
+        animator_state_id = '206'
+        for node in self.nodes:
+            if node.class_id != animator_state_id:
                 continue
 
-            animation_path = guid_map[guid]
-            print("Checking animation at {}".format(animation_path), file=sys.stderr)
-            parser = UnityParser()
-            parser.parseFile(animation_path)
-            anim = UnityAnimator()
-            anim.addNodes(parser.nodes)
+            # Looking at an animation state.
+            for child in node.mapping['BlendTree'].mapping['m_Childs'].sequence:
+                motion = child.mapping['m_Motion']
 
-            clip = anim.peekNodeOfClass('74')
+                if not 'guid' in motion.mapping:
+                    continue
+                guid = motion.mapping['guid']
+                self.generateOffAnimationForGuid(guid_map, generated_anim_dir, guid)
 
-            has_nonzero = False
-            curve_members = ["m_FloatCurves", "m_EditorCurves"]
-            for memb in curve_members:
-                for curve in clip.mapping['AnimationClip'].mapping[memb].sequence:
-                    attr = curve.mapping['attribute']
-                    path = curve.mapping['path']
-
-                    for m_curve in curve.mapping['curve'].mapping['m_Curve'].sequence:
-                        if m_curve.mapping['value'] != '0':
-                            has_nonzero = True
-                        m_curve.mapping['value'] = '0'
-
-            if not has_nonzero:
-                print("Animation does not set anything nonzero")
-                continue
-
-            print("Animation sets things nonzero, fixing")
-
-            new_anim_path = "OFF_{}".format(os.path.basename(animation_path))
-            new_anim_path = "{}/{}".format(generated_anim_dir, new_anim_path)
-
-            with open(new_anim_path, "w") as f:
-                f.write(str(anim))
-
-            meta = Metadata()
-            with open(new_anim_path + ".meta", "w") as f:
-                f.write(str(meta))
+    def generateOffAnimations(self, guid_map, generated_anim_dir):
+        self.generateOffAnimationsAnimStates(guid_map, generated_anim_dir)
+        self.generateOffAnimationsBlendTrees(guid_map, generated_anim_dir)
 
     def addTransitionBooleanCondition(self, from_state, trans, param, branch):
         # Populate the transition's condition logic.
