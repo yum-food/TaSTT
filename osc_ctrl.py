@@ -20,6 +20,8 @@ from generate_utils import NUM_LAYERS
 from generate_utils import BOARD_ROWS
 from generate_utils import BOARD_COLS
 
+import emotes
+
 # Based on a couple experiments, this seems like about as fast as we can go
 # before players start losing events.
 SYNC_FREQ_HZ = 5.0
@@ -53,12 +55,33 @@ def encodeMessage(lines):
     result = []
     lines_tmp = lines + [" "] * ((BOARD_ROWS - len(lines)) % BOARD_ROWS)
     for line in lines_tmp:
-        #print("encode line {}".format(line))
-        for char in line:
-            if not char in state.encoding:
-                print("skip unrecognized char {}".format(char))
+        first_word = True
+        for word in line.split():
+            if first_word:
+                first_word = False
+            else:
+                result.append(state.encoding[' '])
+
+            emote_word, emote_word_idx = emotes.lookup(word)
+            if emote_word:
+
+                word_align = 0
+                if len(result) > 0:
+                    word_align = (6 - len(result) % 6) % 6
+                word = ' ' * word_align + word
+
+                for i in range(0, word_align):
+                    result.append(state.encoding[' '])
+
+                for i in range(0, 6):
+                    result.append((emote_word_idx, 0xE0))
                 continue
-            result.append(state.encoding[char])
+
+            for char in word:
+                if not char in state.encoding:
+                    print("skip unrecognized char {}".format(char))
+                    continue
+                result.append(state.encoding[char])
         result += [state.encoding[' ']] * (BOARD_COLS - len(line))
     return result
 
@@ -77,7 +100,7 @@ def disable(client):
     client.send_message(addr, False)
 
 # Send a cell all at once.
-# `which_cell` is an integer in the range [0,2**INDEX_BITS).
+# `which_cell` is an integer in the range [0,NUM_REGIONS)
 def sendMessageCellDiscrete(client, msg_cell, which_cell):
     empty_cell = [state.encoding[' ']] * NUM_LAYERS
 
@@ -86,7 +109,7 @@ def sendMessageCellDiscrete(client, msg_cell, which_cell):
         client.send_message(addr, True)
 
     # Really long messages just wrap back around.
-    which_cell = (which_cell % (2 ** generate_utils.INDEX_BITS))
+    which_cell = (which_cell % generate_utils.NUM_REGIONS)
 
     enable(client)
 
@@ -113,10 +136,26 @@ def splitMessage(msg):
     lines = []
     line = ""
     for word in msg.split():
+        # Hack: if the word is an emote, we make it 6 characters wide, then
+        # encode it differently later on.
+        emote_word, emote_word_idx = emotes.lookup(word)
+        if emote_word:
+            word = word.ljust(6)
+            # Due to some fuckery I do in the shader, emotes have to be rendered on
+            # a 6-character boundary. So pad the word on the left with spaces
+            # to get it onto that boundary.
+            word_align = 0
+            if len(line) > 0:
+                word_align = (6 - (len(line) + 1) % 6) % 6
+            print("len line:   {}".format(len(line)))
+            print("word align: {}".format(word_align))
+            word = ' ' * word_align + word
+
         while len(word) > BOARD_COLS:
             if len(line) != 0:
                 lines.append(line)
                 line = ""
+
             word_prefix = word[0:BOARD_COLS-1] + "-"
             word_suffix = word[BOARD_COLS-1:]
             #print("append prefix {}".format(word_prefix))
@@ -307,11 +346,6 @@ if __name__ == "__main__":
     client = getClient(args.i, args.p)
 
     state.encoding = generateEncoding()
-
-    sendRawMessage(client, [ \
-            (65,0), \
-            (0x20,0xAD), \
-            ])
 
     tx_state = OscTxState()
     for line in fileinput.input():

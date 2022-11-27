@@ -10,18 +10,12 @@ def replaceMacros(lines, macro_defs):
 # the last cell will (with the current implementation) wrap around to the front
 # of the board.
 BOARD_ROWS=4
-BOARD_COLS=44
-INDEX_BITS=4
+BOARD_COLS=48
+NUM_REGIONS = 16
 CHARS_PER_CELL=256
 BYTES_PER_CHAR=2
 
-NUM_LAYERS=ceil((BOARD_ROWS * BOARD_COLS) / (2**INDEX_BITS))
-
-# The bits per layer are:
-#   8 bits: letter selection (256 possible letters per slot)
-#   3 bits: slot selection (each layer controls 8 slots)
-#   1 bit: enable bit (turns layer off while we index to a new slot)
-NUM_PARAM_BITS=(NUM_LAYERS * (8 + INDEX_BITS + 1))
+NUM_LAYERS=ceil((BOARD_ROWS * BOARD_COLS) / NUM_REGIONS)
 
 # Implementation detail. We use this parameter to return from the terminal
 # state of the FX layer to the starting state.

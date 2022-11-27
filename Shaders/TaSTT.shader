@@ -9,6 +9,7 @@
     _Font_0x8000_0x9FFF ("Font 4 (unicode 0x8000 - 0x9FFFF)", 2D) = "white" {}
     _Font_0xA000_0xBFFF ("Font 5 (unicode 0xA000 - 0xBFFFF)", 2D) = "white" {}
     _Font_0xC000_0xDFFF ("Font 6 (unicode 0xC000 - 0xDFFFF)", 2D) = "white" {}
+    _Img_0xE000_0xE03F  ("Images 0", 2D) = "white" {}
 
     TaSTT_Backplate("TaSTT_Backplate", 2D) = "black" {}
 
@@ -60,6 +61,10 @@
     _Letter_Row00_Col41_Byte0("_Letter_Row00_Col41_Byte0", float) = 0
     _Letter_Row00_Col42_Byte0("_Letter_Row00_Col42_Byte0", float) = 0
     _Letter_Row00_Col43_Byte0("_Letter_Row00_Col43_Byte0", float) = 0
+    _Letter_Row00_Col44_Byte0("_Letter_Row00_Col44_Byte0", float) = 0
+    _Letter_Row00_Col45_Byte0("_Letter_Row00_Col45_Byte0", float) = 0
+    _Letter_Row00_Col46_Byte0("_Letter_Row00_Col46_Byte0", float) = 0
+    _Letter_Row00_Col47_Byte0("_Letter_Row00_Col47_Byte0", float) = 0
     _Letter_Row01_Col00_Byte0("_Letter_Row01_Col00_Byte0", float) = 0
     _Letter_Row01_Col01_Byte0("_Letter_Row01_Col01_Byte0", float) = 0
     _Letter_Row01_Col02_Byte0("_Letter_Row01_Col02_Byte0", float) = 0
@@ -104,6 +109,10 @@
     _Letter_Row01_Col41_Byte0("_Letter_Row01_Col41_Byte0", float) = 0
     _Letter_Row01_Col42_Byte0("_Letter_Row01_Col42_Byte0", float) = 0
     _Letter_Row01_Col43_Byte0("_Letter_Row01_Col43_Byte0", float) = 0
+    _Letter_Row01_Col44_Byte0("_Letter_Row01_Col44_Byte0", float) = 0
+    _Letter_Row01_Col45_Byte0("_Letter_Row01_Col45_Byte0", float) = 0
+    _Letter_Row01_Col46_Byte0("_Letter_Row01_Col46_Byte0", float) = 0
+    _Letter_Row01_Col47_Byte0("_Letter_Row01_Col47_Byte0", float) = 0
     _Letter_Row02_Col00_Byte0("_Letter_Row02_Col00_Byte0", float) = 0
     _Letter_Row02_Col01_Byte0("_Letter_Row02_Col01_Byte0", float) = 0
     _Letter_Row02_Col02_Byte0("_Letter_Row02_Col02_Byte0", float) = 0
@@ -148,6 +157,10 @@
     _Letter_Row02_Col41_Byte0("_Letter_Row02_Col41_Byte0", float) = 0
     _Letter_Row02_Col42_Byte0("_Letter_Row02_Col42_Byte0", float) = 0
     _Letter_Row02_Col43_Byte0("_Letter_Row02_Col43_Byte0", float) = 0
+    _Letter_Row02_Col44_Byte0("_Letter_Row02_Col44_Byte0", float) = 0
+    _Letter_Row02_Col45_Byte0("_Letter_Row02_Col45_Byte0", float) = 0
+    _Letter_Row02_Col46_Byte0("_Letter_Row02_Col46_Byte0", float) = 0
+    _Letter_Row02_Col47_Byte0("_Letter_Row02_Col47_Byte0", float) = 0
     _Letter_Row03_Col00_Byte0("_Letter_Row03_Col00_Byte0", float) = 0
     _Letter_Row03_Col01_Byte0("_Letter_Row03_Col01_Byte0", float) = 0
     _Letter_Row03_Col02_Byte0("_Letter_Row03_Col02_Byte0", float) = 0
@@ -192,6 +205,10 @@
     _Letter_Row03_Col41_Byte0("_Letter_Row03_Col41_Byte0", float) = 0
     _Letter_Row03_Col42_Byte0("_Letter_Row03_Col42_Byte0", float) = 0
     _Letter_Row03_Col43_Byte0("_Letter_Row03_Col43_Byte0", float) = 0
+    _Letter_Row03_Col44_Byte0("_Letter_Row03_Col44_Byte0", float) = 0
+    _Letter_Row03_Col45_Byte0("_Letter_Row03_Col45_Byte0", float) = 0
+    _Letter_Row03_Col46_Byte0("_Letter_Row03_Col46_Byte0", float) = 0
+    _Letter_Row03_Col47_Byte0("_Letter_Row03_Col47_Byte0", float) = 0
     _Letter_Row00_Col00_Byte1("_Letter_Row00_Col00_Byte1", float) = 0
     _Letter_Row00_Col01_Byte1("_Letter_Row00_Col01_Byte1", float) = 0
     _Letter_Row00_Col02_Byte1("_Letter_Row00_Col02_Byte1", float) = 0
@@ -236,6 +253,10 @@
     _Letter_Row00_Col41_Byte1("_Letter_Row00_Col41_Byte1", float) = 0
     _Letter_Row00_Col42_Byte1("_Letter_Row00_Col42_Byte1", float) = 0
     _Letter_Row00_Col43_Byte1("_Letter_Row00_Col43_Byte1", float) = 0
+    _Letter_Row00_Col44_Byte1("_Letter_Row00_Col44_Byte1", float) = 0
+    _Letter_Row00_Col45_Byte1("_Letter_Row00_Col45_Byte1", float) = 0
+    _Letter_Row00_Col46_Byte1("_Letter_Row00_Col46_Byte1", float) = 0
+    _Letter_Row00_Col47_Byte1("_Letter_Row00_Col47_Byte1", float) = 0
     _Letter_Row01_Col00_Byte1("_Letter_Row01_Col00_Byte1", float) = 0
     _Letter_Row01_Col01_Byte1("_Letter_Row01_Col01_Byte1", float) = 0
     _Letter_Row01_Col02_Byte1("_Letter_Row01_Col02_Byte1", float) = 0
@@ -280,6 +301,10 @@
     _Letter_Row01_Col41_Byte1("_Letter_Row01_Col41_Byte1", float) = 0
     _Letter_Row01_Col42_Byte1("_Letter_Row01_Col42_Byte1", float) = 0
     _Letter_Row01_Col43_Byte1("_Letter_Row01_Col43_Byte1", float) = 0
+    _Letter_Row01_Col44_Byte1("_Letter_Row01_Col44_Byte1", float) = 0
+    _Letter_Row01_Col45_Byte1("_Letter_Row01_Col45_Byte1", float) = 0
+    _Letter_Row01_Col46_Byte1("_Letter_Row01_Col46_Byte1", float) = 0
+    _Letter_Row01_Col47_Byte1("_Letter_Row01_Col47_Byte1", float) = 0
     _Letter_Row02_Col00_Byte1("_Letter_Row02_Col00_Byte1", float) = 0
     _Letter_Row02_Col01_Byte1("_Letter_Row02_Col01_Byte1", float) = 0
     _Letter_Row02_Col02_Byte1("_Letter_Row02_Col02_Byte1", float) = 0
@@ -324,6 +349,10 @@
     _Letter_Row02_Col41_Byte1("_Letter_Row02_Col41_Byte1", float) = 0
     _Letter_Row02_Col42_Byte1("_Letter_Row02_Col42_Byte1", float) = 0
     _Letter_Row02_Col43_Byte1("_Letter_Row02_Col43_Byte1", float) = 0
+    _Letter_Row02_Col44_Byte1("_Letter_Row02_Col44_Byte1", float) = 0
+    _Letter_Row02_Col45_Byte1("_Letter_Row02_Col45_Byte1", float) = 0
+    _Letter_Row02_Col46_Byte1("_Letter_Row02_Col46_Byte1", float) = 0
+    _Letter_Row02_Col47_Byte1("_Letter_Row02_Col47_Byte1", float) = 0
     _Letter_Row03_Col00_Byte1("_Letter_Row03_Col00_Byte1", float) = 0
     _Letter_Row03_Col01_Byte1("_Letter_Row03_Col01_Byte1", float) = 0
     _Letter_Row03_Col02_Byte1("_Letter_Row03_Col02_Byte1", float) = 0
@@ -368,6 +397,10 @@
     _Letter_Row03_Col41_Byte1("_Letter_Row03_Col41_Byte1", float) = 0
     _Letter_Row03_Col42_Byte1("_Letter_Row03_Col42_Byte1", float) = 0
     _Letter_Row03_Col43_Byte1("_Letter_Row03_Col43_Byte1", float) = 0
+    _Letter_Row03_Col44_Byte1("_Letter_Row03_Col44_Byte1", float) = 0
+    _Letter_Row03_Col45_Byte1("_Letter_Row03_Col45_Byte1", float) = 0
+    _Letter_Row03_Col46_Byte1("_Letter_Row03_Col46_Byte1", float) = 0
+    _Letter_Row03_Col47_Byte1("_Letter_Row03_Col47_Byte1", float) = 0
   }
   SubShader
   {
@@ -407,6 +440,7 @@
       Texture2D _Font_0x8000_0x9FFF;
       Texture2D _Font_0xA000_0xBFFF;
       Texture2D _Font_0xC000_0xDFFF;
+      Texture2D _Img_0xE000_0xE03F;
 
       float3 HUEtoRGB(in float H)
       {
@@ -483,6 +517,10 @@
       float _Letter_Row00_Col41_Byte0;
       float _Letter_Row00_Col42_Byte0;
       float _Letter_Row00_Col43_Byte0;
+      float _Letter_Row00_Col44_Byte0;
+      float _Letter_Row00_Col45_Byte0;
+      float _Letter_Row00_Col46_Byte0;
+      float _Letter_Row00_Col47_Byte0;
       float _Letter_Row01_Col00_Byte0;
       float _Letter_Row01_Col01_Byte0;
       float _Letter_Row01_Col02_Byte0;
@@ -527,6 +565,10 @@
       float _Letter_Row01_Col41_Byte0;
       float _Letter_Row01_Col42_Byte0;
       float _Letter_Row01_Col43_Byte0;
+      float _Letter_Row01_Col44_Byte0;
+      float _Letter_Row01_Col45_Byte0;
+      float _Letter_Row01_Col46_Byte0;
+      float _Letter_Row01_Col47_Byte0;
       float _Letter_Row02_Col00_Byte0;
       float _Letter_Row02_Col01_Byte0;
       float _Letter_Row02_Col02_Byte0;
@@ -571,6 +613,10 @@
       float _Letter_Row02_Col41_Byte0;
       float _Letter_Row02_Col42_Byte0;
       float _Letter_Row02_Col43_Byte0;
+      float _Letter_Row02_Col44_Byte0;
+      float _Letter_Row02_Col45_Byte0;
+      float _Letter_Row02_Col46_Byte0;
+      float _Letter_Row02_Col47_Byte0;
       float _Letter_Row03_Col00_Byte0;
       float _Letter_Row03_Col01_Byte0;
       float _Letter_Row03_Col02_Byte0;
@@ -615,6 +661,10 @@
       float _Letter_Row03_Col41_Byte0;
       float _Letter_Row03_Col42_Byte0;
       float _Letter_Row03_Col43_Byte0;
+      float _Letter_Row03_Col44_Byte0;
+      float _Letter_Row03_Col45_Byte0;
+      float _Letter_Row03_Col46_Byte0;
+      float _Letter_Row03_Col47_Byte0;
       float _Letter_Row00_Col00_Byte1;
       float _Letter_Row00_Col01_Byte1;
       float _Letter_Row00_Col02_Byte1;
@@ -659,6 +709,10 @@
       float _Letter_Row00_Col41_Byte1;
       float _Letter_Row00_Col42_Byte1;
       float _Letter_Row00_Col43_Byte1;
+      float _Letter_Row00_Col44_Byte1;
+      float _Letter_Row00_Col45_Byte1;
+      float _Letter_Row00_Col46_Byte1;
+      float _Letter_Row00_Col47_Byte1;
       float _Letter_Row01_Col00_Byte1;
       float _Letter_Row01_Col01_Byte1;
       float _Letter_Row01_Col02_Byte1;
@@ -703,6 +757,10 @@
       float _Letter_Row01_Col41_Byte1;
       float _Letter_Row01_Col42_Byte1;
       float _Letter_Row01_Col43_Byte1;
+      float _Letter_Row01_Col44_Byte1;
+      float _Letter_Row01_Col45_Byte1;
+      float _Letter_Row01_Col46_Byte1;
+      float _Letter_Row01_Col47_Byte1;
       float _Letter_Row02_Col00_Byte1;
       float _Letter_Row02_Col01_Byte1;
       float _Letter_Row02_Col02_Byte1;
@@ -747,6 +805,10 @@
       float _Letter_Row02_Col41_Byte1;
       float _Letter_Row02_Col42_Byte1;
       float _Letter_Row02_Col43_Byte1;
+      float _Letter_Row02_Col44_Byte1;
+      float _Letter_Row02_Col45_Byte1;
+      float _Letter_Row02_Col46_Byte1;
+      float _Letter_Row02_Col47_Byte1;
       float _Letter_Row03_Col00_Byte1;
       float _Letter_Row03_Col01_Byte1;
       float _Letter_Row03_Col02_Byte1;
@@ -791,6 +853,10 @@
       float _Letter_Row03_Col41_Byte1;
       float _Letter_Row03_Col42_Byte1;
       float _Letter_Row03_Col43_Byte1;
+      float _Letter_Row03_Col44_Byte1;
+      float _Letter_Row03_Col45_Byte1;
+      float _Letter_Row03_Col46_Byte1;
+      float _Letter_Row03_Col47_Byte1;
 
       v2f vert (appdata v)
       {
@@ -825,7 +891,11 @@
 
       // Write the nth letter in the current cell and return the value of the
       // pixel.
-      float2 GetLetter(float2 uv, int nth_letter)
+      // `texture_rows` and `texture_cols` indicate how many rows and columns are
+      // in the texture being sampled.
+      float2 GetLetter(float2 uv, int nth_letter,
+          float texture_cols, float texture_rows,
+          float board_cols, float board_rows)
       {
         // UV spans from [0,1] to [0,1].
         // 'U' is horizontal; cols.
@@ -833,13 +903,11 @@
         //
         // I want to divide the mesh into an m x n grid.
         // I want to know what grid cell I'm in. This is simply u * m, v * n.
-        int CHAR_ROWS = 4;
-        int CHAR_COLS = 44;
 
         // OK, I know what cell I'm in. Now I need to know how far across it I
         // am. Produce a float in the range [0, 1).
-        float CHAR_FRAC_COL = uv.x * CHAR_COLS - floor(uv.x * CHAR_COLS);
-        float CHAR_FRAC_ROW = uv.y * CHAR_ROWS - floor(uv.y * CHAR_ROWS);
+        float CHAR_FRAC_COL = uv.x * board_cols - floor(uv.x * board_cols);
+        float CHAR_FRAC_ROW = uv.y * board_rows - floor(uv.y * board_rows);
 
         // Avoid rendering pixels right on the edge of the slot. If we were to
         // do this, then that value would get stretched due to clamping
@@ -851,15 +919,11 @@
           return float2(0, 0);
         }
 
-        // This is the number of rows and columns in the actual texture.
-        float LETTER_COLS = 128.0;
-        float LETTER_ROWS = 64.0;
+        float LETTER_COL = fmod(nth_letter, floor(texture_cols));
+        float LETTER_ROW = floor(texture_rows) - floor(nth_letter / floor(texture_cols));
 
-        float LETTER_COL = fmod(nth_letter, floor(LETTER_COLS));
-        float LETTER_ROW = floor(LETTER_ROWS) - floor(nth_letter / floor(LETTER_COLS));
-
-        float LETTER_UV_ROW = (LETTER_ROW + CHAR_FRAC_ROW - 1.00) / LETTER_ROWS;
-        float LETTER_UV_COL = (LETTER_COL + CHAR_FRAC_COL) / LETTER_COLS;
+        float LETTER_UV_ROW = (LETTER_ROW + CHAR_FRAC_ROW - 1.00) / texture_rows;
+        float LETTER_UV_COL = (LETTER_COL + CHAR_FRAC_COL) / texture_cols;
 
         float2 result;
         result.x = LETTER_UV_COL;
@@ -896,7 +960,7 @@
       float2 GetLetterParameter(float2 uv)
       {
         float CHAR_ROWS = 4.0;
-        float CHAR_COLS = 44.0;
+        float CHAR_COLS = 48.0;
         float CHAR_COL = floor(uv.x * CHAR_COLS);
         float CHAR_ROW = floor(uv.y * CHAR_ROWS);
 
@@ -992,6 +1056,14 @@
                 return float2(_Letter_Row00_Col42_Byte0, _Letter_Row00_Col42_Byte1);
               case 43:
                 return float2(_Letter_Row00_Col43_Byte0, _Letter_Row00_Col43_Byte1);
+              case 44:
+                return float2(_Letter_Row00_Col44_Byte0, _Letter_Row00_Col44_Byte1);
+              case 45:
+                return float2(_Letter_Row00_Col45_Byte0, _Letter_Row00_Col45_Byte1);
+              case 46:
+                return float2(_Letter_Row00_Col46_Byte0, _Letter_Row00_Col46_Byte1);
+              case 47:
+                return float2(_Letter_Row00_Col47_Byte0, _Letter_Row00_Col47_Byte1);
               default:
                 return float2(0, 0);
             }
@@ -1085,6 +1157,14 @@
                 return float2(_Letter_Row01_Col42_Byte0, _Letter_Row01_Col42_Byte1);
               case 43:
                 return float2(_Letter_Row01_Col43_Byte0, _Letter_Row01_Col43_Byte1);
+              case 44:
+                return float2(_Letter_Row01_Col44_Byte0, _Letter_Row01_Col44_Byte1);
+              case 45:
+                return float2(_Letter_Row01_Col45_Byte0, _Letter_Row01_Col45_Byte1);
+              case 46:
+                return float2(_Letter_Row01_Col46_Byte0, _Letter_Row01_Col46_Byte1);
+              case 47:
+                return float2(_Letter_Row01_Col47_Byte0, _Letter_Row01_Col47_Byte1);
               default:
                 return float2(0, 0);
             }
@@ -1178,6 +1258,14 @@
                 return float2(_Letter_Row02_Col42_Byte0, _Letter_Row02_Col42_Byte1);
               case 43:
                 return float2(_Letter_Row02_Col43_Byte0, _Letter_Row02_Col43_Byte1);
+              case 44:
+                return float2(_Letter_Row02_Col44_Byte0, _Letter_Row02_Col44_Byte1);
+              case 45:
+                return float2(_Letter_Row02_Col45_Byte0, _Letter_Row02_Col45_Byte1);
+              case 46:
+                return float2(_Letter_Row02_Col46_Byte0, _Letter_Row02_Col46_Byte1);
+              case 47:
+                return float2(_Letter_Row02_Col47_Byte0, _Letter_Row02_Col47_Byte1);
               default:
                 return float2(0, 0);
             }
@@ -1271,6 +1359,14 @@
                 return float2(_Letter_Row03_Col42_Byte0, _Letter_Row03_Col42_Byte1);
               case 43:
                 return float2(_Letter_Row03_Col43_Byte0, _Letter_Row03_Col43_Byte1);
+              case 44:
+                return float2(_Letter_Row03_Col44_Byte0, _Letter_Row03_Col44_Byte1);
+              case 45:
+                return float2(_Letter_Row03_Col45_Byte0, _Letter_Row03_Col45_Byte1);
+              case 46:
+                return float2(_Letter_Row03_Col46_Byte0, _Letter_Row03_Col46_Byte1);
+              case 47:
+                return float2(_Letter_Row03_Col47_Byte0, _Letter_Row03_Col47_Byte1);
               default:
                 return float2(0, 0);
             }
@@ -1325,8 +1421,18 @@
 
           int2 letter_bytes = (int2) floor(GetLetterParameter(uv));
           int letter = letter_bytes[0] | (letter_bytes[1] << 8);
-
-          uv = GetLetter(uv, letter);
+          
+          float texture_cols;
+          float texture_rows;
+          if (letter < 0xE000) {
+            texture_cols = 128.0;
+            texture_rows = 64.0;
+            uv = GetLetter(uv, letter, texture_cols, texture_rows, 48, 4);
+          } else {
+            texture_cols = 8.0;
+            texture_rows = 8.0;
+            uv = GetLetter(uv, letter, texture_cols, texture_rows, 8, 4);
+          }
 
           fixed4 background = TaSTT_Backplate.Sample(sampler_linear_repeat, uv);
           fixed4 text;
@@ -1356,7 +1462,7 @@
               text = _Font_0xC000_0xDFFF.Sample(sampler_linear_repeat, uv);
               break;
             default:
-              text = _Font_0x0000_0x1FFF.Sample(sampler_linear_repeat, uv);
+              text = _Img_0xE000_0xE03F.Sample(sampler_linear_repeat, uv);
               break;
           }
           fixed4 black = fixed4(0,0,0,0);

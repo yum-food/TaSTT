@@ -373,7 +373,7 @@ def generateFXLayer(which_layer: int, anim: libunity.UnityAnimator, layer:
            enable_param, True)
 
     select_states = {}
-    for i in range(0, 2 ** generate_utils.INDEX_BITS):
+    for i in range(0, generate_utils.NUM_REGIONS):
         dx = i * 200
         dy = 200
 
