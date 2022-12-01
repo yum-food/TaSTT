@@ -25,6 +25,12 @@ IMG_TEX_DATA.append(("Images/Emotes/peepoHappy.png", "happy"))
 IMG_TEX_DATA.append(("Images/Emotes/peepoSad.png", "sad"))
 IMG_TEX_DATA.append(("Images/Emotes/bedge.png", "bed"))
 IMG_TEX_DATA.append(("Images/Emotes/reallymad.png", "mad"))
+IMG_TEX_DATA.append(("Images/Emotes/clueless.png", "surely"))
+IMG_TEX_DATA.append(("Images/Emotes/what.png", "what"))
+IMG_TEX_DATA.append(("Images/Emotes/based.png", "based"))
+IMG_TEX_DATA.append(("Images/Emotes/chad.png", "chad"))
+IMG_TEX_DATA.append(("Images/Emotes/aware.png", "aware"))
+IMG_TEX_DATA.append(("Images/Emotes/girl.png", "girl"))
 
 IMG_TEX_KEYWORD_TO_COORD = {}
 for i in range(0, len(IMG_TEX_DATA)):
@@ -72,8 +78,9 @@ def addImageToTexture(tex: Image, img_path: str, x: int, y:int):
     img_scale = (max_px / max_dim) * scale
     new_sz = (int(floor(img.size[0] * img_scale)),
             int(floor(img.size[1] * img_scale)))
-    print("Original size: {}".format(img.size))
-    print("Scaled size: {}".format(new_sz))
+    print("Add image {}".format(img_path))
+    print("  Original size: {}".format(img.size))
+    print("  Scaled size: {}".format(new_sz))
     img = img.resize(new_sz)
 
     # Center the image within its new coordinate space.
@@ -90,13 +97,13 @@ def addImageToTexture(tex: Image, img_path: str, x: int, y:int):
         tile_y = int(floor(slot / scale))
         tile_bbox = (tile_x * IMG_SZ_PX, tile_y * IMG_SZ_PX, (tile_x + 1) * IMG_SZ_PX, (tile_y + 1) * IMG_SZ_PX)
         tile = img.crop(tile_bbox)
-        print("tile {},{} (bbox={})".format(tile_x, tile_y, tile_bbox))
+        print("  tile {},{} (bbox={})".format(tile_x, tile_y, tile_bbox))
 
         slot_x = x + slot % IMG_PER_ROW
         slot_y = y + int(floor(slot / IMG_PER_ROW))
         slot_x_px = slot_x * IMG_SZ_PX
         slot_y_px = slot_y * IMG_SZ_PX
-        print("Add img at {},{} (px {},{})".format(slot_x, slot_y, slot_x_px, slot_y_px))
+        print("  Add img at {},{} (px {},{})".format(slot_x, slot_y, slot_x_px, slot_y_px))
 
         tex.paste(tile, box=(slot_x_px, slot_y_px))
 

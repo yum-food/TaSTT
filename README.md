@@ -9,7 +9,7 @@ custom shader display the text in game.
 
 Features:
 
-* 4x44 grid, 256 or 65536 characters per slot.
+* 4x48 grid, 256 or 65536 characters per slot.
 * Text-to-text interface.
 * Speech-to-text interface.
 * Multiple language support.
@@ -18,6 +18,13 @@ Features:
   * Translation from English into other languages is added case by case. This
     is a limitation of the state of the art in machine translation: fine-tuned
     English->other language models far outperform English->many language models.
+* Start/stop transcription by clicking left joystick.
+* Resizable: talk to friends close up or far away.
+* Audio feedback: hear distinct beeps when transcription starts and stops.
+  * May also enable in-game noise indicator, to grab others' attention.
+* Visual transcription indicator. Green == talking, orange == waiting for sync,
+  red == done talking.
+* May be attached to hand or left in world space.
 * Free as in beer.
 * Free as in freedom.
 * Privacy-respecting: transcription is done on your GPU, not in the cloud.
@@ -145,14 +152,14 @@ To use the STT:
    2. ~~Support appending to existing FX layers.~~ DONE
    3. Use VRCSDK to generate FX layer instead of generating the serialized files.
 2. In-game usability features.
-   1. Resizing (talk to friends far away).
+   1. ~~Resizing (talk to friends far away).~~ DONE
    2. ~~Basic toggles (hide it when not needed).~~ DONE
    3. ~~World mounting (leave it in a fixed position in world space).~~ DONE
-   4. Avatar mounting (attach it to your hand).
-   5. Controller triggers (avoid having to use the radial menu every time you
-     want to speak).
+   4. ~~Avatar mounting (attach it to your hand)~~ DONE.
+   5. ~~Controller triggers (avoid having to use the radial menu every time you
+     want to speak).~~ DONE
 3. General usability features.
-   1. Error detection & correction.
+   1. ~~Error detection & correction.~~ DONE
    2. ~~Text-to-text interface. Type in terminal, show in game.~~ DONE
    3. ~~Speech-to-text interface. Speak out loud, show in game.~~ DONE
    4. Translation into non-English. Whisper natively supports translating N

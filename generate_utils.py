@@ -11,7 +11,7 @@ def replaceMacros(lines, macro_defs):
 # of the board.
 BOARD_ROWS=4
 BOARD_COLS=48
-NUM_REGIONS = 16
+NUM_REGIONS = 24
 CHARS_PER_CELL=256
 BYTES_PER_CHAR=2
 
