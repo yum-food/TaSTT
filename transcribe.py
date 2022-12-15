@@ -41,8 +41,6 @@ class AudioState:
     # The minimum length that recordAudio() will wait for before saving audio.
     MIN_LENGTH_S = 1
 
-    VOICE_AUDIO_FILENAME = "audio.wav"
-
     # PyAudio object
     p = None
 
@@ -131,59 +129,18 @@ def recordAudio(audio_state):
             time.sleep(0.1)
             continue
 
-        audio_state.audio_lock.acquire()
         audio_state.frames.append(data)
         max_frames = int(audio_state.RATE * audio_state.MAX_LENGTH_S / audio_state.CHUNK)
         if len(audio_state.frames) > max_frames:
             audio_state.frames = audio_state.frames[-1 * max_frames :]
-        audio_state.audio_lock.release()
 
     print("Done recording")
-
-# Saves audio. recordAudio() may continue running while this takes place.
-def saveAudio(audio_state, filename):
-    min_frames = int(audio_state.RATE * audio_state.MIN_LENGTH_S / audio_state.CHUNK)
-    if len(audio_state.frames) < min_frames:
-        return
-
-    wf = wave.open(filename, 'wb')
-    wf.setnchannels(audio_state.CHANNELS)
-    wf.setsampwidth(audio_state.p.get_sample_size(audio_state.FORMAT))
-    wf.setframerate(audio_state.RATE)
-
-    audio_state.audio_lock.acquire()
-    frames = copy.deepcopy(audio_state.frames)
-    audio_state.audio_lock.release()
-
-    wf.writeframes(b''.join(frames))
-    wf.close()
-
-    # Normalize volume. This seems to make the neural net a little more
-    # consistent.
-    raw = pydub_AudioSegment.from_wav(filename)
-    normalized = pydub_effects.normalize(raw)
-    normalized.export(filename, format="wav")
-
-def resetDiskAudioLocked(audio_state, filename):
-    if os.path.isfile(audio_state.VOICE_AUDIO_FILENAME):
-        # empty out the voice file
-        open(audio_state.VOICE_AUDIO_FILENAME, "w").close()
-
-    wf = wave.open(filename, 'wb')
-    wf.setnchannels(audio_state.CHANNELS)
-    wf.setsampwidth(audio_state.p.get_sample_size(audio_state.FORMAT))
-    wf.setframerate(audio_state.RATE)
-
-    wf.writeframes(b''.join([]))
-    wf.close()
 
 def resetAudioLocked(audio_state):
     audio_state.frames = []
     audio_state.transcribe_no_change_count = 0
     audio_state.transcribe_sleep_duration = \
             audio_state.transcribe_sleep_duration_min_s
-
-    resetDiskAudioLocked(audio_state, audio_state.VOICE_AUDIO_FILENAME)
 
     audio_state.committed_text = ""
     audio_state.text = ""
@@ -199,14 +156,21 @@ def resetAudio(audio_state):
     audio_state.transcribe_lock.release()
 
 # Transcribe the audio recorded in a file.
-def transcribe(audio_state, model, filename):
+def transcribe(audio_state, model, frames):
 
-    audio_state.transcribe_lock.acquire()
-    audio = whisper.load_audio(filename)
-    audio_state.transcribe_lock.release()
+    start_time = time.time()
+
+    frames = audio_state.frames
+    # Convert from signed 16-bit int [-32768, 32767] to signed 16-bit float on
+    # [-1, 1].
+    # We should technically acquire a lock to protect frames, but this is
+    # really slow and in practice it doesn't make the app crash, so who cares.
+    frames = np.asarray(audio_state.frames)
+    audio = np.frombuffer(frames, np.int16).flatten().astype(np.float32) / 32768.0
 
     audio = whisper.pad_or_trim(audio, length = audio_state.RATE *
             audio_state.MAX_LENGTH_S_WHISPER)
+
     mel = whisper.log_mel_spectrogram(audio).to(model.device)
 
     result = None
@@ -215,29 +179,33 @@ def transcribe(audio_state, model, filename):
     for temp in (0.00,):
         print("temp: {}".format(temp))
         options = whisper.DecodingOptions(language = audio_state.language,
-                beam_size = 5, temperature = temp)
+                beam_size = 5, temperature = temp, without_timestamps = True)
         result = whisper.decode(model, mel, options)
 
         if result.avg_logprob < -1.0:
             print("avg logprob: {}".format(result.avg_logprob))
+            result = None
             continue
 
         if result.compression_ratio > 2.4:
             print("compression ratio: {}".format(result.compression_ratio))
+            result = None
             continue
 
         if result.no_speech_prob > 0.60:
             print("no speech prob: {}".format(result.no_speech_prob))
-            return None
+            result = None
+            continue
 
-        return result.text
+        result = result.text
+        break
 
-    return None
+    return result
 
 def transcribeAudio(audio_state, model):
+    last_transcribe_time = time.time()
     while audio_state.run_app == True:
         # Pace this out
-        print("sleep duration: {}".format(audio_state.transcribe_sleep_duration))
         time.sleep(audio_state.transcribe_sleep_duration)
 
         # Increase sleep time. Code below will set sleep time back to minimum
@@ -249,53 +217,44 @@ def transcribeAudio(audio_state, model):
         audio_state.transcribe_sleep_duration = min(
                 audio_state.transcribe_sleep_duration_max_s,
                 longer_sleep_dur)
-        print("next sleep duration: {}".format(audio_state.transcribe_sleep_duration))
 
-        saveAudio(audio_state, audio_state.VOICE_AUDIO_FILENAME)
-
-        if not os.path.isfile(audio_state.VOICE_AUDIO_FILENAME):
-            time.sleep(0.1)
-            continue
-
-        text = transcribe(audio_state, model, audio_state.VOICE_AUDIO_FILENAME)
+        text = transcribe(audio_state, model, audio_state.frames)
         if not text:
+            print("no transcription, spin ({} seconds)".format(time.time() - last_transcribe_time))
+            last_transcribe_time = time.time()
             continue
-        audio_state.transcribe_lock.acquire()
 
         if audio_state.drop_transcription:
             audio_state.drop_transcription = False
-            audio_state.transcribe_lock.release()
+            print("drop transcription ({} seconds)".format(time.time() - last_transcribe_time))
+            last_transcribe_time = time.time()
             continue
 
         words = ''.join(c for c in text.lower() if (c.isalpha() or c == " ")).split()
 
-        print("Transcription: {}".format(audio_state.text))
+        now = time.time()
+        print("Transcription ({} seconds): {}".format(
+            now - last_transcribe_time,
+            audio_state.text))
+        last_transcribe_time = now
 
         old_text = audio_state.text
-        #old_words = audio_state.text.split()
-        #new_words = text.split()
 
         audio_state.text = string_matcher.matchStrings(audio_state.text,
                 text, window_size = 30)
-        #audio_state.text = text
         if old_text != audio_state.text:
             # We think the user said something, so  reset the amount of
             # time we sleep between transcriptions to the minimum.
             audio_state.transcribe_no_change_count = 0
             audio_state.transcribe_sleep_duration = audio_state.transcribe_sleep_duration_min_s
 
-        audio_state.transcribe_lock.release()
-
 def sendAudio(audio_state):
     while audio_state.run_app == True:
-        audio_state.transcribe_lock.acquire()
-
         text = audio_state.committed_text + " " + audio_state.text
         ret = osc_ctrl.sendMessageLazy(audio_state.osc_client, text,
                 audio_state.tx_state)
         is_paging = (ret == osc_ctrl.SEND_MSG_LAZY_SENT_NON_EMPTY)
         osc_ctrl.indicatePaging(audio_state.osc_client, is_paging)
-        audio_state.transcribe_lock.release()
 
         # Pace this out
         time.sleep(0.01)
@@ -325,23 +284,14 @@ def readControllerInput(audio_state):
                 osc_ctrl.indicateSpeech(audio_state.osc_client, True)
                 playsound(os.path.abspath("Sounds/Noise_On.wav"))
 
-                audio_state.transcribe_lock.acquire()
-                audio_state.audio_lock.acquire()
                 resetAudioLocked(audio_state)
                 resetDisplayLocked(audio_state)
                 audio_state.drop_transcription = True
                 audio_state.audio_paused = False
-                audio_state.audio_lock.release()
-                audio_state.transcribe_lock.release()
-
 
 def transcribeLoop(mic: str, language: str):
     audio_state = getMicStream(mic)
     audio_state.language = whisper.tokenizer.TO_LANGUAGE_CODE[language]
-
-    if os.path.isfile(audio_state.VOICE_AUDIO_FILENAME):
-        # empty out the voice file
-        open(audio_state.VOICE_AUDIO_FILENAME, "w").close()
 
     record_audio_thd = threading.Thread(target = recordAudio, args = [audio_state])
     record_audio_thd.daemon = True
@@ -349,7 +299,10 @@ def transcribeLoop(mic: str, language: str):
 
     print("Safe to start talking")
 
-    model = whisper.load_model("base")
+    #model = whisper.load_model("tiny")
+    #model = whisper.load_model("base")
+    model = whisper.load_model("small")
+    #model = whisper.load_model("medium")
 
     transcribe_audio_thd = threading.Thread(target = transcribeAudio, args = [audio_state, model])
     transcribe_audio_thd.daemon = True
