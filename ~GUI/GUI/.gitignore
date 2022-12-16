@@ -1,0 +1,5 @@
+# Don't check in build artifacts
+x64
+x86
+# Ignore visual studio cruft
+.vs
