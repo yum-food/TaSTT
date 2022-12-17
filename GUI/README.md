@@ -7,4 +7,5 @@
 4. Build x64/Release.
 5. Open GUI/GUI.sln with Visual Studio 2022.
 6. Build x64/Release.
+7. Run package.ps1 from powershell.
 
