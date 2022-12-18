@@ -21,6 +21,25 @@
   actually distribute all our transitive dependencies. This also keeps
   the package size small.
 
+## C++ Style
+
+Follow the Google C++ style guide. This is not absolutely strict but
+it will be used to settle arguments.
+
+https://google.github.io/styleguide/cppguide.html
+
+This should get you 80% of the way there:
+
+* When in doubt, use K&R style
+* 2 space indents
+* Class members `look_like_this_`
+* Functions and methods `LookLikeThis()`
+* Local variables `look_like_this`
+* Global constexprs `kLookLikeThis`
+
+Consistent style reduces cognitive burden. Follow it for the benefit of
+your peers.
+
 ## How the embedded python environment works
 
 I'm distributing an embeddable version of python from the official
@@ -34,6 +53,10 @@ cd TaSTT
 ./Resources/Python/python.exe Resources/Python/get-pip.py
 ./Resources/Python/python.exe -m pip install $YOUR\_PACKAGE\_HERE
 ```
+
+The `future` package imports extra modules, and the embedded python
+search path needs to be told where that is. For that reason, we also
+redistribute the `future` package in source format.
 
 This is logically what the GUI does internally when it creates the
 python environment.

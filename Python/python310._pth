@@ -2,4 +2,9 @@ python310.zip
 .
 
 # Uncomment to run site.main() automatically
-#import site
+import site
+
+Lib
+Lib/site-packages
+Scripts
+Dependencies/future-0.18.2
