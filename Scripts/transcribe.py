@@ -5,10 +5,7 @@ import copy
 from datetime import datetime
 import os
 import osc_ctrl
-# python3 -m pip install pydub
-# License: MIT.
-from pydub import AudioSegment as pydub_AudioSegment
-from pydub import effects as pydub_effects
+from functools import partial
 # python3 -m pip install pyaudio
 # License: MIT.
 import pyaudio
@@ -80,11 +77,49 @@ class AudioState:
 
     osc_client = osc_ctrl.getClient()
 
+def dumpMicDevices(audio_state):
+    info = audio_state.p.get_host_api_info_by_index(0)
+    numdevices = info.get('deviceCount')
+
+    for i in range(0, numdevices):
+        if (audio_state.p.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0:
+            device_name = audio_state.p.get_device_info_by_host_api_device_index(0, i).get('name')
+            print("Input Device id ", i, " - ", device_name)
+
+def onAudioFramesAvailable(
+        audio_state,
+        input_rate,
+        frames,
+        frame_count,
+        time_info,
+        status_flags):
+
+    # Reduce sample rate from mic rate to Whisper rate by dropping frames.
+    decimated = b''
+    frame_len = int(len(frames) / frame_count)
+    next_frame = 0.0
+    keep_every = float(input_rate) / audio_state.RATE
+    i = 0
+    for i in range(0, frame_count):
+        if i >= next_frame:
+            decimated += frames[i*frame_len:(i+1)*frame_len]
+            next_frame += keep_every
+        i += 1
+
+    audio_state.frames.append(decimated)
+
+    max_frames = int(input_rate * audio_state.MAX_LENGTH_S / audio_state.CHUNK)
+    if len(audio_state.frames) > max_frames:
+        audio_state.frames = audio_state.frames[-1 * max_frames :]
+
+    return (frames, pyaudio.paContinue)
+
 def getMicStream(which_mic):
     audio_state = AudioState()
     audio_state.p = pyaudio.PyAudio()
 
-    print("Finding index mic...")
+    print("Finding mic {}...".format(which_mic))
+    dumpMicDevices(audio_state)
     got_match = False
     device_index = -1
     focusrite_str = "Focusrite"
@@ -94,15 +129,16 @@ def getMicStream(which_mic):
     elif which_mic == "focusrite":
         target_str = focusrite_str
     else:
-        raise Exception("Unrecognized mic requested: {}".format(which_mic))
+        print("Mic {} requested, treating it as a numerical device ID".format(which_mic))
+        device_index = int(which_mic)
+        got_match = True
+
     while got_match == False:
         info = audio_state.p.get_host_api_info_by_index(0)
         numdevices = info.get('deviceCount')
-
         for i in range(0, numdevices):
             if (audio_state.p.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0:
                 device_name = audio_state.p.get_device_info_by_host_api_device_index(0, i).get('name')
-                print("Input Device id ", i, " - ", device_name)
                 if target_str in device_name:
                     print("Got match: {}".format(device_name))
                     device_index = i
@@ -112,29 +148,22 @@ def getMicStream(which_mic):
             print("No match, sleeping")
             time.sleep(3)
 
+    info = audio_state.p.get_device_info_by_host_api_device_index(0, device_index)
+    input_rate = int(info['defaultSampleRate'])
+    print("input rate: {}".format(input_rate))
+
+    # Bind audio_state to onAudioFramesAvailable
+    callback = partial(onAudioFramesAvailable, audio_state, input_rate)
+
     audio_state.stream = audio_state.p.open(format=audio_state.FORMAT,
-            channels=audio_state.CHANNELS, rate=audio_state.RATE,
+            channels=audio_state.CHANNELS, rate=input_rate,
             input=True, frames_per_buffer=audio_state.CHUNK,
-            input_device_index=device_index)
+            input_device_index=device_index,
+            stream_callback=callback)
+
+    audio_state.stream.start_stream()
 
     return audio_state
-
-# Continuously records audio as long as audio_state.run_app is set.
-def recordAudio(audio_state):
-    print("Recording audio")
-    while audio_state.run_app:
-        data = audio_state.stream.read(audio_state.CHUNK)
-
-        if audio_state.audio_paused:
-            time.sleep(0.1)
-            continue
-
-        audio_state.frames.append(data)
-        max_frames = int(audio_state.RATE * audio_state.MAX_LENGTH_S / audio_state.CHUNK)
-        if len(audio_state.frames) > max_frames:
-            audio_state.frames = audio_state.frames[-1 * max_frames :]
-
-    print("Done recording")
 
 def resetAudioLocked(audio_state):
     audio_state.frames = []
@@ -241,7 +270,7 @@ def transcribeAudio(audio_state, model):
         old_text = audio_state.text
 
         audio_state.text = string_matcher.matchStrings(audio_state.text,
-                text, window_size = 30)
+                text, window_size = 20)
         if old_text != audio_state.text:
             # We think the user said something, so  reset the amount of
             # time we sleep between transcriptions to the minimum.
@@ -276,13 +305,13 @@ def readControllerInput(audio_state):
             if state == RECORD_STATE:
                 state = PAUSE_STATE
                 osc_ctrl.indicateSpeech(audio_state.osc_client, False)
-                playsound(os.path.abspath("Sounds/Noise_Off.wav"))
+                playsound(os.path.abspath("../Sounds/Noise_Off.wav"))
 
                 audio_state.audio_paused = True
             elif state == PAUSE_STATE:
                 state = RECORD_STATE
                 osc_ctrl.indicateSpeech(audio_state.osc_client, True)
-                playsound(os.path.abspath("Sounds/Noise_On.wav"))
+                playsound(os.path.abspath("../Sounds/Noise_On.wav"))
 
                 resetAudioLocked(audio_state)
                 resetDisplayLocked(audio_state)
@@ -292,10 +321,6 @@ def readControllerInput(audio_state):
 def transcribeLoop(mic: str, language: str):
     audio_state = getMicStream(mic)
     audio_state.language = whisper.tokenizer.TO_LANGUAGE_CODE[language]
-
-    record_audio_thd = threading.Thread(target = recordAudio, args = [audio_state])
-    record_audio_thd.daemon = True
-    record_audio_thd.start()
 
     print("Safe to start talking")
 
@@ -331,13 +356,16 @@ def transcribeLoop(mic: str, language: str):
 
     print("Joining threads")
     audio_state.run_app = False
-    audio_state.run_app = False
-    record_audio_thd.join()
     transcribe_audio_thd.join()
     controller_input_thd.join()
 
 
 if __name__ == "__main__":
+    # Set cwd to the directory holding the script
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    os.chdir(dname)
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--mic", type=str, help="Which mic to use. Options: index, focusrite. Default: index")
     parser.add_argument("--language", type=str, help="Which language to use. Ex: english, japanese, chinese, french, german.")

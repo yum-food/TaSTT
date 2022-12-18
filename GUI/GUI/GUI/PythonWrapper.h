@@ -34,6 +34,8 @@ public:
 	// Execute get-pip.py.
 	bool InstallPip(std::string* out);
 
-	wxProcess* StartApp(std::function<void(wxProcess* proc, int ret)>&& exit_callback);
+	wxProcess* StartApp(
+		std::function<void(wxProcess* proc, int ret)>&& exit_callback,
+		const std::string& mic, const std::string& lang);
 };
 

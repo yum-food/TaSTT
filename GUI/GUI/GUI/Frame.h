@@ -22,6 +22,8 @@ private:
     wxButton py_app_start_button_;
     wxButton py_app_stop_button_;
     wxTextCtrl py_out_;
+    wxChoice py_app_mic_;
+    wxChoice py_app_lang_;
 
     wxProcess* py_app_;
 

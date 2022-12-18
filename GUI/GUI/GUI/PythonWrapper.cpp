@@ -85,8 +85,14 @@ bool PythonWrapper::InstallPip(std::string* out) {
     return InvokeWithArgs({ pip_path }, out);
 }
 
-wxProcess* PythonWrapper::StartApp(std::function<void(wxProcess* proc, int ret)>&& exit_callback) {
-	return InvokeAsyncWithArgs({ "Resources/Scripts/transcribe.py" },
+wxProcess* PythonWrapper::StartApp(
+	std::function<void(wxProcess* proc, int ret)>&& exit_callback,
+	const std::string& mic, const std::string& lang) {
+	return InvokeAsyncWithArgs({
+		"Resources/Scripts/transcribe.py",
+		"--mic", mic,
+		"--lang", lang,
+		},
 		std::move(exit_callback));
 }
 

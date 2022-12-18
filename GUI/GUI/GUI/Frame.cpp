@@ -13,20 +13,145 @@ namespace {
         ID_PY_APP_START_BUTTON,
         ID_PY_APP_STOP_BUTTON,
         ID_PY_OUT,
+        ID_PY_APP_MIC,
+        ID_PY_APP_LANG,
     };
-};
+
+    const wxString kMicChoices[] = {
+        "index",
+        "focusrite",
+        // ok now this is epic
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+    };
+    const size_t kNumMicChoices = sizeof(kMicChoices) / sizeof(kMicChoices[0]);
+
+    // lifted from whisper/tokenizer.py
+	const wxString kLangChoices[] = {
+	    "english",
+		"chinese",
+		"german",
+		"spanish",
+		"russian",
+		"korean",
+		"french",
+		"japanese",
+		"portuguese",
+		"turkish",
+		"polish",
+		"catalan",
+		"dutch",
+		"arabic",
+		"swedish",
+		"italian",
+		"indonesian",
+		"hindi",
+		"finnish",
+		"vietnamese",
+		"hebrew",
+		"ukrainian",
+		"greek",
+		"malay",
+		"czech",
+		"romanian",
+		"danish",
+		"hungarian",
+		"tamil",
+		"norwegian",
+		"thai",
+		"urdu",
+		"croatian",
+		"bulgarian",
+		"lithuanian",
+		"latin",
+		"maori",
+		"malayalam",
+		"welsh",
+		"slovak",
+		"telugu",
+		"persian",
+		"latvian",
+		"bengali",
+		"serbian",
+		"azerbaijani",
+		"slovenian",
+		"kannada",
+		"estonian",
+		"macedonian",
+		"breton",
+		"basque",
+		"icelandic",
+		"armenian",
+		"nepali",
+		"mongolian",
+		"bosnian",
+		"kazakh",
+		"albanian",
+		"swahili",
+		"galician",
+		"marathi",
+		"punjabi",
+		"sinhala",
+		"khmer",
+		"shona",
+		"yoruba",
+		"somali",
+		"afrikaans",
+		"occitan",
+		"georgian",
+		"belarusian",
+		"tajik",
+		"sindhi",
+		"gujarati",
+		"amharic",
+		"yiddish",
+		"lao",
+		"uzbek",
+		"faroese",
+		"haitian creole",
+		"pashto",
+		"turkmen",
+		"nynorsk",
+		"maltese",
+		"sanskrit",
+		"luxembourgish",
+		"myanmar",
+		"tibetan",
+		"tagalog",
+		"malagasy",
+		"assamese",
+		"tatar",
+		"hawaiian",
+		"lingala",
+		"hausa",
+		"bashkir",
+		"javanese",
+		"sundanese"
+	};
+    const size_t kNumLangChoices = sizeof(kLangChoices) / sizeof(kLangChoices[0]);
+}  // namespace
 
 Frame::Frame()
-	: wxFrame(nullptr, wxID_ANY, "TaSTT"),
-	py_panel_(this, ID_PY_PANEL),
-	py_panel_sizer_(wxVERTICAL),
-	py_version_button_(&py_panel_, ID_PY_VERSION_BUTTON, "Check embedded Python version"),
-	py_setup_button_(&py_panel_, ID_PY_SETUP_BUTTON, "Set up Python virtual environment"),
-	py_app_start_button_(&py_panel_, ID_PY_APP_START_BUTTON, "Begin transcribing"),
-	py_app_stop_button_(&py_panel_, ID_PY_APP_STOP_BUTTON, "Stop transcribing"),
-	py_out_(&py_panel_, ID_PY_OUT, wxEmptyString, wxDefaultPosition,
-		wxSize(/*x_px=*/480, /*y_px=*/160), wxTE_MULTILINE),
-	py_app_(nullptr)
+    : wxFrame(nullptr, wxID_ANY, "TaSTT"),
+    py_panel_(this, ID_PY_PANEL),
+    py_panel_sizer_(wxVERTICAL),
+    py_version_button_(&py_panel_, ID_PY_VERSION_BUTTON, "Check embedded Python version"),
+    py_setup_button_(&py_panel_, ID_PY_SETUP_BUTTON, "Set up Python virtual environment"),
+    py_app_start_button_(&py_panel_, ID_PY_APP_START_BUTTON, "Begin transcribing"),
+    py_app_stop_button_(&py_panel_, ID_PY_APP_STOP_BUTTON, "Stop transcribing"),
+    py_out_(&py_panel_, ID_PY_OUT, wxEmptyString, wxDefaultPosition,
+        wxSize(/*x_px=*/480, /*y_px=*/160), wxTE_MULTILINE),
+    py_app_(nullptr),
+    py_app_mic_(&py_panel_, ID_PY_APP_MIC, wxDefaultPosition, wxDefaultSize, kNumMicChoices, kMicChoices),
+    py_app_lang_(&py_panel_, ID_PY_APP_LANG, wxDefaultPosition, wxDefaultSize, kNumLangChoices, kLangChoices)
 {
 	Bind(wxEVT_MENU, &Frame::OnExit, this, wxID_EXIT);
 	Bind(wxEVT_BUTTON, &Frame::OnGetPythonVersion, this, ID_PY_VERSION_BUTTON);
@@ -41,10 +166,14 @@ Frame::Frame()
 
     wxSize py_out_size(/*x=*/80, /*y=*/20);
     py_out_.SetSize(py_out_size);
+    py_app_mic_.SetSelection(0);
+    py_app_lang_.SetSelection(0);
 
 	py_panel_.SetSizer(&py_panel_sizer_);
     py_panel_sizer_.Add(&py_version_button_);
     py_panel_sizer_.Add(&py_setup_button_);
+    py_panel_sizer_.Add(&py_app_mic_);
+    py_panel_sizer_.Add(&py_app_lang_);
     py_panel_sizer_.Add(&py_app_start_button_);
     py_panel_sizer_.Add(&py_app_stop_button_);
     py_panel_sizer_.Add(&py_out_);
@@ -75,7 +204,7 @@ void Frame::OnSetupPython(wxCommandEvent& event)
     {
         std::string py_out;
         std::ostringstream py_out_oss;
-        py_out_oss << "Installing pip" << std::endl;
+        py_out_oss << "  Installing pip" << std::endl;
         py_out_.AppendText(py_out_oss.str());
         if (!py.InstallPip(&py_out)) {
             std::ostringstream py_out_oss;
@@ -85,22 +214,20 @@ void Frame::OnSetupPython(wxCommandEvent& event)
     }
 
     const std::vector<std::string> pip_deps{
+        "openvr",
         "pillow",
-        "pydub",
         "pyaudio",
+        "python-osc",
         "playsound==1.2.2",
         "torch --extra-index-url https://download.pytorch.org/whl/cu116",
         "git+https://github.com/openai/whisper.git",
-        "openvr",
         "editdistance",
-        "pydub",
-        "python-osc",
     };
 
     for (const auto& pip_dep : pip_deps) {
         {
             std::ostringstream py_out_oss;
-            py_out_oss << "Installing " << pip_dep << std::endl;
+            py_out_oss << "  Installing " << pip_dep << std::endl;
             py_out_.AppendText(py_out_oss.str());
         }
         std::string py_out;
@@ -137,7 +264,18 @@ void Frame::OnAppStart(wxCommandEvent& event) {
 		return;
     };
 
-    wxProcess* p = py.StartApp(std::move(cb));
+    int which_mic = py_app_mic_.GetSelection();
+    if (which_mic == wxNOT_FOUND) {
+        which_mic = 0;
+    }
+    int which_lang = py_app_lang_.GetSelection();
+    if (which_lang == wxNOT_FOUND) {
+        which_lang = 0;
+    }
+
+    wxProcess* p = py.StartApp(std::move(cb),
+        kMicChoices[which_mic].ToStdString(),
+        kLangChoices[which_lang].ToStdString());
     if (!p) {
         py_out_.AppendText("Failed to launch transcription engine\n");
         return;
