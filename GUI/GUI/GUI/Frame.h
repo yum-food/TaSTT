@@ -6,6 +6,8 @@
 #include <wx/wx.h>
 #endif
 
+#include <memory>
+
 class Frame : public wxFrame
 {
 public:
@@ -17,11 +19,17 @@ private:
     wxBoxSizer py_panel_sizer_;
     wxButton py_version_button_;
     wxButton py_setup_button_;
+    wxButton py_app_start_button_;
+    wxButton py_app_stop_button_;
     wxTextCtrl py_out_;
+
+    wxProcess* py_app_;
 
     void OnExit(wxCommandEvent& event);
     void OnGetPythonVersion(wxCommandEvent& event);
     void OnSetupPython(wxCommandEvent& event);
+    void OnAppStart(wxCommandEvent& event);
+    void OnAppStop(wxCommandEvent& event);
 
     void LoadAndSetIcon(const std::string& icon_path);
 };

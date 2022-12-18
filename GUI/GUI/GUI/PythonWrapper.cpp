@@ -4,6 +4,38 @@
 
 #include <sstream>
 
+class PythonProcess : public wxProcess {
+public:
+	PythonProcess(std::function<void(wxProcess* proc, int ret)>&& exit_callback) : exit_cb_(exit_callback) {}
+
+	virtual void OnTerminate(int pid, int status) wxOVERRIDE {
+		exit_cb_(this, status);
+	}
+
+private:
+	const std::function<void(wxProcess* proc, int ret)> exit_cb_;
+};
+
+wxProcess* PythonWrapper::InvokeAsyncWithArgs(std::vector<std::string>&& args,
+	std::function<void(wxProcess* proc, int ret)>&& exit_callback) {
+	std::ostringstream cmd_oss;
+	cmd_oss << "Resources/Python/python.exe";
+	for (const auto& arg : args) {
+		cmd_oss << " " << arg;
+	}
+
+	auto *p = new PythonProcess(std::move(exit_callback));
+	// TODO(yum) we should hide the console & stream output to a friendlier interface
+	int pid = wxExecute(cmd_oss.str(), wxEXEC_ASYNC, p);
+
+	if (!pid) {
+		delete p;
+		p = nullptr;
+	}
+
+	return p;
+}
+
 bool PythonWrapper::InvokeWithArgs(std::vector<std::string>&& args, std::string* out) {
 	std::ostringstream cmd_oss;
 	cmd_oss << "Resources/Python/python.exe";
@@ -52,3 +84,9 @@ bool PythonWrapper::InstallPip(std::string* out) {
 	std::string pip_path = "Resources/Python/get-pip.py";
     return InvokeWithArgs({ pip_path }, out);
 }
+
+wxProcess* PythonWrapper::StartApp(std::function<void(wxProcess* proc, int ret)>&& exit_callback) {
+	return InvokeAsyncWithArgs({ "Resources/Scripts/transcribe.py" },
+		std::move(exit_callback));
+}
+

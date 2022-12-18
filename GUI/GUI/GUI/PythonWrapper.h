@@ -6,6 +6,8 @@
 #include <wx/wx.h>
 #endif
 
+#include <wx/process.h>
+
 #include <string>
 #include <vector>
 
@@ -15,6 +17,13 @@
 class PythonWrapper
 {
 public:
+
+	// Invoke the interpreter asynchronously with the given arguments.
+	// When the process exits, `exit_callback` runs.
+	// The caller is responsible for deleting wxProcess.
+	wxProcess* InvokeAsyncWithArgs(std::vector<std::string>&& args,
+		std::function<void(wxProcess* proc, int ret)>&& exit_callback);
+
 	// Invoke the interpreter with arguments.
 	// On error, sets `out` to an error message and returns false.
 	bool InvokeWithArgs(std::vector<std::string>&& args, std::string* out);
@@ -24,5 +33,7 @@ public:
 
 	// Execute get-pip.py.
 	bool InstallPip(std::string* out);
+
+	wxProcess* StartApp(std::function<void(wxProcess* proc, int ret)>&& exit_callback);
 };
 
