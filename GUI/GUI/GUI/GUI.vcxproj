@@ -138,10 +138,12 @@
     <ClCompile Include="App.cpp" />
     <ClCompile Include="Frame.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="PythonWrapper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
     <ClInclude Include="Frame.h" />
+    <ClInclude Include="PythonWrapper.h" />
     <ClInclude Include="ScopeGuard.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

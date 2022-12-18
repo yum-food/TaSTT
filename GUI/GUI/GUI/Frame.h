@@ -13,8 +13,15 @@ public:
 
 private:
     wxPNGHandler png_handler_;
+    wxPanel py_panel_;
+    wxBoxSizer py_panel_sizer_;
+    wxButton py_version_button_;
+    wxButton py_setup_button_;
+    wxTextCtrl py_out_;
 
-    void OnHello(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);
-    void OnAbout(wxCommandEvent& event);
+    void OnGetPythonVersion(wxCommandEvent& event);
+    void OnSetupPython(wxCommandEvent& event);
+
+    void LoadAndSetIcon(const std::string& icon_path);
 };

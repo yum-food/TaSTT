@@ -4,7 +4,10 @@ python310.zip
 # Uncomment to run site.main() automatically
 import site
 
+# TaSTT Python scripts
+../Scripts
+
 Lib
 Lib/site-packages
-Scripts
 Dependencies/future-0.18.2
+
