@@ -14,10 +14,8 @@
 /*
  * This class wraps interactions with the embedded Python interpreter.
 */
-class PythonWrapper
+namespace PythonWrapper
 {
-public:
-
 	// Invoke the interpreter asynchronously with the given arguments.
 	// When the process exits, `exit_callback` runs.
 	// The caller is responsible for deleting wxProcess.
@@ -31,11 +29,14 @@ public:
 	// Execute python --version.
 	std::string GetVersion();
 
+	// Executes dump_mic_devices.py.
+	std::string DumpMics();
+
 	// Execute get-pip.py.
 	bool InstallPip(std::string* out);
 
 	wxProcess* StartApp(
 		std::function<void(wxProcess* proc, int ret)>&& exit_callback,
-		const std::string& mic, const std::string& lang);
+		const std::string& mic, const std::string& lang, const std::string& model);
 };
 

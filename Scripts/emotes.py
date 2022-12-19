@@ -31,6 +31,7 @@ IMG_TEX_DATA.append(("Images/Emotes/based.png", "based"))
 IMG_TEX_DATA.append(("Images/Emotes/chad.png", "chad"))
 IMG_TEX_DATA.append(("Images/Emotes/aware.png", "aware"))
 IMG_TEX_DATA.append(("Images/Emotes/girl.png", "girl"))
+IMG_TEX_DATA = []
 
 IMG_TEX_KEYWORD_TO_COORD = {}
 for i in range(0, len(IMG_TEX_DATA)):

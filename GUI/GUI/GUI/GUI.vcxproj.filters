@@ -41,5 +41,30 @@
     <ClInclude Include="ScopeGuard.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="GUI.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\Images\logo.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="icon1.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\..\Images\logo_16x16.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\..\Images\logo_32x32.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\logo.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

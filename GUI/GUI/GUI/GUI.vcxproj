@@ -144,7 +144,18 @@
     <ClInclude Include="App.h" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="PythonWrapper.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="ScopeGuard.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="GUI.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\Images\logo.png" />
+    <Image Include="..\..\..\Images\logo_16x16.png" />
+    <Image Include="..\..\..\Images\logo_32x32.png" />
+    <Image Include="icon1.ico" />
+    <Image Include="Resources\logo.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

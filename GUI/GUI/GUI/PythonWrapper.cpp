@@ -78,6 +78,16 @@ std::string PythonWrapper::GetVersion() {
 	return result;
 }
 
+std::string PythonWrapper::DumpMics() {
+	std::string result;
+	const std::string dump_mics_path = "Resources/Scripts/dump_mic_devices.py";
+	bool ok = InvokeWithArgs({ dump_mics_path }, &result);
+	if (!ok) {
+		wxLogFatalError("Failed to dump mic devices: %s", result.c_str());
+	}
+	return result;
+}
+
 bool PythonWrapper::InstallPip(std::string* out) {
 	std::string result;
 
@@ -87,11 +97,12 @@ bool PythonWrapper::InstallPip(std::string* out) {
 
 wxProcess* PythonWrapper::StartApp(
 	std::function<void(wxProcess* proc, int ret)>&& exit_callback,
-	const std::string& mic, const std::string& lang) {
+	const std::string& mic, const std::string& lang, const std::string& model) {
 	return InvokeAsyncWithArgs({
 		"Resources/Scripts/transcribe.py",
 		"--mic", mic,
 		"--lang", lang,
+		"--model", model,
 		},
 		std::move(exit_callback));
 }

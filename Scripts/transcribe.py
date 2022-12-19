@@ -77,13 +77,14 @@ class AudioState:
 
     osc_client = osc_ctrl.getClient()
 
-def dumpMicDevices(audio_state):
-    info = audio_state.p.get_host_api_info_by_index(0)
+def dumpMicDevices():
+    p = pyaudio.PyAudio()
+    info = p.get_host_api_info_by_index(0)
     numdevices = info.get('deviceCount')
 
     for i in range(0, numdevices):
-        if (audio_state.p.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0:
-            device_name = audio_state.p.get_device_info_by_host_api_device_index(0, i).get('name')
+        if (p.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0:
+            device_name = p.get_device_info_by_host_api_device_index(0, i).get('name')
             print("Input Device id ", i, " - ", device_name)
 
 def onAudioFramesAvailable(
@@ -119,7 +120,7 @@ def getMicStream(which_mic):
     audio_state.p = pyaudio.PyAudio()
 
     print("Finding mic {}...".format(which_mic))
-    dumpMicDevices(audio_state)
+    dumpMicDevices()
     got_match = False
     device_index = -1
     focusrite_str = "Focusrite"
@@ -318,16 +319,20 @@ def readControllerInput(audio_state):
                 audio_state.drop_transcription = True
                 audio_state.audio_paused = False
 
-def transcribeLoop(mic: str, language: str):
+# model should correspond to one of the Whisper models defined in
+# whisper/__init__.py. Examples: tiny, base, small, medium.
+def transcribeLoop(mic: str, language: str, model: str):
     audio_state = getMicStream(mic)
     audio_state.language = whisper.tokenizer.TO_LANGUAGE_CODE[language]
 
     print("Safe to start talking")
 
-    #model = whisper.load_model("tiny")
-    #model = whisper.load_model("base")
-    model = whisper.load_model("small")
-    #model = whisper.load_model("medium")
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    model_root = os.path.join(dname, "Models")
+
+    print("Model {} will be saved to {}".format(model, model_root))
+    model = whisper.load_model(model, download_root=model_root)
 
     transcribe_audio_thd = threading.Thread(target = transcribeAudio, args = [audio_state, model])
     transcribe_audio_thd.daemon = True
@@ -369,6 +374,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--mic", type=str, help="Which mic to use. Options: index, focusrite. Default: index")
     parser.add_argument("--language", type=str, help="Which language to use. Ex: english, japanese, chinese, french, german.")
+    parser.add_argument("--model", type=str, help="Which AI model to use. Ex: tiny, base, small, medium")
     args = parser.parse_args()
 
     if not args.mic:
@@ -377,5 +383,8 @@ if __name__ == "__main__":
     if not args.language:
         args.language = "english"
 
-    transcribeLoop(args.mic, args.language)
+    if not args.model:
+        args.language = "base"
+
+    transcribeLoop(args.mic, args.language, args.model)
 
