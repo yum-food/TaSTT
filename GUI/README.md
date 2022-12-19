@@ -1,7 +1,7 @@
 ## Build instructions
 
-0. Open WSL.
-1. Execute Libraries/fetch.sh.
+0. Open Powershell.
+1. Execute Libraries/fetch.ps1.
 2. Install Visual Studio 2022.
 3. Open Libraries/wx/build/msw/wx\_vc17.sln with Visual Studio 2022.
 4. Build x64/Release.
@@ -19,7 +19,7 @@
   that's hacked up to allow installing packages via pip. We use this
   to install packages at runtime (like a net installer), so we don't
   actually distribute all our transitive dependencies. This also keeps
-  the package size small.
+  the initial package size small.
 
 ## C++ Style
 

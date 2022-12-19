@@ -12,5 +12,5 @@ cp -Recurse ../Scripts TaSTT/Resources/Scripts
 cp -Recurse ../Sounds TaSTT/Resources/Sounds
 cp GUI/x64/Release/GUI.exe TaSTT/TaSTT.exe
 
-#Compress-Archive -Path "$install_dir" -DestinationPath "$install_dir.zip" -Force
+Compress-Archive -Path "$install_dir" -DestinationPath "$install_dir.zip" -Force
 
