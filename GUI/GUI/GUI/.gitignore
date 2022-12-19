@@ -3,4 +3,3 @@ x64
 x86
 # No .rc generated files
 GUI.APS
-resource.h
