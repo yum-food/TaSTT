@@ -1,5 +1,6 @@
 #pragma once
 
+#include <wx/filepicker.h>
 #include <wx/wxprec.h>
 
 #ifndef WX_PRECOMP
@@ -16,18 +17,37 @@ public:
 private:
     wxPNGHandler png_handler_;
 
-    wxTextCtrl* py_out_;
+    wxPanel* main_panel_;
+    wxPanel* transcribe_panel_;
+    wxPanel* unity_panel_;
+
+    wxTextCtrl* transcribe_out_;
+    wxTextCtrl* unity_out_;
+
+    wxTextCtrl* unity_animator_generated_dir_;
+    wxTextCtrl* unity_animator_generated_name_;
+    wxTextCtrl* unity_parameters_generated_name_;
+    wxTextCtrl* unity_menu_generated_name_;
+
+    wxFilePickerCtrl* unity_animator_file_picker_;
+    wxFilePickerCtrl* unity_parameters_file_picker_;
+
     wxChoice* py_app_mic_;
     wxChoice* py_app_lang_;
     wxChoice* py_app_model_;
+
     wxProcess* py_app_;
 
     void OnExit(wxCommandEvent& event);
-    void OnGetPythonVersion(wxCommandEvent& event);
+    void OnNavbarTranscribe(wxCommandEvent& event);
+    void OnNavbarUnity(wxCommandEvent& event);
     void OnSetupPython(wxCommandEvent& event);
     void OnDumpMics(wxCommandEvent& event);
     void OnAppStart(wxCommandEvent& event);
     void OnAppStop(wxCommandEvent& event);
+    void OnGenerateFX(wxCommandEvent& event);
 
     void LoadAndSetIcons();
+    void Resize();
 };
+

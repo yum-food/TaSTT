@@ -73,7 +73,8 @@ std::string PythonWrapper::GetVersion() {
 	std::string result;
     bool ok = InvokeWithArgs({ "--version" }, &result);
 	if (!ok) {
-		wxLogFatalError("Failed to get python version: %s", result.c_str());
+		wxLogError("Failed to get python version: %s", result.c_str());
+		result = "";
 	}
 	return result;
 }
@@ -83,7 +84,8 @@ std::string PythonWrapper::DumpMics() {
 	const std::string dump_mics_path = "Resources/Scripts/dump_mic_devices.py";
 	bool ok = InvokeWithArgs({ dump_mics_path }, &result);
 	if (!ok) {
-		wxLogFatalError("Failed to dump mic devices: %s", result.c_str());
+		wxLogError("Failed to dump mic devices: %s", result.c_str());
+		result = "";
 	}
 	return result;
 }
