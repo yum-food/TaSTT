@@ -66,21 +66,27 @@ bool PythonWrapper::InvokeWithArgs(std::vector<std::string>&& args,
 	if (result == -1) {
 		std::ostringstream err_oss;
 		err_oss << "Error while executing python command \"" << cmd_oss.str() << "\": Failed to launch process";
-		*py_stderr = err_oss.str();
+		if (py_stderr) {
+			*py_stderr = err_oss.str();
+		}
 		return false;
 	} else if (result) {
-		std::ostringstream err_oss;
-		err_oss << "Error while executing python command \"" << cmd_oss.str() <<
-			"\"" << std::endl <<
-			"Process returned " << result << ": " << std::endl <<
-			cmd_stdout_oss.str() << std::endl <<
-			cmd_stderr_oss.str() << std::endl;
-		*py_stderr = err_oss.str();
+		if (py_stderr) {
+			std::ostringstream err_oss;
+			err_oss << "Error while executing python command \"" << cmd_oss.str() <<
+				"\"" << std::endl <<
+				"Process returned " << result << ": " << std::endl <<
+				cmd_stdout_oss.str() << std::endl <<
+				cmd_stderr_oss.str() << std::endl;
+			*py_stderr = err_oss.str();
+		}
 		return false;
 	}
 
 	*py_stdout = cmd_stdout_oss.str();
-	*py_stderr = cmd_stderr_oss.str();
+	if (py_stderr) {
+		*py_stderr = cmd_stderr_oss.str();
+	}
 	return true;
 }
 
@@ -115,6 +121,7 @@ wxProcess* PythonWrapper::StartApp(
 	std::function<void(wxProcess* proc, int ret)>&& exit_callback,
 	const std::string& mic, const std::string& lang, const std::string& model) {
 	return InvokeAsyncWithArgs({
+		"-u",
 		"Resources/Scripts/transcribe.py",
 		"--mic", mic,
 		"--lang", lang,

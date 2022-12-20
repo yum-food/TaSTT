@@ -18,6 +18,7 @@ namespace {
         ID_PY_CONFIG_DROPDOWN_PANEL,
         ID_PY_SETUP_BUTTON,
         ID_PY_DUMP_MICS_BUTTON,
+        ID_PY_APP_DRAIN,
         ID_PY_APP_START_BUTTON,
         ID_PY_APP_STOP_BUTTON,
         ID_TRANSCRIBE_OUT,
@@ -181,7 +182,8 @@ namespace {
 
 Frame::Frame()
     : wxFrame(nullptr, wxID_ANY, "TaSTT"),
-    py_app_(nullptr)
+    py_app_(nullptr),
+    py_app_drain_(this, ID_PY_APP_DRAIN)
 {
     auto* main_panel = new wxPanel(this, ID_MAIN_PANEL);
 	main_panel_ = main_panel;
@@ -260,8 +262,8 @@ Frame::Frame()
 
             auto* sizer = new wxBoxSizer(wxHORIZONTAL);
             transcribe_panel->SetSizer(sizer);
-            sizer->Add(py_config_panel);
-            sizer->Add(transcribe_out);
+            sizer->Add(py_config_panel, /*proportion=*/0, /*flags=*/wxEXPAND);
+            sizer->Add(transcribe_out, /*proportion=*/1, /*flags=*/wxEXPAND);
         }
 
         auto* unity_panel = new wxPanel(main_panel, ID_UNITY_PANEL);
@@ -370,16 +372,16 @@ Frame::Frame()
 
             auto* sizer = new wxBoxSizer(wxHORIZONTAL);
             unity_panel->SetSizer(sizer);
-            sizer->Add(unity_config_panel);
-            sizer->Add(unity_out);
+            sizer->Add(unity_config_panel, /*proportion=*/0, /*flags=*/wxEXPAND);
+            sizer->Add(unity_out, /*proportion=*/1, /*flags=*/wxEXPAND);
         }
         unity_panel_->Hide();
 
 		auto* sizer = new wxBoxSizer(wxHORIZONTAL);
 		main_panel->SetSizer(sizer);
-		sizer->Add(navbar);
-		sizer->Add(transcribe_panel);
-		sizer->Add(unity_panel);
+		sizer->Add(navbar, /*proportion=*/0, /*flags=*/wxEXPAND);
+		sizer->Add(transcribe_panel, /*proportion=*/1, /*flags=*/wxEXPAND);
+		sizer->Add(unity_panel, /*proportion=*/1, /*flags=*/wxEXPAND);
     }
 
 	Bind(wxEVT_MENU, &Frame::OnExit, this, wxID_EXIT);
@@ -387,6 +389,7 @@ Frame::Frame()
 	Bind(wxEVT_BUTTON, &Frame::OnNavbarUnity, this, ID_NAVBAR_BUTTON_UNITY);
 	Bind(wxEVT_BUTTON, &Frame::OnAppStart, this, ID_PY_APP_START_BUTTON);
 	Bind(wxEVT_BUTTON, &Frame::OnAppStop, this, ID_PY_APP_STOP_BUTTON);
+    Bind(wxEVT_TIMER,  &Frame::OnAppDrain, this, ID_PY_APP_DRAIN);
 	Bind(wxEVT_BUTTON, &Frame::OnSetupPython, this, ID_PY_SETUP_BUTTON);
 	Bind(wxEVT_BUTTON, &Frame::OnDumpMics, this, ID_PY_DUMP_MICS_BUTTON);
 	Bind(wxEVT_BUTTON, &Frame::OnGenerateFX, this, ID_UNITY_BUTTON_GEN_ANIMATOR);
@@ -396,6 +399,9 @@ Frame::Frame()
 	LoadAndSetIcons();
 
     Resize();
+
+    // Every 100 milliseconds we drain output from the Python app.
+    py_app_drain_.Start(/*milliseconds=*/100);
 }
 
 void Frame::OnExit(wxCommandEvent& event)
@@ -471,8 +477,7 @@ void Frame::OnDumpMics(wxCommandEvent& event)
     transcribe_out_->AppendText(PythonWrapper::DumpMics());
 }
 
-void Frame::OnGenerateFX(wxCommandEvent& event)
-{
+void Frame::OnGenerateFX(wxCommandEvent& event) {
 }
 
 void Frame::OnAppStart(wxCommandEvent& event) {
@@ -491,27 +496,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
         std::ostringstream transcribe_out_oss;
         transcribe_out_oss << "Transcription engine exited with code " << ret << std::endl;
 
-		wxInputStream* py_stdout = proc->GetInputStream();
-        bool first = true;
-        while (py_stdout && !py_stdout->Eof()) {
-			if (first) {
-				transcribe_out_oss << "  stdout:" << std::endl;
-                first = false;
-			}
-            wxTextInputStream iss(*py_stdout);
-            transcribe_out_oss << "    " << iss.ReadLine() << std::endl;
-        }
-
-		wxInputStream* py_stderr = proc->GetErrorStream();
-        first = true;
-        while (py_stderr && !py_stderr->Eof()) {
-			if (first) {
-				transcribe_out_oss << "  stderr:" << std::endl;
-                first = false;
-			}
-            wxTextInputStream iss(*py_stderr);
-            transcribe_out_oss << "  " << iss.ReadLine() << std::endl;
-        }
+        DrainApp(proc, transcribe_out_oss);
 
 		transcribe_out_->AppendText(transcribe_out_oss.str());
 		return;
@@ -546,28 +531,34 @@ void Frame::OnAppStop(wxCommandEvent& event) {
     if (py_app_) {
         const long pid = py_app_->GetPid();
 
-        // Try to kill it politely.
-        wxProcess::Kill(pid);
-        for (int i = 0; i < 10; i++) {
-            if (!wxProcess::Exists(pid)) {
-                break;
-            }
+        transcribe_out_->AppendText("Stopping transcription engine...\n");
+
+        // Closing stdout causes the app to exit. It takes it quite a while
+        // to exit gracefully; be patient.
+        py_app_->CloseOutput();
+
+        int timeout_s = 10;
+        for (int i = 0; i < 100 * timeout_s; i++) {
+			if (!wxProcess::Exists(pid)) {
+				break;
+			}
             wxMilliSleep(10);
         }
 
-        // If it doesn't accept its fate, murder it with an axe.
+        {
+            std::ostringstream oss;
+            DrainApp(py_app_, oss);
+            transcribe_out_->AppendText(oss.str());
+        }
+
+        // Now shut it down.
 		bool first = true;
         int loop_cnt = 0;
 		while (wxProcess::Exists(pid)) {
-			if (first) {
-				first = false;
-				transcribe_out_->AppendText("Timed out trying to stop transcription engine "
-					"cleanly, sending SIGKILL\n");
-			}
-			else if (++loop_cnt % 100 == 0) {
-                    transcribe_out_->AppendText("Waiting for transcription engine to exit");
-			}
 			wxProcess::Kill(pid, wxSIGKILL);
+			if (++loop_cnt % 100 == 0) {
+				transcribe_out_->AppendText("Waiting for transcription engine to exit");
+			}
 			wxMilliSleep(10);
         }
 
@@ -578,6 +569,38 @@ void Frame::OnAppStop(wxCommandEvent& event) {
     else {
         transcribe_out_->AppendText("Transcription engine already stopped\n");
     }
+}
+
+void Frame::OnAppDrain(wxTimerEvent& event) {
+    std::ostringstream oss;
+    DrainApp(py_app_, oss);
+	transcribe_out_->AppendText(oss.str());
+}
+
+void Frame::DrainApp(wxProcess* proc, std::ostringstream& oss) {
+    if (!proc) {
+        return;
+    }
+
+    bool first = true;
+    while (proc->IsInputAvailable()) {
+        if (first) {
+            first = false;
+            oss << "  " << "stdout:" << std::endl;
+        }
+		wxTextInputStream iss(*(proc->GetInputStream()));
+		oss << "    " << iss.ReadLine() << std::endl;
+	}
+
+    first = true;
+    while (proc->IsErrorAvailable()) {
+        if (first) {
+            first = false;
+            oss << "  " << "stderr:" << std::endl;
+        }
+        wxTextInputStream iss(*(proc->GetErrorStream()));
+        oss << "    " << iss.ReadLine() << std::endl;
+	}
 }
 
 void Frame::LoadAndSetIcons() {

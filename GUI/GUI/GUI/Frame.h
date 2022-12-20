@@ -37,6 +37,7 @@ private:
     wxChoice* py_app_model_;
 
     wxProcess* py_app_;
+    wxTimer py_app_drain_;
 
     void OnExit(wxCommandEvent& event);
     void OnNavbarTranscribe(wxCommandEvent& event);
@@ -45,6 +46,8 @@ private:
     void OnDumpMics(wxCommandEvent& event);
     void OnAppStart(wxCommandEvent& event);
     void OnAppStop(wxCommandEvent& event);
+    void OnAppDrain(wxTimerEvent& event);
+    void DrainApp(wxProcess* proc, std::ostringstream& oss);
     void OnGenerateFX(wxCommandEvent& event);
 
     void LoadAndSetIcons();
