@@ -158,7 +158,42 @@ bool PythonWrapper::GenerateAnimator(
 		tastt_generated_dir_path / unity_parameters_generated_name;
 	std::filesystem::path tastt_menu_path =
 		tastt_generated_dir_path / unity_menu_generated_name;
+	// This is the initial, pre-merge FX controller.
+	std::filesystem::path tastt_fx0_path =
+		tastt_generated_dir_path / "FX0.controller";
+	std::filesystem::path tastt_fx1_path =
+		tastt_generated_dir_path / "FX1.controller";
+	std::filesystem::path tastt_fx2_path =
+		tastt_generated_dir_path / "FX2.controller";
+	std::filesystem::path tastt_fx3_path =
+		tastt_generated_dir_path / "FX3.controller";
 
+	{
+		if (std::filesystem::exists(tastt_generated_dir_path)) {
+			std::ostringstream oss;
+			oss << "Erasing " << tastt_generated_dir_path << std::endl;
+			out->AppendText(oss.str());
+			std::filesystem::remove_all(tastt_generated_dir_path);
+		}
+		std::ostringstream oss;
+		oss << "Creating " << tastt_generated_dir_path << std::endl;
+		out->AppendText(oss.str());
+		std::filesystem::create_directories(tastt_generated_dir_path);
+	}
+	{
+		out->AppendText("Copying canned animations... ");
+		auto opts = std::filesystem::copy_options();
+		opts |= std::filesystem::copy_options::overwrite_existing;
+		opts |= std::filesystem::copy_options::recursive;
+		std::error_code error;
+		std::filesystem::copy("Resources/Animations", tastt_animations_path, opts, error);
+		if (error.value()) {
+			wxLogError("Failed to copy animations: %s (%d)", error.message(), error.value());
+			out->AppendText("failed!\n");
+			return false;
+		}
+		out->AppendText("success!\n");
+	}
 	{
 		out->AppendText("Generating guid.map... ");
 		std::string py_stdout, py_stderr;
@@ -168,11 +203,18 @@ bool PythonWrapper::GenerateAnimator(
 			&py_stdout, &py_stderr)) {
 			out->AppendText("success!\n");
 			out->AppendText(py_stdout.c_str());
+			if (!py_stdout.empty()) {
+				out->AppendText("\n");
+			}
 			out->AppendText(py_stderr.c_str());
+			if (!py_stderr.empty()) {
+				out->AppendText("\n");
+			}
 		}
 		else {
 			wxLogError("Failed to generate guid.map: %s", py_stderr.c_str());
 			out->AppendText("failed!\n");
+			return false;
 		}
 	}
 	{
@@ -184,11 +226,116 @@ bool PythonWrapper::GenerateAnimator(
 			&py_stdout, &py_stderr)) {
 			out->AppendText("success!\n");
 			out->AppendText(py_stdout.c_str());
+			if (!py_stdout.empty()) {
+				out->AppendText("\n");
+			}
 			out->AppendText(py_stderr.c_str());
+			if (!py_stderr.empty()) {
+				out->AppendText("\n");
+			}
 		}
 		else {
 			wxLogError("Failed to generate animations: %s", py_stderr.c_str());
 			out->AppendText("failed!\n");
+			return false;
+		}
+	}
+	{
+		out->AppendText("Generating FX layer... ");
+		std::string py_stdout, py_stderr;
+		if (InvokeWithArgs({ libtastt_path, "gen_fx",
+			"--fx_dest", tastt_fx0_path.string(),
+			"--gen_anim_dir", tastt_animations_path.string(),
+			"--guid_map", guid_map_path.string() },
+			&py_stdout, &py_stderr)) {
+			out->AppendText("success!\n");
+			out->AppendText(py_stdout.c_str());
+			if (!py_stdout.empty()) {
+				out->AppendText("\n");
+			}
+			out->AppendText(py_stderr.c_str());
+			if (!py_stderr.empty()) {
+				out->AppendText("\n");
+			}
+		}
+		else {
+			wxLogError("Failed to generate FX layer: %s", py_stderr.c_str());
+			out->AppendText("failed!\n");
+			return false;
+		}
+	}
+	{
+		out->AppendText("Adding enable/disable toggle... ");
+		std::string py_stdout, py_stderr;
+		if (InvokeWithArgs({ libunity_path, "add_toggle",
+			"--fx0", tastt_fx0_path.string(),
+			"--fx_dest", tastt_fx1_path.string(),
+			"--gen_anim_dir", tastt_animations_path.string(),
+			"--guid_map", guid_map_path.string() },
+			&py_stdout, &py_stderr)) {
+			out->AppendText("success!\n");
+			out->AppendText(py_stdout.c_str());
+			if (!py_stdout.empty()) {
+				out->AppendText("\n");
+			}
+			out->AppendText(py_stderr.c_str());
+			if (!py_stderr.empty()) {
+				out->AppendText("\n");
+			}
+		}
+		else {
+			wxLogError("Failed to add enable/disable toggle: %s", py_stderr.c_str());
+			out->AppendText("failed!\n");
+			return false;
+		}
+	}
+	{
+		out->AppendText("Merging with user animator... ");
+		std::string py_stdout, py_stderr;
+		if (InvokeWithArgs({ libunity_path, "merge",
+			"--fx0", unity_animator_path,
+			"--fx1", tastt_fx1_path.string(),
+			"--fx_dest", tastt_fx2_path.string() },
+			&py_stdout, &py_stderr)) {
+			out->AppendText("success!\n");
+			out->AppendText(py_stdout.c_str());
+			if (!py_stdout.empty()) {
+				out->AppendText("\n");
+			}
+			out->AppendText(py_stderr.c_str());
+			if (!py_stderr.empty()) {
+				out->AppendText("\n");
+			}
+		}
+		else {
+			wxLogError("Failed to merge animators: %s", py_stderr.c_str());
+			out->AppendText("failed!\n");
+			return false;
+		}
+	}
+	{
+		out->AppendText("Setting noop animations... ");
+		std::string py_stdout, py_stderr;
+		if (InvokeWithArgs({ libunity_path, "set_noop_anim",
+			"--fx0", tastt_fx2_path.string(),
+			"--fx_dest", tastt_fx3_path.string(),
+			"--gen_anim_dir", tastt_animations_path.string(),
+			"--guid_map", guid_map_path.string() },
+			&py_stdout, &py_stderr)) {
+			out->AppendText("success!\n");
+			out->AppendText(py_stdout.c_str());
+			if (!py_stdout.empty()) {
+				out->AppendText("\n");
+			}
+			out->AppendText(py_stderr.c_str());
+			if (!py_stderr.empty()) {
+				out->AppendText("\n");
+			}
+		}
+		else {
+			wxLogError("Failed to set noop animations: %s", py_stderr.c_str());
+			out->AppendText("failed!\n");
+			return false;
 		}
 	}
 

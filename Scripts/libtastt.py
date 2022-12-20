@@ -419,7 +419,8 @@ def generateToggle(layer_name: str,
         gen_anim_dir: str,
         off_anim_basename: str,
         on_anim_basename: str,
-        anim: libunity.UnityAnimator) -> typing.Dict[str,
+        anim: libunity.UnityAnimator,
+        guid_map: typing.Dict[str, str]) -> typing.Dict[str,
                 libunity.UnityDocument]:
     layer = anim.addLayer(layer_name)
 
@@ -434,13 +435,13 @@ def generateToggle(layer_name: str,
     if off_anim_basename:
         off_anim_path = os.path.join(gen_anim_dir, off_anim_basename)
         off_anim_meta = libunity.Metadata()
-        off_anim_meta.load(off_anim_path)
+        off_anim_meta.loadOrCreate(off_anim_path, guid_map)
         anim.setAnimatorStateAnimation(off_state, off_anim_meta.guid)
 
     if on_anim_basename:
         on_anim_path = os.path.join(gen_anim_dir, on_anim_basename)
         on_anim_meta = libunity.Metadata()
-        on_anim_meta.load(on_anim_path)
+        on_anim_meta.loadOrCreate(on_anim_path, guid_map)
         anim.setAnimatorStateAnimation(on_state, on_anim_meta.guid)
 
     off_to_on_trans = anim.addTransition(on_state)
@@ -496,10 +497,10 @@ def generateFX(guid_map, gen_anim_dir):
 
     states = generateToggle(
             generate_utils.getSpeechNoiseToggleParam(),
-            "Animations/",
+            gen_anim_dir,
             "TaSTT_Speech_Noise_Off.anim",
             "TaSTT_Speech_Noise_On.anim",
-            anim)
+            anim, guid_map)
     # Enable beeping only if user has turned it on.
     anim.addTransitionBooleanCondition(states["off"],
             states["off_to_on"], generate_utils.getSpeechNoiseEnableParam(), True)
@@ -508,31 +509,31 @@ def generateFX(guid_map, gen_anim_dir):
             states["off_to_on"], generate_utils.getToggleParam(), True)
 
     generateToggle(generate_utils.getToggleParam(),
-            "Animations/",
+            gen_anim_dir,
             "TaSTT_Toggle_Off.anim",
             "TaSTT_Toggle_On.anim",
-            anim)
+            anim, guid_map)
     generateToggle(generate_utils.getLockWorldParam(),
-            "Animations/",
+            gen_anim_dir,
             "TaSTT_Lock_World_Disable.anim",
             "TaSTT_Lock_World_Enable.anim",
-            anim)
+            anim, guid_map)
     generateToggle(
             generate_utils.getClearBoardParam(),
             gen_anim_dir,
             None,  # No animation in the `off` state.
             generate_utils.getClearAnimationName() + ".anim",
-            anim)
+            anim, guid_map)
     generateToggle(generate_utils.getIndicator0Param(),
             gen_anim_dir,
             generate_utils.getIndicator0Param() + "_Off.anim",
             generate_utils.getIndicator0Param() + "_On.anim",
-            anim)
+            anim, guid_map)
     generateToggle(generate_utils.getIndicator1Param(),
             gen_anim_dir,
             generate_utils.getIndicator1Param() + "_Off.anim",
             generate_utils.getIndicator1Param() + "_On.anim",
-            anim)
+            anim, guid_map)
     generateScaleLayer(anim, gen_anim_dir, guid_map)
 
     return anim
@@ -545,6 +546,7 @@ def parseArgs():
     parser.add_argument("--gen_anim_dir", type=str, help="The directory under " +
             "which all generated animations are placed.")
     parser.add_argument("--guid_map", type=str, help="The path to a file which will store guids")
+    parser.add_argument("--fx_dest", type=str, help="The path at which to save the generated FX controller")
     args = parser.parse_args()
 
     if not args.gen_dir:
@@ -556,9 +558,14 @@ def parseArgs():
     if not args.guid_map:
         args.guid_map = "guid.map"
 
+    if not args.fx_dest:
+        args.fx_dest = args.gen_dir + "TaSTT_fx.controller"
+
     return args
 
 if __name__ == "__main__":
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
     args = parseArgs()
 
     if args.cmd == "gen_anims":
@@ -575,6 +582,9 @@ if __name__ == "__main__":
         guid_map = {}
         with open(args.guid_map, 'rb') as f:
             guid_map = pickle.load(f)
-
-        print(str(generateFX(guid_map, args.gen_anim_dir)))
+        os.makedirs(os.path.dirname(args.fx_dest), exist_ok=True)
+        with open(args.fx_dest, "w") as f:
+            f.write(str(generateFX(guid_map, args.gen_anim_dir)))
+        with open(args.guid_map, 'wb') as f:
+            pickle.dump(guid_map, f)
 

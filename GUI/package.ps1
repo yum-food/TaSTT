@@ -6,6 +6,7 @@ if (Test-Path $install_dir) {
 
 mkdir $install_dir > $null
 mkdir $install_dir/Resources > $null
+cp -Recurse ../Animations TaSTT/Resources/Animations
 cp -Recurse ../Images TaSTT/Resources/Images
 cp -Recurse ../Python TaSTT/Resources/Python
 cp -Recurse ../Scripts TaSTT/Resources/Scripts

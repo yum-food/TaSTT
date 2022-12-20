@@ -89,3 +89,4 @@ for byte in range(0, generate_utils.BYTES_PER_CHAR):
     for i in range(0, generate_utils.NUM_LAYERS):
         params["PARAM_NAME"] = generate_utils.getBlendParam(i, byte)
         print(generate_utils.replaceMacros(FLOAT_PARAM, params))
+
