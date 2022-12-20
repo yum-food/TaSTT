@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <wx/filepicker.h>
+#include <wx/txtstrm.h>
 
 namespace {
     enum FrameIds {
@@ -200,7 +201,7 @@ Frame::Frame()
         auto* transcribe_panel = new wxPanel(main_panel, ID_PY_PANEL);
         transcribe_panel_ = transcribe_panel;
         {
-            const auto transcribe_out_sz = wxSize(/*x_px=*/320, /*y_px=*/160);
+            const auto transcribe_out_sz = wxSize(/*x_px=*/480, /*y_px=*/160);
             auto* transcribe_out = new wxTextCtrl(transcribe_panel, ID_TRANSCRIBE_OUT,
                 wxEmptyString,
                 wxDefaultPosition,
@@ -266,7 +267,7 @@ Frame::Frame()
         auto* unity_panel = new wxPanel(main_panel, ID_UNITY_PANEL);
         unity_panel_ = unity_panel;
         {
-            const auto unity_out_sz = wxSize(/*x_px=*/320, /*y_px=*/160);
+            const auto unity_out_sz = wxSize(/*x_px=*/480, /*y_px=*/160);
             auto* unity_out = new wxTextCtrl(unity_panel, ID_UNITY_OUT,
                 wxEmptyString,
                 wxDefaultPosition,
@@ -452,11 +453,11 @@ void Frame::OnSetupPython(wxCommandEvent& event)
             transcribe_out_oss << "  Installing " << pip_dep << std::endl;
             transcribe_out_->AppendText(transcribe_out_oss.str());
         }
-        std::string transcribe_out;
-        bool res = PythonWrapper::InvokeWithArgs({ "-m", "pip", "install", pip_dep }, &transcribe_out);
+        std::string py_stdout, py_stderr;
+        bool res = PythonWrapper::InvokeWithArgs({ "-m", "pip", "install", pip_dep }, &py_stdout, &py_stderr);
         if (!res) {
             std::ostringstream transcribe_out_oss;
-            transcribe_out_oss << "Failed to install " << pip_dep << ": " << transcribe_out << std::endl;
+            transcribe_out_oss << "Failed to install " << pip_dep << ": " << py_stderr << std::endl;
             transcribe_out_->AppendText(transcribe_out_oss.str());
             return;
         }
@@ -487,8 +488,30 @@ void Frame::OnAppStart(wxCommandEvent& event) {
 	transcribe_out_->AppendText("Launching transcription engine\n");
 
     auto cb = [&](wxProcess* proc, int ret) -> void {
-		std::ostringstream transcribe_out_oss;
+        std::ostringstream transcribe_out_oss;
         transcribe_out_oss << "Transcription engine exited with code " << ret << std::endl;
+
+		wxInputStream* py_stdout = proc->GetInputStream();
+        bool first = true;
+        while (py_stdout && !py_stdout->Eof()) {
+			if (first) {
+				transcribe_out_oss << "  stdout:" << std::endl;
+                first = false;
+			}
+            wxTextInputStream iss(*py_stdout);
+            transcribe_out_oss << "    " << iss.ReadLine() << std::endl;
+        }
+
+		wxInputStream* py_stderr = proc->GetErrorStream();
+        first = true;
+        while (py_stderr && !py_stderr->Eof()) {
+			if (first) {
+				transcribe_out_oss << "  stderr:" << std::endl;
+                first = false;
+			}
+            wxTextInputStream iss(*py_stderr);
+            transcribe_out_oss << "  " << iss.ReadLine() << std::endl;
+        }
 
 		transcribe_out_->AppendText(transcribe_out_oss.str());
 		return;

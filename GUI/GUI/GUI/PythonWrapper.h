@@ -24,7 +24,8 @@ namespace PythonWrapper
 
 	// Invoke the interpreter with arguments.
 	// On error, sets `out` to an error message and returns false.
-	bool InvokeWithArgs(std::vector<std::string>&& args, std::string* out);
+	bool InvokeWithArgs(std::vector<std::string>&& args, std::string* py_stdout,
+		std::string* py_stderr = NULL);
 
 	// Execute python --version.
 	std::string GetVersion();

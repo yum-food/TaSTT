@@ -6,7 +6,9 @@
 
 class PythonProcess : public wxProcess {
 public:
-	PythonProcess(std::function<void(wxProcess* proc, int ret)>&& exit_callback) : exit_cb_(exit_callback) {}
+	PythonProcess(std::function<void(wxProcess* proc, int ret)>&& exit_callback) : exit_cb_(exit_callback) {
+		Redirect();
+	}
 
 	virtual void OnTerminate(int pid, int status) wxOVERRIDE {
 		exit_cb_(this, status);
@@ -36,58 +38,70 @@ wxProcess* PythonWrapper::InvokeAsyncWithArgs(std::vector<std::string>&& args,
 	return p;
 }
 
-bool PythonWrapper::InvokeWithArgs(std::vector<std::string>&& args, std::string* out) {
+bool PythonWrapper::InvokeWithArgs(std::vector<std::string>&& args,
+	std::string* py_stdout, std::string* py_stderr) {
 	std::ostringstream cmd_oss;
 	cmd_oss << "Resources/Python/python.exe";
 	for (const auto& arg : args) {
 		cmd_oss << " " << arg;
 	}
 
-	wxArrayString cmd_output_ary;
-	long result = wxExecute(cmd_oss.str(), cmd_output_ary);
-	std::ostringstream cmd_out_oss;
-	for (const auto& line : cmd_output_ary) {
-		if (!cmd_out_oss.str().empty()) {
-			cmd_out_oss << std::endl;
+	wxArrayString cmd_stdout;
+	wxArrayString cmd_stderr;
+	long result = wxExecute(cmd_oss.str(), cmd_stdout, cmd_stderr);
+	std::ostringstream cmd_stdout_oss;
+	for (const auto& line : cmd_stdout) {
+		if (!cmd_stdout_oss.str().empty()) {
+			cmd_stdout_oss << std::endl;
 		}
-		cmd_out_oss << line;
+		cmd_stdout_oss << line;
+	}
+	std::ostringstream cmd_stderr_oss;
+	for (const auto& line : cmd_stderr) {
+		if (!cmd_stderr_oss.str().empty()) {
+			cmd_stderr_oss << std::endl;
+		}
+		cmd_stderr_oss << line;
 	}
 	if (result == -1) {
 		std::ostringstream err_oss;
 		err_oss << "Error while executing python command \"" << cmd_oss.str() << "\": Failed to launch process";
-		*out = err_oss.str();
+		*py_stderr = err_oss.str();
 		return false;
 	} else if (result) {
 		std::ostringstream err_oss;
-		err_oss << "Error while executing python command \"" << cmd_oss.str() << "\": Process returned " << result << ": " << cmd_out_oss.str();
-		*out = err_oss.str();
+		err_oss << "Error while executing python command \"" << cmd_oss.str() <<
+			"\"" << std::endl <<
+			"Process returned " << result << ": " << std::endl <<
+			cmd_stdout_oss.str() << std::endl <<
+			cmd_stderr_oss.str() << std::endl;
+		*py_stderr = err_oss.str();
 		return false;
 	}
 
-	*out = cmd_out_oss.str();
+	*py_stdout = cmd_stdout_oss.str();
+	*py_stderr = cmd_stderr_oss.str();
 	return true;
 }
 
 
 std::string PythonWrapper::GetVersion() {
-	std::string result;
-    bool ok = InvokeWithArgs({ "--version" }, &result);
+	std::string py_stdout, py_stderr;
+    bool ok = InvokeWithArgs({ "--version" }, &py_stdout, &py_stderr);
 	if (!ok) {
-		wxLogError("Failed to get python version: %s", result.c_str());
-		result = "";
+		wxLogError("Failed to get python version: %s", py_stderr.c_str());
 	}
-	return result;
+	return py_stdout;
 }
 
 std::string PythonWrapper::DumpMics() {
-	std::string result;
+	std::string py_stdout, py_stderr;
 	const std::string dump_mics_path = "Resources/Scripts/dump_mic_devices.py";
-	bool ok = InvokeWithArgs({ dump_mics_path }, &result);
+	bool ok = InvokeWithArgs({ dump_mics_path }, &py_stdout, &py_stderr);
 	if (!ok) {
-		wxLogError("Failed to dump mic devices: %s", result.c_str());
-		result = "";
+		wxLogError("Failed to dump mic devices: %s", py_stderr.c_str());
 	}
-	return result;
+	return py_stdout;
 }
 
 bool PythonWrapper::InstallPip(std::string* out) {
