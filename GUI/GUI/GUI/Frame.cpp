@@ -31,6 +31,7 @@ namespace {
         ID_UNITY_PANEL,
         ID_UNITY_CONFIG_PANEL,
         ID_UNITY_OUT,
+		ID_UNITY_ASSETS_FILE_PICKER,
 		ID_UNITY_ANIMATOR_FILE_PICKER,
 		ID_UNITY_PARAMETERS_FILE_PICKER,
 		ID_UNITY_MENU_FILE_PICKER,
@@ -281,6 +282,14 @@ Frame::Frame()
             {
 				auto* unity_config_panel_pairs = new wxPanel(unity_config_panel, ID_UNITY_CONFIG_PANEL_PAIRS);
                 {
+                    auto* unity_assets_file_picker = new wxDirPickerCtrl(
+                        unity_config_panel_pairs,
+                        ID_UNITY_ASSETS_FILE_PICKER,
+                        /*path=*/wxEmptyString,
+                        /*message=*/"Unity Assets folder"
+                        );
+                    unity_assets_file_picker_ = unity_assets_file_picker;
+
                     auto* unity_animator_file_picker = new wxFilePickerCtrl(
                         unity_config_panel_pairs,
                         ID_UNITY_ANIMATOR_FILE_PICKER,
@@ -312,7 +321,7 @@ Frame::Frame()
                         /*pos=*/wxDefaultPosition,
                         /*size=*/wxDefaultSize
                         );
-                    unity_parameters_file_picker_ = unity_parameters_file_picker;
+                    unity_menu_file_picker_ = unity_menu_file_picker;
 
 					auto* unity_animator_generated_dir = new wxTextCtrl(unity_config_panel_pairs,
                         ID_UNITY_ANIMATOR_GENERATED_DIR,
@@ -338,6 +347,9 @@ Frame::Frame()
 
                     auto* sizer = new wxFlexGridSizer(/*cols=*/2);
                     unity_config_panel_pairs->SetSizer(sizer);
+
+                    sizer->Add(new wxStaticText(unity_config_panel_pairs, wxID_ANY, /*label=*/"Unity Assets folder:"));
+                    sizer->Add(unity_assets_file_picker);
 
                     sizer->Add(new wxStaticText(unity_config_panel_pairs, wxID_ANY, /*label=*/"FX controller:"));
                     sizer->Add(unity_animator_file_picker);
@@ -477,7 +489,64 @@ void Frame::OnDumpMics(wxCommandEvent& event)
     transcribe_out_->AppendText(PythonWrapper::DumpMics());
 }
 
-void Frame::OnGenerateFX(wxCommandEvent& event) {
+#define DEBUG
+
+void Frame::OnGenerateFX(wxCommandEvent& event)
+{
+    std::filesystem::path unity_assets_path = unity_assets_file_picker_->GetPath().ToStdString();
+#ifndef DEBUG
+    if (!std::filesystem::exists(unity_assets_path)) {
+        std::ostringstream oss;
+        oss << "Cannot generate FX layer: assets directory does not exist at " << unity_assets_path << std::endl;
+        wxLogError(oss.str().c_str());
+        return;
+    }
+#endif
+    std::filesystem::path unity_animator_path = unity_animator_file_picker_->GetPath().ToStdString();
+#ifndef DEBUG
+    if (!std::filesystem::exists(unity_animator_path)) {
+        std::ostringstream oss;
+        oss << "Cannot generate FX layer: animator does not exist at " << unity_animator_path << std::endl;
+        wxLogError(oss.str().c_str());
+        return;
+    }
+#endif
+    std::filesystem::path unity_parameters_path = unity_parameters_file_picker_->GetPath().ToStdString();
+#ifndef DEBUG
+	if (!std::filesystem::exists(unity_parameters_path)) {
+		std::ostringstream oss;
+		oss << "Cannot generate FX layer: parameters do not exist at " << unity_parameters_path << std::endl;
+		wxLogError(oss.str().c_str());
+        return;
+	}
+#endif
+    std::filesystem::path unity_menu_path = unity_menu_file_picker_->GetPath().ToStdString();
+#ifndef DEBUG
+	if (!std::filesystem::exists(unity_menu_path)) {
+		std::ostringstream oss;
+		oss << "Cannot generate FX layer: menu does not exist at " << unity_menu_path << std::endl;
+		wxLogError(oss.str().c_str());
+        return;
+	}
+#endif
+    std::string unity_animator_generated_dir = unity_animator_generated_dir_->GetLineText(0).ToStdString();
+    std::string unity_animator_generated_name = unity_animator_generated_name_->GetLineText(0).ToStdString();
+    std::string unity_parameters_generated_name = unity_parameters_generated_name_->GetLineText(0).ToStdString();
+    std::string unity_menu_generated_name = unity_menu_generated_name_->GetLineText(0).ToStdString();
+
+    std::string out;
+    if (!PythonWrapper::GenerateAnimator(
+        unity_assets_path.string(),
+        unity_animator_path.string(),
+        unity_parameters_path.string(),
+        unity_menu_path.string(),
+        unity_animator_generated_dir,
+        unity_animator_generated_name,
+        unity_parameters_generated_name,
+        unity_menu_generated_name,
+        unity_out_)) {
+        wxLogError("Failed to generate animator:\n%s\n", out.c_str());
+    }
 }
 
 void Frame::OnAppStart(wxCommandEvent& event) {
@@ -582,22 +651,12 @@ void Frame::DrainApp(wxProcess* proc, std::ostringstream& oss) {
         return;
     }
 
-    bool first = true;
     while (proc->IsInputAvailable()) {
-        if (first) {
-            first = false;
-            oss << "  " << "stdout:" << std::endl;
-        }
 		wxTextInputStream iss(*(proc->GetInputStream()));
 		oss << "    " << iss.ReadLine() << std::endl;
 	}
 
-    first = true;
     while (proc->IsErrorAvailable()) {
-        if (first) {
-            first = false;
-            oss << "  " << "stderr:" << std::endl;
-        }
         wxTextInputStream iss(*(proc->GetErrorStream()));
         oss << "    " << iss.ReadLine() << std::endl;
 	}

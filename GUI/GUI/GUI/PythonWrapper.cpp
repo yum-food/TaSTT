@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include <filesystem>
 #include <sstream>
 
 class PythonProcess : public wxProcess {
@@ -128,5 +129,69 @@ wxProcess* PythonWrapper::StartApp(
 		"--model", model,
 		},
 		std::move(exit_callback));
+}
+
+bool PythonWrapper::GenerateAnimator(
+	const std::string& unity_assets_path,
+	const std::string& unity_animator_path,
+	const std::string& unity_parameters_path,
+	const std::string& unity_menu_path,
+	const std::string& unity_animator_generated_dir,
+	const std::string& unity_animator_generated_name,
+	const std::string& unity_parameters_generated_name,
+	const std::string& unity_menu_generated_name,
+	wxTextCtrl* out) {
+	// Python script locations
+	std::string libunity_path = "Resources/Scripts/libunity.py";
+	std::string libtastt_path = "Resources/Scripts/libtastt.py";
+
+	// Generated directory locations
+	std::filesystem::path tastt_generated_dir_path =
+		std::filesystem::path(unity_assets_path) / unity_animator_generated_dir;
+	std::filesystem::path guid_map_path =
+		tastt_generated_dir_path / "guid.map";
+	std::filesystem::path tastt_animations_path =
+		tastt_generated_dir_path / "Animations";
+	std::filesystem::path tastt_animator_path =
+		tastt_generated_dir_path / unity_animator_generated_name;
+	std::filesystem::path tastt_params_path =
+		tastt_generated_dir_path / unity_parameters_generated_name;
+	std::filesystem::path tastt_menu_path =
+		tastt_generated_dir_path / unity_menu_generated_name;
+
+	{
+		out->AppendText("Generating guid.map... ");
+		std::string py_stdout, py_stderr;
+		if (InvokeWithArgs({ libunity_path, "guid_map",
+			"--project_root", unity_assets_path,
+			"--save_to", guid_map_path.string() },
+			&py_stdout, &py_stderr)) {
+			out->AppendText("success!\n");
+			out->AppendText(py_stdout.c_str());
+			out->AppendText(py_stderr.c_str());
+		}
+		else {
+			wxLogError("Failed to generate guid.map: %s", py_stderr.c_str());
+			out->AppendText("failed!\n");
+		}
+	}
+	{
+		out->AppendText("Generating animations... ");
+		std::string py_stdout, py_stderr;
+		if (InvokeWithArgs({ libtastt_path, "gen_anims",
+			"--gen_anim_dir", tastt_animations_path.string(),
+			"--guid_map", guid_map_path.string() },
+			&py_stdout, &py_stderr)) {
+			out->AppendText("success!\n");
+			out->AppendText(py_stdout.c_str());
+			out->AppendText(py_stderr.c_str());
+		}
+		else {
+			wxLogError("Failed to generate animations: %s", py_stderr.c_str());
+			out->AppendText("failed!\n");
+		}
+	}
+
+	return true;
 }
 

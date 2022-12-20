@@ -29,8 +29,10 @@ private:
     wxTextCtrl* unity_parameters_generated_name_;
     wxTextCtrl* unity_menu_generated_name_;
 
+    wxDirPickerCtrl* unity_assets_file_picker_;
     wxFilePickerCtrl* unity_animator_file_picker_;
     wxFilePickerCtrl* unity_parameters_file_picker_;
+    wxFilePickerCtrl* unity_menu_file_picker_;
 
     wxChoice* py_app_mic_;
     wxChoice* py_app_lang_;

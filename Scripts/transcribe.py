@@ -94,6 +94,8 @@ def onAudioFramesAvailable(
         frame_count,
         time_info,
         status_flags):
+    if audio_state.audio_paused:
+        return (frames, pyaudio.paContinue)
 
     # Reduce sample rate from mic rate to Whisper rate by dropping frames.
     decimated = b''
@@ -207,7 +209,6 @@ def transcribe(audio_state, model, frames):
     #for temp in (0.00, 0.05, 0.10, 0.15, 0.20):
     #for temp in (0.00, 0.05):
     for temp in (0.00,):
-        print("temp: {}".format(temp))
         options = whisper.DecodingOptions(language = audio_state.language,
                 beam_size = 5, temperature = temp, without_timestamps = True)
         result = whisper.decode(model, mel, options)

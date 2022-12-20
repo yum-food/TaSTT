@@ -1259,6 +1259,10 @@ if __name__ == "__main__":
         print("Looking up GUIDs under {}".format(args.project_root),
                 file=sys.stderr)
         guid_map = getGuidMap(args.project_root)
+
+        save_to_dir = os.path.dirname(args.save_to)
+        os.makedirs(save_to_dir, exist_ok=True)
+
         if args.guid_map_append:
             tmp_map = {}
             with open(args.save_to, "rb") as f:

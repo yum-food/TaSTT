@@ -179,7 +179,8 @@ def generateClearAnimation(anim_dir, guid_map):
                 anim_clip.mapping['m_EditorCurves'].sequence.append(curve)
     # Serialize animation to file
     anim_name = generate_utils.getClearAnimationName()
-    anim_path = anim_dir + anim_name + ".anim"
+    anim_path = os.path.join(anim_dir, anim_name + ".anim")
+    print("Generating clear animation at {}".format(anim_path))
     with open(anim_path, "w") as f:
         f.write(libunity.unityYamlToString([anim_node]))
     # Generate metadata
@@ -221,7 +222,8 @@ def generateToggleAnimations(anim_dir, shader_param, guid_map):
         anim_suffix = "_Off"
         if shader_value == 1:
             anim_suffix = "_On"
-        anim_path = anim_dir + shader_param + anim_suffix + ".anim"
+        anim_path = os.path.join(anim_dir, shader_param + anim_suffix +
+                ".anim")
         with open(anim_path, "w") as f:
             f.write(libunity.unityYamlToString([anim_node]))
         # Generate metadata
@@ -261,7 +263,7 @@ def generateFloatAnimation(anim_name: str, anim_dir: str,
     anim_clip.mapping['m_EditorCurves'].sequence.append(curve)
 
     # Serialize animation to file
-    anim_path = anim_dir + anim_name + ".anim"
+    anim_path = os.path.join(anim_dir, anim_name + ".anim")
     with open(anim_path, "w") as f:
         f.write(libunity.unityYamlToString([anim_node]))
     # Generate metadata
@@ -275,10 +277,10 @@ def generateFloatAnimation(anim_name: str, anim_dir: str,
     return meta.guid
 
 def generateAnimations(anim_dir, guid_map):
-    generateClearAnimation(args.gen_anim_dir, guid_map)
+    generateClearAnimation(anim_dir, guid_map)
 
-    generateToggleAnimations(args.gen_anim_dir, generate_utils.getIndicator0Param(), guid_map)
-    generateToggleAnimations(args.gen_anim_dir, generate_utils.getIndicator1Param(), guid_map)
+    generateToggleAnimations(anim_dir, generate_utils.getIndicator0Param(), guid_map)
+    generateToggleAnimations(anim_dir, generate_utils.getIndicator1Param(), guid_map)
 
     print("Generating letter animations", file=sys.stderr)
 
@@ -318,7 +320,7 @@ def generateAnimations(anim_dir, guid_map):
                     clip.mapping['m_FloatCurves'].sequence.append(curve)
                     clip.mapping['m_EditorCurves'].sequence.append(curve)
                     # Serialize animation to file
-                    anim_path = anim_dir + anim_name + ".anim"
+                    anim_path = os.path.join(anim_dir, anim_name + ".anim")
                     with open(anim_path, "w") as f:
                         f.write(libunity.unityYamlToString([node]))
                     # Generate metadata
@@ -378,15 +380,15 @@ def generateFXLayer(which_layer: int, anim: libunity.UnityAnimator, layer:
         dy = 200
 
         # Create blend tree for this region.
-        anim_lo_path = gen_anim_dir + \
+        anim_lo_path = os.path.join(gen_anim_dir,
                 generate_utils.getAnimationNameByLayerAndIndex(
                         which_layer, i, 0, byte) + \
-                ".anim"
+                ".anim")
         guid_lo = guid_map[anim_lo_path]
-        anim_hi_path = gen_anim_dir + \
+        anim_hi_path = os.path.join(gen_anim_dir,
                 generate_utils.getAnimationNameByLayerAndIndex(
                         which_layer, i, generate_utils.CHARS_PER_CELL - 1, byte) + \
-                ".anim"
+                ".anim")
         guid_hi = guid_map[anim_hi_path]
 
         select_states[i] = anim.addAnimatorBlendTree(layer,
@@ -430,13 +432,13 @@ def generateToggle(layer_name: str,
     on_state  = anim.addAnimatorState(layer, layer_name + "_On", dy=100)
 
     if off_anim_basename:
-        off_anim_path = gen_anim_dir + off_anim_basename
+        off_anim_path = os.path.join(gen_anim_dir, off_anim_basename)
         off_anim_meta = libunity.Metadata()
         off_anim_meta.load(off_anim_path)
         anim.setAnimatorStateAnimation(off_state, off_anim_meta.guid)
 
     if on_anim_basename:
-        on_anim_path = gen_anim_dir + on_anim_basename
+        on_anim_path = os.path.join(gen_anim_dir, on_anim_basename)
         on_anim_meta = libunity.Metadata()
         on_anim_meta.load(on_anim_path)
         anim.setAnimatorStateAnimation(on_state, on_anim_meta.guid)
