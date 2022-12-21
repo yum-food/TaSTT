@@ -167,6 +167,8 @@ Contributions welcome. Send a pull request to this repository.
    5. Display text in overlay. Enables (1) lower latency view of TaSTT's
       transcription state; (2) checking transcriptions ahead of time; (3)
       checking transcriptions without having to see the board in game.
+   6. TTS. Multiple people have requested this. See if there are open source
+      algorithms available; or, figure out how to integrate with
 4. Optimization
    1. ~~Utilize the avatar 3.0 SDK's ability to drive parameters to reduce the
      total # of parameters (and therefore OSC messages & sync events). Note
@@ -191,6 +193,7 @@ Contributions welcome. Send a pull request to this repository.
       idea!)
 5. Bugfixes
    1. ~~The whisper STT says "Thank you." when there's no audio?~~ DONE
+   2. JP and CN transcription does not work in the GUI due to encoding issues.
 6. Shine
    1. Smooth scrolling.
    2. ~~Infinite scrolling.~~ DONE

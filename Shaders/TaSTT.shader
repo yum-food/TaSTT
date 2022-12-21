@@ -14,6 +14,7 @@
     [MaterialToggle] Render_Margin("Render margin", float) = 1
     [MaterialToggle] Render_Visual_Indicator("Render visual speech indicator", float) = 1
     Margin_Scale("Margin scale", float) = 0.03
+    Margin_Rounding_Scale("Margin rounding scale", float) = 0.03
 
     TaSTT_Backplate("TaSTT_Backplate", 2D) = "black" {}
 
@@ -420,7 +421,7 @@
       #pragma fragment frag
       #pragma multi_compile
 
-      #include "UnityCG.cginc"
+      //#include "UnityCG.cginc"
 
       struct appdata
       {
@@ -449,6 +450,7 @@
       float Render_Margin;
       float Render_Visual_Indicator;
       float Margin_Scale;
+      float Margin_Rounding_Scale;
 
       float3 HUEtoRGB(in float H)
       {
@@ -882,19 +884,76 @@
         return clamp(lerp(lo, hi, uv), 0.0, 1.0);
       }
 
-      bool InMargin(float2 uv, float2 margin)
-      {
-        return uv.x < margin.x / 2 ||
-            uv.x > 1 - margin.x / 2 ||
-            uv.y < margin.y / 2 ||
-            uv.y > 1 - margin.y / 2;
-      }
-
       // dist = sqrt(dx^2 + dy^2) = sqrt(<dx,dy> * <dx,dy>)
       bool InRadius2(float2 uv, float2 pos, float radius2)
       {
         float2 delta = uv - pos;
         return dot(delta, delta) < radius2;
+      }
+
+      bool InMargin(float2 uv, float2 margin)
+      {
+        if (uv.x < margin.x ||
+            uv.x > 1 - margin.x ||
+            uv.y < margin.y ||
+            uv.y > 1 - margin.y) {
+            return true;
+        }
+
+        return false;
+      }
+
+      bool InSpeechIndicator(float2 uv, float2 margin)
+      {
+        if (!Render_Visual_Indicator) {
+          return false;
+        }
+
+        // Margin is uv_margin/2 wide/tall.
+        // We want a circle whose radius is ~80% of that.
+        float radius_factor = 0.95;
+        float radius = margin.x * radius_factor;
+        // We want this circle to be centered halfway through the margin
+        // vertically, and at 1.5x the margin width horizontally.
+        float2 indicator_center = float2(margin.x + radius, margin.y * 0.5);
+        // Finally, translate it to the top of the board instead of the
+        // bottom.
+        indicator_center.y = 1.0 - indicator_center.y;
+
+        if (InRadius2(uv, indicator_center, radius * radius)) {
+          return true;
+        }
+
+        return false;
+      }
+
+      bool InMarginRounding(float2 uv, float2 margin, float rounding, bool interior)
+      {
+        if (!interior) {
+          rounding += margin.x;
+          margin = float2(0, 0);
+        }
+
+        // This is the center of a circle whose perimeter touches the
+        // upper left corner of the margin.
+        float2 c0 = float2(rounding + margin.x, rounding + margin.y);
+        if (uv.x < c0.x && uv.y < c0.y && uv.x > margin.x && uv.y > margin.y && !InRadius2(uv, c0, rounding * rounding)) {
+            return true;
+        }
+        c0 = float2(rounding + margin.x, 1 - (rounding + margin.y));
+        if (uv.x < c0.x && uv.y > c0.y && uv.x > margin.x && uv.y < 1 - margin.y && !InRadius2(uv, c0, rounding * rounding)) {
+            return true;
+        }
+        c0 = float2(1 - (rounding + margin.x), 1 - (rounding + margin.y));
+        if (uv.x > c0.x && uv.y > c0.y && uv.x < 1 - margin.x && uv.y < 1 - margin.y && !InRadius2(uv, c0, rounding * rounding)) {
+            return true;
+        }
+        c0 = float2(1 - (rounding + margin.x), rounding + margin.y);
+        if (uv.x > c0.x && uv.y < c0.y && uv.x < 1 - margin.x && uv.y > margin.y && !InRadius2(uv, c0, rounding * rounding)) {
+            return true;
+        }
+
+        return false;
       }
 
       // Write the nth letter in the current cell and return the value of the
@@ -1383,6 +1442,85 @@
         return float2(0, 0);
       }
 
+      fixed sq_dist(fixed2 p0, fixed2 p1)
+      {
+        fixed2 delta = p1 - p0;
+        //return abs(delta.x) + abs(delta.y);
+        return max(abs(delta.x), abs(delta.y));
+      }
+
+      fixed4 effect_squares (v2f i)
+      {
+        const fixed time = _Time.y;
+
+        #define PI 3.1415926535
+        fixed theta = PI/4 + sin(time / 4) * 0.1;
+        fixed2x2 rot =
+          fixed2x2(cos(theta), -1 * sin(theta),
+          sin(theta), cos(theta));
+
+        #define NSQ_X 9.0
+        #define NSQ_Y 5.0
+
+        // Map uv from [0, 1] to [-.5, .5].
+        fixed2 p = i.uv - 0.5;
+        p *= fixed2(NSQ_X, NSQ_Y);
+        p = mul(rot, p);
+        p -= 0.5;
+
+        // See how far we are from the nearest grid point
+        fixed2 intra_pos = frac(p);
+        fixed2 intra_center = fixed2(0.5, 0.5);
+        fixed intra_dist = sq_dist(intra_pos, intra_center);
+
+        fixed st0 = (sin(time) + 1) / 2;
+        fixed st1 = (sin(time + PI/8) + 1) / 2;
+        fixed st2 = (sin(time + PI/2) + 1) / 2;
+        fixed st3 = (sin(time + PI/2 + PI/8) + 1) / 2;
+
+        fixed2 center = fixed2(0, 0);
+        center = mul(rot, center);
+        center -= 0.5;
+        fixed2 rot_lim = fixed2(NSQ_X, NSQ_Y);
+        rot_lim = mul(rot, rot_lim);
+        rot_lim -= 0.5;
+
+        float v = 0;
+        float x = 0;
+
+        if (intra_dist > 0.5 * (0.5 + sin(time * 1.5) * 0.1)) {
+          v = intra_dist;
+        } else {
+          v = 0;
+        }
+
+        fixed extra_dist = sq_dist(p, center);
+        fixed check = max(rot_lim.x, rot_lim.y) / 2;
+        if (extra_dist > check * st0) {
+          v = 1.0 - v;
+        }
+        if (extra_dist > check * st1) {
+          v = 1.0 - v;
+        }
+        if (extra_dist > check * st2) {
+          v = 1.0 - v;
+        }
+        if (extra_dist > check * st3) {
+          v = 1.0 - v;
+        } else {
+          x = 0.50;
+        }
+
+        fixed3 hsv;
+        hsv[0] = (v * 0.2 * (1 - x * .8) + 0.55) - x;
+        hsv[1] = 0.7;
+        hsv[2] = 0.8;
+
+        fixed3 col = HSVtoRGB(hsv);
+
+        return fixed4(col, 1.0);
+      }
+
       fixed4 frag (v2f i) : SV_Target
       {
         float2 uv = i.uv;
@@ -1393,24 +1531,18 @@
           uv.x = 1.0 - uv.x;
         }
 
-        float2 uv_margin = float2(Margin_Scale, Margin_Scale * 2);
-        if (InMargin(uv, uv_margin)) {
-          // Margin is uv_margin/2 wide/tall.
-          // We want a circle whose radius is ~80% of that.
-          if (Render_Visual_Indicator) {
-            float radius_factor = 0.95;
-            float radius = (uv_margin.x / 2) * radius_factor;
-            // We want this circle to be centered halfway through the margin
-            // vertically, and at 1.5x the margin width horizontally.
-            float2 indicator_center = float2(
-                uv_margin.x * 0.5 + radius,
-                uv_margin.y * 0.5 * 0.5
-                );
-            // Finally, translate it to the top of the board instead of the
-            // bottom.
-            indicator_center.y = 1.0 - indicator_center.y;
-
-            if (InRadius2(uv, indicator_center, radius * radius)) {
+        float2 uv_margin = float2(Margin_Scale, Margin_Scale * 2) / 2;
+        if (Render_Margin) {
+          if (Margin_Rounding_Scale > 0.0) {
+            if (InMarginRounding(uv, uv_margin, Margin_Rounding_Scale, /*interior=*/true)) {
+              return effect_squares(i);
+            }
+            if (InMarginRounding(uv, uv_margin, Margin_Rounding_Scale, /*interior=*/false)) {
+              return fixed4(0, 0, 0, 0);
+            }
+          }
+          if (InMargin(uv, uv_margin)) {
+            if (InSpeechIndicator(uv, uv_margin)) {
               if (floor(TaSTT_Indicator_0) == 1.0) {
                 // Actively speaking
                 return float3tofixed4(TaSTT_Indicator_Color_2, 1.0);
@@ -1422,17 +1554,17 @@
                 return float3tofixed4(TaSTT_Indicator_Color_0, 1.0);
               }
             }
-          }
-          if (Render_Margin) {
-            return fixed4(1,1,1,1);
+
+            if (Render_Margin) {
+              return effect_squares(i);
+            }
           }
         }
 
+        uv_margin *= 4;
         float2 uv_with_margin = AddMarginToUV(uv, uv_margin);
-        uv_margin *= 2;
-        float2 uv_with_margin2 = AddMarginToUV(uv, uv_margin);
 
-        int2 letter_bytes = (int2) floor(GetLetterParameter(uv_with_margin2));
+        int2 letter_bytes = (int2) floor(GetLetterParameter(uv_with_margin));
         int letter = letter_bytes[0] | (letter_bytes[1] << 8);
 
         float texture_cols;
@@ -1441,11 +1573,11 @@
         if (letter < 0xE000) {
           texture_cols = 128.0;
           texture_rows = 64.0;
-          letter_uv = GetLetter(uv_with_margin2, letter, texture_cols, texture_rows, 48, 4);
+          letter_uv = GetLetter(uv_with_margin, letter, texture_cols, texture_rows, 48, 4);
         } else {
           texture_cols = 8.0;
           texture_rows = 8.0;
-          letter_uv = GetLetter(uv_with_margin2, letter, texture_cols, texture_rows, 8, 4);
+          letter_uv = GetLetter(uv_with_margin, letter, texture_cols, texture_rows, 8, 4);
         }
 
         fixed4 background = TaSTT_Backplate.Sample(sampler_linear_repeat, uv);
