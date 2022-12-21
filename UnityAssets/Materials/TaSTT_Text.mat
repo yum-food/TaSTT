@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: TaSTT_Text
-  m_Shader: {fileID: 4800000, guid: a3f87e43080789749bf8e3ef431b6040, type: 3}
+  m_Shader: {fileID: 4800000, guid: feba055fa9e7f9543aaae032a30ec878, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0

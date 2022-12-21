@@ -3,7 +3,17 @@ guid: 1c2aa3d76900de6409aaeaa1b238ae8a
 ModelImporter:
   serializedVersion: 19301
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: TaSTT_Backplate
+    second: {fileID: 2100000, guid: 7adae6e6e89555e46816b6d44117a57b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: TaSTT_Text
+    second: {fileID: 2100000, guid: 6e092d0b9710947419066f7ce27d9b23, type: 2}
   materials:
     materialImportMode: 1
     materialName: 0
