@@ -329,6 +329,14 @@ def clear(client, tx_state):
 
     tx_state.last_msg_encoded = []
 
+def lockWorld(client, lock: bool):
+    addr = "/avatar/parameters/" + generate_utils.getLockWorldParam()
+    client.send_message(addr, lock)
+
+def toggleBoard(client, show: bool):
+    addr = "/avatar/parameters/" + generate_utils.getToggleParam()
+    client.send_message(addr, show)
+
 def indicateSpeech(client, is_speaking: bool):
     addr = "/avatar/parameters/" + generate_utils.getIndicator0Param()
     client.send_message(addr, is_speaking)

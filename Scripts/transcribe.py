@@ -297,28 +297,50 @@ def readControllerInput(audio_state):
     state = PAUSE_STATE
     osc_ctrl.indicateSpeech(audio_state.osc_client, False)
     osc_ctrl.indicatePaging(audio_state.osc_client, False)
+
+    last_rising = time.time()
     while audio_state.run_app == True:
         time.sleep(0.05)
 
         event = steamvr.pollButtonPress(session)
 
         if event == steamvr.EVENT_RISING_EDGE:
-            print("event get")
-            if state == RECORD_STATE:
+            last_rising = time.time()
+        elif event == steamvr.EVENT_FALLING_EDGE:
+            now = time.time()
+            if now - last_rising > 0.5:
+                # Long hold
                 state = PAUSE_STATE
                 osc_ctrl.indicateSpeech(audio_state.osc_client, False)
-                playsound(os.path.abspath("../Sounds/Noise_Off.wav"))
-
-                audio_state.audio_paused = True
-            elif state == PAUSE_STATE:
-                state = RECORD_STATE
-                osc_ctrl.indicateSpeech(audio_state.osc_client, True)
-                playsound(os.path.abspath("../Sounds/Noise_On.wav"))
+                osc_ctrl.toggleBoard(audio_state.osc_client, False)
+                #playsound(os.path.abspath("../Sounds/Noise_Off.wav"))
 
                 resetAudioLocked(audio_state)
                 resetDisplayLocked(audio_state)
                 audio_state.drop_transcription = True
-                audio_state.audio_paused = False
+                audio_state.audio_paused = True
+            else:
+                # Short hold
+                if state == RECORD_STATE:
+                    state = PAUSE_STATE
+                    osc_ctrl.indicateSpeech(audio_state.osc_client, False)
+                    osc_ctrl.lockWorld(audio_state.osc_client, True)
+
+                    audio_state.audio_paused = True
+
+                    playsound(os.path.abspath("../Sounds/Noise_Off.wav"))
+                elif state == PAUSE_STATE:
+                    state = RECORD_STATE
+                    osc_ctrl.indicateSpeech(audio_state.osc_client, True)
+                    osc_ctrl.toggleBoard(audio_state.osc_client, True)
+                    osc_ctrl.lockWorld(audio_state.osc_client, False)
+                    resetAudioLocked(audio_state)
+                    resetDisplayLocked(audio_state)
+
+                    audio_state.drop_transcription = True
+                    audio_state.audio_paused = False
+
+                    playsound(os.path.abspath("../Sounds/Noise_On.wav"))
 
 # model should correspond to one of the Whisper models defined in
 # whisper/__init__.py. Examples: tiny, base, small, medium.
@@ -364,7 +386,6 @@ def transcribeLoop(mic: str, language: str, model: str):
     audio_state.run_app = False
     transcribe_audio_thd.join()
     controller_input_thd.join()
-
 
 if __name__ == "__main__":
     # Set cwd to the directory holding the script

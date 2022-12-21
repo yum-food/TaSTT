@@ -487,6 +487,7 @@ void Frame::OnSetupPython(wxCommandEvent& event)
 void Frame::OnDumpMics(wxCommandEvent& event)
 {
     transcribe_out_->AppendText(PythonWrapper::DumpMics());
+    transcribe_out_->AppendText("\n");
 }
 
 #define DEBUG
