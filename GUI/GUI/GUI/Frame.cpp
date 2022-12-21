@@ -1,4 +1,5 @@
 #include "Frame.h"
+#include "Logging.h"
 #include "PythonWrapper.h"
 
 #include <filesystem>
@@ -181,6 +182,8 @@ namespace {
     constexpr int kModelDefault = 2;  // base.en
 }  // namespace
 
+using ::Logging::Log;
+
 Frame::Frame()
     : wxFrame(nullptr, wxID_ANY, "TaSTT"),
     py_app_(nullptr),
@@ -212,7 +215,7 @@ Frame::Frame()
             transcribe_out->SetMinSize(transcribe_out_sz);
             transcribe_out_ = transcribe_out;
 
-            transcribe_out_->AppendText(PythonWrapper::GetVersion() + "\n");
+            Log(transcribe_out_, "{}\n", PythonWrapper::GetVersion());
 
             auto* py_config_panel = new wxPanel(transcribe_panel, ID_PY_CONFIG_PANEL);
             {
@@ -438,19 +441,15 @@ void Frame::OnNavbarUnity(wxCommandEvent& event)
 
 void Frame::OnSetupPython(wxCommandEvent& event)
 {
-    transcribe_out_->AppendText("Setting up Python virtual environment\n");
-    transcribe_out_->AppendText("This could take several minutes, please be patient!\n");
-    transcribe_out_->AppendText("This will download ~5GB of dependencies.\n");
+    Log(transcribe_out_, "Setting up Python virtual environment\n");
+    Log(transcribe_out_, "This could take several minutes, please be patient!\n");
+    Log(transcribe_out_, "This will download ~5GB of dependencies.\n");
 
     {
         std::string transcribe_out;
-        std::ostringstream transcribe_out_oss;
-        transcribe_out_oss << "  Installing pip" << std::endl;
-        transcribe_out_->AppendText(transcribe_out_oss.str());
+        Log(transcribe_out_, "  Installing pip\n");
         if (!PythonWrapper::InstallPip(&transcribe_out)) {
-            std::ostringstream transcribe_out_oss;
-            transcribe_out_oss << "Failed to install pip: " << transcribe_out;
-            transcribe_out_->AppendText(transcribe_out_oss.str());
+			Log(transcribe_out_, "Failed to install pip: {}\n", transcribe_out);
         }
     }
 
@@ -466,28 +465,21 @@ void Frame::OnSetupPython(wxCommandEvent& event)
     };
 
     for (const auto& pip_dep : pip_deps) {
-        {
-            std::ostringstream transcribe_out_oss;
-            transcribe_out_oss << "  Installing " << pip_dep << std::endl;
-            transcribe_out_->AppendText(transcribe_out_oss.str());
-        }
+		Log(transcribe_out_, "  Installing {}\n", pip_dep);
         std::string py_stdout, py_stderr;
         bool res = PythonWrapper::InvokeWithArgs({ "-m", "pip", "install", pip_dep }, &py_stdout, &py_stderr);
         if (!res) {
-            std::ostringstream transcribe_out_oss;
-            transcribe_out_oss << "Failed to install " << pip_dep << ": " << py_stderr << std::endl;
-            transcribe_out_->AppendText(transcribe_out_oss.str());
+			Log(transcribe_out_, "Failed to install {}: {}\n", pip_dep, py_stderr);
             return;
         }
     }
 
-    transcribe_out_->AppendText("Python virtual environment successfully set up!\n");
+	Log(transcribe_out_, "Python virtual environment successfully set up!\n");
 }
 
 void Frame::OnDumpMics(wxCommandEvent& event)
 {
-    transcribe_out_->AppendText(PythonWrapper::DumpMics());
-    transcribe_out_->AppendText("\n");
+    Log(transcribe_out_, "{}\n", PythonWrapper::DumpMics());
 }
 
 #define DEBUG
@@ -553,22 +545,18 @@ void Frame::OnGenerateFX(wxCommandEvent& event)
 void Frame::OnAppStart(wxCommandEvent& event) {
     if (py_app_) {
         if (wxProcess::Exists(py_app_->GetPid())) {
-            transcribe_out_->AppendText("Transcription engine already running\n");
+            Log(transcribe_out_, "Transcription engine already running\n");
             return;
         }
         delete py_app_;
         py_app_ = nullptr;
     }
 
-	transcribe_out_->AppendText("Launching transcription engine\n");
+	Log(transcribe_out_, "Launching transcription engine\n");
 
     auto cb = [&](wxProcess* proc, int ret) -> void {
-        std::ostringstream transcribe_out_oss;
-        transcribe_out_oss << "Transcription engine exited with code " << ret << std::endl;
-
-        DrainApp(proc, transcribe_out_oss);
-
-		transcribe_out_->AppendText(transcribe_out_oss.str());
+        Log(transcribe_out_, "Transcription engine exited with code {}\n", ret);
+        DrainApp(proc, transcribe_out_);
 		return;
     };
 
@@ -590,7 +578,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
         kLangChoices[which_lang].ToStdString(),
         kModelChoices[which_model].ToStdString());
     if (!p) {
-        transcribe_out_->AppendText("Failed to launch transcription engine\n");
+        Log(transcribe_out_, "Failed to launch transcription engine\n");
         return;
     }
 
@@ -601,7 +589,7 @@ void Frame::OnAppStop(wxCommandEvent& event) {
     if (py_app_) {
         const long pid = py_app_->GetPid();
 
-        transcribe_out_->AppendText("Stopping transcription engine...\n");
+        Log(transcribe_out_, "Stopping transcription engine...\n");
 
         // Closing stdout causes the app to exit. It takes it quite a while
         // to exit gracefully; be patient.
@@ -615,11 +603,7 @@ void Frame::OnAppStop(wxCommandEvent& event) {
             wxMilliSleep(10);
         }
 
-        {
-            std::ostringstream oss;
-            DrainApp(py_app_, oss);
-            transcribe_out_->AppendText(oss.str());
-        }
+		DrainApp(py_app_, transcribe_out_);
 
         // Now shut it down.
 		bool first = true;
@@ -627,39 +611,37 @@ void Frame::OnAppStop(wxCommandEvent& event) {
 		while (wxProcess::Exists(pid)) {
 			wxProcess::Kill(pid, wxSIGKILL);
 			if (++loop_cnt % 100 == 0) {
-				transcribe_out_->AppendText("Waiting for transcription engine to exit");
+                Log(transcribe_out_, "Waiting for transcription engine to exit\n");
 			}
 			wxMilliSleep(10);
         }
 
         // Since we don't process the termination event, py_app_ deletes itself!
         py_app_ = nullptr;
-        transcribe_out_->AppendText("Stopped transcription engine\n");
+        Log(transcribe_out_, "Stopped transcription engine\n");
     }
     else {
-        transcribe_out_->AppendText("Transcription engine already stopped\n");
+        Log(transcribe_out_, "Transcription engine already stopped\n");
     }
 }
 
 void Frame::OnAppDrain(wxTimerEvent& event) {
-    std::ostringstream oss;
-    DrainApp(py_app_, oss);
-	transcribe_out_->AppendText(oss.str());
+	DrainApp(py_app_, transcribe_out_);
 }
 
-void Frame::DrainApp(wxProcess* proc, std::ostringstream& oss) {
+void Frame::DrainApp(wxProcess* proc, wxTextCtrl* frame) {
     if (!proc) {
         return;
     }
 
     while (proc->IsInputAvailable()) {
 		wxTextInputStream iss(*(proc->GetInputStream()));
-		oss << "    " << iss.ReadLine() << std::endl;
+        Log(frame, "  {}\n", iss.ReadLine());
 	}
 
     while (proc->IsErrorAvailable()) {
         wxTextInputStream iss(*(proc->GetErrorStream()));
-        oss << "    " << iss.ReadLine() << std::endl;
+        Log(frame, "  {}\n", iss.ReadLine());
 	}
 }
 

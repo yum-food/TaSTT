@@ -1,9 +1,12 @@
+#include "Logging.h"
 #include "PythonWrapper.h"
 
 #include <stdio.h>
 
 #include <filesystem>
 #include <sstream>
+
+using ::Logging::Log;
 
 class PythonProcess : public wxProcess {
 public:
@@ -178,18 +181,14 @@ bool PythonWrapper::GenerateAnimator(
 
 	{
 		if (std::filesystem::exists(tastt_generated_dir_path)) {
-			std::ostringstream oss;
-			oss << "Erasing " << tastt_generated_dir_path << std::endl;
-			out->AppendText(oss.str());
+			Log(out, "Erasing {}\n", tastt_generated_dir_path.string());
 			std::filesystem::remove_all(tastt_generated_dir_path);
 		}
-		std::ostringstream oss;
-		oss << "Creating " << tastt_generated_dir_path << std::endl;
-		out->AppendText(oss.str());
+		Log(out, "Creating {}\n", tastt_generated_dir_path.string());
 		std::filesystem::create_directories(tastt_generated_dir_path);
 	}
 	{
-		out->AppendText("Copying canned animations... ");
+		Log(out, "Copying canned animations... ");
 		auto opts = std::filesystem::copy_options();
 		opts |= std::filesystem::copy_options::overwrite_existing;
 		opts |= std::filesystem::copy_options::recursive;
@@ -197,13 +196,13 @@ bool PythonWrapper::GenerateAnimator(
 		std::filesystem::copy("Resources/Animations", tastt_animations_path, opts, error);
 		if (error.value()) {
 			wxLogError("Failed to copy animations: %s (%d)", error.message(), error.value());
-			out->AppendText("failed!\n");
+			Log(out, "failed!\n");
 			return false;
 		}
-		out->AppendText("success!\n");
+		Log(out, "success!\n");
 	}
 	{
-		out->AppendText("Copying canned assets... ");
+		Log(out, "Copying canned assets... ");
 		auto opts = std::filesystem::copy_options();
 		opts |= std::filesystem::copy_options::overwrite_existing;
 		opts |= std::filesystem::copy_options::recursive;
@@ -211,13 +210,13 @@ bool PythonWrapper::GenerateAnimator(
 		std::filesystem::copy("Resources/UnityAssets", tastt_assets_path, opts, error);
 		if (error.value()) {
 			wxLogError("Failed to copy animations: %s (%d)", error.message(), error.value());
-			out->AppendText("failed!\n");
+			Log(out, "failed!\n");
 			return false;
 		}
-		out->AppendText("success!\n");
+		Log(out, "success!\n");
 	}
 	{
-		out->AppendText("Copying canned shaders... ");
+		Log(out, "Copying canned shaders... ");
 		auto opts = std::filesystem::copy_options();
 		opts |= std::filesystem::copy_options::overwrite_existing;
 		opts |= std::filesystem::copy_options::recursive;
@@ -225,13 +224,13 @@ bool PythonWrapper::GenerateAnimator(
 		std::filesystem::copy("Resources/Shaders", tastt_shaders_path, opts, error);
 		if (error.value()) {
 			wxLogError("Failed to copy animations: %s (%d)", error.message(), error.value());
-			out->AppendText("failed!\n");
+			Log(out, "failed!\n");
 			return false;
 		}
-		out->AppendText("success!\n");
+		Log(out, "success!\n");
 	}
 	{
-		out->AppendText("Copying canned fonts... ");
+		Log(out, "Copying canned fonts... ");
 		auto opts = std::filesystem::copy_options();
 		opts |= std::filesystem::copy_options::overwrite_existing;
 		opts |= std::filesystem::copy_options::recursive;
@@ -239,83 +238,83 @@ bool PythonWrapper::GenerateAnimator(
 		std::filesystem::copy("Resources/Fonts", tastt_fonts_path, opts, error);
 		if (error.value()) {
 			wxLogError("Failed to copy animations: %s (%d)", error.message(), error.value());
-			out->AppendText("failed!\n");
+			Log(out, "failed!\n");
 			return false;
 		}
-		out->AppendText("success!\n");
+		Log(out, "success!\n");
 	}
 	{
-		out->AppendText("Generating guid.map... ");
+		Log(out, "Generating guid.map... ");
 		std::string py_stdout, py_stderr;
 		if (InvokeWithArgs({ libunity_path, "guid_map",
 			"--project_root", unity_assets_path,
 			"--save_to", guid_map_path.string() },
 			&py_stdout, &py_stderr)) {
-			out->AppendText("success!\n");
-			out->AppendText(py_stdout.c_str());
+			Log(out, "success!\n");
+			Log(out, py_stdout.c_str());
 			if (!py_stdout.empty()) {
-				out->AppendText("\n");
+				Log(out, "\n");
 			}
-			out->AppendText(py_stderr.c_str());
+			Log(out, py_stderr.c_str());
 			if (!py_stderr.empty()) {
-				out->AppendText("\n");
+				Log(out, "\n");
 			}
 		}
 		else {
 			wxLogError("Failed to generate guid.map: %s", py_stderr.c_str());
-			out->AppendText("failed!\n");
+			Log(out, "failed!\n");
 			return false;
 		}
 	}
 	{
-		out->AppendText("Generating animations... ");
+		Log(out, "Generating animations... ");
 		std::string py_stdout, py_stderr;
 		if (InvokeWithArgs({ libtastt_path, "gen_anims",
 			"--gen_anim_dir", tastt_animations_path.string(),
 			"--guid_map", guid_map_path.string() },
 			&py_stdout, &py_stderr)) {
-			out->AppendText("success!\n");
-			out->AppendText(py_stdout.c_str());
+			Log(out, "success!\n");
+			Log(out, py_stdout.c_str());
 			if (!py_stdout.empty()) {
-				out->AppendText("\n");
+				Log(out, "\n");
 			}
-			out->AppendText(py_stderr.c_str());
+			Log(out, py_stderr.c_str());
 			if (!py_stderr.empty()) {
-				out->AppendText("\n");
+				Log(out, "\n");
 			}
 		}
 		else {
 			wxLogError("Failed to generate animations: %s", py_stderr.c_str());
-			out->AppendText("failed!\n");
+			Log(out, "failed!\n");
 			return false;
 		}
 	}
 	{
-		out->AppendText("Generating FX layer... ");
+		Log(out, "Generating FX layer... ");
 		std::string py_stdout, py_stderr;
 		if (InvokeWithArgs({ libtastt_path, "gen_fx",
 			"--fx_dest", tastt_fx0_path.string(),
 			"--gen_anim_dir", tastt_animations_path.string(),
 			"--guid_map", guid_map_path.string() },
 			&py_stdout, &py_stderr)) {
-			out->AppendText("success!\n");
-			out->AppendText(py_stdout.c_str());
+			Log(out, "success!\n");
+			Log(out, py_stdout.c_str());
 			if (!py_stdout.empty()) {
-				out->AppendText("\n");
+				Log(out, "\n");
 			}
-			out->AppendText(py_stderr.c_str());
+			Log(out, py_stderr.c_str());
 			if (!py_stderr.empty()) {
-				out->AppendText("\n");
+				Log(out, "\n");
 			}
 		}
 		else {
 			wxLogError("Failed to generate FX layer: %s", py_stderr.c_str());
-			out->AppendText("failed!\n");
+			Log(out, "failed!\n");
 			return false;
 		}
 	}
 	{
-		out->AppendText("Adding enable/disable toggle... ");
+		Log(out, "Adding enable/disable toggle... ");
 		std::string py_stdout, py_stderr;
 		if (InvokeWithArgs({ libunity_path, "add_toggle",
 			"--fx0", tastt_fx0_path.string(),
@@ -323,48 +322,48 @@ bool PythonWrapper::GenerateAnimator(
 			"--gen_anim_dir", tastt_animations_path.string(),
 			"--guid_map", guid_map_path.string() },
 			&py_stdout, &py_stderr)) {
-			out->AppendText("success!\n");
-			out->AppendText(py_stdout.c_str());
+			Log(out, "success!\n");
+			Log(out, py_stdout.c_str());
 			if (!py_stdout.empty()) {
-				out->AppendText("\n");
+				Log(out, "\n");
 			}
-			out->AppendText(py_stderr.c_str());
+			Log(out, py_stderr.c_str());
 			if (!py_stderr.empty()) {
-				out->AppendText("\n");
+				Log(out, "\n");
 			}
 		}
 		else {
 			wxLogError("Failed to add enable/disable toggle: %s", py_stderr.c_str());
-			out->AppendText("failed!\n");
+			Log(out, "failed!\n");
 			return false;
 		}
 	}
 	{
-		out->AppendText("Merging with user animator... ");
+		Log(out, "Merging with user animator... ");
 		std::string py_stdout, py_stderr;
 		if (InvokeWithArgs({ libunity_path, "merge",
 			"--fx0", unity_animator_path,
 			"--fx1", tastt_fx1_path.string(),
 			"--fx_dest", tastt_fx2_path.string() },
 			&py_stdout, &py_stderr)) {
-			out->AppendText("success!\n");
-			out->AppendText(py_stdout.c_str());
+			Log(out, "success!\n");
+			Log(out, py_stdout.c_str());
 			if (!py_stdout.empty()) {
-				out->AppendText("\n");
+				Log(out, "\n");
 			}
-			out->AppendText(py_stderr.c_str());
+			Log(out, py_stderr.c_str());
 			if (!py_stderr.empty()) {
-				out->AppendText("\n");
+				Log(out, "\n");
 			}
 		}
 		else {
 			wxLogError("Failed to merge animators: %s", py_stderr.c_str());
-			out->AppendText("failed!\n");
+			Log(out, "failed!\n");
 			return false;
 		}
 	}
 	{
-		out->AppendText("Setting noop animations... ");
+		Log(out, "Setting noop animations... ");
 		std::string py_stdout, py_stderr;
 		if (InvokeWithArgs({ libunity_path, "set_noop_anim",
 			"--fx0", tastt_fx2_path.string(),
@@ -372,65 +371,65 @@ bool PythonWrapper::GenerateAnimator(
 			"--gen_anim_dir", tastt_animations_path.string(),
 			"--guid_map", guid_map_path.string() },
 			&py_stdout, &py_stderr)) {
-			out->AppendText("success!\n");
-			out->AppendText(py_stdout.c_str());
+			Log(out, "success!\n");
+			Log(out, py_stdout.c_str());
 			if (!py_stdout.empty()) {
-				out->AppendText("\n");
+				Log(out, "\n");
 			}
-			out->AppendText(py_stderr.c_str());
+			Log(out, py_stderr.c_str());
 			if (!py_stderr.empty()) {
-				out->AppendText("\n");
+				Log(out, "\n");
 			}
 		}
 		else {
 			wxLogError("Failed to set noop animations: %s", py_stderr.c_str());
-			out->AppendText("failed!\n");
+			Log(out, "failed!\n");
 			return false;
 		}
 	}
 	{
-		out->AppendText("Generating avatar parameters... ");
+		Log(out, "Generating avatar parameters... ");
 		std::string py_stdout, py_stderr;
 		if (InvokeWithArgs({ generate_params_path,
 			"--old_params", unity_parameters_path,
 			"--new_params", tastt_params_path.string()},
 			&py_stdout, &py_stderr)) {
-			out->AppendText("success!\n");
-			out->AppendText(py_stdout.c_str());
+			Log(out, "success!\n");
+			Log(out, py_stdout.c_str());
 			if (!py_stdout.empty()) {
-				out->AppendText("\n");
+				Log(out, "\n");
 			}
-			out->AppendText(py_stderr.c_str());
+			Log(out, py_stderr.c_str());
 			if (!py_stderr.empty()) {
-				out->AppendText("\n");
+				Log(out, "\n");
 			}
 		}
 		else {
 			wxLogError("Failed to generate avatar parameters: %s", py_stderr.c_str());
-			out->AppendText("failed!\n");
+			Log(out, "failed!\n");
 			return false;
 		}
 	}
 	{
-		out->AppendText("Generating avatar menu... ");
+		Log(out, "Generating avatar menu... ");
 		std::string py_stdout, py_stderr;
 		if (InvokeWithArgs({ generate_menu_path,
 			"--old_menu", unity_menu_path,
 			"--new_menu", tastt_menu_path.string()},
 			&py_stdout, &py_stderr)) {
-			out->AppendText("success!\n");
-			out->AppendText(py_stdout.c_str());
+			Log(out, "success!\n");
+			Log(out, py_stdout.c_str());
 			if (!py_stdout.empty()) {
-				out->AppendText("\n");
+				Log(out, "\n");
 			}
-			out->AppendText(py_stderr.c_str());
+			Log(out, py_stderr.c_str());
 			if (!py_stderr.empty()) {
-				out->AppendText("\n");
+				Log(out, "\n");
 			}
 		}
 		else {
 			wxLogError("Failed to generate avatar menu: %s", py_stderr.c_str());
-			out->AppendText("failed!\n");
+			Log(out, "failed!\n");
 			return false;
 		}
 	}

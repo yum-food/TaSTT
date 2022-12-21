@@ -137,12 +137,14 @@
   <ItemGroup>
     <ClCompile Include="App.cpp" />
     <ClCompile Include="Frame.cpp" />
+    <ClCompile Include="Logging.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PythonWrapper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
     <ClInclude Include="Frame.h" />
+    <ClInclude Include="Logging.h" />
     <ClInclude Include="PythonWrapper.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ScopeGuard.h" />

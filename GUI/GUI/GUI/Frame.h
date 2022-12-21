@@ -49,7 +49,7 @@ private:
     void OnAppStart(wxCommandEvent& event);
     void OnAppStop(wxCommandEvent& event);
     void OnAppDrain(wxTimerEvent& event);
-    void DrainApp(wxProcess* proc, std::ostringstream& oss);
+    void DrainApp(wxProcess* proc, wxTextCtrl *frame);
     void OnGenerateFX(wxCommandEvent& event);
 
     void LoadAndSetIcons();
