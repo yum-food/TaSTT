@@ -1145,7 +1145,7 @@ class UnityParser:
 class MulticoreUnityParser:
     def parseFile(self, yaml_file):
         yaml_str = ""
-        with open(yaml_file, "r") as f:
+        with open(yaml_file, "r", encoding="utf-8") as f:
             yaml_str = f.read()
         return self.parse(yaml_str)
 
@@ -1211,7 +1211,7 @@ class MulticoreUnityParser:
 
     def parseFile(self, yaml_file):
         yaml_str = ""
-        with open(yaml_file, "r") as f:
+        with open(yaml_file, "r", encoding="utf-8") as f:
             yaml_str = f.read()
         return self.parse(yaml_str)
 
@@ -1225,7 +1225,7 @@ def getGuidMap(d):
             continue
         suffix = ".meta"
         if path.endswith(suffix):
-            with open(path, "r") as f:
+            with open(path, "r", encoding="utf-8") as f:
                 for line in f:
                     if line.startswith("guid"):
                         guid = line.split()[1]
@@ -1271,7 +1271,7 @@ if __name__ == "__main__":
         anim0.merge(anim1)
 
         print("Serializing to {}".format(args.fx_dest), file=sys.stderr)
-        with open(args.fx_dest, "w") as f:
+        with open(args.fx_dest, "w", encoding="utf-8") as f:
             f.write(unityYamlToString(anim0.nodes))
 
     elif args.cmd == "guid_map":
@@ -1355,7 +1355,7 @@ if __name__ == "__main__":
                 guid_map)
 
         print("Serializing to {}".format(args.fx_dest), file=sys.stderr)
-        with open(args.fx_dest, "w") as f:
+        with open(args.fx_dest, "w", encoding="utf-8") as f:
             f.write(str(anim))
 
         with open(args.guid_map, 'wb') as f:
@@ -1388,7 +1388,7 @@ if __name__ == "__main__":
 
         anim.setNoopAnimations(guid_map, args.gen_anim_dir + "/TaSTT_Do_Nothing.anim")
 
-        with open(args.fx_dest, "w") as f:
+        with open(args.fx_dest, "w", encoding="utf-8") as f:
             f.write(str(anim))
 
     else:

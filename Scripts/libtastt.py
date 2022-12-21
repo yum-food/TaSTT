@@ -181,11 +181,11 @@ def generateClearAnimation(anim_dir, guid_map):
     anim_name = generate_utils.getClearAnimationName()
     anim_path = os.path.join(anim_dir, anim_name + ".anim")
     print("Generating clear animation at {}".format(anim_path))
-    with open(anim_path, "w") as f:
+    with open(anim_path, "w", encoding="utf-8") as f:
         f.write(libunity.unityYamlToString([anim_node]))
     # Generate metadata
     meta = libunity.Metadata()
-    with open(anim_path + ".meta", "w") as f:
+    with open(anim_path + ".meta", "w", encoding="utf-8") as f:
         f.write(str(meta))
     # Add metadata to guid map
     guid_map[anim_path] = meta.guid
@@ -224,11 +224,11 @@ def generateToggleAnimations(anim_dir, shader_param, guid_map):
             anim_suffix = "_On"
         anim_path = os.path.join(anim_dir, shader_param + anim_suffix +
                 ".anim")
-        with open(anim_path, "w") as f:
+        with open(anim_path, "w", encoding="utf-8") as f:
             f.write(libunity.unityYamlToString([anim_node]))
         # Generate metadata
         meta = libunity.Metadata()
-        with open(anim_path + ".meta", "w") as f:
+        with open(anim_path + ".meta", "w", encoding="utf-8") as f:
             f.write(str(meta))
         # Add metadata to guid map
         guid_map[anim_path] = meta.guid
@@ -264,11 +264,11 @@ def generateFloatAnimation(anim_name: str, anim_dir: str,
 
     # Serialize animation to file
     anim_path = os.path.join(anim_dir, anim_name + ".anim")
-    with open(anim_path, "w") as f:
+    with open(anim_path, "w", encoding="utf-8") as f:
         f.write(libunity.unityYamlToString([anim_node]))
     # Generate metadata
     meta = libunity.Metadata()
-    with open(anim_path + ".meta", "w") as f:
+    with open(anim_path + ".meta", "w", encoding="utf-8") as f:
         f.write(str(meta))
     # Add metadata to guid map
     guid_map[anim_path] = meta.guid
@@ -321,11 +321,11 @@ def generateAnimations(anim_dir, guid_map):
                     clip.mapping['m_EditorCurves'].sequence.append(curve)
                     # Serialize animation to file
                     anim_path = os.path.join(anim_dir, anim_name + ".anim")
-                    with open(anim_path, "w") as f:
+                    with open(anim_path, "w", encoding="utf-8") as f:
                         f.write(libunity.unityYamlToString([node]))
                     # Generate metadata
                     meta = libunity.Metadata()
-                    with open(anim_path + ".meta", "w") as f:
+                    with open(anim_path + ".meta", "w", encoding="utf-8") as f:
                         f.write(str(meta))
                     # Add metadata to guid map
                     guid_map[anim_path] = meta.guid
@@ -583,7 +583,7 @@ if __name__ == "__main__":
         with open(args.guid_map, 'rb') as f:
             guid_map = pickle.load(f)
         os.makedirs(os.path.dirname(args.fx_dest), exist_ok=True)
-        with open(args.fx_dest, "w") as f:
+        with open(args.fx_dest, "w", encoding="utf-8") as f:
             f.write(str(generateFX(guid_map, args.gen_anim_dir)))
         with open(args.guid_map, 'wb') as f:
             pickle.dump(guid_map, f)
