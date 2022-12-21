@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
+import argparse
 import generate_utils
+import sys
 
 PARAM_HEADER = """
 %YAML 1.1
@@ -18,75 +20,102 @@ MonoBehaviour:
   m_Name: TaSTT_params
   m_EditorClassIdentifier: 
   parameters:
-"""[1:][0:-1]
+"""[1:]
 
 INT_PARAM = """
   - name: %PARAM_NAME%
     valueType: 0
     saved: 0
     defaultValue: 0
-"""[1:][0:-1]
+"""[1:]
 
 BOOL_PARAM = """
   - name: %PARAM_NAME%
     valueType: 2
     saved: %SAVED%
     defaultValue: 0
-"""[1:][0:-1]
+"""[1:]
 
 FLOAT_PARAM = """
   - name: %PARAM_NAME%
     valueType: 1
     saved: 0
     defaultValue: %DEFAULT_FLOAT%
-"""[1:][0:-1]
+"""[1:]
 
-# We're working with an 84-character board, and each FX layer is responsible
-# for 8 of those characters.
-params = {}
-params["SAVED"] = "0"
-params["DEFAULT_FLOAT"] = "0"
-print(generate_utils.replaceMacros(PARAM_HEADER, params))
+def generate():
+    result = ""
 
-params["PARAM_NAME"] = generate_utils.getDummyParam()
-print(generate_utils.replaceMacros(BOOL_PARAM, params))
+    # We're working with an 84-character board, and each FX layer is responsible
+    # for 8 of those characters.
+    params = {}
+    params["SAVED"] = "0"
+    params["DEFAULT_FLOAT"] = "0"
 
-params["PARAM_NAME"] = generate_utils.getEnableParam()
-print(generate_utils.replaceMacros(BOOL_PARAM, params))
+    params["PARAM_NAME"] = generate_utils.getDummyParam()
+    result += generate_utils.replaceMacros(BOOL_PARAM, params)
 
-params["PARAM_NAME"] = generate_utils.getIndicator0Param()
-print(generate_utils.replaceMacros(BOOL_PARAM, params))
+    params["PARAM_NAME"] = generate_utils.getEnableParam()
+    result += generate_utils.replaceMacros(BOOL_PARAM, params)
 
-params["PARAM_NAME"] = generate_utils.getIndicator1Param()
-print(generate_utils.replaceMacros(BOOL_PARAM, params))
+    params["PARAM_NAME"] = generate_utils.getIndicator0Param()
+    result += generate_utils.replaceMacros(BOOL_PARAM, params)
 
-params["PARAM_NAME"] = generate_utils.getScaleParam()
-params["DEFAULT_FLOAT"] = "0.2"
-print(generate_utils.replaceMacros(FLOAT_PARAM, params))
-params["DEFAULT_FLOAT"] = "0"
+    params["PARAM_NAME"] = generate_utils.getIndicator1Param()
+    result += generate_utils.replaceMacros(BOOL_PARAM, params)
 
-params["PARAM_NAME"] = generate_utils.getToggleParam()
-print(generate_utils.replaceMacros(BOOL_PARAM, params))
+    params["PARAM_NAME"] = generate_utils.getScaleParam()
+    params["DEFAULT_FLOAT"] = "0.2"
+    result += generate_utils.replaceMacros(FLOAT_PARAM, params)
+    params["DEFAULT_FLOAT"] = "0"
 
-params["PARAM_NAME"] = generate_utils.getSpeechNoiseToggleParam()
-print(generate_utils.replaceMacros(BOOL_PARAM, params))
+    params["PARAM_NAME"] = generate_utils.getToggleParam()
+    result += generate_utils.replaceMacros(BOOL_PARAM, params)
 
-params["PARAM_NAME"] = generate_utils.getSpeechNoiseEnableParam()
-params["SAVED"] = "1"
-print(generate_utils.replaceMacros(BOOL_PARAM, params))
-params["SAVED"] = "0"
+    params["PARAM_NAME"] = generate_utils.getSpeechNoiseToggleParam()
+    result += generate_utils.replaceMacros(BOOL_PARAM, params)
 
-params["PARAM_NAME"] = generate_utils.getLockWorldParam()
-print(generate_utils.replaceMacros(BOOL_PARAM, params))
+    params["PARAM_NAME"] = generate_utils.getSpeechNoiseEnableParam()
+    params["SAVED"] = "1"
+    result += generate_utils.replaceMacros(BOOL_PARAM, params)
+    params["SAVED"] = "0"
 
-params["PARAM_NAME"] = generate_utils.getClearBoardParam()
-print(generate_utils.replaceMacros(BOOL_PARAM, params))
+    params["PARAM_NAME"] = generate_utils.getLockWorldParam()
+    result += generate_utils.replaceMacros(BOOL_PARAM, params)
 
-params["PARAM_NAME"] = generate_utils.getSelectParam()
-print(generate_utils.replaceMacros(INT_PARAM, params))
+    params["PARAM_NAME"] = generate_utils.getClearBoardParam()
+    result += generate_utils.replaceMacros(BOOL_PARAM, params)
 
-for byte in range(0, generate_utils.BYTES_PER_CHAR):
-    for i in range(0, generate_utils.NUM_LAYERS):
-        params["PARAM_NAME"] = generate_utils.getBlendParam(i, byte)
-        print(generate_utils.replaceMacros(FLOAT_PARAM, params))
+    params["PARAM_NAME"] = generate_utils.getSelectParam()
+    result += generate_utils.replaceMacros(INT_PARAM, params)
+
+    for byte in range(0, generate_utils.BYTES_PER_CHAR):
+        for i in range(0, generate_utils.NUM_LAYERS):
+            params["PARAM_NAME"] = generate_utils.getBlendParam(i, byte)
+            result += generate_utils.replaceMacros(FLOAT_PARAM, params)
+
+    return result
+
+def append(old_path, params, new_path):
+    merged = ""
+    with open(old_path, "r") as f:
+        merged = f.read()
+    merged += params
+    with open(new_path, "w") as f:
+        f.write(merged)
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--old_params", type=str, help="The parameters to append to")
+    parser.add_argument("--new_params", type=str, help="The parameters to create")
+    args = parser.parse_args()
+
+    if not args.old_params or not args.new_params:
+        print("--old_params and --new_params are both required",
+                file=sys.stderr)
+        parser.print_help()
+        parser.exit(1)
+
+    append(args.old_params, generate(), args.new_params)
 

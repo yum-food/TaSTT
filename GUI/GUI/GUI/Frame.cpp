@@ -337,12 +337,12 @@ Frame::Frame()
 
 					auto* unity_parameters_generated_name = new wxTextCtrl(unity_config_panel_pairs,
                         ID_UNITY_PARAMETERS_GENERATED_NAME);
-                    unity_parameters_generated_name->AppendText("TaSTT_Menu.asset");
+                    unity_parameters_generated_name->AppendText("TaSTT_Parameters.asset");
                     unity_parameters_generated_name_ = unity_parameters_generated_name;
 
 					auto* unity_menu_generated_name = new wxTextCtrl(unity_config_panel_pairs,
                         ID_UNITY_MENU_GENERATED_NAME);
-                    unity_menu_generated_name->AppendText("TaSTT_Parameters.asset");
+                    unity_menu_generated_name->AppendText("TaSTT_Menu.asset");
                     unity_menu_generated_name_ = unity_menu_generated_name;
 
                     auto* sizer = new wxFlexGridSizer(/*cols=*/2);

@@ -144,6 +144,8 @@ bool PythonWrapper::GenerateAnimator(
 	// Python script locations
 	std::string libunity_path = "Resources/Scripts/libunity.py";
 	std::string libtastt_path = "Resources/Scripts/libtastt.py";
+	std::string generate_params_path = "Resources/Scripts/generate_params.py";
+	std::string generate_menu_path = "Resources/Scripts/generate_menu.py";
 
 	// Generated directory locations
 	std::filesystem::path tastt_generated_dir_path =
@@ -152,21 +154,27 @@ bool PythonWrapper::GenerateAnimator(
 		tastt_generated_dir_path / "guid.map";
 	std::filesystem::path tastt_animations_path =
 		tastt_generated_dir_path / "Animations";
-	std::filesystem::path tastt_animator_path =
-		tastt_generated_dir_path / unity_animator_generated_name;
+	std::filesystem::path tastt_assets_path =
+		tastt_generated_dir_path / "UnityAssets";
+	std::filesystem::path tastt_shaders_path =
+		tastt_generated_dir_path / "Shaders";
+	std::filesystem::path tastt_fonts_path =
+		tastt_generated_dir_path / "Fonts";
 	std::filesystem::path tastt_params_path =
 		tastt_generated_dir_path / unity_parameters_generated_name;
 	std::filesystem::path tastt_menu_path =
 		tastt_generated_dir_path / unity_menu_generated_name;
-	// This is the initial, pre-merge FX controller.
+	// These are intermediate animators. We apply several transformations before
+	// arriving at the final animator.
 	std::filesystem::path tastt_fx0_path =
 		tastt_generated_dir_path / "FX0.controller";
 	std::filesystem::path tastt_fx1_path =
 		tastt_generated_dir_path / "FX1.controller";
 	std::filesystem::path tastt_fx2_path =
 		tastt_generated_dir_path / "FX2.controller";
-	std::filesystem::path tastt_fx3_path =
-		tastt_generated_dir_path / "FX3.controller";
+	// This is the final animator.
+	std::filesystem::path tastt_animator_path =
+		tastt_generated_dir_path / unity_animator_generated_name;
 
 	{
 		if (std::filesystem::exists(tastt_generated_dir_path)) {
@@ -187,6 +195,48 @@ bool PythonWrapper::GenerateAnimator(
 		opts |= std::filesystem::copy_options::recursive;
 		std::error_code error;
 		std::filesystem::copy("Resources/Animations", tastt_animations_path, opts, error);
+		if (error.value()) {
+			wxLogError("Failed to copy animations: %s (%d)", error.message(), error.value());
+			out->AppendText("failed!\n");
+			return false;
+		}
+		out->AppendText("success!\n");
+	}
+	{
+		out->AppendText("Copying canned assets... ");
+		auto opts = std::filesystem::copy_options();
+		opts |= std::filesystem::copy_options::overwrite_existing;
+		opts |= std::filesystem::copy_options::recursive;
+		std::error_code error;
+		std::filesystem::copy("Resources/UnityAssets", tastt_assets_path, opts, error);
+		if (error.value()) {
+			wxLogError("Failed to copy animations: %s (%d)", error.message(), error.value());
+			out->AppendText("failed!\n");
+			return false;
+		}
+		out->AppendText("success!\n");
+	}
+	{
+		out->AppendText("Copying canned shaders... ");
+		auto opts = std::filesystem::copy_options();
+		opts |= std::filesystem::copy_options::overwrite_existing;
+		opts |= std::filesystem::copy_options::recursive;
+		std::error_code error;
+		std::filesystem::copy("Resources/Shaders", tastt_shaders_path, opts, error);
+		if (error.value()) {
+			wxLogError("Failed to copy animations: %s (%d)", error.message(), error.value());
+			out->AppendText("failed!\n");
+			return false;
+		}
+		out->AppendText("success!\n");
+	}
+	{
+		out->AppendText("Copying canned fonts... ");
+		auto opts = std::filesystem::copy_options();
+		opts |= std::filesystem::copy_options::overwrite_existing;
+		opts |= std::filesystem::copy_options::recursive;
+		std::error_code error;
+		std::filesystem::copy("Resources/Fonts", tastt_fonts_path, opts, error);
 		if (error.value()) {
 			wxLogError("Failed to copy animations: %s (%d)", error.message(), error.value());
 			out->AppendText("failed!\n");
@@ -318,7 +368,7 @@ bool PythonWrapper::GenerateAnimator(
 		std::string py_stdout, py_stderr;
 		if (InvokeWithArgs({ libunity_path, "set_noop_anim",
 			"--fx0", tastt_fx2_path.string(),
-			"--fx_dest", tastt_fx3_path.string(),
+			"--fx_dest", tastt_animator_path.string(),
 			"--gen_anim_dir", tastt_animations_path.string(),
 			"--guid_map", guid_map_path.string() },
 			&py_stdout, &py_stderr)) {
@@ -334,6 +384,52 @@ bool PythonWrapper::GenerateAnimator(
 		}
 		else {
 			wxLogError("Failed to set noop animations: %s", py_stderr.c_str());
+			out->AppendText("failed!\n");
+			return false;
+		}
+	}
+	{
+		out->AppendText("Generating avatar parameters... ");
+		std::string py_stdout, py_stderr;
+		if (InvokeWithArgs({ generate_params_path,
+			"--old_params", unity_parameters_path,
+			"--new_params", tastt_params_path.string()},
+			&py_stdout, &py_stderr)) {
+			out->AppendText("success!\n");
+			out->AppendText(py_stdout.c_str());
+			if (!py_stdout.empty()) {
+				out->AppendText("\n");
+			}
+			out->AppendText(py_stderr.c_str());
+			if (!py_stderr.empty()) {
+				out->AppendText("\n");
+			}
+		}
+		else {
+			wxLogError("Failed to generate avatar parameters: %s", py_stderr.c_str());
+			out->AppendText("failed!\n");
+			return false;
+		}
+	}
+	{
+		out->AppendText("Generating avatar menu... ");
+		std::string py_stdout, py_stderr;
+		if (InvokeWithArgs({ generate_menu_path,
+			"--old_menu", unity_menu_path,
+			"--new_menu", tastt_menu_path.string()},
+			&py_stdout, &py_stderr)) {
+			out->AppendText("success!\n");
+			out->AppendText(py_stdout.c_str());
+			if (!py_stdout.empty()) {
+				out->AppendText("\n");
+			}
+			out->AppendText(py_stderr.c_str());
+			if (!py_stderr.empty()) {
+				out->AppendText("\n");
+			}
+		}
+		else {
+			wxLogError("Failed to generate avatar menu: %s", py_stderr.c_str());
 			out->AppendText("failed!\n");
 			return false;
 		}
