@@ -237,7 +237,10 @@ def transcribeAudio(audio_state, model):
     last_transcribe_time = time.time()
     while audio_state.run_app == True:
         # Pace this out
-        time.sleep(audio_state.transcribe_sleep_duration)
+        if audio_state.audio_paused:
+            time.sleep(audio_state.transcribe_sleep_duration)
+        else:
+            time.sleep(0.05)
 
         # Increase sleep time. Code below will set sleep time back to minimum
         # if a change is detected.
