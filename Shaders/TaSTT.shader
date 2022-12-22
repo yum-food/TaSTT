@@ -11,6 +11,10 @@
     _Font_0xC000_0xDFFF ("Font 6 (unicode 0xC000 - 0xDFFFF)", 2D) = "white" {}
     _Img_0xE000_0xE03F  ("Images 0", 2D) = "white" {}
 
+    [MaterialToggle] Render_Margin("Render margin", float) = 1
+    [MaterialToggle] Render_Visual_Indicator("Render visual speech indicator", float) = 1
+    Margin_Scale("Margin scale", float) = 0.03
+
     TaSTT_Backplate("TaSTT_Backplate", 2D) = "black" {}
 
     TaSTT_Indicator_0("TaSTT_Indicator_0", float) = 0
@@ -441,6 +445,10 @@
       Texture2D _Font_0xA000_0xBFFF;
       Texture2D _Font_0xC000_0xDFFF;
       Texture2D _Img_0xE000_0xE03F;
+
+      float Render_Margin;
+      float Render_Visual_Indicator;
+      float Margin_Scale;
 
       float3 HUEtoRGB(in float H)
       {
@@ -1385,92 +1393,97 @@
           uv.x = 1.0 - uv.x;
         }
 
-        float2 uv_margin = float2(0.03, 0.06);
+        float2 uv_margin = float2(Margin_Scale, Margin_Scale * 2);
         if (InMargin(uv, uv_margin)) {
           // Margin is uv_margin/2 wide/tall.
           // We want a circle whose radius is ~80% of that.
-          float radius_factor = 0.95;
-          float radius = (uv_margin.x / 2) * radius_factor;
-          // We want this circle to be centered halfway through the margin
-          // vertically, and at 1.5x the margin width horizontally.
-          float2 indicator_center = float2(
-            uv_margin.x * 0.5 + radius,
-            uv_margin.y * 0.5 * 0.5
-          );
-          // Finally, translate it to the top of the board instead of the
-          // bottom.
-          indicator_center.y = 1.0 - indicator_center.y;
+          if (Render_Visual_Indicator) {
+            float radius_factor = 0.95;
+            float radius = (uv_margin.x / 2) * radius_factor;
+            // We want this circle to be centered halfway through the margin
+            // vertically, and at 1.5x the margin width horizontally.
+            float2 indicator_center = float2(
+                uv_margin.x * 0.5 + radius,
+                uv_margin.y * 0.5 * 0.5
+                );
+            // Finally, translate it to the top of the board instead of the
+            // bottom.
+            indicator_center.y = 1.0 - indicator_center.y;
 
-          if (InRadius2(uv, indicator_center, radius * radius)) {
-            if (floor(TaSTT_Indicator_0) == 1.0) {
-              // Actively speaking
-              return float3tofixed4(TaSTT_Indicator_Color_2, 1.0);
-            } else if (floor(TaSTT_Indicator_1) == 1.0) {
-              // Done speaking, waiting for paging.
-              return float3tofixed4(TaSTT_Indicator_Color_1, 1.0);
-            } else {
-              // Neither speaking nor paging.
-              return float3tofixed4(TaSTT_Indicator_Color_0, 1.0);
+            if (InRadius2(uv, indicator_center, radius * radius)) {
+              if (floor(TaSTT_Indicator_0) == 1.0) {
+                // Actively speaking
+                return float3tofixed4(TaSTT_Indicator_Color_2, 1.0);
+              } else if (floor(TaSTT_Indicator_1) == 1.0) {
+                // Done speaking, waiting for paging.
+                return float3tofixed4(TaSTT_Indicator_Color_1, 1.0);
+              } else {
+                // Neither speaking nor paging.
+                return float3tofixed4(TaSTT_Indicator_Color_0, 1.0);
+              }
             }
           }
+          if (Render_Margin) {
+            return fixed4(1,1,1,1);
+          }
+        }
 
-          return fixed4(1,1,1,1);
+        float2 uv_with_margin = AddMarginToUV(uv, uv_margin);
+        uv_margin *= 2;
+        float2 uv_with_margin2 = AddMarginToUV(uv, uv_margin);
+
+        int2 letter_bytes = (int2) floor(GetLetterParameter(uv_with_margin2));
+        int letter = letter_bytes[0] | (letter_bytes[1] << 8);
+
+        float texture_cols;
+        float texture_rows;
+        float2 letter_uv;
+        if (letter < 0xE000) {
+          texture_cols = 128.0;
+          texture_rows = 64.0;
+          letter_uv = GetLetter(uv_with_margin2, letter, texture_cols, texture_rows, 48, 4);
         } else {
-          uv_margin *= 2;
-          uv = AddMarginToUV(uv, uv_margin);
+          texture_cols = 8.0;
+          texture_rows = 8.0;
+          letter_uv = GetLetter(uv_with_margin2, letter, texture_cols, texture_rows, 8, 4);
+        }
 
-          int2 letter_bytes = (int2) floor(GetLetterParameter(uv));
-          int letter = letter_bytes[0] | (letter_bytes[1] << 8);
-          
-          float texture_cols;
-          float texture_rows;
-          if (letter < 0xE000) {
-            texture_cols = 128.0;
-            texture_rows = 64.0;
-            uv = GetLetter(uv, letter, texture_cols, texture_rows, 48, 4);
-          } else {
-            texture_cols = 8.0;
-            texture_rows = 8.0;
-            uv = GetLetter(uv, letter, texture_cols, texture_rows, 8, 4);
-          }
+        fixed4 background = TaSTT_Backplate.Sample(sampler_linear_repeat, uv);
+        fixed4 text;
 
-          fixed4 background = TaSTT_Backplate.Sample(sampler_linear_repeat, uv);
-          fixed4 text;
-
-          int which_texture = (int) floor(letter / (64 * 128));
-          [forcecase] switch (which_texture)
-          {
-            case 0:
-              text = _Font_0x0000_0x1FFF.Sample(sampler_linear_repeat, uv);
-              break;
-            case 1:
-              text = _Font_0x2000_0x3FFF.Sample(sampler_linear_repeat, uv);
-              break;
-            case 2:
-              text = _Font_0x4000_0x5FFF.Sample(sampler_linear_repeat, uv);
-              break;
-            case 3:
-              text = _Font_0x6000_0x7FFF.Sample(sampler_linear_repeat, uv);
-              break;
-            case 4:
-              text = _Font_0x8000_0x9FFF.Sample(sampler_linear_repeat, uv);
-              break;
-            case 5:
-              text = _Font_0xA000_0xBFFF.Sample(sampler_linear_repeat, uv);
-              break;
-            case 6:
-              text = _Font_0xC000_0xDFFF.Sample(sampler_linear_repeat, uv);
-              break;
-            default:
-              text = _Img_0xE000_0xE03F.Sample(sampler_linear_repeat, uv);
-              break;
-          }
-          fixed4 black = fixed4(0,0,0,0);
-          if (text.r == black.r && text.g == black.g && text.b == black.b && text.a == black.a) {
-            return background;
-          } else {
-            return text;
-          }
+        int which_texture = (int) floor(letter / (64 * 128));
+        [forcecase] switch (which_texture)
+        {
+          case 0:
+            text = _Font_0x0000_0x1FFF.Sample(sampler_linear_repeat, letter_uv);
+            break;
+          case 1:
+            text = _Font_0x2000_0x3FFF.Sample(sampler_linear_repeat, letter_uv);
+            break;
+          case 2:
+            text = _Font_0x4000_0x5FFF.Sample(sampler_linear_repeat, letter_uv);
+            break;
+          case 3:
+            text = _Font_0x6000_0x7FFF.Sample(sampler_linear_repeat, letter_uv);
+            break;
+          case 4:
+            text = _Font_0x8000_0x9FFF.Sample(sampler_linear_repeat, letter_uv);
+            break;
+          case 5:
+            text = _Font_0xA000_0xBFFF.Sample(sampler_linear_repeat, letter_uv);
+            break;
+          case 6:
+            text = _Font_0xC000_0xDFFF.Sample(sampler_linear_repeat, letter_uv);
+            break;
+          default:
+            text = _Img_0xE000_0xE03F.Sample(sampler_linear_repeat, letter_uv);
+            break;
+        }
+        fixed4 black = fixed4(0,0,0,1);
+        if (text.r == black.r && text.g == black.g && text.b == black.b && text.a == black.a) {
+          return background;
+        } else {
+          return text;
         }
       }
       ENDCG
