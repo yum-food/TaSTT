@@ -8,6 +8,7 @@ custom shader display the text in game.
 ![Speech-to-text demo](Images/speech_to_text_demo.gif)
 
 Contents:
+
 0. [Usage and setup](#usage-and-setup)
 1. [Features](#features)
 2. [Motivation](#motivation)
@@ -179,6 +180,15 @@ Contributions welcome. Send a pull request to this repository.
       This should significantly cut down on idle resource consumption. Perhaps
       there's even a more efficient way to detect the odds that anything is
       being said, which we could use to gate transcription.~~ DONE
+   5. There are ~64k words in the English language. We could encode each word
+      using a 16-bit int. On the other hand, suppose you represented each
+      character using 7 bits per character and transmitted words
+      character-by-character. The average word length is 4.7 characters, and we
+      send ~1 space character per word. Thus the expected bits per word in an
+      optimized version of today's encoding scheme is (5.7 * 7) == 39.9 bits.
+      The other encoding scheme is thus ~2.5 times more efficient. This could
+      be used to significantly speed up sync times. (Thanks, Noppers for the
+      idea!)
 5. Bugfixes
    1. ~~The whisper STT says "Thank you." when there's no audio?~~ DONE
 6. Shine
