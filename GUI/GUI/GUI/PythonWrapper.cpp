@@ -180,10 +180,12 @@ bool PythonWrapper::GenerateAnimator(
 		tastt_generated_dir_path / unity_animator_generated_name;
 
 	{
+		/*
 		if (std::filesystem::exists(tastt_generated_dir_path)) {
 			Log(out, "Erasing {}\n", tastt_generated_dir_path.string());
 			std::filesystem::remove_all(tastt_generated_dir_path);
 		}
+		*/
 		Log(out, "Creating {}\n", tastt_generated_dir_path.string());
 		std::filesystem::create_directories(tastt_generated_dir_path);
 	}
