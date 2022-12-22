@@ -7,7 +7,31 @@ custom shader display the text in game.
 
 ![Speech-to-text demo](Images/speech_to_text_demo.gif)
 
-Features:
+Contents:
+0. [Usage and setup](#usage-and-setup)
+1. [Features](#features)
+2. [Motivation](#motivation)
+3. [Design overview](#design-overview)
+4. [Contributing](#contributing)
+5. [Backlog](#backlog)
+
+Made with love by yum\_food.
+
+## Usage and setup
+
+To use a prebuilt package, go to the releases tab and download the latest
+release. Follow the guide associated with that release. To give you a taste,
+[here's the v0.0 setup guide](https://www.youtube.com/watch?v=0qjxkdVTqcs).
+
+To build your own package from source, see GUI/README.md.
+
+Basic controls:
+* Short click the left joystick to make it show up & start transcribing.
+* Short click the left joystick to make it lock in place & stop transcribing.
+* Long click the left joystick to make it go away & stop transcribing.
+* Scale it up/down in the radial menu.
+
+## Features
 
 * 4x48 grid, 256 or 65536 characters per slot.
 * Text-to-text interface.
@@ -31,14 +55,6 @@ Features:
 * Hackable.
 * 100% from-scratch implementation.
 * Permissive MIT license.
-
-Contents:
-1. [Motivation](#motivation)
-2. [Design overview](#design-overview)
-3. [Contributing](#contributing)
-4. [Backlog](#backlog)
-
-Made with love by yum\_food.
 
 ### Motivation
 
@@ -127,23 +143,6 @@ character set:
 ### Contributing
 
 Contributions welcome. Send a pull request to this repository.
-
-To use the STT:
-
-1. Enable Windows Subsystem for Linux. This is a lightweight Linux virtual
-   machine that runs on your Windows host. You can access the Windows
-   filesystem at /mnt/c/....
-2. `$ cd /mnt/c/path/to/your/unity/project`
-2. `$ cd Assets`
-3. `$ git clone https://github.com/yum\_food/TaSTT`
-4. `$ cd TaSTT`
-5. `$ ./generate.sh`
-6. Put TaSTT\_fx.controller and TaSTT\_params.asset on your avatar.
-7. Upload (or build & test).
-8. Open powershell.
-9. Navigate to TaSTT.
-10. `$ python3 ./osc_ctrl.py`
-11. Start typing. Your messages should show display in-game.
 
 ### Backlog
 
