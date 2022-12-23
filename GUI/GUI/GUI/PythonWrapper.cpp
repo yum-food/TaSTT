@@ -123,13 +123,16 @@ bool PythonWrapper::InstallPip(std::string* out) {
 
 wxProcess* PythonWrapper::StartApp(
 	std::function<void(wxProcess* proc, int ret)>&& exit_callback,
-	const std::string& mic, const std::string& lang, const std::string& model) {
+	const std::string& mic, const std::string& lang, const std::string& model,
+	const std::string& chars_per_sync, const std::string& bytes_per_char) {
 	return InvokeAsyncWithArgs({
 		"-u",
 		"Resources/Scripts/transcribe.py",
 		"--mic", mic,
 		"--lang", lang,
 		"--model", model,
+		"--chars_per_sync", chars_per_sync,
+		"--bytes_per_char", bytes_per_char,
 		},
 		std::move(exit_callback));
 }
@@ -143,6 +146,8 @@ bool PythonWrapper::GenerateAnimator(
 	const std::string& unity_animator_generated_name,
 	const std::string& unity_parameters_generated_name,
 	const std::string& unity_menu_generated_name,
+	const std::string& chars_per_sync,
+	const std::string& bytes_per_char,
 	wxTextCtrl* out) {
 	// Python script locations
 	std::string libunity_path = "Resources/Scripts/libunity.py";
@@ -180,12 +185,6 @@ bool PythonWrapper::GenerateAnimator(
 		tastt_generated_dir_path / unity_animator_generated_name;
 
 	{
-		/*
-		if (std::filesystem::exists(tastt_generated_dir_path)) {
-			Log(out, "Erasing {}\n", tastt_generated_dir_path.string());
-			std::filesystem::remove_all(tastt_generated_dir_path);
-		}
-		*/
 		Log(out, "Creating {}\n", tastt_generated_dir_path.string());
 		std::filesystem::create_directories(tastt_generated_dir_path);
 	}
@@ -273,7 +272,9 @@ bool PythonWrapper::GenerateAnimator(
 		std::string py_stdout, py_stderr;
 		if (InvokeWithArgs({ libtastt_path, "gen_anims",
 			"--gen_anim_dir", tastt_animations_path.string(),
-			"--guid_map", guid_map_path.string() },
+			"--guid_map", guid_map_path.string(),
+			"--chars_per_sync", chars_per_sync,
+			"--bytes_per_char", bytes_per_char },
 			&py_stdout, &py_stderr)) {
 			Log(out, "success!\n");
 			Log(out, py_stdout.c_str());
@@ -297,7 +298,9 @@ bool PythonWrapper::GenerateAnimator(
 		if (InvokeWithArgs({ libtastt_path, "gen_fx",
 			"--fx_dest", tastt_fx0_path.string(),
 			"--gen_anim_dir", tastt_animations_path.string(),
-			"--guid_map", guid_map_path.string() },
+			"--guid_map", guid_map_path.string(),
+			"--chars_per_sync", chars_per_sync,
+			"--bytes_per_char", bytes_per_char },
 			&py_stdout, &py_stderr)) {
 			Log(out, "success!\n");
 			Log(out, py_stdout.c_str());
@@ -394,7 +397,9 @@ bool PythonWrapper::GenerateAnimator(
 		std::string py_stdout, py_stderr;
 		if (InvokeWithArgs({ generate_params_path,
 			"--old_params", unity_parameters_path,
-			"--new_params", tastt_params_path.string()},
+			"--new_params", tastt_params_path.string(),
+			"--chars_per_sync", chars_per_sync,
+			"--bytes_per_char", bytes_per_char },
 			&py_stdout, &py_stderr)) {
 			Log(out, "success!\n");
 			Log(out, py_stdout.c_str());

@@ -6,6 +6,7 @@ from datetime import datetime
 import os
 import osc_ctrl
 from functools import partial
+import generate_utils
 # python3 -m pip install pyaudio
 # License: MIT.
 import pyaudio
@@ -400,6 +401,8 @@ if __name__ == "__main__":
     parser.add_argument("--mic", type=str, help="Which mic to use. Options: index, focusrite. Default: index")
     parser.add_argument("--language", type=str, help="Which language to use. Ex: english, japanese, chinese, french, german.")
     parser.add_argument("--model", type=str, help="Which AI model to use. Ex: tiny, base, small, medium")
+    parser.add_argument("--bytes_per_char", type=str, help="The number of bytes to use to represent each character")
+    parser.add_argument("--chars_per_sync", type=str, help="The number of characters to send on each sync event")
     args = parser.parse_args()
 
     if not args.mic:
@@ -410,6 +413,12 @@ if __name__ == "__main__":
 
     if not args.model:
         args.language = "base"
+
+    if not args.bytes_per_char or not args.chars_per_sync:
+        print("--bytes_per_char and --chars_per_sync required", file=sys.stderr)
+        sys.exit(1)
+    generate_utils.config.BYTES_PER_CHAR = int(args.bytes_per_char)
+    generate_utils.config.CHARS_PER_SYNC = int(args.chars_per_sync)
 
     transcribeLoop(args.mic, args.language, args.model)
 

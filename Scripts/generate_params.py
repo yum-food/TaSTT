@@ -89,8 +89,8 @@ def generate():
     params["PARAM_NAME"] = generate_utils.getSelectParam()
     result += generate_utils.replaceMacros(INT_PARAM, params)
 
-    for byte in range(0, generate_utils.BYTES_PER_CHAR):
-        for i in range(0, generate_utils.NUM_LAYERS):
+    for byte in range(0, generate_utils.config.BYTES_PER_CHAR):
+        for i in range(0, generate_utils.config.CHARS_PER_SYNC):
             params["PARAM_NAME"] = generate_utils.getBlendParam(i, byte)
             result += generate_utils.replaceMacros(FLOAT_PARAM, params)
 
@@ -109,6 +109,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--old_params", type=str, help="The parameters to append to")
     parser.add_argument("--new_params", type=str, help="The parameters to create")
+    parser.add_argument("--bytes_per_char", type=str, help="The number of bytes to use to represent each character")
+    parser.add_argument("--chars_per_sync", type=str, help="The number of characters to send on each sync event")
     args = parser.parse_args()
 
     if not args.old_params or not args.new_params:
@@ -116,6 +118,13 @@ if __name__ == "__main__":
                 file=sys.stderr)
         parser.print_help()
         parser.exit(1)
+
+    if not args.bytes_per_char or not args.chars_per_sync:
+        print("--bytes_per_char and --chars_per_sync required", file=sys.stderr)
+        parser.print_help()
+        parser.exit(1)
+    generate_utils.config.BYTES_PER_CHAR = int(args.bytes_per_char)
+    generate_utils.config.CHARS_PER_SYNC = int(args.chars_per_sync)
 
     append(args.old_params, generate(), args.new_params)
 

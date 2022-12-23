@@ -38,7 +38,9 @@ namespace PythonWrapper
 
 	wxProcess* StartApp(
 		std::function<void(wxProcess* proc, int ret)>&& exit_callback,
-		const std::string& mic, const std::string& lang, const std::string& model);
+		const std::string& mic, const std::string& lang, const std::string& model,
+		const std::string& chars_per_sync, const std::string& bytes_per_char
+		);
 
 	bool GenerateAnimator(
 		const std::string& unity_assets_path,
@@ -49,6 +51,8 @@ namespace PythonWrapper
         const std::string& unity_animator_generated_name,
         const std::string& unity_parameters_generated_name,
         const std::string& unity_menu_generated_name,
+        const std::string& chars_per_sync,
+        const std::string& bytes_per_char,
 		wxTextCtrl* out);
 };
 

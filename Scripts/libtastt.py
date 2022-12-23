@@ -165,9 +165,9 @@ def generateClearAnimation(anim_dir, guid_map):
 
     letter = 0
 
-    for byte in range(0, generate_utils.BYTES_PER_CHAR):
-        for row in range(0, generate_utils.BOARD_ROWS):
-            for col in range(0, generate_utils.BOARD_COLS):
+    for byte in range(0, generate_utils.config.BYTES_PER_CHAR):
+        for row in range(0, generate_utils.config.BOARD_ROWS):
+            for col in range(0, generate_utils.config.BOARD_COLS):
                 curve = curve_template.copy()
                 for keyframe in curve.mapping['curve'].mapping['m_Curve'].sequence:
                     keyframe.mapping['value'] = str(letter +
@@ -294,14 +294,14 @@ def generateAnimations(anim_dir, guid_map):
     anim_clip.mapping['m_EditorCurves'].sequence = []
 
     # To support more languages, we use 2 bytes per character, giving us a 64K character set.
-    for byte in range(0, generate_utils.BYTES_PER_CHAR):
-        for row in range(0, generate_utils.BOARD_ROWS):
+    for byte in range(0, generate_utils.config.BYTES_PER_CHAR):
+        for row in range(0, generate_utils.config.BOARD_ROWS):
             print("Generating letter animations (row {}/{}) (byte {}/2)".format(row,
-                generate_utils.BOARD_ROWS, byte), file=sys.stderr)
-            for col in range(0, generate_utils.BOARD_COLS):
+                generate_utils.config.BOARD_ROWS, byte), file=sys.stderr)
+            for col in range(0, generate_utils.config.BOARD_COLS):
                 for letter in range(0, 2):
                     if letter == 1:
-                        letter = generate_utils.CHARS_PER_CELL - 1
+                        letter = generate_utils.config.CHARS_PER_CELL - 1
 
                     # Make a deep copy of the templates
                     node = anim_node.copy()
@@ -348,9 +348,9 @@ def generateFXController(anim: libunity.UnityAnimator) -> typing.Dict[int, libun
     anim.addParameter(generate_utils.getScaleParam(), float)
 
     layers = {}
-    for byte in range(0, generate_utils.BYTES_PER_CHAR):
+    for byte in range(0, generate_utils.config.BYTES_PER_CHAR):
         layers[byte] = {}
-        for i in range(0, generate_utils.NUM_LAYERS):
+        for i in range(0, generate_utils.config.CHARS_PER_SYNC):
             anim.addParameter(generate_utils.getBlendParam(i, byte), float)
 
             layer = anim.addLayer(generate_utils.getLayerName(i, byte))
@@ -375,7 +375,7 @@ def generateFXLayer(which_layer: int, anim: libunity.UnityAnimator, layer:
            enable_param, True)
 
     select_states = {}
-    for i in range(0, generate_utils.NUM_REGIONS):
+    for i in range(0, generate_utils.config.numRegions(which_layer)):
         dx = i * 200
         dy = 200
 
@@ -387,7 +387,7 @@ def generateFXLayer(which_layer: int, anim: libunity.UnityAnimator, layer:
         guid_lo = guid_map[anim_lo_path]
         anim_hi_path = os.path.join(gen_anim_dir,
                 generate_utils.getAnimationNameByLayerAndIndex(
-                        which_layer, i, generate_utils.CHARS_PER_CELL - 1, byte) + \
+                        which_layer, i, generate_utils.config.CHARS_PER_CELL - 1, byte) + \
                 ".anim")
         guid_hi = guid_map[anim_hi_path]
 
@@ -490,7 +490,7 @@ def generateFX(guid_map, gen_anim_dir):
     layers = generateFXController(anim)
 
     # TODO(yum) parallelize
-    for byte in range(0, generate_utils.BYTES_PER_CHAR):
+    for byte in range(0, generate_utils.config.BYTES_PER_CHAR):
         for which_layer, layer in layers[byte].items():
             print("Generating layer {}/{}".format(which_layer, len(layers[byte].items())), file=sys.stderr)
             generateFXLayer(which_layer, anim, layer, gen_anim_dir, byte)
@@ -547,6 +547,8 @@ def parseArgs():
             "which all generated animations are placed.")
     parser.add_argument("--guid_map", type=str, help="The path to a file which will store guids")
     parser.add_argument("--fx_dest", type=str, help="The path at which to save the generated FX controller")
+    parser.add_argument("--bytes_per_char", type=str, help="The number of bytes to use to represent each character")
+    parser.add_argument("--chars_per_sync", type=str, help="The number of characters to send on each sync event")
     args = parser.parse_args()
 
     if not args.gen_dir:
@@ -569,6 +571,13 @@ if __name__ == "__main__":
     args = parseArgs()
 
     if args.cmd == "gen_anims":
+        if not args.bytes_per_char or not args.chars_per_sync:
+            print("--bytes_per_char and --chars_per_sync required", file=sys.stderr)
+            sys.exit(1)
+
+        generate_utils.config.BYTES_PER_CHAR = int(args.bytes_per_char)
+        generate_utils.config.CHARS_PER_SYNC = int(args.chars_per_sync)
+
         guid_map = {}
         with open(args.guid_map, 'rb') as f:
             guid_map = pickle.load(f)
@@ -579,6 +588,13 @@ if __name__ == "__main__":
         with open(args.guid_map, 'wb') as f:
             pickle.dump(guid_map, f)
     elif args.cmd == "gen_fx":
+        if not args.bytes_per_char or not args.chars_per_sync:
+            print("--bytes_per_char and --chars_per_sync required", file=sys.stderr)
+            sys.exit(1)
+
+        generate_utils.config.BYTES_PER_CHAR = int(args.bytes_per_char)
+        generate_utils.config.CHARS_PER_SYNC = int(args.chars_per_sync)
+
         guid_map = {}
         with open(args.guid_map, 'rb') as f:
             guid_map = pickle.load(f)

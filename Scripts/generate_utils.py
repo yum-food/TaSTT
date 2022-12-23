@@ -6,16 +6,24 @@ def replaceMacros(lines, macro_defs):
         lines = lines.replace("%" + k + "%", v)
     return lines
 
-# Note, (BOARD_ROWS * BOARD_COLS % NUM_LAYERS) must equal 0. If not, writing to
-# the last cell will (with the current implementation) wrap around to the front
-# of the board.
-BOARD_ROWS=4
-BOARD_COLS=48
-NUM_REGIONS = 24
-CHARS_PER_CELL=256
-BYTES_PER_CHAR=2
+class Config():
+    def __init__(self):
+        self.BOARD_ROWS=4
+        self.BOARD_COLS=48
+        self.CHARS_PER_CELL=256
+        self.BYTES_PER_CHAR=2
+        self.CHARS_PER_SYNC=10
 
-NUM_LAYERS=ceil((BOARD_ROWS * BOARD_COLS) / NUM_REGIONS)
+    def numRegions(self, which_layer):
+        num_cells = self.BOARD_ROWS * self.BOARD_COLS
+        layers_in_last_region = num_cells % self.CHARS_PER_SYNC
+        float_result = num_cells / self.CHARS_PER_SYNC
+        if which_layer > layers_in_last_region:
+            return floor(float_result)
+        else:
+            return ceil(float_result)
+
+config = Config()
 
 # Implementation detail. We use this parameter to return from the terminal
 # state of the FX layer to the starting state.
@@ -94,7 +102,7 @@ def getBoardIndex(which_layer, select):
     # We work around this by simply wrapping those animations back to the top
     # of the board, and rely on the OSC controller to simply not reference
     # those cells.
-    return (select * NUM_LAYERS + which_layer) % (BOARD_ROWS * BOARD_COLS)
+    return (select * config.CHARS_PER_SYNC + which_layer) % (config.BOARD_ROWS * config.BOARD_COLS)
 
 def getShaderParamByRowColByte(row, col, byte):
     return "_Letter_Row%02d_Col%02d_Byte%01d" % (row, col, byte)
@@ -103,8 +111,8 @@ def getShaderParamByRowColByte(row, col, byte):
 def getShaderParam(which_layer, select, byte):
     index = getBoardIndex(which_layer, select)
 
-    col = index % BOARD_COLS
-    row = floor(index / BOARD_COLS)
+    col = index % config.BOARD_COLS
+    row = floor(index / config.BOARD_COLS)
 
     return getShaderParamByRowCol(row, col, byte)
 
@@ -120,8 +128,8 @@ def getClearAnimationName():
 def getAnimationNameByLayerAndIndex(which_layer, select, letter, nth_byte):
     index = getBoardIndex(which_layer, select)
 
-    col = index % BOARD_COLS
-    row = floor(index / BOARD_COLS)
+    col = index % config.BOARD_COLS
+    row = floor(index / config.BOARD_COLS)
 
     return "R%02dC%02dL%02dB%01d" % (row, col, letter, nth_byte)
 

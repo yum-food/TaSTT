@@ -16,9 +16,7 @@ from generate_utils import getLayerParam
 from generate_utils import getSelectParam
 from generate_utils import getEnableParam
 from generate_utils import getBoardIndex
-from generate_utils import NUM_LAYERS
-from generate_utils import BOARD_ROWS
-from generate_utils import BOARD_COLS
+from generate_utils import config
 
 import emotes
 
@@ -53,7 +51,7 @@ state.encoding = generateEncoding()
 # lines sent is a multiple of the number of rows in the board.
 def encodeMessage(lines):
     result = []
-    lines_tmp = lines + [" "] * ((BOARD_ROWS - len(lines)) % BOARD_ROWS)
+    lines_tmp = lines + [" "] * ((config.BOARD_ROWS - len(lines)) % config.BOARD_ROWS)
     for line in lines_tmp:
         first_word = True
         for word in line.split():
@@ -82,11 +80,11 @@ def encodeMessage(lines):
                     print("skip unrecognized char {}".format(char))
                     continue
                 result.append(state.encoding[char])
-        result += [state.encoding[' ']] * (BOARD_COLS - len(line))
+        result += [state.encoding[' ']] * (config.BOARD_COLS - len(line))
     return result
 
 def updateCell(client, cell_idx, letter_encoded):
-    for byte in range(0, generate_utils.BYTES_PER_CHAR):
+    for byte in range(0, generate_utils.config.BYTES_PER_CHAR):
         addr="/avatar/parameters/" + generate_utils.getBlendParam(cell_idx, byte)
         letter_remapped = (-127.5 + letter_encoded[byte]) / 127.5
         client.send_message(addr, letter_remapped)
@@ -102,14 +100,14 @@ def disable(client):
 # Send a cell all at once.
 # `which_cell` is an integer in the range [0,NUM_REGIONS)
 def sendMessageCellDiscrete(client, msg_cell, which_cell):
-    empty_cell = [state.encoding[' ']] * NUM_LAYERS
+    empty_cell = [state.encoding[' ']] * generate_utils.config.CHARS_PER_SYNC
 
     if msg_cell != empty_cell:
         addr="/avatar/parameters/" + generate_utils.getSpeechNoiseToggleParam()
         client.send_message(addr, True)
 
     # Really long messages just wrap back around.
-    which_cell = (which_cell % generate_utils.NUM_REGIONS)
+    which_cell = (which_cell % generate_utils.config.numRegions(0))
 
     enable(client)
 
@@ -129,7 +127,7 @@ def sendMessageCellDiscrete(client, msg_cell, which_cell):
         client.send_message(addr, False)
 
 # The board is broken down into contiguous collections of characters called
-# cells. Each cell contains `NUM_LAYERS` characters. We can update one cell
+# cells. Each cell contains `CHARS_PER_SYNC` characters. We can update one cell
 # every ~1.0 seconds. Going faster causes the board to display garbage to
 # remote players.
 def splitMessage(msg):
@@ -151,13 +149,13 @@ def splitMessage(msg):
             print("word align: {}".format(word_align))
             word = ' ' * word_align + word
 
-        while len(word) > BOARD_COLS:
+        while len(word) > config.BOARD_COLS:
             if len(line) != 0:
                 lines.append(line)
                 line = ""
 
-            word_prefix = word[0:BOARD_COLS-1] + "-"
-            word_suffix = word[BOARD_COLS-1:]
+            word_prefix = word[0:config.BOARD_COLS-1] + "-"
+            word_suffix = word[config.BOARD_COLS-1:]
             #print("append prefix {}".format(word_prefix))
             lines.append(word_prefix)
             word = word_suffix
@@ -166,7 +164,7 @@ def splitMessage(msg):
             line = word
             continue
 
-        if len(line) + len(" ") + len(word) <= BOARD_COLS:
+        if len(line) + len(" ") + len(word) <= config.BOARD_COLS:
             line += " " + word
             continue
 
@@ -195,7 +193,7 @@ def resizeBoard(num_lines, tx_state, shrink_only):
     resize_param0 = None
     resize_param1 = None
 
-    if num_lines > BOARD_ROWS / 2:
+    if num_lines > config.BOARD_ROWS / 2:
         # Board must be expanded to full size.
         if shrink_only:
             return
@@ -275,10 +273,10 @@ def sendMessageLazy(client, msg, tx_state):
 
     empty_cells_sent = 0
     nonempty_cells_sent = 0
-    n_cells = ceil(msg_encoded_len / NUM_LAYERS)
+    n_cells = floor(msg_encoded_len / config.CHARS_PER_SYNC)
     for cell in range(0, n_cells):
-        cell_begin = cell * NUM_LAYERS
-        cell_end = (cell + 1) * NUM_LAYERS
+        cell_begin = cell * config.CHARS_PER_SYNC
+        cell_end = (cell + 1) * config.CHARS_PER_SYNC
         cell_msg = msg_encoded[cell_begin:cell_end]
         last_cell_msg = []
 
@@ -289,7 +287,7 @@ def sendMessageLazy(client, msg, tx_state):
         if cell_msg == last_cell_msg:
             continue
 
-        if cell_msg == [state.encoding[' ']] * NUM_LAYERS:
+        if cell_msg == [state.encoding[' ']] * config.CHARS_PER_SYNC:
             if empty_cells_sent >= tx_state.empty_cells_to_send_per_call:
                 return SEND_MSG_LAZY_SENT_EMPTY
             empty_cells_sent += 1
@@ -308,10 +306,10 @@ def sendMessageLazy(client, msg, tx_state):
     return SEND_MSG_LAZY_DONE
 
 def sendRawMessage(client, msg):
-    n_cells = ceil(len(msg) / NUM_LAYERS)
+    n_cells = ceil(len(msg) / config.CHARS_PER_SYNC)
     for cell in range(0, n_cells):
-        cell_begin = cell * NUM_LAYERS
-        cell_end = (cell + 1) * NUM_LAYERS
+        cell_begin = cell * config.CHARS_PER_SYNC
+        cell_end = (cell + 1) * config.CHARS_PER_SYNC
         cell_msg = msg[cell_begin:cell_end]
         #print("Send cell {}".format(cell))
         sendMessageCellDiscrete(client, cell_msg, cell)

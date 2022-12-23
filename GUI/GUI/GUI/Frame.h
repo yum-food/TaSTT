@@ -37,6 +37,11 @@ private:
     wxChoice* py_app_mic_;
     wxChoice* py_app_lang_;
     wxChoice* py_app_model_;
+    // TODO(yum) figure out how to deduplicate these objects
+    wxChoice* py_app_chars_per_sync_;
+    wxChoice* py_app_bytes_per_char_;
+    wxChoice* unity_chars_per_sync_;
+    wxChoice* unity_bytes_per_char_;
 
     wxProcess* py_app_;
     wxTimer py_app_drain_;
