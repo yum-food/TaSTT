@@ -59,7 +59,7 @@ class AudioState:
     run_app = True
 
     transcribe_sleep_duration_min_s = 0.05
-    transcribe_sleep_duration_max_s = 1.50
+    transcribe_sleep_duration_max_s = 5.00
     transcribe_no_change_count = 0
     transcribe_sleep_duration = transcribe_sleep_duration_min_s
 
@@ -77,6 +77,12 @@ class AudioState:
     audio_paused = False
 
     osc_client = osc_ctrl.getClient()
+
+    def sleepInterruptible(self, dur_s, stride_ms = 5):
+        dur_ms = dur_s * 1000.0
+        timeout = time.time() + dur_s
+        while self.audio_paused and time.time() < timeout:
+            time.sleep(stride_ms / 1000.0)
 
 def dumpMicDevices():
     p = pyaudio.PyAudio()
@@ -239,7 +245,7 @@ def transcribeAudio(audio_state, model):
     while audio_state.run_app == True:
         # Pace this out
         if audio_state.audio_paused:
-            time.sleep(audio_state.transcribe_sleep_duration)
+            audio_state.sleepInterruptible(audio_state.transcribe_sleep_duration)
         else:
             time.sleep(0.05)
 
