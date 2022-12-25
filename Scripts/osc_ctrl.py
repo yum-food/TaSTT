@@ -12,10 +12,8 @@ from pythonosc import udp_client
 
 from math import ceil
 from math import floor
-from generate_utils import getLayerParam
 from generate_utils import getSelectParam
 from generate_utils import getEnableParam
-from generate_utils import getBoardIndex
 from generate_utils import config
 
 import emotes
@@ -107,7 +105,7 @@ def sendMessageCellDiscrete(client, msg_cell, which_cell):
         client.send_message(addr, True)
 
     # Really long messages just wrap back around.
-    which_cell = (which_cell % generate_utils.config.numRegions(0))
+    which_cell = (which_cell % generate_utils.config.numRegions(config.CHARS_PER_SYNC - 1))
 
     enable(client)
 
