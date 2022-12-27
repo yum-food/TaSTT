@@ -660,11 +660,11 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     if (which_model == wxNOT_FOUND) {
         which_model = kModelDefault;
     }
-    int chars_per_sync_idx = unity_chars_per_sync_->GetSelection();
+    int chars_per_sync_idx = py_app_chars_per_sync_->GetSelection();
     if (chars_per_sync_idx == wxNOT_FOUND) {
         chars_per_sync_idx = kCharsDefault;
     }
-    int bytes_per_char_idx = unity_bytes_per_char_->GetSelection();
+    int bytes_per_char_idx = py_app_bytes_per_char_->GetSelection();
     if (bytes_per_char_idx == wxNOT_FOUND) {
         bytes_per_char_idx = kBytesDefault;
     }
