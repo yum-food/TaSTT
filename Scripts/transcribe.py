@@ -26,57 +26,58 @@ import wave
 import whisper
 
 class AudioState:
-    CHUNK = 1024
-    FORMAT = pyaudio.paInt16
-    CHANNELS = 1
-    # This matches the framerate expected by whisper.
-    RATE = 16000
+    def __init__(self):
+        self.CHUNK = 1024
+        self.FORMAT = pyaudio.paInt16
+        self.CHANNELS = 1
+        # This matches the framerate expected by whisper.
+        self.RATE = 16000
 
-    # The maximum length that recordAudio() will put into frames before it
-    # starts dropping from the start.
-    MAX_LENGTH_S = 10
-    MAX_LENGTH_S_WHISPER = 30
-    # The minimum length that recordAudio() will wait for before saving audio.
-    MIN_LENGTH_S = 1
+        # The maximum length that recordAudio() will put into frames before it
+        # starts dropping from the start.
+        self.MAX_LENGTH_S = 10
+        self.MAX_LENGTH_S_WHISPER = 30
+        # The minimum length that recordAudio() will wait for before saving audio.
+        self.MIN_LENGTH_S = 1
 
-    # PyAudio object
-    p = None
+        # PyAudio object
+        self.p = None
 
-    # PyAudio stream object
-    stream = None
+        # PyAudio stream object
+        self.stream = None
 
-    text = ""
-    committed_text = ""
-    frames = []
+        self.text = ""
+        self.committed_text = ""
+        self.frames = []
 
-    # Locks access to `text`.
-    transcribe_lock = threading.Lock()
+        # Locks access to `text`.
+        self.transcribe_lock = threading.Lock()
 
-    # Locks access to `frames`, and audio stored on disk.
-    audio_lock = threading.Lock()
+        # Locks access to `frames`, and audio stored on disk.
+        self.audio_lock = threading.Lock()
 
-    # Used to tell the threads when to stop.
-    run_app = True
+        # Used to tell the threads when to stop.
+        self.run_app = True
 
-    transcribe_sleep_duration_min_s = 0.05
-    transcribe_sleep_duration_max_s = 5.00
-    transcribe_no_change_count = 0
-    transcribe_sleep_duration = transcribe_sleep_duration_min_s
+        self.transcribe_sleep_duration_min_s = 0.05
+        self.transcribe_sleep_duration_max_s = 5.00
+        self.transcribe_no_change_count = 0
+        self.transcribe_sleep_duration = self.transcribe_sleep_duration_min_s
 
-    tx_state = osc_ctrl.OscTxState()
+        # The transcription thread transcribes without holding locks, then
+        # blocks on it. Thus we need some way to tell the transcription
+        # thread to drop that transcription.
+        self.drop_transcription = False
 
-    # The transcription thread transcribes without holding locks, then
-    # blocks on it. Thus we need some way to tell the transcription
-    # thread to drop that transcription.
-    drop_transcription = False
+        # The language the user is speaking in. Default is English but user may set
+        # this to whatever they want.
+        self.language = whisper.tokenizer.TO_LANGUAGE_CODE["english"]
 
-    # The language the user is speaking in. Default is English but user may set
-    # this to whatever they want.
-    language = whisper.tokenizer.TO_LANGUAGE_CODE["english"]
+        self.audio_paused = False
 
-    audio_paused = False
-
-    osc_client = osc_ctrl.getClient()
+        self.osc_state = osc_ctrl.OscState(generate_utils.config.CHARS_PER_SYNC,
+                generate_utils.config.BOARD_ROWS,
+                generate_utils.config.BOARD_COLS)
 
     def sleepInterruptible(self, dur_s, stride_ms = 5):
         dur_ms = dur_s * 1000.0
@@ -185,7 +186,7 @@ def resetAudioLocked(audio_state):
     audio_state.text = ""
 
 def resetDisplayLocked(audio_state):
-    osc_ctrl.clear(audio_state.osc_client, audio_state.tx_state)
+    osc_ctrl.clear(audio_state.osc_state)
 
 def resetAudio(audio_state):
     audio_state.transcribe_lock.acquire()
@@ -292,10 +293,9 @@ def transcribeAudio(audio_state, model):
 def sendAudio(audio_state):
     while audio_state.run_app == True:
         text = audio_state.committed_text + " " + audio_state.text
-        ret = osc_ctrl.sendMessageLazy(audio_state.osc_client, text,
-                audio_state.tx_state)
-        is_paging = (ret == osc_ctrl.SEND_MSG_LAZY_SENT_NON_EMPTY)
-        osc_ctrl.indicatePaging(audio_state.osc_client, is_paging)
+        ret = osc_ctrl.pageMessage(audio_state.osc_state, text)
+        is_paging = (ret == False)
+        osc_ctrl.indicatePaging(audio_state.osc_state.client, is_paging)
 
         # Pace this out
         time.sleep(0.01)
@@ -305,8 +305,8 @@ def readControllerInput(audio_state):
     RECORD_STATE = 0
     PAUSE_STATE = 1
     state = PAUSE_STATE
-    osc_ctrl.indicateSpeech(audio_state.osc_client, False)
-    osc_ctrl.indicatePaging(audio_state.osc_client, False)
+    osc_ctrl.indicateSpeech(audio_state.osc_state.client, False)
+    osc_ctrl.indicatePaging(audio_state.osc_state.client, False)
 
     last_rising = time.time()
     while audio_state.run_app == True:
@@ -321,8 +321,8 @@ def readControllerInput(audio_state):
             if now - last_rising > 0.5:
                 # Long hold
                 state = PAUSE_STATE
-                osc_ctrl.indicateSpeech(audio_state.osc_client, False)
-                osc_ctrl.toggleBoard(audio_state.osc_client, False)
+                osc_ctrl.indicateSpeech(audio_state.osc_state.client, False)
+                osc_ctrl.toggleBoard(audio_state.osc_state.client, False)
                 #playsound(os.path.abspath("../Sounds/Noise_Off.wav"))
 
                 resetAudioLocked(audio_state)
@@ -333,17 +333,17 @@ def readControllerInput(audio_state):
                 # Short hold
                 if state == RECORD_STATE:
                     state = PAUSE_STATE
-                    osc_ctrl.indicateSpeech(audio_state.osc_client, False)
-                    osc_ctrl.lockWorld(audio_state.osc_client, True)
+                    osc_ctrl.indicateSpeech(audio_state.osc_state.client, False)
+                    osc_ctrl.lockWorld(audio_state.osc_state.client, True)
 
                     audio_state.audio_paused = True
 
                     playsound(os.path.abspath("../Sounds/Noise_Off.wav"))
                 elif state == PAUSE_STATE:
                     state = RECORD_STATE
-                    osc_ctrl.indicateSpeech(audio_state.osc_client, True)
-                    osc_ctrl.toggleBoard(audio_state.osc_client, True)
-                    osc_ctrl.lockWorld(audio_state.osc_client, False)
+                    osc_ctrl.indicateSpeech(audio_state.osc_state.client, True)
+                    osc_ctrl.toggleBoard(audio_state.osc_state.client, True)
+                    osc_ctrl.lockWorld(audio_state.osc_state.client, False)
                     resetAudioLocked(audio_state)
                     resetDisplayLocked(audio_state)
 
@@ -398,6 +398,8 @@ def transcribeLoop(mic: str, language: str, model: str):
     controller_input_thd.join()
 
 if __name__ == "__main__":
+    sys.stdout.reconfigure(encoding="utf-8")
+
     # Set cwd to the directory holding the script
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)
