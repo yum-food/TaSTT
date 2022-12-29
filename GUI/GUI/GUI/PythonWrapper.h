@@ -36,10 +36,15 @@ namespace PythonWrapper
 	// Execute get-pip.py.
 	bool InstallPip(std::string* out);
 
+	// TODO(yum) both StartApp and GenerateAnimator should be
+	// parameterized with config files instead of these ever-growing lists of
+	// parameters. We could persist those files so settings would persist across
+	// app restarts.
 	wxProcess* StartApp(
 		std::function<void(wxProcess* proc, int ret)>&& exit_callback,
 		const std::string& mic, const std::string& lang, const std::string& model,
-		const std::string& chars_per_sync, const std::string& bytes_per_char
+		const std::string& chars_per_sync, const std::string& bytes_per_char,
+		const bool enable_local_beep
 		);
 
 	bool GenerateAnimator(

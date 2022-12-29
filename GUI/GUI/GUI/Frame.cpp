@@ -31,6 +31,7 @@ namespace {
         ID_PY_APP_CHARS_PER_SYNC,
         ID_PY_APP_BYTES_PER_CHAR,
         ID_PY_APP_MODEL_PANEL,
+        ID_PY_APP_ENABLE_LOCAL_BEEP,
         ID_UNITY_PANEL,
         ID_UNITY_CONFIG_PANEL,
         ID_UNITY_OUT,
@@ -258,35 +259,69 @@ Frame::Frame()
             auto* py_config_panel = new wxPanel(transcribe_panel, ID_PY_CONFIG_PANEL);
             {
                 auto* py_setup_button = new wxButton(py_config_panel, ID_PY_SETUP_BUTTON, "Set up Python virtual environment");
+                py_setup_button->SetToolTip(
+                    "TaSTT uses the Python programming language to provide both "
+                    "transcription services and to interface with Unity. "
+                    "It installs its dependencies into an isolated folder "
+                    "called a 'virtual environment'. Click this button to "
+                    "install those dependencies. This only has to be done "
+                    "once when you install a new version of TaSTT.");
                 auto* py_dump_mics_button = new wxButton(py_config_panel, ID_PY_DUMP_MICS_BUTTON, "List input devices");
-
+                py_dump_mics_button->SetToolTip(
+                    "List the microphones (and input devices) attached to "
+                    "your computer. To use a microphone, enter the number "
+                    "to its left in the 'Microphone' dropdown.");
                 auto* py_app_config_panel_pairs = new wxPanel(py_config_panel, ID_PY_APP_CONFIG_PANEL_PAIRS);
                 {
                     auto* py_app_mic = new wxChoice(py_app_config_panel_pairs, ID_PY_APP_MIC, wxDefaultPosition,
                         wxDefaultSize, kNumMicChoices, kMicChoices);
                     py_app_mic->SetSelection(kMicDefault);
+                    py_app_mic->SetToolTip(
+                        "Select which microphone to listen to when "
+                        "transcribing. To get list microphones and get their "
+                        "numbers, click 'List input devices'.");
                     py_app_mic_ = py_app_mic;
 
                     auto* py_app_lang = new wxChoice(py_app_config_panel_pairs, ID_PY_APP_LANG, wxDefaultPosition,
                         wxDefaultSize, kNumLangChoices, kLangChoices);
                     py_app_lang->SetSelection(kLangDefault);
+                    py_app_lang->SetToolTip("Select which language you will "
+                        "speak in. It will be transcribed into that language. "
+                        "If using a language with non-ASCII characters (i.e. "
+                        "not English), make sure you have 'bytes per char' "
+                        "set to 2. If using something other than English, "
+                        "make sure you're not using a *.en model.");
                     py_app_lang_ = py_app_lang;
 
                     auto* py_app_model = new wxChoice(py_app_config_panel_pairs, ID_PY_APP_MODEL, wxDefaultPosition,
                         wxDefaultSize, kNumModelChoices, kModelChoices);
                     py_app_model->SetSelection(kModelDefault);
+                    py_app_model->SetToolTip("Select which version of "
+                        "the transcription model to use. 'base' is a good "
+                        "choice for most users. 'small' is slightly more "
+                        "accurate, slower, and uses more VRAM. The *.en "
+                        "models are fine-tuned English language models, and "
+                        "don't work for other languages.");
                     py_app_model_ = py_app_model;
 
                     auto* py_app_chars_per_sync = new wxChoice(py_app_config_panel_pairs,
                         ID_PY_APP_CHARS_PER_SYNC, wxDefaultPosition,
                         wxDefaultSize, kNumCharsPerSync, kCharsPerSync);
                     py_app_chars_per_sync->SetSelection(kCharsDefault);
+                    py_app_chars_per_sync->SetToolTip(
+                        "VRChat syncs avatar parameters roughly 5 times per "
+                        "second. We use this to send text to the box. By "
+                        "sending more characters per sync, the box will be "
+                        "faster, but you'll use more avatar parameters.");
                     py_app_chars_per_sync_ = py_app_chars_per_sync;
 
                     auto* py_app_bytes_per_char = new wxChoice(py_app_config_panel_pairs,
                         ID_PY_APP_BYTES_PER_CHAR, wxDefaultPosition,
                         wxDefaultSize, kNumBytesPerChar, kBytesPerChar);
                     py_app_bytes_per_char->SetSelection(kBytesDefault);
+					py_app_bytes_per_char->SetToolTip(
+						"If you speak a language that uses non-ASCII "
+						"characters (i.e. not English), set this to 2.");
                     py_app_bytes_per_char_ = py_app_bytes_per_char;
 
                     auto* sizer = new wxFlexGridSizer(/*cols=*/2);
@@ -308,6 +343,16 @@ Frame::Frame()
                     sizer->Add(py_app_bytes_per_char, /*proportion=*/0, /*flags=*/wxEXPAND);
                 }
 
+                auto* py_app_enable_local_beep = new wxCheckBox(py_config_panel,
+                    ID_PY_APP_ENABLE_LOCAL_BEEP, "Enable local beep");
+                py_app_enable_local_beep->SetValue(true);
+                py_app_enable_local_beep->SetToolTip(
+                    "By default, TaSTT will play a sound (audible only to "
+                    "you) when it begins transcription and when it stops. "
+                    "Uncheck this to disable that behavior."
+                );
+                py_app_enable_local_beep_ = py_app_enable_local_beep;
+
                 auto* py_app_start_button = new wxButton(py_config_panel, ID_PY_APP_START_BUTTON, "Begin transcribing");
                 auto* py_app_stop_button = new wxButton(py_config_panel, ID_PY_APP_STOP_BUTTON, "Stop transcribing");
 
@@ -316,6 +361,7 @@ Frame::Frame()
                 sizer->Add(py_setup_button, /*proportion=*/0, /*flags=*/wxEXPAND);
                 sizer->Add(py_dump_mics_button, /*proportion=*/0, /*flags=*/wxEXPAND);
                 sizer->Add(py_app_config_panel_pairs, /*proportion=*/0, /*flags=*/wxEXPAND);
+                sizer->Add(py_app_enable_local_beep, /*proportion=*/0, /*flags=*/wxEXPAND);
                 sizer->Add(py_app_start_button, /*proportion=*/0, /*flags=*/wxEXPAND);
                 sizer->Add(py_app_stop_button, /*proportion=*/0, /*flags=*/wxEXPAND);
             }
@@ -347,6 +393,10 @@ Frame::Frame()
                         /*path=*/wxEmptyString,
                         /*message=*/"Unity Assets folder"
                         );
+                    unity_assets_file_picker->SetToolTip(
+                        "The path to the Assets folder for your avatar's "
+                        "Unity project. Example:\n"
+						"C:\\Users\\yum\\unity\\kumadan\\Assets");
                     unity_assets_file_picker_ = unity_assets_file_picker;
 
                     auto* unity_animator_file_picker = new wxFilePickerCtrl(
@@ -358,6 +408,10 @@ Frame::Frame()
                         /*pos=*/wxDefaultPosition,
                         /*size=*/wxDefaultSize
                         );
+                    unity_animator_file_picker->SetToolTip(
+                        "The path to your avatar's FX layer. You can find "
+                        "this in your avatar descriptor. Example:\n"
+						"C:\\Users\\yum\\unity\\kumadan\\Assets\\kumadan_fx.controller");
                     unity_animator_file_picker_ = unity_animator_file_picker;
 
                     auto* unity_parameters_file_picker = new wxFilePickerCtrl(
@@ -369,6 +423,10 @@ Frame::Frame()
                         /*pos=*/wxDefaultPosition,
                         /*size=*/wxDefaultSize
                         );
+                    unity_parameters_file_picker->SetToolTip(
+                        "The path to your avatar's parameters. You can find "
+                        "this in your avatar descriptor. Example:\n"
+						"C:\\Users\\yum\\unity\\kumadan\\Assets\\kumadan_parameters.asset");
                     unity_parameters_file_picker_ = unity_parameters_file_picker;
 
                     auto* unity_menu_file_picker = new wxFilePickerCtrl(
@@ -380,40 +438,79 @@ Frame::Frame()
                         /*pos=*/wxDefaultPosition,
                         /*size=*/wxDefaultSize
                         );
+                    unity_menu_file_picker->SetToolTip(
+                        "The path to your avatar's menu. You can find "
+                        "this in your avatar descriptor. Example:\n"
+						"C:\\Users\\yum\\unity\\kumadan\\Assets\\kumadan_menu.asset");
                     unity_menu_file_picker_ = unity_menu_file_picker;
 
 					auto* unity_animator_generated_dir = new wxTextCtrl(unity_config_panel_pairs,
                         ID_UNITY_ANIMATOR_GENERATED_DIR,
-						wxEmptyString,
-						wxDefaultPosition);
+						wxEmptyString, wxDefaultPosition, wxDefaultSize,
+                        wxTE_READONLY);
                     unity_animator_generated_dir->AppendText("TaSTT_Generated");
+                    unity_animator_generated_dir->SetToolTip(
+                        "TaSTT will create a bunch of files "
+                        "(animations, shaders, etc.) to drive the text box. "
+                        "It places them in this folder, which it creates "
+                        "under your Unity project's Assets folder. Any data "
+                        "inside this folder may be overwritten!");
                     unity_animator_generated_dir_ = unity_animator_generated_dir;
 
 					auto* unity_animator_generated_name = new wxTextCtrl(unity_config_panel_pairs,
-                        ID_UNITY_ANIMATOR_GENERATED_NAME);
+                        ID_UNITY_ANIMATOR_GENERATED_NAME,
+						wxEmptyString, wxDefaultPosition, wxDefaultSize,
+                        wxTE_READONLY);
                     unity_animator_generated_name->AppendText("TaSTT.controller");
+                    unity_animator_generated_name->SetToolTip(
+                        "The name of the FX layer that TaSTT generates. "
+                        "It will be placed inside the generated assets "
+                        "folder. Put this on your avatar descriptor when "
+                        "you're done!");
                     unity_animator_generated_name_ = unity_animator_generated_name;
 
 					auto* unity_parameters_generated_name = new wxTextCtrl(unity_config_panel_pairs,
-                        ID_UNITY_PARAMETERS_GENERATED_NAME);
+                        ID_UNITY_PARAMETERS_GENERATED_NAME,
+						wxEmptyString, wxDefaultPosition, wxDefaultSize,
+                        wxTE_READONLY);
                     unity_parameters_generated_name->AppendText("TaSTT_Parameters.asset");
+                    unity_parameters_generated_name->SetToolTip(
+                        "The name of the parameters file that TaSTT generates. "
+                        "It will be placed inside the generated assets "
+                        "folder. Put this on your avatar descriptor when "
+                        "you're done!");
                     unity_parameters_generated_name_ = unity_parameters_generated_name;
 
 					auto* unity_menu_generated_name = new wxTextCtrl(unity_config_panel_pairs,
-                        ID_UNITY_MENU_GENERATED_NAME);
+                        ID_UNITY_MENU_GENERATED_NAME,
+						wxEmptyString, wxDefaultPosition, wxDefaultSize,
+                        wxTE_READONLY);
                     unity_menu_generated_name->AppendText("TaSTT_Menu.asset");
+                    unity_menu_generated_name->SetToolTip(
+                        "The name of the menu file that TaSTT generates. "
+                        "It will be placed inside the generated assets "
+                        "folder. Put this on your avatar descriptor when "
+                        "you're done!");
                     unity_menu_generated_name_ = unity_menu_generated_name;
 
                     auto* unity_chars_per_sync = new wxChoice(unity_config_panel_pairs,
                         ID_UNITY_chars_per_sync, wxDefaultPosition,
                         wxDefaultSize, kNumCharsPerSync, kCharsPerSync);
                     unity_chars_per_sync->SetSelection(kCharsDefault);
+					unity_chars_per_sync->SetToolTip(
+						"VRChat syncs avatar parameters roughly 5 times per "
+						"second. We use this to send text to the box. By "
+						"sending more characters per sync, the box will be "
+						"faster, but you'll use more avatar parameters.");
                     unity_chars_per_sync_ = unity_chars_per_sync;
 
                     auto* unity_bytes_per_char = new wxChoice(unity_config_panel_pairs,
                         ID_UNITY_BYTES_PER_CHAR, wxDefaultPosition,
                         wxDefaultSize, kNumBytesPerChar, kBytesPerChar);
                     unity_bytes_per_char->SetSelection(kBytesDefault);
+					unity_bytes_per_char->SetToolTip(
+						"If you speak a language that uses non-ASCII "
+						"characters (i.e. not English), set this to 2.");
                     unity_bytes_per_char_ = unity_bytes_per_char;
 
 
@@ -668,13 +765,15 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     if (bytes_per_char_idx == wxNOT_FOUND) {
         bytes_per_char_idx = kBytesDefault;
     }
+    const bool enable_local_beep = py_app_enable_local_beep_->GetValue();
 
     wxProcess* p = PythonWrapper::StartApp(std::move(cb),
         kMicChoices[which_mic].ToStdString(),
         kLangChoices[which_lang].ToStdString(),
         kModelChoices[which_model].ToStdString(),
         kCharsPerSync[chars_per_sync_idx].ToStdString(),
-        kBytesPerChar[bytes_per_char_idx].ToStdString());
+        kBytesPerChar[bytes_per_char_idx].ToStdString(),
+        enable_local_beep);
     if (!p) {
         Log(transcribe_out_, "Failed to launch transcription engine\n");
         return;

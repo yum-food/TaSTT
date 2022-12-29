@@ -300,8 +300,17 @@ def sendAudio(audio_state):
         # Pace this out
         time.sleep(0.01)
 
-def readControllerInput(audio_state):
-    session = steamvr.SessionState()
+def readControllerInput(audio_state, enable_local_beep):
+    session = None
+    first = True
+    while session == None and audio_state.run_app == True:
+        try:
+            session = steamvr.SessionState()
+        except:
+            print("steamvr is off, no controller input")
+            session = None
+            time.sleep(5)
+
     RECORD_STATE = 0
     PAUSE_STATE = 1
     state = PAUSE_STATE
@@ -335,10 +344,12 @@ def readControllerInput(audio_state):
                     state = PAUSE_STATE
                     osc_ctrl.indicateSpeech(audio_state.osc_state.client, False)
                     osc_ctrl.lockWorld(audio_state.osc_state.client, True)
+                    audio_state.transcribe_sleep_duration = audio_state.transcribe_sleep_duration_min_s
 
                     audio_state.audio_paused = True
 
-                    playsound(os.path.abspath("../Sounds/Noise_Off.wav"))
+                    if enable_local_beep == 1:
+                        playsound(os.path.abspath("../Sounds/Noise_Off.wav"))
                 elif state == PAUSE_STATE:
                     state = RECORD_STATE
                     osc_ctrl.indicateSpeech(audio_state.osc_state.client, True)
@@ -350,11 +361,12 @@ def readControllerInput(audio_state):
                     audio_state.drop_transcription = True
                     audio_state.audio_paused = False
 
-                    playsound(os.path.abspath("../Sounds/Noise_On.wav"))
+                    if enable_local_beep == 1:
+                        playsound(os.path.abspath("../Sounds/Noise_On.wav"))
 
 # model should correspond to one of the Whisper models defined in
 # whisper/__init__.py. Examples: tiny, base, small, medium.
-def transcribeLoop(mic: str, language: str, model: str):
+def transcribeLoop(mic: str, language: str, model: str, enable_local_beep: bool):
     audio_state = getMicStream(mic)
     audio_state.language = whisper.tokenizer.TO_LANGUAGE_CODE[language]
 
@@ -375,7 +387,7 @@ def transcribeLoop(mic: str, language: str, model: str):
     send_audio_thd.daemon = True
     send_audio_thd.start()
 
-    controller_input_thd = threading.Thread(target = readControllerInput, args = [audio_state])
+    controller_input_thd = threading.Thread(target = readControllerInput, args = [audio_state, enable_local_beep])
     controller_input_thd.daemon = True
     controller_input_thd.start()
 
@@ -400,6 +412,8 @@ def transcribeLoop(mic: str, language: str, model: str):
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
 
+    print("args: {}".format(" ".join(sys.argv)))
+
     # Set cwd to the directory holding the script
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)
@@ -411,6 +425,7 @@ if __name__ == "__main__":
     parser.add_argument("--model", type=str, help="Which AI model to use. Ex: tiny, base, small, medium")
     parser.add_argument("--bytes_per_char", type=str, help="The number of bytes to use to represent each character")
     parser.add_argument("--chars_per_sync", type=str, help="The number of characters to send on each sync event")
+    parser.add_argument("--enable_local_beep", type=int, help="Whether to play a local auditory indicator when transcription starts/stops.");
     args = parser.parse_args()
 
     if not args.mic:
@@ -425,8 +440,9 @@ if __name__ == "__main__":
     if not args.bytes_per_char or not args.chars_per_sync:
         print("--bytes_per_char and --chars_per_sync required", file=sys.stderr)
         sys.exit(1)
+
     generate_utils.config.BYTES_PER_CHAR = int(args.bytes_per_char)
     generate_utils.config.CHARS_PER_SYNC = int(args.chars_per_sync)
 
-    transcribeLoop(args.mic, args.language, args.model)
+    transcribeLoop(args.mic, args.language, args.model, args.enable_local_beep)
 

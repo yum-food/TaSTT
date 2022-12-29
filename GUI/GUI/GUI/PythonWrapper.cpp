@@ -124,7 +124,8 @@ bool PythonWrapper::InstallPip(std::string* out) {
 wxProcess* PythonWrapper::StartApp(
 	std::function<void(wxProcess* proc, int ret)>&& exit_callback,
 	const std::string& mic, const std::string& lang, const std::string& model,
-	const std::string& chars_per_sync, const std::string& bytes_per_char) {
+	const std::string& chars_per_sync, const std::string& bytes_per_char,
+	const bool enable_local_beep) {
 	return InvokeAsyncWithArgs({
 		"-u",
 		"Resources/Scripts/transcribe.py",
@@ -133,6 +134,7 @@ wxProcess* PythonWrapper::StartApp(
 		"--model", model,
 		"--chars_per_sync", chars_per_sync,
 		"--bytes_per_char", bytes_per_char,
+		"--enable_local_beep", enable_local_beep ? "1" : "0",
 		},
 		std::move(exit_callback));
 }

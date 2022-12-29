@@ -43,6 +43,8 @@ private:
     wxChoice* unity_chars_per_sync_;
     wxChoice* unity_bytes_per_char_;
 
+    wxCheckBox* py_app_enable_local_beep_;
+
     wxProcess* py_app_;
     wxTimer py_app_drain_;
 
