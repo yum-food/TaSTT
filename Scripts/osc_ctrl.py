@@ -5,6 +5,7 @@ from generate_utils import config
 import generate_utils
 from paging import MultiLinePager
 from pythonosc import udp_client
+from math import ceil
 import time
 
 # Based on a couple experiments, this seems like about as fast as we can go
@@ -101,6 +102,19 @@ def pageMessage(osc_state: OscState, msg: str) -> bool:
     which_region = (slice_idx % generate_utils.config.numRegions(0))
     print("send to region {}".format(which_region))
 
+    # if in last region:
+    #   how long is it
+    num_cells = generate_utils.config.BOARD_ROWS * generate_utils.config.BOARD_COLS
+    num_regions = ceil(num_cells / generate_utils.config.CHARS_PER_SYNC)
+    print("num regions: {}".format(num_regions))
+    if which_region == num_regions - 1:
+        layers_in_last_region = num_cells % generate_utils.config.CHARS_PER_SYNC
+        print("layers in last region: {}".format(layers_in_last_region))
+        old_len = len(msg_slice)
+        msg_slice = msg_slice[0:layers_in_last_region]
+        print("truncate msg_slice from length {} to length {}".format(old_len,
+            len(msg_slice)))
+
     enable(osc_state.client)
 
     # Seek to the current region.
@@ -110,7 +124,7 @@ def pageMessage(osc_state: OscState, msg: str) -> bool:
     # Update each letter.
     encoded = encodeMessage(osc_state.encoding, msg_slice)
     print("len encoded: {}".format(len(encoded)))
-    for i in range(0, len(msg_slice)):
+    for i in range(0, len(encoded)):
         updateRegion(osc_state.client, i, encoded[i])
 
     # Wait for parameter sync.

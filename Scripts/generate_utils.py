@@ -18,7 +18,7 @@ class Config():
         num_cells = self.BOARD_ROWS * self.BOARD_COLS
         layers_in_last_region = num_cells % self.CHARS_PER_SYNC
         float_result = num_cells / self.CHARS_PER_SYNC
-        if which_layer > layers_in_last_region:
+        if which_layer >= layers_in_last_region:
             return floor(float_result)
         else:
             return ceil(float_result)

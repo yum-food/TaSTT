@@ -443,6 +443,7 @@ bool PythonWrapper::GenerateAnimator(
 		}
 	}
 
+	Log(out, "Done!\n");
 	return true;
 }
 
