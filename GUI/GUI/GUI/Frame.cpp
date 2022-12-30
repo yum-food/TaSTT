@@ -214,8 +214,9 @@ namespace {
         "24",
     };
     const size_t kNumCharsPerSync = sizeof(kCharsPerSync) / sizeof(kCharsPerSync[0]);
-    // By default, use the fastest option.
-    constexpr int kCharsDefault = kNumCharsPerSync - 1;
+    // 20 chars per sync is a good balance between parameter space and speed:
+    //   20 * 8 + 25 = 185 bits, leaving 71 bits for other systems.
+    constexpr int kCharsDefault = kNumCharsPerSync - 5;
 
     const wxString kBytesPerChar[] = {
         "1",
