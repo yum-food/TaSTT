@@ -32,6 +32,8 @@ namespace {
         ID_PY_APP_BYTES_PER_CHAR,
         ID_PY_APP_MODEL_PANEL,
         ID_PY_APP_ENABLE_LOCAL_BEEP,
+        ID_PY_APP_ROWS,
+        ID_PY_APP_COLS,
         ID_UNITY_PANEL,
         ID_UNITY_CONFIG_PANEL,
         ID_UNITY_OUT,
@@ -47,6 +49,8 @@ namespace {
 		ID_UNITY_BUTTON_GEN_ANIMATOR,
         ID_UNITY_CHARS_PER_SYNC,
         ID_UNITY_BYTES_PER_CHAR,
+        ID_UNITY_ROWS,
+        ID_UNITY_COLS,
     };
 
     const wxString kMicChoices[] = {
@@ -324,6 +328,20 @@ Frame::Frame()
 						"characters (i.e. not English), set this to 2.");
                     py_app_bytes_per_char_ = py_app_bytes_per_char;
 
+                    auto* py_app_rows = new wxTextCtrl(py_app_config_panel_pairs,
+                        ID_PY_APP_ROWS, /*value=*/"4",
+                        wxDefaultPosition, wxDefaultSize, /*style=*/0);
+                    py_app_rows->SetToolTip(
+                        "The number of rows on the text box.");
+                    py_app_rows_ = py_app_rows;
+
+                    auto* py_app_cols = new wxTextCtrl(py_app_config_panel_pairs,
+                        ID_PY_APP_COLS, /*value=*/"48",
+                        wxDefaultPosition, wxDefaultSize, /*style=*/0);
+                    py_app_cols->SetToolTip(
+                        "The number of columns on the text box.");
+                    py_app_cols_ = py_app_cols;
+
                     auto* sizer = new wxFlexGridSizer(/*cols=*/2);
                     py_app_config_panel_pairs->SetSizer(sizer);
 
@@ -341,6 +359,12 @@ Frame::Frame()
 
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs, wxID_ANY, /*label=*/"Bytes per character:"));
                     sizer->Add(py_app_bytes_per_char, /*proportion=*/0, /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs, wxID_ANY, /*label=*/"Text box rows:"));
+                    sizer->Add(py_app_rows, /*proportion=*/0, /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs, wxID_ANY, /*label=*/"Text box columns:"));
+                    sizer->Add(py_app_cols, /*proportion=*/0, /*flags=*/wxEXPAND);
                 }
 
                 auto* py_app_enable_local_beep = new wxCheckBox(py_config_panel,
@@ -513,6 +537,19 @@ Frame::Frame()
 						"characters (i.e. not English), set this to 2.");
                     unity_bytes_per_char_ = unity_bytes_per_char;
 
+                    auto* unity_rows = new wxTextCtrl(unity_config_panel_pairs,
+                        ID_UNITY_ROWS, /*value=*/"4",
+                        wxDefaultPosition, wxDefaultSize, /*style=*/0);
+                    unity_rows->SetToolTip(
+                        "The number of rows on the text box.");
+                    unity_rows_ = unity_rows;
+
+                    auto* unity_cols = new wxTextCtrl(unity_config_panel_pairs,
+                        ID_UNITY_COLS, /*value=*/"48",
+                        wxDefaultPosition, wxDefaultSize, /*style=*/0);
+                    unity_cols->SetToolTip(
+                        "The number of columns on the text box.");
+                    unity_cols_ = unity_cols;
 
                     auto* sizer = new wxFlexGridSizer(/*cols=*/2);
                     unity_config_panel_pairs->SetSizer(sizer);
@@ -546,6 +583,12 @@ Frame::Frame()
 
                     sizer->Add(new wxStaticText(unity_config_panel_pairs, wxID_ANY, /*label=*/"Bytes per character:"));
                     sizer->Add(unity_bytes_per_char, /*proportion=*/0, /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(unity_config_panel_pairs, wxID_ANY, /*label=*/"Text box rows:"));
+                    sizer->Add(unity_rows, /*proportion=*/0, /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(unity_config_panel_pairs, wxID_ANY, /*label=*/"Text box columns:"));
+                    sizer->Add(unity_cols, /*proportion=*/0, /*flags=*/wxEXPAND);
                 }
 
 				auto* unity_button_gen_fx = new wxButton(unity_config_panel, ID_UNITY_BUTTON_GEN_ANIMATOR, "Generate avatar assets");
@@ -713,6 +756,22 @@ void Frame::OnGenerateFX(wxCommandEvent& event)
     }
     std::string bytes_per_char = kBytesPerChar[bytes_per_char_idx].ToStdString();
 
+    std::string rows_str = unity_rows_->GetValue().ToStdString();
+    std::string cols_str = unity_cols_->GetValue().ToStdString();
+    int rows, cols;
+    try {
+        rows = std::stoi(rows_str);
+        cols = std::stoi(cols_str);
+    }
+    catch (const std::invalid_argument& e) {
+		Log(unity_out_, "Could not parse rows \"{}\" or cols \"{}\" as an integer\n", rows_str, cols_str);
+        return;
+    }
+    catch (const std::out_of_range& e) {
+		Log(unity_out_, "Rows \"{}\" or cols \"{}\" are out of range\n", rows_str, cols_str);
+        return;
+    }
+
     std::string out;
     if (!PythonWrapper::GenerateAnimator(
         unity_assets_path.string(),
@@ -725,6 +784,8 @@ void Frame::OnGenerateFX(wxCommandEvent& event)
         unity_menu_generated_name,
         chars_per_sync,
         bytes_per_char,
+        rows,
+        cols,
         unity_out_)) {
         wxLogError("Failed to generate animator:\n%s\n", out.c_str());
     }
@@ -810,6 +871,21 @@ void Frame::OnAppStart(wxCommandEvent& event) {
         bytes_per_char_idx = kBytesDefault;
     }
     const bool enable_local_beep = py_app_enable_local_beep_->GetValue();
+    std::string rows_str = py_app_rows_->GetValue().ToStdString();
+    std::string cols_str = py_app_cols_->GetValue().ToStdString();
+    int rows, cols;
+    try {
+        rows = std::stoi(rows_str);
+        cols = std::stoi(cols_str);
+    }
+    catch (const std::invalid_argument& e) {
+		Log(transcribe_out_, "Could not parse rows \"{}\" or cols \"{}\" as an integer\n", rows_str, cols_str);
+        return;
+    }
+    catch (const std::out_of_range& e) {
+		Log(transcribe_out_, "Rows \"{}\" or cols \"{}\" are out of range\n", rows_str, cols_str);
+        return;
+    }
 
     wxProcess* p = PythonWrapper::StartApp(std::move(cb),
         kMicChoices[which_mic].ToStdString(),
@@ -817,6 +893,8 @@ void Frame::OnAppStart(wxCommandEvent& event) {
         kModelChoices[which_model].ToStdString(),
         kCharsPerSync[chars_per_sync_idx].ToStdString(),
         kBytesPerChar[bytes_per_char_idx].ToStdString(),
+        rows,
+        cols,
         enable_local_beep);
     if (!p) {
         Log(transcribe_out_, "Failed to launch transcription engine\n");

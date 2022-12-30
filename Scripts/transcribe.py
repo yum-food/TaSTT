@@ -426,6 +426,8 @@ if __name__ == "__main__":
     parser.add_argument("--bytes_per_char", type=str, help="The number of bytes to use to represent each character")
     parser.add_argument("--chars_per_sync", type=str, help="The number of characters to send on each sync event")
     parser.add_argument("--enable_local_beep", type=int, help="Whether to play a local auditory indicator when transcription starts/stops.");
+    parser.add_argument("--rows", type=int, help="The number of rows on the board")
+    parser.add_argument("--cols", type=int, help="The number of columns on the board")
     args = parser.parse_args()
 
     if not args.mic:
@@ -441,8 +443,14 @@ if __name__ == "__main__":
         print("--bytes_per_char and --chars_per_sync required", file=sys.stderr)
         sys.exit(1)
 
+    if not args.rows or not args.cols:
+        print("--rows and --cols required", file=sys.stderr)
+        sys.exit(1)
+
     generate_utils.config.BYTES_PER_CHAR = int(args.bytes_per_char)
     generate_utils.config.CHARS_PER_SYNC = int(args.chars_per_sync)
+    generate_utils.config.BOARD_ROWS = int(args.rows)
+    generate_utils.config.BOARD_COLS = int(args.cols)
 
     transcribeLoop(args.mic, args.language, args.model, args.enable_local_beep)
 

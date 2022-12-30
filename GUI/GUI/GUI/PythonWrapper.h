@@ -44,7 +44,7 @@ namespace PythonWrapper
 		std::function<void(wxProcess* proc, int ret)>&& exit_callback,
 		const std::string& mic, const std::string& lang, const std::string& model,
 		const std::string& chars_per_sync, const std::string& bytes_per_char,
-		const bool enable_local_beep
+		int rows, int cols, bool enable_local_beep
 		);
 
 	bool GenerateAnimator(
@@ -58,6 +58,8 @@ namespace PythonWrapper
         const std::string& unity_menu_generated_name,
         const std::string& chars_per_sync,
         const std::string& bytes_per_char,
+		int rows,
+		int cols,
 		wxTextCtrl* out);
 };
 

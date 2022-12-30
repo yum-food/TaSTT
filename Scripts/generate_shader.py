@@ -115,11 +115,6 @@ if __name__ == "__main__":
 
     print("args: {}".format(" ".join(sys.argv)))
 
-    # Set cwd to the directory holding the script
-    abspath = os.path.abspath(__file__)
-    dname = os.path.dirname(abspath)
-    os.chdir(dname)
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--bytes_per_char", type=str, help="The number of bytes to use to represent each character")
     parser.add_argument("--rows", type=str, help="The number of rows on the board")

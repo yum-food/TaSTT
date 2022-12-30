@@ -125,7 +125,7 @@ wxProcess* PythonWrapper::StartApp(
 	std::function<void(wxProcess* proc, int ret)>&& exit_callback,
 	const std::string& mic, const std::string& lang, const std::string& model,
 	const std::string& chars_per_sync, const std::string& bytes_per_char,
-	const bool enable_local_beep) {
+	int rows, int cols, bool enable_local_beep) {
 	return InvokeAsyncWithArgs({
 		"-u",
 		"Resources/Scripts/transcribe.py",
@@ -135,6 +135,8 @@ wxProcess* PythonWrapper::StartApp(
 		"--chars_per_sync", chars_per_sync,
 		"--bytes_per_char", bytes_per_char,
 		"--enable_local_beep", enable_local_beep ? "1" : "0",
+		"--rows", std::to_string(rows),
+		"--cols", std::to_string(cols),
 		},
 		std::move(exit_callback));
 }
@@ -150,12 +152,17 @@ bool PythonWrapper::GenerateAnimator(
 	const std::string& unity_menu_generated_name,
 	const std::string& chars_per_sync,
 	const std::string& bytes_per_char,
+	const int rows,
+	const int cols,
 	wxTextCtrl* out) {
 	// Python script locations
 	std::string libunity_path = "Resources/Scripts/libunity.py";
 	std::string libtastt_path = "Resources/Scripts/libtastt.py";
 	std::string generate_params_path = "Resources/Scripts/generate_params.py";
 	std::string generate_menu_path = "Resources/Scripts/generate_menu.py";
+	std::string generate_shader_path = "Resources/Scripts/generate_shader.py";
+	std::string shader_template_path = "Resources/Shaders/TaSTT_template.shader";
+	std::string shader_path = "Resources/Shaders/TaSTT.shader";
 
 	// Generated directory locations
 	std::filesystem::path tastt_generated_dir_path =
@@ -186,6 +193,33 @@ bool PythonWrapper::GenerateAnimator(
 	std::filesystem::path tastt_animator_path =
 		tastt_generated_dir_path / unity_animator_generated_name;
 
+	{
+		Log(out, "Generating shader for {}x{} board...", rows, cols);
+
+		std::string py_stdout, py_stderr;
+		if (InvokeWithArgs({ generate_shader_path,
+			"--bytes_per_char", bytes_per_char,
+			"--rows", std::to_string(rows),
+			"--cols", std::to_string(cols),
+			"--shader_template", shader_template_path,
+			"--shader_path", shader_path },
+			&py_stdout, &py_stderr)) {
+			Log(out, "success!\n");
+			Log(out, py_stdout.c_str());
+			if (!py_stdout.empty()) {
+				Log(out, "\n");
+			}
+			Log(out, py_stderr.c_str());
+			if (!py_stderr.empty()) {
+				Log(out, "\n");
+			}
+		}
+		else {
+			wxLogError("Failed to generate shader: %s", py_stderr.c_str());
+			Log(out, "failed!\n");
+			return false;
+		}
+	}
 	{
 		Log(out, "Creating {}\n", tastt_generated_dir_path.string());
 		std::filesystem::create_directories(tastt_generated_dir_path);
@@ -276,7 +310,9 @@ bool PythonWrapper::GenerateAnimator(
 			"--gen_anim_dir", tastt_animations_path.string(),
 			"--guid_map", guid_map_path.string(),
 			"--chars_per_sync", chars_per_sync,
-			"--bytes_per_char", bytes_per_char },
+			"--bytes_per_char", bytes_per_char,
+			"--rows", std::to_string(rows),
+			"--cols", std::to_string(cols)},
 			&py_stdout, &py_stderr)) {
 			Log(out, "success!\n");
 			Log(out, py_stdout.c_str());
@@ -302,7 +338,9 @@ bool PythonWrapper::GenerateAnimator(
 			"--gen_anim_dir", tastt_animations_path.string(),
 			"--guid_map", guid_map_path.string(),
 			"--chars_per_sync", chars_per_sync,
-			"--bytes_per_char", bytes_per_char },
+			"--bytes_per_char", bytes_per_char,
+			"--rows", std::to_string(rows),
+			"--cols", std::to_string(cols)},
 			&py_stdout, &py_stderr)) {
 			Log(out, "success!\n");
 			Log(out, py_stdout.c_str());

@@ -29,6 +29,11 @@ private:
     wxTextCtrl* unity_parameters_generated_name_;
     wxTextCtrl* unity_menu_generated_name_;
 
+    wxTextCtrl* py_app_rows_;
+    wxTextCtrl* py_app_cols_;
+    wxTextCtrl* unity_rows_;
+    wxTextCtrl* unity_cols_;
+
     wxDirPickerCtrl* unity_assets_file_picker_;
     wxFilePickerCtrl* unity_animator_file_picker_;
     wxFilePickerCtrl* unity_parameters_file_picker_;
