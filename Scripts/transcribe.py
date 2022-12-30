@@ -280,16 +280,17 @@ def transcribeAudio(audio_state, model):
 
         words = ''.join(c for c in text.lower() if (c.isalpha() or c == " ")).split()
 
+        old_text = audio_state.text
+
+        audio_state.text = string_matcher.matchStrings(audio_state.text,
+                text, window_size = 25)
+
         now = time.time()
         print("Transcription ({} seconds): {}".format(
             now - last_transcribe_time,
             audio_state.text))
         last_transcribe_time = now
 
-        old_text = audio_state.text
-
-        audio_state.text = string_matcher.matchStrings(audio_state.text,
-                text, window_size = 25)
         if old_text != audio_state.text:
             # We think the user said something, so  reset the amount of
             # time we sleep between transcriptions to the minimum.

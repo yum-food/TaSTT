@@ -25,6 +25,11 @@ namespace Logging {
 		const std::string raw = std::vformat(format, std::make_format_args(args...));
 		const std::string masked = HidePII(std::move(raw));
 		frame->AppendText(masked);
+		// Limit log to 10 MB to avoid runaway memory usage.
+		const int max_frame_len_bytes = 10 * 1000 * 1000;
+		if (frame->GetLastPosition() > max_frame_len_bytes) {
+			frame->Remove(0, frame->GetLastPosition() - max_frame_len_bytes);
+		}
 	}
 }
 

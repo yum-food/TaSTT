@@ -780,11 +780,11 @@ void Frame::OnGenerateFX(wxCommandEvent& event)
         rows = std::stoi(rows_str);
         cols = std::stoi(cols_str);
     }
-    catch (const std::invalid_argument& e) {
+    catch (const std::invalid_argument&) {
 		Log(unity_out_, "Could not parse rows \"{}\" or cols \"{}\" as an integer\n", rows_str, cols_str);
         return;
     }
-    catch (const std::out_of_range& e) {
+    catch (const std::out_of_range&) {
 		Log(unity_out_, "Rows \"{}\" or cols \"{}\" are out of range\n", rows_str, cols_str);
         return;
     }
@@ -841,7 +841,7 @@ void Frame::OnUnityParamChangeImpl() {
     int misc_bits = 9;
     int total_bits = select_bits + layer_bits + scale_bits + misc_bits;
     Log(unity_out_, "This configuration will use {} bits of avatar parameter space:\n", total_bits);
-    Log(unity_out_, "  {} bits coming from ({} chars per sync) * ({} bytes per char)\n", layer_bits, chars_per_sync, bytes_per_char);
+    Log(unity_out_, "  {} bits coming from ({} characters per sync) * ({} bytes per character)\n", layer_bits, chars_per_sync, bytes_per_char);
     Log(unity_out_, "  {} bits coming from fixed overheads\n", select_bits + scale_bits + misc_bits);
 }
 
@@ -897,11 +897,11 @@ void Frame::OnAppStart(wxCommandEvent& event) {
         cols = std::stoi(cols_str);
         window_duration = std::stoi(window_duration_str);
     }
-    catch (const std::invalid_argument& e) {
+    catch (const std::invalid_argument&) {
 		Log(transcribe_out_, "Could not parse rows \"{}\", cols \"{}\", or window duration \"{}\" as an integer\n", rows_str, cols_str);
         return;
     }
-    catch (const std::out_of_range& e) {
+    catch (const std::out_of_range&) {
 		Log(transcribe_out_, "Rows \"{}\", cols \"{}\", or window duration \"{}\" are out of range\n", rows_str, cols_str, window_duration);
         return;
     }

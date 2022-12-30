@@ -100,7 +100,6 @@ def pageMessage(osc_state: OscState, msg: str) -> bool:
 
     # Really long messages just wrap back around.
     which_region = (slice_idx % generate_utils.config.numRegions(0))
-    #print("send to region {}".format(which_region))
 
     # if in last region:
     #   how long is it
@@ -109,11 +108,15 @@ def pageMessage(osc_state: OscState, msg: str) -> bool:
     #print("num regions: {}".format(num_regions))
     if which_region == num_regions - 1:
         layers_in_last_region = num_cells % generate_utils.config.CHARS_PER_SYNC
+        if layers_in_last_region == 0:
+            layers_in_last_region = generate_utils.config.CHARS_PER_SYNC
         #print("layers in last region: {}".format(layers_in_last_region))
         old_len = len(msg_slice)
         msg_slice = msg_slice[0:layers_in_last_region]
         #print("truncate msg_slice from length {} to length {}".format(old_len,
         #    len(msg_slice)))
+
+    #print("send \"{}\" to region {}".format(msg_slice, which_region))
 
     enable(osc_state.client)
 
