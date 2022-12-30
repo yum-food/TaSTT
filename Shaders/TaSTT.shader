@@ -17,11 +17,10 @@
     Margin_Rounding_Scale("Margin rounding scale", float) = 0.03
 
     TaSTT_Backplate("TaSTT_Backplate", 2D) = "black" {}
-
     TaSTT_Indicator_0("TaSTT_Indicator_0", float) = 0
     TaSTT_Indicator_1("TaSTT_Indicator_1", float) = 0
 
-    // software "engineering" LULW
+    // BEGIN GENERATED CODE BLOCK
     _Letter_Row00_Col00_Byte0("_Letter_Row00_Col00_Byte0", float) = 0
     _Letter_Row00_Col01_Byte0("_Letter_Row00_Col01_Byte0", float) = 0
     _Letter_Row00_Col02_Byte0("_Letter_Row00_Col02_Byte0", float) = 0
@@ -406,6 +405,7 @@
     _Letter_Row03_Col45_Byte1("_Letter_Row03_Col45_Byte1", float) = 0
     _Letter_Row03_Col46_Byte1("_Letter_Row03_Col46_Byte1", float) = 0
     _Letter_Row03_Col47_Byte1("_Letter_Row03_Col47_Byte1", float) = 0
+    // END GENERATED CODE BLOCK
   }
   SubShader
   {
@@ -452,6 +452,12 @@
       float Margin_Scale;
       float Margin_Rounding_Scale;
 
+      // BEGIN GENERATED CODE BLOCK
+      #define BYTES_PER_CHAR 2
+      #define NROWS 4
+      #define NCOLS 48
+      // END GENERATED CODE BLOCK
+
       float3 HUEtoRGB(in float H)
       {
         float R = abs(H * 6 - 3) - 1;
@@ -483,6 +489,7 @@
 
       Texture2D TaSTT_Backplate;
 
+      // BEGIN GENERATED CODE BLOCK
       float _Letter_Row00_Col00_Byte0;
       float _Letter_Row00_Col01_Byte0;
       float _Letter_Row00_Col02_Byte0;
@@ -867,6 +874,7 @@
       float _Letter_Row03_Col45_Byte1;
       float _Letter_Row03_Col46_Byte1;
       float _Letter_Row03_Col47_Byte1;
+      // END GENERATED CODE BLOCK
 
       v2f vert (appdata v)
       {
@@ -1024,422 +1032,805 @@
       }
 
       // Get the value of the parameter for the cell we're in.
-      float2 GetLetterParameter(float2 uv)
+      int GetLetterParameter(float2 uv)
       {
-        float CHAR_ROWS = 4.0;
-        float CHAR_COLS = 48.0;
-        float CHAR_COL = floor(uv.x * CHAR_COLS);
-        float CHAR_ROW = floor(uv.y * CHAR_ROWS);
+        float CHAR_COL = floor(uv.x * NCOLS);
+        float CHAR_ROW = floor(uv.y * NROWS);
+        int res = 0;
 
-        [forcecase] switch (CHAR_ROW)
-        {
-          case 3:
-            [forcecase] switch (CHAR_COL) {
-              case 0:
-                return float2(_Letter_Row00_Col00_Byte0, _Letter_Row00_Col00_Byte1);
-              case 1:
-                return float2(_Letter_Row00_Col01_Byte0, _Letter_Row00_Col01_Byte1);
-              case 2:
-                return float2(_Letter_Row00_Col02_Byte0, _Letter_Row00_Col02_Byte1);
-              case 3:
-                return float2(_Letter_Row00_Col03_Byte0, _Letter_Row00_Col03_Byte1);
-              case 4:
-                return float2(_Letter_Row00_Col04_Byte0, _Letter_Row00_Col04_Byte1);
-              case 5:
-                return float2(_Letter_Row00_Col05_Byte0, _Letter_Row00_Col05_Byte1);
-              case 6:
-                return float2(_Letter_Row00_Col06_Byte0, _Letter_Row00_Col06_Byte1);
-              case 7:
-                return float2(_Letter_Row00_Col07_Byte0, _Letter_Row00_Col07_Byte1);
-              case 8:
-                return float2(_Letter_Row00_Col08_Byte0, _Letter_Row00_Col08_Byte1);
-              case 9:
-                return float2(_Letter_Row00_Col09_Byte0, _Letter_Row00_Col09_Byte1);
-              case 10:
-                return float2(_Letter_Row00_Col10_Byte0, _Letter_Row00_Col10_Byte1);
-              case 11:
-                return float2(_Letter_Row00_Col11_Byte0, _Letter_Row00_Col11_Byte1);
-              case 12:
-                return float2(_Letter_Row00_Col12_Byte0, _Letter_Row00_Col12_Byte1);
-              case 13:
-                return float2(_Letter_Row00_Col13_Byte0, _Letter_Row00_Col13_Byte1);
-              case 14:
-                return float2(_Letter_Row00_Col14_Byte0, _Letter_Row00_Col14_Byte1);
-              case 15:
-                return float2(_Letter_Row00_Col15_Byte0, _Letter_Row00_Col15_Byte1);
-              case 16:
-                return float2(_Letter_Row00_Col16_Byte0, _Letter_Row00_Col16_Byte1);
-              case 17:
-                return float2(_Letter_Row00_Col17_Byte0, _Letter_Row00_Col17_Byte1);
-              case 18:
-                return float2(_Letter_Row00_Col18_Byte0, _Letter_Row00_Col18_Byte1);
-              case 19:
-                return float2(_Letter_Row00_Col19_Byte0, _Letter_Row00_Col19_Byte1);
-              case 20:
-                return float2(_Letter_Row00_Col20_Byte0, _Letter_Row00_Col20_Byte1);
-              case 21:
-                return float2(_Letter_Row00_Col21_Byte0, _Letter_Row00_Col21_Byte1);
-              case 22:
-                return float2(_Letter_Row00_Col22_Byte0, _Letter_Row00_Col22_Byte1);
-              case 23:
-                return float2(_Letter_Row00_Col23_Byte0, _Letter_Row00_Col23_Byte1);
-              case 24:
-                return float2(_Letter_Row00_Col24_Byte0, _Letter_Row00_Col24_Byte1);
-              case 25:
-                return float2(_Letter_Row00_Col25_Byte0, _Letter_Row00_Col25_Byte1);
-              case 26:
-                return float2(_Letter_Row00_Col26_Byte0, _Letter_Row00_Col26_Byte1);
-              case 27:
-                return float2(_Letter_Row00_Col27_Byte0, _Letter_Row00_Col27_Byte1);
-              case 28:
-                return float2(_Letter_Row00_Col28_Byte0, _Letter_Row00_Col28_Byte1);
-              case 29:
-                return float2(_Letter_Row00_Col29_Byte0, _Letter_Row00_Col29_Byte1);
-              case 30:
-                return float2(_Letter_Row00_Col30_Byte0, _Letter_Row00_Col30_Byte1);
-              case 31:
-                return float2(_Letter_Row00_Col31_Byte0, _Letter_Row00_Col31_Byte1);
-              case 32:
-                return float2(_Letter_Row00_Col32_Byte0, _Letter_Row00_Col32_Byte1);
-              case 33:
-                return float2(_Letter_Row00_Col33_Byte0, _Letter_Row00_Col33_Byte1);
-              case 34:
-                return float2(_Letter_Row00_Col34_Byte0, _Letter_Row00_Col34_Byte1);
-              case 35:
-                return float2(_Letter_Row00_Col35_Byte0, _Letter_Row00_Col35_Byte1);
-              case 36:
-                return float2(_Letter_Row00_Col36_Byte0, _Letter_Row00_Col36_Byte1);
-              case 37:
-                return float2(_Letter_Row00_Col37_Byte0, _Letter_Row00_Col37_Byte1);
-              case 38:
-                return float2(_Letter_Row00_Col38_Byte0, _Letter_Row00_Col38_Byte1);
-              case 39:
-                return float2(_Letter_Row00_Col39_Byte0, _Letter_Row00_Col39_Byte1);
-              case 40:
-                return float2(_Letter_Row00_Col40_Byte0, _Letter_Row00_Col40_Byte1);
-              case 41:
-                return float2(_Letter_Row00_Col41_Byte0, _Letter_Row00_Col41_Byte1);
-              case 42:
-                return float2(_Letter_Row00_Col42_Byte0, _Letter_Row00_Col42_Byte1);
-              case 43:
-                return float2(_Letter_Row00_Col43_Byte0, _Letter_Row00_Col43_Byte1);
-              case 44:
-                return float2(_Letter_Row00_Col44_Byte0, _Letter_Row00_Col44_Byte1);
-              case 45:
-                return float2(_Letter_Row00_Col45_Byte0, _Letter_Row00_Col45_Byte1);
-              case 46:
-                return float2(_Letter_Row00_Col46_Byte0, _Letter_Row00_Col46_Byte1);
-              case 47:
-                return float2(_Letter_Row00_Col47_Byte0, _Letter_Row00_Col47_Byte1);
-              default:
-                return float2(0, 0);
-            }
-          case 2:
-            [forcecase] switch (CHAR_COL) {
-              case 0:
-                return float2(_Letter_Row01_Col00_Byte0, _Letter_Row01_Col00_Byte1);
-              case 1:
-                return float2(_Letter_Row01_Col01_Byte0, _Letter_Row01_Col01_Byte1);
-              case 2:
-                return float2(_Letter_Row01_Col02_Byte0, _Letter_Row01_Col02_Byte1);
-              case 3:
-                return float2(_Letter_Row01_Col03_Byte0, _Letter_Row01_Col03_Byte1);
-              case 4:
-                return float2(_Letter_Row01_Col04_Byte0, _Letter_Row01_Col04_Byte1);
-              case 5:
-                return float2(_Letter_Row01_Col05_Byte0, _Letter_Row01_Col05_Byte1);
-              case 6:
-                return float2(_Letter_Row01_Col06_Byte0, _Letter_Row01_Col06_Byte1);
-              case 7:
-                return float2(_Letter_Row01_Col07_Byte0, _Letter_Row01_Col07_Byte1);
-              case 8:
-                return float2(_Letter_Row01_Col08_Byte0, _Letter_Row01_Col08_Byte1);
-              case 9:
-                return float2(_Letter_Row01_Col09_Byte0, _Letter_Row01_Col09_Byte1);
-              case 10:
-                return float2(_Letter_Row01_Col10_Byte0, _Letter_Row01_Col10_Byte1);
-              case 11:
-                return float2(_Letter_Row01_Col11_Byte0, _Letter_Row01_Col11_Byte1);
-              case 12:
-                return float2(_Letter_Row01_Col12_Byte0, _Letter_Row01_Col12_Byte1);
-              case 13:
-                return float2(_Letter_Row01_Col13_Byte0, _Letter_Row01_Col13_Byte1);
-              case 14:
-                return float2(_Letter_Row01_Col14_Byte0, _Letter_Row01_Col14_Byte1);
-              case 15:
-                return float2(_Letter_Row01_Col15_Byte0, _Letter_Row01_Col15_Byte1);
-              case 16:
-                return float2(_Letter_Row01_Col16_Byte0, _Letter_Row01_Col16_Byte1);
-              case 17:
-                return float2(_Letter_Row01_Col17_Byte0, _Letter_Row01_Col17_Byte1);
-              case 18:
-                return float2(_Letter_Row01_Col18_Byte0, _Letter_Row01_Col18_Byte1);
-              case 19:
-                return float2(_Letter_Row01_Col19_Byte0, _Letter_Row01_Col19_Byte1);
-              case 20:
-                return float2(_Letter_Row01_Col20_Byte0, _Letter_Row01_Col20_Byte1);
-              case 21:
-                return float2(_Letter_Row01_Col21_Byte0, _Letter_Row01_Col21_Byte1);
-              case 22:
-                return float2(_Letter_Row01_Col22_Byte0, _Letter_Row01_Col22_Byte1);
-              case 23:
-                return float2(_Letter_Row01_Col23_Byte0, _Letter_Row01_Col23_Byte1);
-              case 24:
-                return float2(_Letter_Row01_Col24_Byte0, _Letter_Row01_Col24_Byte1);
-              case 25:
-                return float2(_Letter_Row01_Col25_Byte0, _Letter_Row01_Col25_Byte1);
-              case 26:
-                return float2(_Letter_Row01_Col26_Byte0, _Letter_Row01_Col26_Byte1);
-              case 27:
-                return float2(_Letter_Row01_Col27_Byte0, _Letter_Row01_Col27_Byte1);
-              case 28:
-                return float2(_Letter_Row01_Col28_Byte0, _Letter_Row01_Col28_Byte1);
-              case 29:
-                return float2(_Letter_Row01_Col29_Byte0, _Letter_Row01_Col29_Byte1);
-              case 30:
-                return float2(_Letter_Row01_Col30_Byte0, _Letter_Row01_Col30_Byte1);
-              case 31:
-                return float2(_Letter_Row01_Col31_Byte0, _Letter_Row01_Col31_Byte1);
-              case 32:
-                return float2(_Letter_Row01_Col32_Byte0, _Letter_Row01_Col32_Byte1);
-              case 33:
-                return float2(_Letter_Row01_Col33_Byte0, _Letter_Row01_Col33_Byte1);
-              case 34:
-                return float2(_Letter_Row01_Col34_Byte0, _Letter_Row01_Col34_Byte1);
-              case 35:
-                return float2(_Letter_Row01_Col35_Byte0, _Letter_Row01_Col35_Byte1);
-              case 36:
-                return float2(_Letter_Row01_Col36_Byte0, _Letter_Row01_Col36_Byte1);
-              case 37:
-                return float2(_Letter_Row01_Col37_Byte0, _Letter_Row01_Col37_Byte1);
-              case 38:
-                return float2(_Letter_Row01_Col38_Byte0, _Letter_Row01_Col38_Byte1);
-              case 39:
-                return float2(_Letter_Row01_Col39_Byte0, _Letter_Row01_Col39_Byte1);
-              case 40:
-                return float2(_Letter_Row01_Col40_Byte0, _Letter_Row01_Col40_Byte1);
-              case 41:
-                return float2(_Letter_Row01_Col41_Byte0, _Letter_Row01_Col41_Byte1);
-              case 42:
-                return float2(_Letter_Row01_Col42_Byte0, _Letter_Row01_Col42_Byte1);
-              case 43:
-                return float2(_Letter_Row01_Col43_Byte0, _Letter_Row01_Col43_Byte1);
-              case 44:
-                return float2(_Letter_Row01_Col44_Byte0, _Letter_Row01_Col44_Byte1);
-              case 45:
-                return float2(_Letter_Row01_Col45_Byte0, _Letter_Row01_Col45_Byte1);
-              case 46:
-                return float2(_Letter_Row01_Col46_Byte0, _Letter_Row01_Col46_Byte1);
-              case 47:
-                return float2(_Letter_Row01_Col47_Byte0, _Letter_Row01_Col47_Byte1);
-              default:
-                return float2(0, 0);
-            }
-          case 1:
-            [forcecase] switch (CHAR_COL) {
-              case 0:
-                return float2(_Letter_Row02_Col00_Byte0, _Letter_Row02_Col00_Byte1);
-              case 1:
-                return float2(_Letter_Row02_Col01_Byte0, _Letter_Row02_Col01_Byte1);
-              case 2:
-                return float2(_Letter_Row02_Col02_Byte0, _Letter_Row02_Col02_Byte1);
-              case 3:
-                return float2(_Letter_Row02_Col03_Byte0, _Letter_Row02_Col03_Byte1);
-              case 4:
-                return float2(_Letter_Row02_Col04_Byte0, _Letter_Row02_Col04_Byte1);
-              case 5:
-                return float2(_Letter_Row02_Col05_Byte0, _Letter_Row02_Col05_Byte1);
-              case 6:
-                return float2(_Letter_Row02_Col06_Byte0, _Letter_Row02_Col06_Byte1);
-              case 7:
-                return float2(_Letter_Row02_Col07_Byte0, _Letter_Row02_Col07_Byte1);
-              case 8:
-                return float2(_Letter_Row02_Col08_Byte0, _Letter_Row02_Col08_Byte1);
-              case 9:
-                return float2(_Letter_Row02_Col09_Byte0, _Letter_Row02_Col09_Byte1);
-              case 10:
-                return float2(_Letter_Row02_Col10_Byte0, _Letter_Row02_Col10_Byte1);
-              case 11:
-                return float2(_Letter_Row02_Col11_Byte0, _Letter_Row02_Col11_Byte1);
-              case 12:
-                return float2(_Letter_Row02_Col12_Byte0, _Letter_Row02_Col12_Byte1);
-              case 13:
-                return float2(_Letter_Row02_Col13_Byte0, _Letter_Row02_Col13_Byte1);
-              case 14:
-                return float2(_Letter_Row02_Col14_Byte0, _Letter_Row02_Col14_Byte1);
-              case 15:
-                return float2(_Letter_Row02_Col15_Byte0, _Letter_Row02_Col15_Byte1);
-              case 16:
-                return float2(_Letter_Row02_Col16_Byte0, _Letter_Row02_Col16_Byte1);
-              case 17:
-                return float2(_Letter_Row02_Col17_Byte0, _Letter_Row02_Col17_Byte1);
-              case 18:
-                return float2(_Letter_Row02_Col18_Byte0, _Letter_Row02_Col18_Byte1);
-              case 19:
-                return float2(_Letter_Row02_Col19_Byte0, _Letter_Row02_Col19_Byte1);
-              case 20:
-                return float2(_Letter_Row02_Col20_Byte0, _Letter_Row02_Col20_Byte1);
-              case 21:
-                return float2(_Letter_Row02_Col21_Byte0, _Letter_Row02_Col21_Byte1);
-              case 22:
-                return float2(_Letter_Row02_Col22_Byte0, _Letter_Row02_Col22_Byte1);
-              case 23:
-                return float2(_Letter_Row02_Col23_Byte0, _Letter_Row02_Col23_Byte1);
-              case 24:
-                return float2(_Letter_Row02_Col24_Byte0, _Letter_Row02_Col24_Byte1);
-              case 25:
-                return float2(_Letter_Row02_Col25_Byte0, _Letter_Row02_Col25_Byte1);
-              case 26:
-                return float2(_Letter_Row02_Col26_Byte0, _Letter_Row02_Col26_Byte1);
-              case 27:
-                return float2(_Letter_Row02_Col27_Byte0, _Letter_Row02_Col27_Byte1);
-              case 28:
-                return float2(_Letter_Row02_Col28_Byte0, _Letter_Row02_Col28_Byte1);
-              case 29:
-                return float2(_Letter_Row02_Col29_Byte0, _Letter_Row02_Col29_Byte1);
-              case 30:
-                return float2(_Letter_Row02_Col30_Byte0, _Letter_Row02_Col30_Byte1);
-              case 31:
-                return float2(_Letter_Row02_Col31_Byte0, _Letter_Row02_Col31_Byte1);
-              case 32:
-                return float2(_Letter_Row02_Col32_Byte0, _Letter_Row02_Col32_Byte1);
-              case 33:
-                return float2(_Letter_Row02_Col33_Byte0, _Letter_Row02_Col33_Byte1);
-              case 34:
-                return float2(_Letter_Row02_Col34_Byte0, _Letter_Row02_Col34_Byte1);
-              case 35:
-                return float2(_Letter_Row02_Col35_Byte0, _Letter_Row02_Col35_Byte1);
-              case 36:
-                return float2(_Letter_Row02_Col36_Byte0, _Letter_Row02_Col36_Byte1);
-              case 37:
-                return float2(_Letter_Row02_Col37_Byte0, _Letter_Row02_Col37_Byte1);
-              case 38:
-                return float2(_Letter_Row02_Col38_Byte0, _Letter_Row02_Col38_Byte1);
-              case 39:
-                return float2(_Letter_Row02_Col39_Byte0, _Letter_Row02_Col39_Byte1);
-              case 40:
-                return float2(_Letter_Row02_Col40_Byte0, _Letter_Row02_Col40_Byte1);
-              case 41:
-                return float2(_Letter_Row02_Col41_Byte0, _Letter_Row02_Col41_Byte1);
-              case 42:
-                return float2(_Letter_Row02_Col42_Byte0, _Letter_Row02_Col42_Byte1);
-              case 43:
-                return float2(_Letter_Row02_Col43_Byte0, _Letter_Row02_Col43_Byte1);
-              case 44:
-                return float2(_Letter_Row02_Col44_Byte0, _Letter_Row02_Col44_Byte1);
-              case 45:
-                return float2(_Letter_Row02_Col45_Byte0, _Letter_Row02_Col45_Byte1);
-              case 46:
-                return float2(_Letter_Row02_Col46_Byte0, _Letter_Row02_Col46_Byte1);
-              case 47:
-                return float2(_Letter_Row02_Col47_Byte0, _Letter_Row02_Col47_Byte1);
-              default:
-                return float2(0, 0);
-            }
-          case 0:
-            [forcecase] switch (CHAR_COL) {
-              case 0:
-                return float2(_Letter_Row03_Col00_Byte0, _Letter_Row03_Col00_Byte1);
-              case 1:
-                return float2(_Letter_Row03_Col01_Byte0, _Letter_Row03_Col01_Byte1);
-              case 2:
-                return float2(_Letter_Row03_Col02_Byte0, _Letter_Row03_Col02_Byte1);
-              case 3:
-                return float2(_Letter_Row03_Col03_Byte0, _Letter_Row03_Col03_Byte1);
-              case 4:
-                return float2(_Letter_Row03_Col04_Byte0, _Letter_Row03_Col04_Byte1);
-              case 5:
-                return float2(_Letter_Row03_Col05_Byte0, _Letter_Row03_Col05_Byte1);
-              case 6:
-                return float2(_Letter_Row03_Col06_Byte0, _Letter_Row03_Col06_Byte1);
-              case 7:
-                return float2(_Letter_Row03_Col07_Byte0, _Letter_Row03_Col07_Byte1);
-              case 8:
-                return float2(_Letter_Row03_Col08_Byte0, _Letter_Row03_Col08_Byte1);
-              case 9:
-                return float2(_Letter_Row03_Col09_Byte0, _Letter_Row03_Col09_Byte1);
-              case 10:
-                return float2(_Letter_Row03_Col10_Byte0, _Letter_Row03_Col10_Byte1);
-              case 11:
-                return float2(_Letter_Row03_Col11_Byte0, _Letter_Row03_Col11_Byte1);
-              case 12:
-                return float2(_Letter_Row03_Col12_Byte0, _Letter_Row03_Col12_Byte1);
-              case 13:
-                return float2(_Letter_Row03_Col13_Byte0, _Letter_Row03_Col13_Byte1);
-              case 14:
-                return float2(_Letter_Row03_Col14_Byte0, _Letter_Row03_Col14_Byte1);
-              case 15:
-                return float2(_Letter_Row03_Col15_Byte0, _Letter_Row03_Col15_Byte1);
-              case 16:
-                return float2(_Letter_Row03_Col16_Byte0, _Letter_Row03_Col16_Byte1);
-              case 17:
-                return float2(_Letter_Row03_Col17_Byte0, _Letter_Row03_Col17_Byte1);
-              case 18:
-                return float2(_Letter_Row03_Col18_Byte0, _Letter_Row03_Col18_Byte1);
-              case 19:
-                return float2(_Letter_Row03_Col19_Byte0, _Letter_Row03_Col19_Byte1);
-              case 20:
-                return float2(_Letter_Row03_Col20_Byte0, _Letter_Row03_Col20_Byte1);
-              case 21:
-                return float2(_Letter_Row03_Col21_Byte0, _Letter_Row03_Col21_Byte1);
-              case 22:
-                return float2(_Letter_Row03_Col22_Byte0, _Letter_Row03_Col22_Byte1);
-              case 23:
-                return float2(_Letter_Row03_Col23_Byte0, _Letter_Row03_Col23_Byte1);
-              case 24:
-                return float2(_Letter_Row03_Col24_Byte0, _Letter_Row03_Col24_Byte1);
-              case 25:
-                return float2(_Letter_Row03_Col25_Byte0, _Letter_Row03_Col25_Byte1);
-              case 26:
-                return float2(_Letter_Row03_Col26_Byte0, _Letter_Row03_Col26_Byte1);
-              case 27:
-                return float2(_Letter_Row03_Col27_Byte0, _Letter_Row03_Col27_Byte1);
-              case 28:
-                return float2(_Letter_Row03_Col28_Byte0, _Letter_Row03_Col28_Byte1);
-              case 29:
-                return float2(_Letter_Row03_Col29_Byte0, _Letter_Row03_Col29_Byte1);
-              case 30:
-                return float2(_Letter_Row03_Col30_Byte0, _Letter_Row03_Col30_Byte1);
-              case 31:
-                return float2(_Letter_Row03_Col31_Byte0, _Letter_Row03_Col31_Byte1);
-              case 32:
-                return float2(_Letter_Row03_Col32_Byte0, _Letter_Row03_Col32_Byte1);
-              case 33:
-                return float2(_Letter_Row03_Col33_Byte0, _Letter_Row03_Col33_Byte1);
-              case 34:
-                return float2(_Letter_Row03_Col34_Byte0, _Letter_Row03_Col34_Byte1);
-              case 35:
-                return float2(_Letter_Row03_Col35_Byte0, _Letter_Row03_Col35_Byte1);
-              case 36:
-                return float2(_Letter_Row03_Col36_Byte0, _Letter_Row03_Col36_Byte1);
-              case 37:
-                return float2(_Letter_Row03_Col37_Byte0, _Letter_Row03_Col37_Byte1);
-              case 38:
-                return float2(_Letter_Row03_Col38_Byte0, _Letter_Row03_Col38_Byte1);
-              case 39:
-                return float2(_Letter_Row03_Col39_Byte0, _Letter_Row03_Col39_Byte1);
-              case 40:
-                return float2(_Letter_Row03_Col40_Byte0, _Letter_Row03_Col40_Byte1);
-              case 41:
-                return float2(_Letter_Row03_Col41_Byte0, _Letter_Row03_Col41_Byte1);
-              case 42:
-                return float2(_Letter_Row03_Col42_Byte0, _Letter_Row03_Col42_Byte1);
-              case 43:
-                return float2(_Letter_Row03_Col43_Byte0, _Letter_Row03_Col43_Byte1);
-              case 44:
-                return float2(_Letter_Row03_Col44_Byte0, _Letter_Row03_Col44_Byte1);
-              case 45:
-                return float2(_Letter_Row03_Col45_Byte0, _Letter_Row03_Col45_Byte1);
-              case 46:
-                return float2(_Letter_Row03_Col46_Byte0, _Letter_Row03_Col46_Byte1);
-              case 47:
-                return float2(_Letter_Row03_Col47_Byte0, _Letter_Row03_Col47_Byte1);
-              default:
-                return float2(0, 0);
-            }
-        }
-
-        return float2(0, 0);
+          // BEGIN GENERATED CODE BLOCK
+          [forcecase] switch (CHAR_ROW) {
+            case 3:
+              [forcecase] switch (CHAR_COL) {
+                case 0:
+                  res |= ((int) _Letter_Row00_Col00_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col00_Byte1) << (1 * 8);
+                  return res;
+                case 1:
+                  res |= ((int) _Letter_Row00_Col01_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col01_Byte1) << (1 * 8);
+                  return res;
+                case 2:
+                  res |= ((int) _Letter_Row00_Col02_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col02_Byte1) << (1 * 8);
+                  return res;
+                case 3:
+                  res |= ((int) _Letter_Row00_Col03_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col03_Byte1) << (1 * 8);
+                  return res;
+                case 4:
+                  res |= ((int) _Letter_Row00_Col04_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col04_Byte1) << (1 * 8);
+                  return res;
+                case 5:
+                  res |= ((int) _Letter_Row00_Col05_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col05_Byte1) << (1 * 8);
+                  return res;
+                case 6:
+                  res |= ((int) _Letter_Row00_Col06_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col06_Byte1) << (1 * 8);
+                  return res;
+                case 7:
+                  res |= ((int) _Letter_Row00_Col07_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col07_Byte1) << (1 * 8);
+                  return res;
+                case 8:
+                  res |= ((int) _Letter_Row00_Col08_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col08_Byte1) << (1 * 8);
+                  return res;
+                case 9:
+                  res |= ((int) _Letter_Row00_Col09_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col09_Byte1) << (1 * 8);
+                  return res;
+                case 10:
+                  res |= ((int) _Letter_Row00_Col10_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col10_Byte1) << (1 * 8);
+                  return res;
+                case 11:
+                  res |= ((int) _Letter_Row00_Col11_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col11_Byte1) << (1 * 8);
+                  return res;
+                case 12:
+                  res |= ((int) _Letter_Row00_Col12_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col12_Byte1) << (1 * 8);
+                  return res;
+                case 13:
+                  res |= ((int) _Letter_Row00_Col13_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col13_Byte1) << (1 * 8);
+                  return res;
+                case 14:
+                  res |= ((int) _Letter_Row00_Col14_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col14_Byte1) << (1 * 8);
+                  return res;
+                case 15:
+                  res |= ((int) _Letter_Row00_Col15_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col15_Byte1) << (1 * 8);
+                  return res;
+                case 16:
+                  res |= ((int) _Letter_Row00_Col16_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col16_Byte1) << (1 * 8);
+                  return res;
+                case 17:
+                  res |= ((int) _Letter_Row00_Col17_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col17_Byte1) << (1 * 8);
+                  return res;
+                case 18:
+                  res |= ((int) _Letter_Row00_Col18_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col18_Byte1) << (1 * 8);
+                  return res;
+                case 19:
+                  res |= ((int) _Letter_Row00_Col19_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col19_Byte1) << (1 * 8);
+                  return res;
+                case 20:
+                  res |= ((int) _Letter_Row00_Col20_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col20_Byte1) << (1 * 8);
+                  return res;
+                case 21:
+                  res |= ((int) _Letter_Row00_Col21_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col21_Byte1) << (1 * 8);
+                  return res;
+                case 22:
+                  res |= ((int) _Letter_Row00_Col22_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col22_Byte1) << (1 * 8);
+                  return res;
+                case 23:
+                  res |= ((int) _Letter_Row00_Col23_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col23_Byte1) << (1 * 8);
+                  return res;
+                case 24:
+                  res |= ((int) _Letter_Row00_Col24_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col24_Byte1) << (1 * 8);
+                  return res;
+                case 25:
+                  res |= ((int) _Letter_Row00_Col25_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col25_Byte1) << (1 * 8);
+                  return res;
+                case 26:
+                  res |= ((int) _Letter_Row00_Col26_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col26_Byte1) << (1 * 8);
+                  return res;
+                case 27:
+                  res |= ((int) _Letter_Row00_Col27_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col27_Byte1) << (1 * 8);
+                  return res;
+                case 28:
+                  res |= ((int) _Letter_Row00_Col28_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col28_Byte1) << (1 * 8);
+                  return res;
+                case 29:
+                  res |= ((int) _Letter_Row00_Col29_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col29_Byte1) << (1 * 8);
+                  return res;
+                case 30:
+                  res |= ((int) _Letter_Row00_Col30_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col30_Byte1) << (1 * 8);
+                  return res;
+                case 31:
+                  res |= ((int) _Letter_Row00_Col31_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col31_Byte1) << (1 * 8);
+                  return res;
+                case 32:
+                  res |= ((int) _Letter_Row00_Col32_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col32_Byte1) << (1 * 8);
+                  return res;
+                case 33:
+                  res |= ((int) _Letter_Row00_Col33_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col33_Byte1) << (1 * 8);
+                  return res;
+                case 34:
+                  res |= ((int) _Letter_Row00_Col34_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col34_Byte1) << (1 * 8);
+                  return res;
+                case 35:
+                  res |= ((int) _Letter_Row00_Col35_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col35_Byte1) << (1 * 8);
+                  return res;
+                case 36:
+                  res |= ((int) _Letter_Row00_Col36_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col36_Byte1) << (1 * 8);
+                  return res;
+                case 37:
+                  res |= ((int) _Letter_Row00_Col37_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col37_Byte1) << (1 * 8);
+                  return res;
+                case 38:
+                  res |= ((int) _Letter_Row00_Col38_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col38_Byte1) << (1 * 8);
+                  return res;
+                case 39:
+                  res |= ((int) _Letter_Row00_Col39_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col39_Byte1) << (1 * 8);
+                  return res;
+                case 40:
+                  res |= ((int) _Letter_Row00_Col40_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col40_Byte1) << (1 * 8);
+                  return res;
+                case 41:
+                  res |= ((int) _Letter_Row00_Col41_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col41_Byte1) << (1 * 8);
+                  return res;
+                case 42:
+                  res |= ((int) _Letter_Row00_Col42_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col42_Byte1) << (1 * 8);
+                  return res;
+                case 43:
+                  res |= ((int) _Letter_Row00_Col43_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col43_Byte1) << (1 * 8);
+                  return res;
+                case 44:
+                  res |= ((int) _Letter_Row00_Col44_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col44_Byte1) << (1 * 8);
+                  return res;
+                case 45:
+                  res |= ((int) _Letter_Row00_Col45_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col45_Byte1) << (1 * 8);
+                  return res;
+                case 46:
+                  res |= ((int) _Letter_Row00_Col46_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col46_Byte1) << (1 * 8);
+                  return res;
+                case 47:
+                  res |= ((int) _Letter_Row00_Col47_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row00_Col47_Byte1) << (1 * 8);
+                  return res;
+                default:
+                  return 0;
+              }
+            case 2:
+              [forcecase] switch (CHAR_COL) {
+                case 0:
+                  res |= ((int) _Letter_Row01_Col00_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col00_Byte1) << (1 * 8);
+                  return res;
+                case 1:
+                  res |= ((int) _Letter_Row01_Col01_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col01_Byte1) << (1 * 8);
+                  return res;
+                case 2:
+                  res |= ((int) _Letter_Row01_Col02_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col02_Byte1) << (1 * 8);
+                  return res;
+                case 3:
+                  res |= ((int) _Letter_Row01_Col03_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col03_Byte1) << (1 * 8);
+                  return res;
+                case 4:
+                  res |= ((int) _Letter_Row01_Col04_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col04_Byte1) << (1 * 8);
+                  return res;
+                case 5:
+                  res |= ((int) _Letter_Row01_Col05_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col05_Byte1) << (1 * 8);
+                  return res;
+                case 6:
+                  res |= ((int) _Letter_Row01_Col06_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col06_Byte1) << (1 * 8);
+                  return res;
+                case 7:
+                  res |= ((int) _Letter_Row01_Col07_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col07_Byte1) << (1 * 8);
+                  return res;
+                case 8:
+                  res |= ((int) _Letter_Row01_Col08_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col08_Byte1) << (1 * 8);
+                  return res;
+                case 9:
+                  res |= ((int) _Letter_Row01_Col09_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col09_Byte1) << (1 * 8);
+                  return res;
+                case 10:
+                  res |= ((int) _Letter_Row01_Col10_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col10_Byte1) << (1 * 8);
+                  return res;
+                case 11:
+                  res |= ((int) _Letter_Row01_Col11_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col11_Byte1) << (1 * 8);
+                  return res;
+                case 12:
+                  res |= ((int) _Letter_Row01_Col12_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col12_Byte1) << (1 * 8);
+                  return res;
+                case 13:
+                  res |= ((int) _Letter_Row01_Col13_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col13_Byte1) << (1 * 8);
+                  return res;
+                case 14:
+                  res |= ((int) _Letter_Row01_Col14_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col14_Byte1) << (1 * 8);
+                  return res;
+                case 15:
+                  res |= ((int) _Letter_Row01_Col15_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col15_Byte1) << (1 * 8);
+                  return res;
+                case 16:
+                  res |= ((int) _Letter_Row01_Col16_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col16_Byte1) << (1 * 8);
+                  return res;
+                case 17:
+                  res |= ((int) _Letter_Row01_Col17_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col17_Byte1) << (1 * 8);
+                  return res;
+                case 18:
+                  res |= ((int) _Letter_Row01_Col18_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col18_Byte1) << (1 * 8);
+                  return res;
+                case 19:
+                  res |= ((int) _Letter_Row01_Col19_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col19_Byte1) << (1 * 8);
+                  return res;
+                case 20:
+                  res |= ((int) _Letter_Row01_Col20_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col20_Byte1) << (1 * 8);
+                  return res;
+                case 21:
+                  res |= ((int) _Letter_Row01_Col21_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col21_Byte1) << (1 * 8);
+                  return res;
+                case 22:
+                  res |= ((int) _Letter_Row01_Col22_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col22_Byte1) << (1 * 8);
+                  return res;
+                case 23:
+                  res |= ((int) _Letter_Row01_Col23_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col23_Byte1) << (1 * 8);
+                  return res;
+                case 24:
+                  res |= ((int) _Letter_Row01_Col24_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col24_Byte1) << (1 * 8);
+                  return res;
+                case 25:
+                  res |= ((int) _Letter_Row01_Col25_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col25_Byte1) << (1 * 8);
+                  return res;
+                case 26:
+                  res |= ((int) _Letter_Row01_Col26_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col26_Byte1) << (1 * 8);
+                  return res;
+                case 27:
+                  res |= ((int) _Letter_Row01_Col27_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col27_Byte1) << (1 * 8);
+                  return res;
+                case 28:
+                  res |= ((int) _Letter_Row01_Col28_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col28_Byte1) << (1 * 8);
+                  return res;
+                case 29:
+                  res |= ((int) _Letter_Row01_Col29_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col29_Byte1) << (1 * 8);
+                  return res;
+                case 30:
+                  res |= ((int) _Letter_Row01_Col30_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col30_Byte1) << (1 * 8);
+                  return res;
+                case 31:
+                  res |= ((int) _Letter_Row01_Col31_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col31_Byte1) << (1 * 8);
+                  return res;
+                case 32:
+                  res |= ((int) _Letter_Row01_Col32_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col32_Byte1) << (1 * 8);
+                  return res;
+                case 33:
+                  res |= ((int) _Letter_Row01_Col33_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col33_Byte1) << (1 * 8);
+                  return res;
+                case 34:
+                  res |= ((int) _Letter_Row01_Col34_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col34_Byte1) << (1 * 8);
+                  return res;
+                case 35:
+                  res |= ((int) _Letter_Row01_Col35_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col35_Byte1) << (1 * 8);
+                  return res;
+                case 36:
+                  res |= ((int) _Letter_Row01_Col36_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col36_Byte1) << (1 * 8);
+                  return res;
+                case 37:
+                  res |= ((int) _Letter_Row01_Col37_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col37_Byte1) << (1 * 8);
+                  return res;
+                case 38:
+                  res |= ((int) _Letter_Row01_Col38_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col38_Byte1) << (1 * 8);
+                  return res;
+                case 39:
+                  res |= ((int) _Letter_Row01_Col39_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col39_Byte1) << (1 * 8);
+                  return res;
+                case 40:
+                  res |= ((int) _Letter_Row01_Col40_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col40_Byte1) << (1 * 8);
+                  return res;
+                case 41:
+                  res |= ((int) _Letter_Row01_Col41_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col41_Byte1) << (1 * 8);
+                  return res;
+                case 42:
+                  res |= ((int) _Letter_Row01_Col42_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col42_Byte1) << (1 * 8);
+                  return res;
+                case 43:
+                  res |= ((int) _Letter_Row01_Col43_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col43_Byte1) << (1 * 8);
+                  return res;
+                case 44:
+                  res |= ((int) _Letter_Row01_Col44_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col44_Byte1) << (1 * 8);
+                  return res;
+                case 45:
+                  res |= ((int) _Letter_Row01_Col45_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col45_Byte1) << (1 * 8);
+                  return res;
+                case 46:
+                  res |= ((int) _Letter_Row01_Col46_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col46_Byte1) << (1 * 8);
+                  return res;
+                case 47:
+                  res |= ((int) _Letter_Row01_Col47_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row01_Col47_Byte1) << (1 * 8);
+                  return res;
+                default:
+                  return 0;
+              }
+            case 1:
+              [forcecase] switch (CHAR_COL) {
+                case 0:
+                  res |= ((int) _Letter_Row02_Col00_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col00_Byte1) << (1 * 8);
+                  return res;
+                case 1:
+                  res |= ((int) _Letter_Row02_Col01_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col01_Byte1) << (1 * 8);
+                  return res;
+                case 2:
+                  res |= ((int) _Letter_Row02_Col02_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col02_Byte1) << (1 * 8);
+                  return res;
+                case 3:
+                  res |= ((int) _Letter_Row02_Col03_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col03_Byte1) << (1 * 8);
+                  return res;
+                case 4:
+                  res |= ((int) _Letter_Row02_Col04_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col04_Byte1) << (1 * 8);
+                  return res;
+                case 5:
+                  res |= ((int) _Letter_Row02_Col05_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col05_Byte1) << (1 * 8);
+                  return res;
+                case 6:
+                  res |= ((int) _Letter_Row02_Col06_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col06_Byte1) << (1 * 8);
+                  return res;
+                case 7:
+                  res |= ((int) _Letter_Row02_Col07_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col07_Byte1) << (1 * 8);
+                  return res;
+                case 8:
+                  res |= ((int) _Letter_Row02_Col08_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col08_Byte1) << (1 * 8);
+                  return res;
+                case 9:
+                  res |= ((int) _Letter_Row02_Col09_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col09_Byte1) << (1 * 8);
+                  return res;
+                case 10:
+                  res |= ((int) _Letter_Row02_Col10_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col10_Byte1) << (1 * 8);
+                  return res;
+                case 11:
+                  res |= ((int) _Letter_Row02_Col11_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col11_Byte1) << (1 * 8);
+                  return res;
+                case 12:
+                  res |= ((int) _Letter_Row02_Col12_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col12_Byte1) << (1 * 8);
+                  return res;
+                case 13:
+                  res |= ((int) _Letter_Row02_Col13_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col13_Byte1) << (1 * 8);
+                  return res;
+                case 14:
+                  res |= ((int) _Letter_Row02_Col14_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col14_Byte1) << (1 * 8);
+                  return res;
+                case 15:
+                  res |= ((int) _Letter_Row02_Col15_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col15_Byte1) << (1 * 8);
+                  return res;
+                case 16:
+                  res |= ((int) _Letter_Row02_Col16_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col16_Byte1) << (1 * 8);
+                  return res;
+                case 17:
+                  res |= ((int) _Letter_Row02_Col17_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col17_Byte1) << (1 * 8);
+                  return res;
+                case 18:
+                  res |= ((int) _Letter_Row02_Col18_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col18_Byte1) << (1 * 8);
+                  return res;
+                case 19:
+                  res |= ((int) _Letter_Row02_Col19_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col19_Byte1) << (1 * 8);
+                  return res;
+                case 20:
+                  res |= ((int) _Letter_Row02_Col20_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col20_Byte1) << (1 * 8);
+                  return res;
+                case 21:
+                  res |= ((int) _Letter_Row02_Col21_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col21_Byte1) << (1 * 8);
+                  return res;
+                case 22:
+                  res |= ((int) _Letter_Row02_Col22_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col22_Byte1) << (1 * 8);
+                  return res;
+                case 23:
+                  res |= ((int) _Letter_Row02_Col23_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col23_Byte1) << (1 * 8);
+                  return res;
+                case 24:
+                  res |= ((int) _Letter_Row02_Col24_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col24_Byte1) << (1 * 8);
+                  return res;
+                case 25:
+                  res |= ((int) _Letter_Row02_Col25_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col25_Byte1) << (1 * 8);
+                  return res;
+                case 26:
+                  res |= ((int) _Letter_Row02_Col26_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col26_Byte1) << (1 * 8);
+                  return res;
+                case 27:
+                  res |= ((int) _Letter_Row02_Col27_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col27_Byte1) << (1 * 8);
+                  return res;
+                case 28:
+                  res |= ((int) _Letter_Row02_Col28_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col28_Byte1) << (1 * 8);
+                  return res;
+                case 29:
+                  res |= ((int) _Letter_Row02_Col29_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col29_Byte1) << (1 * 8);
+                  return res;
+                case 30:
+                  res |= ((int) _Letter_Row02_Col30_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col30_Byte1) << (1 * 8);
+                  return res;
+                case 31:
+                  res |= ((int) _Letter_Row02_Col31_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col31_Byte1) << (1 * 8);
+                  return res;
+                case 32:
+                  res |= ((int) _Letter_Row02_Col32_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col32_Byte1) << (1 * 8);
+                  return res;
+                case 33:
+                  res |= ((int) _Letter_Row02_Col33_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col33_Byte1) << (1 * 8);
+                  return res;
+                case 34:
+                  res |= ((int) _Letter_Row02_Col34_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col34_Byte1) << (1 * 8);
+                  return res;
+                case 35:
+                  res |= ((int) _Letter_Row02_Col35_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col35_Byte1) << (1 * 8);
+                  return res;
+                case 36:
+                  res |= ((int) _Letter_Row02_Col36_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col36_Byte1) << (1 * 8);
+                  return res;
+                case 37:
+                  res |= ((int) _Letter_Row02_Col37_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col37_Byte1) << (1 * 8);
+                  return res;
+                case 38:
+                  res |= ((int) _Letter_Row02_Col38_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col38_Byte1) << (1 * 8);
+                  return res;
+                case 39:
+                  res |= ((int) _Letter_Row02_Col39_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col39_Byte1) << (1 * 8);
+                  return res;
+                case 40:
+                  res |= ((int) _Letter_Row02_Col40_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col40_Byte1) << (1 * 8);
+                  return res;
+                case 41:
+                  res |= ((int) _Letter_Row02_Col41_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col41_Byte1) << (1 * 8);
+                  return res;
+                case 42:
+                  res |= ((int) _Letter_Row02_Col42_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col42_Byte1) << (1 * 8);
+                  return res;
+                case 43:
+                  res |= ((int) _Letter_Row02_Col43_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col43_Byte1) << (1 * 8);
+                  return res;
+                case 44:
+                  res |= ((int) _Letter_Row02_Col44_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col44_Byte1) << (1 * 8);
+                  return res;
+                case 45:
+                  res |= ((int) _Letter_Row02_Col45_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col45_Byte1) << (1 * 8);
+                  return res;
+                case 46:
+                  res |= ((int) _Letter_Row02_Col46_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col46_Byte1) << (1 * 8);
+                  return res;
+                case 47:
+                  res |= ((int) _Letter_Row02_Col47_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row02_Col47_Byte1) << (1 * 8);
+                  return res;
+                default:
+                  return 0;
+              }
+            case 0:
+              [forcecase] switch (CHAR_COL) {
+                case 0:
+                  res |= ((int) _Letter_Row03_Col00_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col00_Byte1) << (1 * 8);
+                  return res;
+                case 1:
+                  res |= ((int) _Letter_Row03_Col01_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col01_Byte1) << (1 * 8);
+                  return res;
+                case 2:
+                  res |= ((int) _Letter_Row03_Col02_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col02_Byte1) << (1 * 8);
+                  return res;
+                case 3:
+                  res |= ((int) _Letter_Row03_Col03_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col03_Byte1) << (1 * 8);
+                  return res;
+                case 4:
+                  res |= ((int) _Letter_Row03_Col04_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col04_Byte1) << (1 * 8);
+                  return res;
+                case 5:
+                  res |= ((int) _Letter_Row03_Col05_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col05_Byte1) << (1 * 8);
+                  return res;
+                case 6:
+                  res |= ((int) _Letter_Row03_Col06_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col06_Byte1) << (1 * 8);
+                  return res;
+                case 7:
+                  res |= ((int) _Letter_Row03_Col07_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col07_Byte1) << (1 * 8);
+                  return res;
+                case 8:
+                  res |= ((int) _Letter_Row03_Col08_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col08_Byte1) << (1 * 8);
+                  return res;
+                case 9:
+                  res |= ((int) _Letter_Row03_Col09_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col09_Byte1) << (1 * 8);
+                  return res;
+                case 10:
+                  res |= ((int) _Letter_Row03_Col10_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col10_Byte1) << (1 * 8);
+                  return res;
+                case 11:
+                  res |= ((int) _Letter_Row03_Col11_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col11_Byte1) << (1 * 8);
+                  return res;
+                case 12:
+                  res |= ((int) _Letter_Row03_Col12_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col12_Byte1) << (1 * 8);
+                  return res;
+                case 13:
+                  res |= ((int) _Letter_Row03_Col13_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col13_Byte1) << (1 * 8);
+                  return res;
+                case 14:
+                  res |= ((int) _Letter_Row03_Col14_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col14_Byte1) << (1 * 8);
+                  return res;
+                case 15:
+                  res |= ((int) _Letter_Row03_Col15_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col15_Byte1) << (1 * 8);
+                  return res;
+                case 16:
+                  res |= ((int) _Letter_Row03_Col16_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col16_Byte1) << (1 * 8);
+                  return res;
+                case 17:
+                  res |= ((int) _Letter_Row03_Col17_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col17_Byte1) << (1 * 8);
+                  return res;
+                case 18:
+                  res |= ((int) _Letter_Row03_Col18_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col18_Byte1) << (1 * 8);
+                  return res;
+                case 19:
+                  res |= ((int) _Letter_Row03_Col19_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col19_Byte1) << (1 * 8);
+                  return res;
+                case 20:
+                  res |= ((int) _Letter_Row03_Col20_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col20_Byte1) << (1 * 8);
+                  return res;
+                case 21:
+                  res |= ((int) _Letter_Row03_Col21_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col21_Byte1) << (1 * 8);
+                  return res;
+                case 22:
+                  res |= ((int) _Letter_Row03_Col22_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col22_Byte1) << (1 * 8);
+                  return res;
+                case 23:
+                  res |= ((int) _Letter_Row03_Col23_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col23_Byte1) << (1 * 8);
+                  return res;
+                case 24:
+                  res |= ((int) _Letter_Row03_Col24_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col24_Byte1) << (1 * 8);
+                  return res;
+                case 25:
+                  res |= ((int) _Letter_Row03_Col25_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col25_Byte1) << (1 * 8);
+                  return res;
+                case 26:
+                  res |= ((int) _Letter_Row03_Col26_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col26_Byte1) << (1 * 8);
+                  return res;
+                case 27:
+                  res |= ((int) _Letter_Row03_Col27_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col27_Byte1) << (1 * 8);
+                  return res;
+                case 28:
+                  res |= ((int) _Letter_Row03_Col28_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col28_Byte1) << (1 * 8);
+                  return res;
+                case 29:
+                  res |= ((int) _Letter_Row03_Col29_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col29_Byte1) << (1 * 8);
+                  return res;
+                case 30:
+                  res |= ((int) _Letter_Row03_Col30_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col30_Byte1) << (1 * 8);
+                  return res;
+                case 31:
+                  res |= ((int) _Letter_Row03_Col31_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col31_Byte1) << (1 * 8);
+                  return res;
+                case 32:
+                  res |= ((int) _Letter_Row03_Col32_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col32_Byte1) << (1 * 8);
+                  return res;
+                case 33:
+                  res |= ((int) _Letter_Row03_Col33_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col33_Byte1) << (1 * 8);
+                  return res;
+                case 34:
+                  res |= ((int) _Letter_Row03_Col34_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col34_Byte1) << (1 * 8);
+                  return res;
+                case 35:
+                  res |= ((int) _Letter_Row03_Col35_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col35_Byte1) << (1 * 8);
+                  return res;
+                case 36:
+                  res |= ((int) _Letter_Row03_Col36_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col36_Byte1) << (1 * 8);
+                  return res;
+                case 37:
+                  res |= ((int) _Letter_Row03_Col37_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col37_Byte1) << (1 * 8);
+                  return res;
+                case 38:
+                  res |= ((int) _Letter_Row03_Col38_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col38_Byte1) << (1 * 8);
+                  return res;
+                case 39:
+                  res |= ((int) _Letter_Row03_Col39_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col39_Byte1) << (1 * 8);
+                  return res;
+                case 40:
+                  res |= ((int) _Letter_Row03_Col40_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col40_Byte1) << (1 * 8);
+                  return res;
+                case 41:
+                  res |= ((int) _Letter_Row03_Col41_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col41_Byte1) << (1 * 8);
+                  return res;
+                case 42:
+                  res |= ((int) _Letter_Row03_Col42_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col42_Byte1) << (1 * 8);
+                  return res;
+                case 43:
+                  res |= ((int) _Letter_Row03_Col43_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col43_Byte1) << (1 * 8);
+                  return res;
+                case 44:
+                  res |= ((int) _Letter_Row03_Col44_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col44_Byte1) << (1 * 8);
+                  return res;
+                case 45:
+                  res |= ((int) _Letter_Row03_Col45_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col45_Byte1) << (1 * 8);
+                  return res;
+                case 46:
+                  res |= ((int) _Letter_Row03_Col46_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col46_Byte1) << (1 * 8);
+                  return res;
+                case 47:
+                  res |= ((int) _Letter_Row03_Col47_Byte0) << (0 * 8);
+                  res |= ((int) _Letter_Row03_Col47_Byte1) << (1 * 8);
+                  return res;
+                default:
+                  return 0;
+              }
+          }
+          // END GENERATED CODE BLOCK
+        return res;
       }
 
       fixed sq_dist(fixed2 p0, fixed2 p1)
@@ -1564,8 +1955,7 @@
         uv_margin *= 4;
         float2 uv_with_margin = AddMarginToUV(uv, uv_margin);
 
-        int2 letter_bytes = (int2) floor(GetLetterParameter(uv_with_margin));
-        int letter = letter_bytes[0] | (letter_bytes[1] << 8);
+        int letter = GetLetterParameter(uv_with_margin);
 
         float texture_cols;
         float texture_rows;
@@ -1573,7 +1963,7 @@
         if (letter < 0xE000) {
           texture_cols = 128.0;
           texture_rows = 64.0;
-          letter_uv = GetLetter(uv_with_margin, letter, texture_cols, texture_rows, 48, 4);
+          letter_uv = GetLetter(uv_with_margin, letter, texture_cols, texture_rows, NCOLS, NROWS);
         } else {
           texture_cols = 8.0;
           texture_rows = 8.0;
