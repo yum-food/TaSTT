@@ -52,6 +52,7 @@ def matchSpaceDelimitedStrings(old_text: str, new_text: str, window_size = 4) ->
 
 def matchStrings(old_text: str, new_text: str, window_size = 3) -> str:
     if old_text == new_text:
+        print("STRING MATCH exception path 1")
         return old_text
     elif len(old_text) >= window_size and len(new_text) >= window_size:
         # Find the window where the cumulative string distance
@@ -67,7 +68,7 @@ def matchStrings(old_text: str, new_text: str, window_size = 3) -> str:
         # slice in the old and new transcriptions (O(N^2) time complexity).
         # This is still wildly inefficient, but good enough for continuous
         # transcription in a game bound by a single CPU core, like VRChat.
-        max_old_slices = 300
+        max_old_slices = 150
         old_n_slices = min(max_old_slices, len(old_text))
         last_old_window = len(old_text) - window_size
         first_old_window = max(last_old_window - old_n_slices, 0)
@@ -104,6 +105,9 @@ def matchStrings(old_text: str, new_text: str, window_size = 3) -> str:
                 new_text[best_match_j:]))
         return old_prefix + new_text[best_match_j:]
     else:
+        print("STRING MATCH exception path 2")
+        print("  OLD: {}".format(old_text))
+        print("  NEW: {}".format(new_text))
         return new_text
 
 if __name__ == "__main__":

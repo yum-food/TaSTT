@@ -35,7 +35,7 @@ class AudioState:
 
         # The maximum length that recordAudio() will put into frames before it
         # starts dropping from the start.
-        self.MAX_LENGTH_S = 10
+        self.MAX_LENGTH_S = 28
         self.MAX_LENGTH_S_WHISPER = 30
         # The minimum length that recordAudio() will wait for before saving audio.
         self.MIN_LENGTH_S = 1
@@ -283,7 +283,7 @@ def transcribeAudio(audio_state, model):
         old_text = audio_state.text
 
         audio_state.text = string_matcher.matchStrings(audio_state.text,
-                text, window_size = 20)
+                text, window_size = 25)
         if old_text != audio_state.text:
             # We think the user said something, so  reset the amount of
             # time we sleep between transcriptions to the minimum.
