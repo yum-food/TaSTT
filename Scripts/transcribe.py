@@ -35,7 +35,7 @@ class AudioState:
 
         # The maximum length that recordAudio() will put into frames before it
         # starts dropping from the start.
-        self.MAX_LENGTH_S = 28
+        self.MAX_LENGTH_S = 10
         self.MAX_LENGTH_S_WHISPER = 30
         # The minimum length that recordAudio() will wait for before saving audio.
         self.MIN_LENGTH_S = 1

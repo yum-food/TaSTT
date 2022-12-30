@@ -13,13 +13,16 @@ def getSlice(msg: str, idx: int, slice_len: int) -> str:
         return msg[begin:end] + (" " * (end - msg_len))
     return None
 
-def setSlice(msg: str, idx: int, slice_len: int, msg_slice: str) -> str:
+def setSlice(msg: str, idx: int, slice_len: int, msg_slice: str,
+        include_suffix: bool = True) -> str:
     begin = idx * slice_len
     end = (idx + 1) * slice_len
     prefix = msg[0:begin]
     prefix += " " * (begin - len(prefix))
     suffix = msg[end:]
-    msg = prefix + msg_slice + suffix
+    msg = prefix + msg_slice
+    if include_suffix:
+        msg += suffix
     return msg
 
 class SingleLinePager:
@@ -35,7 +38,8 @@ class SingleLinePager:
             old_slice = getSlice(self.msg, i, self.slice_len)
             new_slice = getSlice(msg, i, self.slice_len)
             if old_slice != new_slice:
-                self.msg = setSlice(self.msg, i, self.slice_len, new_slice)
+                self.msg = setSlice(self.msg, i, self.slice_len, new_slice,
+                        include_suffix = False)
                 return new_slice, i
         return "", -1
 
@@ -87,6 +91,7 @@ if __name__ == "__main__":
     p.msg = "test"
     assert(p.getNextSlice("test")[0] == "")
     assert(p.getNextSlice("tast")[0] == "ta")
+    assert(p.getNextSlice("tast")[0] == "st")
     assert(p.getNextSlice("tast")[0] == "")
 
     p.msg = ""
@@ -106,6 +111,7 @@ if __name__ == "__main__":
     assert(p.getNextSlice("yo")[0] == "yo")
     assert(p.getNextSlice("yogi")[0] == "gi")
     assert(p.getNextSlice("yugi")[0] == "yu")
+    assert(p.getNextSlice("yugi is a")[0] == "gi")
     assert(p.getNextSlice("yugi is a")[0] == "is")
     assert(p.getNextSlice("yugi is a")[0] == " a")
     assert(p.getNextSlice("yugi is a pussy")[0] == "pu")

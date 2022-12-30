@@ -620,3 +620,8 @@ if __name__ == "__main__":
         with open(args.guid_map, 'wb') as f:
             pickle.dump(guid_map, f)
 
+        # If we don't do this, then VRChat will fail to update the animator
+        # when users update their avatars.
+        if os.path.exists(args.fx_dest + ".meta"):
+            os.remove(args.fx_dest + ".meta")
+
