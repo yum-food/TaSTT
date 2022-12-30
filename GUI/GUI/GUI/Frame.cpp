@@ -34,6 +34,7 @@ namespace {
         ID_PY_APP_ENABLE_LOCAL_BEEP,
         ID_PY_APP_ROWS,
         ID_PY_APP_COLS,
+        ID_PY_APP_WINDOW_DURATION,
         ID_UNITY_PANEL,
         ID_UNITY_CONFIG_PANEL,
         ID_UNITY_OUT,
@@ -342,6 +343,18 @@ Frame::Frame()
                         "The number of columns on the text box.");
                     py_app_cols_ = py_app_cols;
 
+                    auto* py_app_window_duration = new wxTextCtrl(py_app_config_panel_pairs,
+                        ID_PY_APP_WINDOW_DURATION, /*value=*/"15",
+                        wxDefaultPosition, wxDefaultSize, /*style=*/0);
+                    py_app_window_duration->SetToolTip(
+                        "This controls how long the slice of audio that "
+                        "we feed the transcription algorithm is, in seconds. "
+                        "Shorter values (as low as 10 seconds) can be transcribed "
+                        "more quickly, but are less accurate. Longer values "
+                        "(as high as 28 seconds) take longer to transcribe, "
+                        "but are far more accurate.");
+                    py_app_window_duration_ = py_app_window_duration;
+
                     auto* sizer = new wxFlexGridSizer(/*cols=*/2);
                     py_app_config_panel_pairs->SetSizer(sizer);
 
@@ -365,6 +378,9 @@ Frame::Frame()
 
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs, wxID_ANY, /*label=*/"Text box columns:"));
                     sizer->Add(py_app_cols, /*proportion=*/0, /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs, wxID_ANY, /*label=*/"Window duration (s):"));
+                    sizer->Add(py_app_window_duration, /*proportion=*/0, /*flags=*/wxEXPAND);
                 }
 
                 auto* py_app_enable_local_beep = new wxCheckBox(py_config_panel,
@@ -873,17 +889,33 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     const bool enable_local_beep = py_app_enable_local_beep_->GetValue();
     std::string rows_str = py_app_rows_->GetValue().ToStdString();
     std::string cols_str = py_app_cols_->GetValue().ToStdString();
-    int rows, cols;
+    std::string window_duration_str = py_app_window_duration_->GetValue().ToStdString();
+    int rows, cols, window_duration;
     try {
         rows = std::stoi(rows_str);
         cols = std::stoi(cols_str);
+        window_duration = std::stoi(window_duration_str);
     }
     catch (const std::invalid_argument& e) {
-		Log(transcribe_out_, "Could not parse rows \"{}\" or cols \"{}\" as an integer\n", rows_str, cols_str);
+		Log(transcribe_out_, "Could not parse rows \"{}\", cols \"{}\", or window duration \"{}\" as an integer\n", rows_str, cols_str);
         return;
     }
     catch (const std::out_of_range& e) {
-		Log(transcribe_out_, "Rows \"{}\" or cols \"{}\" are out of range\n", rows_str, cols_str);
+		Log(transcribe_out_, "Rows \"{}\", cols \"{}\", or window duration \"{}\" are out of range\n", rows_str, cols_str, window_duration);
+        return;
+    }
+    const int max_rows = 10;
+    const int max_cols = 240;
+    const int min_window_duration_s = 10;
+    const int max_window_duration_s = 28;
+    if (rows < 0 || rows > max_rows ||
+        cols < 0 || cols > max_cols ||
+        window_duration < min_window_duration_s || window_duration > max_window_duration_s) {
+        Log(transcribe_out_, "Rows not on [{},{}] or cols not on [{},{}] or "
+            "window_duration not on [{},{}]\n",
+            0, max_rows,
+            0, max_cols,
+            min_window_duration_s, max_window_duration_s);
         return;
     }
 
@@ -895,6 +927,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
         kBytesPerChar[bytes_per_char_idx].ToStdString(),
         rows,
         cols,
+        window_duration,
         enable_local_beep);
     if (!p) {
         Log(transcribe_out_, "Failed to launch transcription engine\n");

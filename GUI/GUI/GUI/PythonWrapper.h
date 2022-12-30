@@ -44,20 +44,20 @@ namespace PythonWrapper
 		std::function<void(wxProcess* proc, int ret)>&& exit_callback,
 		const std::string& mic, const std::string& lang, const std::string& model,
 		const std::string& chars_per_sync, const std::string& bytes_per_char,
-		int rows, int cols, bool enable_local_beep
+		int rows, int cols, int window_duration_s, bool enable_local_beep
 		);
 
 	bool GenerateAnimator(
 		const std::string& unity_assets_path,
-        const std::string& unity_animator_path,
-        const std::string& unity_parameters_path,
-        const std::string& unity_menu_path,
-        const std::string& unity_animator_generated_dir,
-        const std::string& unity_animator_generated_name,
-        const std::string& unity_parameters_generated_name,
-        const std::string& unity_menu_generated_name,
-        const std::string& chars_per_sync,
-        const std::string& bytes_per_char,
+		const std::string& unity_animator_path,
+		const std::string& unity_parameters_path,
+		const std::string& unity_menu_path,
+		const std::string& unity_animator_generated_dir,
+		const std::string& unity_animator_generated_name,
+		const std::string& unity_parameters_generated_name,
+		const std::string& unity_menu_generated_name,
+		const std::string& chars_per_sync,
+		const std::string& bytes_per_char,
 		int rows,
 		int cols,
 		wxTextCtrl* out);

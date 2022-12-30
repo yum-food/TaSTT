@@ -31,6 +31,7 @@ private:
 
     wxTextCtrl* py_app_rows_;
     wxTextCtrl* py_app_cols_;
+    wxTextCtrl* py_app_window_duration_;
     wxTextCtrl* unity_rows_;
     wxTextCtrl* unity_cols_;
 

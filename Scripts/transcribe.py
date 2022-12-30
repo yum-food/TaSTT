@@ -25,6 +25,13 @@ import wave
 # License: MIT.
 import whisper
 
+class Config:
+    def __init__(self):
+        # The maximum length that recordAudio() will put into frames before it
+        # starts dropping from the start.
+        self.MAX_LENGTH_S = 10
+config = Config()
+
 class AudioState:
     def __init__(self):
         self.CHUNK = 1024
@@ -35,7 +42,6 @@ class AudioState:
 
         # The maximum length that recordAudio() will put into frames before it
         # starts dropping from the start.
-        self.MAX_LENGTH_S = 10
         self.MAX_LENGTH_S_WHISPER = 30
         # The minimum length that recordAudio() will wait for before saving audio.
         self.MIN_LENGTH_S = 1
@@ -119,7 +125,7 @@ def onAudioFramesAvailable(
 
     audio_state.frames.append(decimated)
 
-    max_frames = int(input_rate * audio_state.MAX_LENGTH_S / audio_state.CHUNK)
+    max_frames = int(input_rate * config.MAX_LENGTH_S / audio_state.CHUNK)
     if len(audio_state.frames) > max_frames:
         audio_state.frames = audio_state.frames[-1 * max_frames :]
 
@@ -428,6 +434,7 @@ if __name__ == "__main__":
     parser.add_argument("--enable_local_beep", type=int, help="Whether to play a local auditory indicator when transcription starts/stops.");
     parser.add_argument("--rows", type=int, help="The number of rows on the board")
     parser.add_argument("--cols", type=int, help="The number of columns on the board")
+    parser.add_argument("--window_duration_s", type=int, help="The length in seconds of the audio recording handed to the transcription algorithm");
     args = parser.parse_args()
 
     if not args.mic:
@@ -446,6 +453,9 @@ if __name__ == "__main__":
     if not args.rows or not args.cols:
         print("--rows and --cols required", file=sys.stderr)
         sys.exit(1)
+
+    if args.window_duration_s:
+        config.MAX_LENGTH_S = int(args.window_duration_s)
 
     generate_utils.config.BYTES_PER_CHAR = int(args.bytes_per_char)
     generate_utils.config.CHARS_PER_SYNC = int(args.chars_per_sync)

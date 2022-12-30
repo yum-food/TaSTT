@@ -125,7 +125,7 @@ wxProcess* PythonWrapper::StartApp(
 	std::function<void(wxProcess* proc, int ret)>&& exit_callback,
 	const std::string& mic, const std::string& lang, const std::string& model,
 	const std::string& chars_per_sync, const std::string& bytes_per_char,
-	int rows, int cols, bool enable_local_beep) {
+	int rows, int cols, int window_duration_s, bool enable_local_beep) {
 	return InvokeAsyncWithArgs({
 		"-u",
 		"Resources/Scripts/transcribe.py",
@@ -137,6 +137,7 @@ wxProcess* PythonWrapper::StartApp(
 		"--enable_local_beep", enable_local_beep ? "1" : "0",
 		"--rows", std::to_string(rows),
 		"--cols", std::to_string(cols),
+		"--window_duration_s", std::to_string(window_duration_s),
 		},
 		std::move(exit_callback));
 }
