@@ -58,6 +58,8 @@ private:
     void OnAppDrain(wxTimerEvent& event);
     void DrainApp(wxProcess* proc, wxTextCtrl *frame);
     void OnGenerateFX(wxCommandEvent& event);
+    void OnUnityParamChangeImpl();
+    void OnUnityParamChange(wxCommandEvent& event);
 
     void LoadAndSetIcons();
     void Resize();

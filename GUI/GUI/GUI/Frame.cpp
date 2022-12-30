@@ -45,7 +45,7 @@ namespace {
 		ID_UNITY_PARAMETERS_GENERATED_NAME,
 		ID_UNITY_MENU_GENERATED_NAME,
 		ID_UNITY_BUTTON_GEN_ANIMATOR,
-        ID_UNITY_chars_per_sync,
+        ID_UNITY_CHARS_PER_SYNC,
         ID_UNITY_BYTES_PER_CHAR,
     };
 
@@ -494,7 +494,7 @@ Frame::Frame()
                     unity_menu_generated_name_ = unity_menu_generated_name;
 
                     auto* unity_chars_per_sync = new wxChoice(unity_config_panel_pairs,
-                        ID_UNITY_chars_per_sync, wxDefaultPosition,
+                        ID_UNITY_CHARS_PER_SYNC, wxDefaultPosition,
                         wxDefaultSize, kNumCharsPerSync, kCharsPerSync);
                     unity_chars_per_sync->SetSelection(kCharsDefault);
 					unity_chars_per_sync->SetToolTip(
@@ -580,12 +580,15 @@ Frame::Frame()
 	Bind(wxEVT_BUTTON, &Frame::OnSetupPython, this, ID_PY_SETUP_BUTTON);
 	Bind(wxEVT_BUTTON, &Frame::OnDumpMics, this, ID_PY_DUMP_MICS_BUTTON);
 	Bind(wxEVT_BUTTON, &Frame::OnGenerateFX, this, ID_UNITY_BUTTON_GEN_ANIMATOR);
+    Bind(wxEVT_CHOICE, &Frame::OnUnityParamChange, this, ID_UNITY_CHARS_PER_SYNC);
+    Bind(wxEVT_CHOICE, &Frame::OnUnityParamChange, this, ID_UNITY_BYTES_PER_CHAR);
 
 	// wx needs this to be able to load PNGs.
 	wxImage::AddHandler(&png_handler_);
 	LoadAndSetIcons();
 
     Resize();
+	OnUnityParamChangeImpl();
 
     // Every 100 milliseconds we drain output from the Python app.
     py_app_drain_.Start(/*milliseconds=*/100);
@@ -725,6 +728,47 @@ void Frame::OnGenerateFX(wxCommandEvent& event)
         unity_out_)) {
         wxLogError("Failed to generate animator:\n%s\n", out.c_str());
     }
+}
+
+void Frame::OnUnityParamChangeImpl() {
+    int chars_per_sync_idx = unity_chars_per_sync_->GetSelection();
+    if (chars_per_sync_idx == wxNOT_FOUND) {
+        chars_per_sync_idx = kCharsDefault;
+    }
+    std::string chars_per_sync_str = kCharsPerSync[chars_per_sync_idx].ToStdString();
+    int chars_per_sync = std::stoi(chars_per_sync_str);
+    int bytes_per_char_idx = unity_bytes_per_char_->GetSelection();
+    if (bytes_per_char_idx == wxNOT_FOUND) {
+        bytes_per_char_idx = kBytesDefault;
+    }
+    std::string bytes_per_char_str = kBytesPerChar[bytes_per_char_idx].ToStdString();
+    int bytes_per_char = std::stoi(bytes_per_char_str);
+
+    // Used to select which region is being updated.
+    int select_bits = 8;
+    // Used to update the active region.
+    int layer_bits = (chars_per_sync * bytes_per_char) * 8;
+    // Used to control the size of the board.
+    int scale_bits = 8;
+    // These are all the misc bits we use:
+    //   1. dummy (we should get rid of this one)
+    //   2. show
+    //   3. disable
+    //   4. lock
+    //   5. clear
+    //   6. audio indicator enable
+    //   7. audio indicator toggle
+    //   8. visual indicator 1
+    //   9. visual indicator 2
+    int misc_bits = 9;
+    int total_bits = select_bits + layer_bits + scale_bits + misc_bits;
+    Log(unity_out_, "This configuration will use {} bits of avatar parameter space:\n", total_bits);
+    Log(unity_out_, "  {} bits coming from ({} chars per sync) * ({} bytes per char)\n", layer_bits, chars_per_sync, bytes_per_char);
+    Log(unity_out_, "  {} bits coming from fixed overheads\n", select_bits + scale_bits + misc_bits);
+}
+
+void Frame::OnUnityParamChange(wxCommandEvent& event) {
+	OnUnityParamChangeImpl();
 }
 
 void Frame::OnAppStart(wxCommandEvent& event) {
