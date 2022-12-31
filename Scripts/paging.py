@@ -38,8 +38,7 @@ class SingleLinePager:
             old_slice = getSlice(self.msg, i, self.slice_len)
             new_slice = getSlice(msg, i, self.slice_len)
             if old_slice != new_slice:
-                self.msg = setSlice(self.msg, i, self.slice_len, new_slice,
-                        include_suffix = False)
+                self.msg = setSlice(self.msg, i, self.slice_len, new_slice)
                 return new_slice, i
         return "", -1
 
@@ -70,6 +69,10 @@ class MultiLinePager:
             pager = self.pages[pi]
             msg_slice, slice_idx = pager.getNextSlice(line)
             if slice_idx != -1:
+                # Reset every page after this. This guarantees that any text
+                # written in this operation will eventually be redrawn.
+                for pj in range(pi + 1, len(pages)):
+                    self.pages[pj].reset()
                 return msg_slice, slice_idx
         return "", -1
 
@@ -91,7 +94,6 @@ if __name__ == "__main__":
     p.msg = "test"
     assert(p.getNextSlice("test")[0] == "")
     assert(p.getNextSlice("tast")[0] == "ta")
-    assert(p.getNextSlice("tast")[0] == "st")
     assert(p.getNextSlice("tast")[0] == "")
 
     p.msg = ""
@@ -111,7 +113,6 @@ if __name__ == "__main__":
     assert(p.getNextSlice("yo")[0] == "yo")
     assert(p.getNextSlice("yogi")[0] == "gi")
     assert(p.getNextSlice("yugi")[0] == "yu")
-    assert(p.getNextSlice("yugi is a")[0] == "gi")
     assert(p.getNextSlice("yugi is a")[0] == "is")
     assert(p.getNextSlice("yugi is a")[0] == " a")
     assert(p.getNextSlice("yugi is a pussy")[0] == "pu")
