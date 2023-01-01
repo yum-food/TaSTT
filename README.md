@@ -24,6 +24,9 @@ To use a prebuilt package, go to the releases tab and download the latest
 release. Follow the guide associated with that release. To give you a taste,
 [here's the v0.0 setup guide](https://www.youtube.com/watch?v=0qjxkdVTqcs).
 
+Please [join the discord](https://discord.gg/YWmCvbCRyn) to share feedback and
+get technical help.
+
 To build your own package from source, see GUI/README.md.
 
 Basic controls:
