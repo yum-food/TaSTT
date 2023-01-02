@@ -8,12 +8,16 @@ $ git submodule update
 ```
 2. Execute Libraries/fetch.ps1.
 3. Open Libraries/wx/build/msw/wx\_vc17.sln with Visual Studio 2022.
-4. Build x64/Release.
+4. Select every project in the Solution Explorer except for _custom_build.
+5. Right click, select Properties, go to C/C++, Code Generation, and set
+   Runtime Library to Multi-threaded (/MT). Make sure this applies to the
+   configuration x64/Release.
+6. Build x64/Release.
   1. The build configuration is in the top. By default it's probably Debug/x64.
   2. To build: ctrl+shift+B
-5. Open GUI/GUI.sln with Visual Studio 2022.
-6. Build x64/Release.
-7. Run package.ps1 from powershell.
+7. Open GUI/GUI.sln with Visual Studio 2022.
+8. Build x64/Release.
+9. Run package.ps1 from powershell.
 
 ## High level design
 
