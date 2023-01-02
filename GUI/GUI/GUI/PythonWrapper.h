@@ -22,6 +22,13 @@ namespace PythonWrapper
 	wxProcess* InvokeAsyncWithArgs(std::vector<std::string>&& args,
 		std::function<void(wxProcess* proc, int ret)>&& exit_callback);
 
+	// Invoke a command on the shell with arguments.
+	// On error, sets `out` to an error message and returns false.
+	bool InvokeCommandWithArgs(const std::string& cmd,
+		std::vector<std::string>&& args,
+		std::string* py_stdout,
+		std::string* py_stderr = NULL);
+
 	// Invoke the interpreter with arguments.
 	// On error, sets `out` to an error message and returns false.
 	bool InvokeWithArgs(std::vector<std::string>&& args, std::string* py_stdout,
@@ -44,7 +51,8 @@ namespace PythonWrapper
 		std::function<void(wxProcess* proc, int ret)>&& exit_callback,
 		const std::string& mic, const std::string& lang, const std::string& model,
 		const std::string& chars_per_sync, const std::string& bytes_per_char,
-		int rows, int cols, int window_duration_s, bool enable_local_beep
+		int rows, int cols, int window_duration_s, bool enable_local_beep,
+		bool use_cpu
 		);
 
 	bool GenerateAnimator(

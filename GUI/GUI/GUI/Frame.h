@@ -50,6 +50,7 @@ private:
     wxChoice* unity_bytes_per_char_;
 
     wxCheckBox* py_app_enable_local_beep_;
+    wxCheckBox* py_app_use_cpu_;
 
     wxProcess* py_app_;
     wxTimer py_app_drain_;

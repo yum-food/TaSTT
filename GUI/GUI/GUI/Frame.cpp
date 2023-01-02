@@ -32,6 +32,7 @@ namespace {
         ID_PY_APP_BYTES_PER_CHAR,
         ID_PY_APP_MODEL_PANEL,
         ID_PY_APP_ENABLE_LOCAL_BEEP,
+        ID_PY_APP_USE_CPU,
         ID_PY_APP_ROWS,
         ID_PY_APP_COLS,
         ID_PY_APP_WINDOW_DURATION,
@@ -394,6 +395,17 @@ Frame::Frame()
                 );
                 py_app_enable_local_beep_ = py_app_enable_local_beep;
 
+                auto* py_app_use_cpu = new wxCheckBox(py_config_panel,
+                    ID_PY_APP_USE_CPU, "Use CPU");
+                py_app_use_cpu->SetValue(false);
+                py_app_use_cpu->SetToolTip(
+                    "If checked, the transcription engine will run on your "
+                    "CPU instead of your GPU. This is typically much slower "
+                    "and should only be used if you aren't able to use your "
+                    "GPU."
+                );
+                py_app_use_cpu_ = py_app_use_cpu;
+
                 auto* py_app_start_button = new wxButton(py_config_panel, ID_PY_APP_START_BUTTON, "Begin transcribing");
                 auto* py_app_stop_button = new wxButton(py_config_panel, ID_PY_APP_STOP_BUTTON, "Stop transcribing");
 
@@ -403,6 +415,7 @@ Frame::Frame()
                 sizer->Add(py_dump_mics_button, /*proportion=*/0, /*flags=*/wxEXPAND);
                 sizer->Add(py_app_config_panel_pairs, /*proportion=*/0, /*flags=*/wxEXPAND);
                 sizer->Add(py_app_enable_local_beep, /*proportion=*/0, /*flags=*/wxEXPAND);
+                sizer->Add(py_app_use_cpu, /*proportion=*/0, /*flags=*/wxEXPAND);
                 sizer->Add(py_app_start_button, /*proportion=*/0, /*flags=*/wxEXPAND);
                 sizer->Add(py_app_stop_button, /*proportion=*/0, /*flags=*/wxEXPAND);
             }
@@ -888,6 +901,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
         bytes_per_char_idx = kBytesDefault;
     }
     const bool enable_local_beep = py_app_enable_local_beep_->GetValue();
+    const bool use_cpu = py_app_use_cpu_->GetValue();
     std::string rows_str = py_app_rows_->GetValue().ToStdString();
     std::string cols_str = py_app_cols_->GetValue().ToStdString();
     std::string window_duration_str = py_app_window_duration_->GetValue().ToStdString();
@@ -929,7 +943,8 @@ void Frame::OnAppStart(wxCommandEvent& event) {
         rows,
         cols,
         window_duration,
-        enable_local_beep);
+        enable_local_beep,
+        use_cpu);
     if (!p) {
         Log(transcribe_out_, "Failed to launch transcription engine\n");
         return;

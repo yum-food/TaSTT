@@ -42,17 +42,29 @@ wxProcess* PythonWrapper::InvokeAsyncWithArgs(std::vector<std::string>&& args,
 	return p;
 }
 
-bool PythonWrapper::InvokeWithArgs(std::vector<std::string>&& args,
+bool PythonWrapper::InvokeCommandWithArgs(
+	const std::string& cmd,
+	std::vector<std::string>&& args,
 	std::string* py_stdout, std::string* py_stderr) {
 	std::ostringstream cmd_oss;
-	cmd_oss << "Resources/Python/python.exe";
+	cmd_oss << cmd;
 	for (const auto& arg : args) {
 		cmd_oss << " " << arg;
 	}
 
+	wxString path;
+	if (!wxGetEnv("PATH", &path)) {
+		*py_stderr = "Failed to get PATH";
+		return false;
+	}
+	if (!wxSetEnv("PATH", path + ";Resources/PortableGit/bin")) {
+		*py_stderr = "Failed to append to PATH";
+		return false;
+	}
+
 	wxArrayString cmd_stdout;
 	wxArrayString cmd_stderr;
-	long result = wxExecute(cmd_oss.str(), cmd_stdout, cmd_stderr);
+	long result = wxExecute(cmd_oss.str(), cmd_stdout, cmd_stderr, /*flags=*/0);
 	std::ostringstream cmd_stdout_oss;
 	for (const auto& line : cmd_stdout) {
 		if (!cmd_stdout_oss.str().empty()) {
@@ -69,7 +81,9 @@ bool PythonWrapper::InvokeWithArgs(std::vector<std::string>&& args,
 	}
 	if (result == -1) {
 		std::ostringstream err_oss;
-		err_oss << "Error while executing python command \"" << cmd_oss.str() << "\": Failed to launch process";
+		err_oss << "Error while executing python command \"" << cmd_oss.str() << "\": Failed to launch process" << std::endl;
+		err_oss << cmd_stdout_oss.str() << std::endl;
+		err_oss << cmd_stderr_oss.str() << std::endl;
 		if (py_stderr) {
 			*py_stderr = err_oss.str();
 		}
@@ -94,6 +108,11 @@ bool PythonWrapper::InvokeWithArgs(std::vector<std::string>&& args,
 	return true;
 }
 
+bool PythonWrapper::InvokeWithArgs(std::vector<std::string>&& args,
+	std::string* py_stdout, std::string* py_stderr) {
+	return InvokeCommandWithArgs("Resources/Python/python.exe",
+		std::move(args), py_stdout, py_stderr);
+}
 
 std::string PythonWrapper::GetVersion() {
 	std::string py_stdout, py_stderr;
@@ -125,7 +144,8 @@ wxProcess* PythonWrapper::StartApp(
 	std::function<void(wxProcess* proc, int ret)>&& exit_callback,
 	const std::string& mic, const std::string& lang, const std::string& model,
 	const std::string& chars_per_sync, const std::string& bytes_per_char,
-	int rows, int cols, int window_duration_s, bool enable_local_beep) {
+	int rows, int cols, int window_duration_s, bool enable_local_beep,
+	bool use_cpu) {
 	return InvokeAsyncWithArgs({
 		"-u",
 		"Resources/Scripts/transcribe.py",
@@ -138,6 +158,7 @@ wxProcess* PythonWrapper::StartApp(
 		"--rows", std::to_string(rows),
 		"--cols", std::to_string(cols),
 		"--window_duration_s", std::to_string(window_duration_s),
+		"--cpu", use_cpu ? "1" : "0",
 		},
 		std::move(exit_callback));
 }
