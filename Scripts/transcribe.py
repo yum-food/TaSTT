@@ -88,7 +88,7 @@ class AudioState:
     def sleepInterruptible(self, dur_s, stride_ms = 5):
         dur_ms = dur_s * 1000.0
         timeout = time.time() + dur_s
-        while self.audio_paused and time.time() < timeout:
+        while self.audio_paused and self.run_app and time.time() < timeout:
             time.sleep(stride_ms / 1000.0)
 
 def dumpMicDevices():
@@ -263,9 +263,14 @@ def transcribeAudio(audio_state, model, use_cpu: bool):
             audio_state.transcribe_no_change_count += 1
         longer_sleep_dur = audio_state.transcribe_sleep_duration
         longer_sleep_dur += audio_state.transcribe_sleep_duration_min_s * (1.3**audio_state.transcribe_no_change_count)
-        audio_state.transcribe_sleep_duration = min(
-                audio_state.transcribe_sleep_duration_max_s,
-                longer_sleep_dur)
+        if audio_state.audio_paused:
+            audio_state.transcribe_sleep_duration = min(
+                    1000 * 1000,
+                    longer_sleep_dur)
+        else:
+            audio_state.transcribe_sleep_duration = min(
+                    audio_state.transcribe_sleep_duration_max_s,
+                    longer_sleep_dur)
 
         text = transcribe(audio_state, model, audio_state.frames, use_cpu)
         if not text:

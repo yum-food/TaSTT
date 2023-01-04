@@ -730,46 +730,40 @@ void Frame::OnDumpMics(wxCommandEvent& event)
     Log(transcribe_out_, "{}\n", PythonWrapper::DumpMics());
 }
 
-#define DEBUG
+bool GetUserPath(const std::string& raw, std::filesystem::path& clean, const std::string& err_prefix = "", bool must_exist = true) {
+    clean = raw;
+    if (must_exist && !std::filesystem::exists(clean)) {
+        std::ostringstream oss;
+        oss << err_prefix << ": User-provided path does not exist at " << clean << std::endl;
+        wxLogError(oss.str().c_str());
+        return false;
+    }
+    return true;
+}
 
 void Frame::OnGenerateFX(wxCommandEvent& event)
 {
-    std::filesystem::path unity_assets_path = unity_assets_file_picker_->GetPath().ToStdString();
-#ifndef DEBUG
-    if (!std::filesystem::exists(unity_assets_path)) {
-        std::ostringstream oss;
-        oss << "Cannot generate FX layer: assets directory does not exist at " << unity_assets_path << std::endl;
-        wxLogError(oss.str().c_str());
+    std::filesystem::path unity_assets_path;
+    if (!GetUserPath(unity_assets_file_picker_->GetPath().ToStdString(), unity_assets_path,
+        "Cannot generate FX layer: Failed to validate assets directory")) {
         return;
     }
-#endif
-    std::filesystem::path unity_animator_path = unity_animator_file_picker_->GetPath().ToStdString();
-#ifndef DEBUG
-    if (!std::filesystem::exists(unity_animator_path)) {
-        std::ostringstream oss;
-        oss << "Cannot generate FX layer: animator does not exist at " << unity_animator_path << std::endl;
-        wxLogError(oss.str().c_str());
+    std::filesystem::path unity_animator_path;
+    if (!GetUserPath(unity_animator_file_picker_->GetPath().ToStdString(), unity_animator_path,
+        "Cannot generate FX layer: Failed to validate animator directory")) {
         return;
     }
-#endif
-    std::filesystem::path unity_parameters_path = unity_parameters_file_picker_->GetPath().ToStdString();
-#ifndef DEBUG
-    if (!std::filesystem::exists(unity_parameters_path)) {
-        std::ostringstream oss;
-        oss << "Cannot generate FX layer: parameters do not exist at " << unity_parameters_path << std::endl;
-        wxLogError(oss.str().c_str());
+    std::filesystem::path unity_parameters_path;
+    if (!GetUserPath(unity_parameters_file_picker_->GetPath().ToStdString(), unity_parameters_path,
+        "Cannot generate FX layer: Failed to validate parameters directory")) {
         return;
     }
-#endif
-    std::filesystem::path unity_menu_path = unity_menu_file_picker_->GetPath().ToStdString();
-#ifndef DEBUG
-    if (!std::filesystem::exists(unity_menu_path)) {
-        std::ostringstream oss;
-        oss << "Cannot generate FX layer: menu does not exist at " << unity_menu_path << std::endl;
-        wxLogError(oss.str().c_str());
+    std::filesystem::path unity_menu_path;
+    if (!GetUserPath(unity_menu_file_picker_->GetPath().ToStdString(), unity_menu_path,
+        "Cannot generate FX layer: Failed to validate menu directory")) {
         return;
     }
-#endif
+
     std::string unity_animator_generated_dir = unity_animator_generated_dir_->GetLineText(0).ToStdString();
     std::string unity_animator_generated_name = unity_animator_generated_name_->GetLineText(0).ToStdString();
     std::string unity_parameters_generated_name = unity_parameters_generated_name_->GetLineText(0).ToStdString();
@@ -804,10 +798,10 @@ void Frame::OnGenerateFX(wxCommandEvent& event)
 
     std::string out;
     if (!PythonWrapper::GenerateAnimator(
-        unity_assets_path.string(),
-        unity_animator_path.string(),
-        unity_parameters_path.string(),
-        unity_menu_path.string(),
+        unity_assets_path,
+        unity_animator_path,
+        unity_parameters_path,
+        unity_menu_path,
         unity_animator_generated_dir,
         unity_animator_generated_name,
         unity_parameters_generated_name,

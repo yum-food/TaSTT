@@ -8,6 +8,7 @@
 
 #include <wx/process.h>
 
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -56,10 +57,10 @@ namespace PythonWrapper
 		);
 
 	bool GenerateAnimator(
-		const std::string& unity_assets_path,
-		const std::string& unity_animator_path,
-		const std::string& unity_parameters_path,
-		const std::string& unity_menu_path,
+		const std::filesystem::path& unity_assets_path,
+		const std::filesystem::path& unity_animator_path,
+		const std::filesystem::path& unity_parameters_path,
+		const std::filesystem::path& unity_menu_path,
 		const std::string& unity_animator_generated_dir,
 		const std::string& unity_animator_generated_name,
 		const std::string& unity_parameters_generated_name,

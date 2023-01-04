@@ -405,7 +405,6 @@
           letter_uv = GetLetter(uv_with_margin, letter, texture_cols, texture_rows, 8, 4);
         }
 
-        fixed4 background = TaSTT_Backplate.Sample(sampler_linear_repeat, uv);
         fixed4 text;
 
         int which_texture = (int) floor(letter / (64 * 128));
@@ -438,7 +437,7 @@
         }
         fixed4 black = fixed4(0,0,0,1);
         if (text.r == black.r && text.g == black.g && text.b == black.b && text.a == black.a) {
-          return background;
+          return TaSTT_Backplate.Sample(sampler_linear_repeat, uv);
         } else {
           return text;
         }

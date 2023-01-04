@@ -172,6 +172,11 @@ Contributions welcome. Send a pull request to this repository.
       checking transcriptions without having to see the board in game.
    6. TTS. Multiple people have requested this. See if there are open source
       algorithms available; or, figure out how to integrate with
+   7. Save UI input fields to config file. Persist across process exit. It's
+      annoying having to re-enter the config every time I use the STT.
+   8. Customizable controller bindings. Someone mentioned they use left click
+      to unmute. Let's work around users, not make them change their existing
+      keybinds.
 4. Optimization
    1. ~~Utilize the avatar 3.0 SDK's ability to drive parameters to reduce the
      total # of parameters (and therefore OSC messages & sync events). Note
