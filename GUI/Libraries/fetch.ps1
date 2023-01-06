@@ -6,6 +6,7 @@ $WX_FILE = $(Split-Path -Path $WX_URL -Leaf)
 
 pushd $PSScriptRoot
 
+# WX
 if (Test-Path wx) {
   rm -Recurse wx
 }
@@ -16,5 +17,20 @@ Invoke-WebRequest $WX_URL -OutFile $WX_FILE
 Expand-Archive $WX_FILE -DestinationPath .
 popd > $null
 
-popd > $null
+# RAPIDYAML
+if (Test-Path rapidyaml) {
+  rm -Recurse rapidyaml
+}
+
+git clone https://github.com/biojppm/rapidyaml
+pushd rapidyaml > $null
+git checkout v0.5.0
+git submodule update --init --recursive
+
+python3 tools/amalgamate.py ryml.h
+cp ryml.h ../../GUI/GUI/ryml.h
+
+popd > $null  # rapidyaml
+
+popd > $null  # $PSScriptRoot
 

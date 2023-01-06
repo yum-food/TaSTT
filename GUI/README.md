@@ -1,23 +1,24 @@
 ## Build instructions
 
-0. Open Powershell.
-1. Make sure you've downloaded submodules:
+0. Install build dependencies: git, python3, Visual Studio 2022
+1. Open Powershell.
+2. Make sure you've downloaded submodules:
 ```
 $ git submodule init
 $ git submodule update
 ```
-2. Execute Libraries/fetch.ps1.
-3. Open Libraries/wx/build/msw/wx\_vc17.sln with Visual Studio 2022.
-4. Select every project in the Solution Explorer except for _custom_build.
-5. Right click, select Properties, go to C/C++, Code Generation, and set
+3. Execute Libraries/fetch.ps1.
+4. Open Libraries/wx/build/msw/wx\_vc17.sln with Visual Studio 2022.
+5. Select every project in the Solution Explorer except for _custom_build.
+6. Right click, select Properties, go to C/C++, Code Generation, and set
    Runtime Library to Multi-threaded (/MT). Make sure this applies to the
    configuration x64/Release.
-6. Build x64/Release.
+7. Build x64/Release.
   1. The build configuration is in the top. By default it's probably Debug/x64.
   2. To build: ctrl+shift+B
-7. Open GUI/GUI.sln with Visual Studio 2022.
-8. Build x64/Release.
-9. Run package.ps1 from powershell.
+8. Open GUI/GUI.sln with Visual Studio 2022.
+9. Build x64/Release.
+10. Run package.ps1 from powershell.
 
 ## High level design
 

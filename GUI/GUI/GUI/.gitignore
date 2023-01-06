@@ -3,3 +3,5 @@ x64
 x86
 # No .rc generated files
 GUI.APS
+# No fetched files
+ryml.h

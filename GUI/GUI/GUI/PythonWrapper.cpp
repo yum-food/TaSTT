@@ -1,6 +1,8 @@
 #include "Logging.h"
 #include "PythonWrapper.h"
 
+#include "Config.h"
+
 #include <stdio.h>
 
 #include <filesystem>
@@ -142,23 +144,20 @@ bool PythonWrapper::InstallPip(std::string* out) {
 
 wxProcess* PythonWrapper::StartApp(
 	std::function<void(wxProcess* proc, int ret)>&& exit_callback,
-	const std::string& mic, const std::string& lang, const std::string& model,
-	const std::string& chars_per_sync, const std::string& bytes_per_char,
-	int rows, int cols, int window_duration_s, bool enable_local_beep,
-	bool use_cpu) {
+	const TranscriptionAppConfig& config) {
 	return InvokeAsyncWithArgs({
 		"-u",
 		"Resources/Scripts/transcribe.py",
-		"--mic", mic,
-		"--lang", lang,
-		"--model", model,
-		"--chars_per_sync", chars_per_sync,
-		"--bytes_per_char", bytes_per_char,
-		"--enable_local_beep", enable_local_beep ? "1" : "0",
-		"--rows", std::to_string(rows),
-		"--cols", std::to_string(cols),
-		"--window_duration_s", std::to_string(window_duration_s),
-		"--cpu", use_cpu ? "1" : "0",
+		"--mic", config.microphone,
+		"--lang", config.language,
+		"--model", config.model,
+		"--chars_per_sync", config.chars_per_sync,
+		"--bytes_per_char", config.bytes_per_char,
+		"--enable_local_beep", config.enable_local_beep ? "1" : "0",
+		"--rows", config.rows,
+		"--cols", config.cols,
+		"--window_duration_s", config.window_duration,
+		"--cpu", config.use_cpu ? "1" : "0",
 		},
 		std::move(exit_callback));
 }

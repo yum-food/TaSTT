@@ -8,6 +8,8 @@
 
 #include <wx/process.h>
 
+#include "Config.h"
+
 #include <filesystem>
 #include <string>
 #include <vector>
@@ -50,11 +52,7 @@ namespace PythonWrapper
 	// app restarts.
 	wxProcess* StartApp(
 		std::function<void(wxProcess* proc, int ret)>&& exit_callback,
-		const std::string& mic, const std::string& lang, const std::string& model,
-		const std::string& chars_per_sync, const std::string& bytes_per_char,
-		int rows, int cols, int window_duration_s, bool enable_local_beep,
-		bool use_cpu
-		);
+		const TranscriptionAppConfig& config);
 
 	bool GenerateAnimator(
 		const std::filesystem::path& unity_assets_path,

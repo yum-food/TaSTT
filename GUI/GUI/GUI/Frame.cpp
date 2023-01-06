@@ -2,6 +2,8 @@
 #include "Logging.h"
 #include "PythonWrapper.h"
 
+#include "Config.h"
+
 #include <filesystem>
 #include <string>
 #include <vector>
@@ -226,6 +228,20 @@ namespace {
     const size_t kNumBytesPerChar = sizeof(kBytesPerChar) / sizeof(kBytesPerChar[0]);
     // Sorry international users. Optimize for English speakers, by default.
     constexpr int kBytesDefault = 0;
+
+    // Given the string value of a dropdown menu's entry, find its index. If no
+    // entry matches, return `default_index`.
+	int GetDropdownChoiceIndex(const wxString menu[],
+        const size_t num_menu_entries, const std::string& entry,
+		const int default_index) {
+		for (int i = 0; i < num_menu_entries; i++) {
+			if (entry == menu[i]) {
+				return i;
+			}
+		}
+		return default_index;
+	}
+
 }  // namespace
 
 using ::Logging::Log;
@@ -235,6 +251,9 @@ Frame::Frame()
     py_app_(nullptr),
     py_app_drain_(this, ID_PY_APP_DRAIN)
 {
+    TranscriptionAppConfig c;
+    c.Deserialize(TranscriptionAppConfig::kConfigPath);
+
     auto* main_panel = new wxPanel(this, ID_MAIN_PANEL);
 	main_panel_ = main_panel;
     {
@@ -282,7 +301,8 @@ Frame::Frame()
                 {
                     auto* py_app_mic = new wxChoice(py_app_config_panel_pairs, ID_PY_APP_MIC, wxDefaultPosition,
                         wxDefaultSize, kNumMicChoices, kMicChoices);
-                    py_app_mic->SetSelection(kMicDefault);
+                    int mic_idx = GetDropdownChoiceIndex(kMicChoices, kNumMicChoices, c.microphone, kMicDefault);
+                    py_app_mic->SetSelection(mic_idx);
                     py_app_mic->SetToolTip(
                         "Select which microphone to listen to when "
                         "transcribing. To get list microphones and get their "
@@ -291,7 +311,8 @@ Frame::Frame()
 
                     auto* py_app_lang = new wxChoice(py_app_config_panel_pairs, ID_PY_APP_LANG, wxDefaultPosition,
                         wxDefaultSize, kNumLangChoices, kLangChoices);
-                    py_app_lang->SetSelection(kLangDefault);
+                    int lang_idx = GetDropdownChoiceIndex(kLangChoices, kNumLangChoices, c.language, kLangDefault);
+                    py_app_lang->SetSelection(lang_idx);
                     py_app_lang->SetToolTip("Select which language you will "
                         "speak in. It will be transcribed into that language. "
                         "If using a language with non-ASCII characters (i.e. "
@@ -302,7 +323,8 @@ Frame::Frame()
 
                     auto* py_app_model = new wxChoice(py_app_config_panel_pairs, ID_PY_APP_MODEL, wxDefaultPosition,
                         wxDefaultSize, kNumModelChoices, kModelChoices);
-                    py_app_model->SetSelection(kModelDefault);
+                    int model_idx = GetDropdownChoiceIndex(kModelChoices, kNumModelChoices, c.model, kModelDefault);
+                    py_app_model->SetSelection(model_idx);
                     py_app_model->SetToolTip("Select which version of "
                         "the transcription model to use. 'base' is a good "
                         "choice for most users. 'small' is slightly more "
@@ -314,7 +336,8 @@ Frame::Frame()
                     auto* py_app_chars_per_sync = new wxChoice(py_app_config_panel_pairs,
                         ID_PY_APP_CHARS_PER_SYNC, wxDefaultPosition,
                         wxDefaultSize, kNumCharsPerSync, kCharsPerSync);
-                    py_app_chars_per_sync->SetSelection(kCharsDefault);
+                    int chars_idx = GetDropdownChoiceIndex(kCharsPerSync, kNumCharsPerSync, c.chars_per_sync, kCharsDefault);
+                    py_app_chars_per_sync->SetSelection(chars_idx);
                     py_app_chars_per_sync->SetToolTip(
                         "VRChat syncs avatar parameters roughly 5 times per "
                         "second. We use this to send text to the box. By "
@@ -325,28 +348,29 @@ Frame::Frame()
                     auto* py_app_bytes_per_char = new wxChoice(py_app_config_panel_pairs,
                         ID_PY_APP_BYTES_PER_CHAR, wxDefaultPosition,
                         wxDefaultSize, kNumBytesPerChar, kBytesPerChar);
-                    py_app_bytes_per_char->SetSelection(kBytesDefault);
+                    int bytes_idx = GetDropdownChoiceIndex(kBytesPerChar, kNumBytesPerChar, c.bytes_per_char, kBytesDefault);
+                    py_app_bytes_per_char->SetSelection(bytes_idx);
 					py_app_bytes_per_char->SetToolTip(
 						"If you speak a language that uses non-ASCII "
 						"characters (i.e. not English), set this to 2.");
                     py_app_bytes_per_char_ = py_app_bytes_per_char;
 
                     auto* py_app_rows = new wxTextCtrl(py_app_config_panel_pairs,
-                        ID_PY_APP_ROWS, /*value=*/"4",
+                        ID_PY_APP_ROWS, c.rows,
                         wxDefaultPosition, wxDefaultSize, /*style=*/0);
                     py_app_rows->SetToolTip(
                         "The number of rows on the text box.");
                     py_app_rows_ = py_app_rows;
 
                     auto* py_app_cols = new wxTextCtrl(py_app_config_panel_pairs,
-                        ID_PY_APP_COLS, /*value=*/"48",
+                        ID_PY_APP_COLS, c.cols,
                         wxDefaultPosition, wxDefaultSize, /*style=*/0);
                     py_app_cols->SetToolTip(
                         "The number of columns on the text box.");
                     py_app_cols_ = py_app_cols;
 
                     auto* py_app_window_duration = new wxTextCtrl(py_app_config_panel_pairs,
-                        ID_PY_APP_WINDOW_DURATION, /*value=*/"15",
+                        ID_PY_APP_WINDOW_DURATION, c.window_duration,
                         wxDefaultPosition, wxDefaultSize, /*style=*/0);
                     py_app_window_duration->SetToolTip(
                         "This controls how long the slice of audio that "
@@ -387,7 +411,7 @@ Frame::Frame()
 
                 auto* py_app_enable_local_beep = new wxCheckBox(py_config_panel,
                     ID_PY_APP_ENABLE_LOCAL_BEEP, "Enable local beep");
-                py_app_enable_local_beep->SetValue(true);
+                py_app_enable_local_beep->SetValue(c.enable_local_beep);
                 py_app_enable_local_beep->SetToolTip(
                     "By default, TaSTT will play a sound (audible only to "
                     "you) when it begins transcription and when it stops. "
@@ -397,7 +421,7 @@ Frame::Frame()
 
                 auto* py_app_use_cpu = new wxCheckBox(py_config_panel,
                     ID_PY_APP_USE_CPU, "Use CPU");
-                py_app_use_cpu->SetValue(false);
+                py_app_use_cpu->SetValue(c.use_cpu);
                 py_app_use_cpu->SetToolTip(
                     "If checked, the transcription engine will run on your "
                     "CPU instead of your GPU. This is typically much slower "
@@ -928,17 +952,20 @@ void Frame::OnAppStart(wxCommandEvent& event) {
         return;
     }
 
-    wxProcess* p = PythonWrapper::StartApp(std::move(cb),
-        kMicChoices[which_mic].ToStdString(),
-        kLangChoices[which_lang].ToStdString(),
-        kModelChoices[which_model].ToStdString(),
-        kCharsPerSync[chars_per_sync_idx].ToStdString(),
-        kBytesPerChar[bytes_per_char_idx].ToStdString(),
-        rows,
-        cols,
-        window_duration,
-        enable_local_beep,
-        use_cpu);
+    TranscriptionAppConfig c;
+    c.microphone = kMicChoices[which_mic].ToStdString();
+    c.language = kLangChoices[which_lang].ToStdString();
+    c.model = kModelChoices[which_model].ToStdString();
+    c.chars_per_sync = kCharsPerSync[chars_per_sync_idx].ToStdString();
+    c.bytes_per_char = kBytesPerChar[bytes_per_char_idx].ToStdString();
+    c.rows = std::to_string(rows);
+    c.cols = std::to_string(cols);
+    c.window_duration = std::to_string(window_duration);
+    c.enable_local_beep = enable_local_beep;
+    c.use_cpu = use_cpu;
+    c.Serialize(TranscriptionAppConfig::kConfigPath);
+
+    wxProcess* p = PythonWrapper::StartApp(std::move(cb), c);
     if (!p) {
         Log(transcribe_out_, "Failed to launch transcription engine\n");
         return;
