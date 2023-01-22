@@ -303,17 +303,21 @@ def transcribeAudio(audio_state, model, use_cpu: bool):
             audio_state.transcribe_no_change_count = 0
             audio_state.transcribe_sleep_duration = audio_state.transcribe_sleep_duration_min_s
 
-def sendAudio(audio_state):
+def sendAudio(audio_state, use_builtin: bool):
     while audio_state.run_app == True:
         text = audio_state.committed_text + " " + audio_state.text
-        ret = osc_ctrl.pageMessage(audio_state.osc_state, text)
-        is_paging = (ret == False)
-        osc_ctrl.indicatePaging(audio_state.osc_state.client, is_paging)
+        if use_builtin:
+            ret = osc_ctrl.pageMessageBuiltin(audio_state.osc_state, text)
+            time.sleep(1.5)
+        else:
+            ret = osc_ctrl.pageMessage(audio_state.osc_state, text)
+            is_paging = (ret == False)
+            osc_ctrl.indicatePaging(audio_state.osc_state.client, is_paging)
 
-        # Pace this out
-        time.sleep(0.01)
+            # Pace this out
+            time.sleep(0.01)
 
-def readControllerInput(audio_state, enable_local_beep):
+def readControllerInput(audio_state, enable_local_beep, use_builtin):
     session = None
     first = True
     while session == None and audio_state.run_app == True:
@@ -343,8 +347,9 @@ def readControllerInput(audio_state, enable_local_beep):
             if now - last_rising > 0.5:
                 # Long hold
                 state = PAUSE_STATE
-                osc_ctrl.indicateSpeech(audio_state.osc_state.client, False)
-                osc_ctrl.toggleBoard(audio_state.osc_state.client, False)
+                if not use_builtin:
+                    osc_ctrl.indicateSpeech(audio_state.osc_state.client, False)
+                    osc_ctrl.toggleBoard(audio_state.osc_state.client, False)
                 #playsound(os.path.abspath("../Sounds/Noise_Off.wav"))
 
                 resetAudioLocked(audio_state)
@@ -355,8 +360,9 @@ def readControllerInput(audio_state, enable_local_beep):
                 # Short hold
                 if state == RECORD_STATE:
                     state = PAUSE_STATE
-                    osc_ctrl.indicateSpeech(audio_state.osc_state.client, False)
-                    osc_ctrl.lockWorld(audio_state.osc_state.client, True)
+                    if not use_builtin:
+                        osc_ctrl.indicateSpeech(audio_state.osc_state.client, False)
+                        osc_ctrl.lockWorld(audio_state.osc_state.client, True)
                     audio_state.transcribe_sleep_duration = audio_state.transcribe_sleep_duration_min_s
 
                     audio_state.audio_paused = True
@@ -365,9 +371,10 @@ def readControllerInput(audio_state, enable_local_beep):
                         playsound(os.path.abspath("../Sounds/Noise_Off.wav"))
                 elif state == PAUSE_STATE:
                     state = RECORD_STATE
-                    osc_ctrl.indicateSpeech(audio_state.osc_state.client, True)
-                    osc_ctrl.toggleBoard(audio_state.osc_state.client, True)
-                    osc_ctrl.lockWorld(audio_state.osc_state.client, False)
+                    if not use_builtin:
+                        osc_ctrl.indicateSpeech(audio_state.osc_state.client, True)
+                        osc_ctrl.toggleBoard(audio_state.osc_state.client, True)
+                        osc_ctrl.lockWorld(audio_state.osc_state.client, False)
                     resetAudioLocked(audio_state)
                     resetDisplayLocked(audio_state)
 
@@ -379,7 +386,8 @@ def readControllerInput(audio_state, enable_local_beep):
 
 # model should correspond to one of the Whisper models defined in
 # whisper/__init__.py. Examples: tiny, base, small, medium.
-def transcribeLoop(mic: str, language: str, model: str, enable_local_beep: bool, use_cpu: bool):
+def transcribeLoop(mic: str, language: str, model: str,
+        enable_local_beep: bool, use_cpu: bool, use_builtin: bool):
     audio_state = getMicStream(mic)
     audio_state.language = whisper.tokenizer.TO_LANGUAGE_CODE[language]
 
@@ -396,11 +404,11 @@ def transcribeLoop(mic: str, language: str, model: str, enable_local_beep: bool,
     transcribe_audio_thd.daemon = True
     transcribe_audio_thd.start()
 
-    send_audio_thd = threading.Thread(target = sendAudio, args = [audio_state])
+    send_audio_thd = threading.Thread(target = sendAudio, args = [audio_state, use_builtin])
     send_audio_thd.daemon = True
     send_audio_thd.start()
 
-    controller_input_thd = threading.Thread(target = readControllerInput, args = [audio_state, enable_local_beep])
+    controller_input_thd = threading.Thread(target = readControllerInput, args = [audio_state, enable_local_beep, use_builtin])
     controller_input_thd.daemon = True
     controller_input_thd.start()
 
@@ -443,6 +451,7 @@ if __name__ == "__main__":
     parser.add_argument("--cols", type=int, help="The number of columns on the board")
     parser.add_argument("--window_duration_s", type=int, help="The length in seconds of the audio recording handed to the transcription algorithm")
     parser.add_argument("--cpu", type=int, help="If set to 1, use CPU instead of GPU")
+    parser.add_argument("--use_builtin", type=int, help="If set to 1, use the text box built into the game.")
     args = parser.parse_args()
 
     if not args.mic:
@@ -470,11 +479,16 @@ if __name__ == "__main__":
     else:
         args.cpu = False
 
+    if args.use_builtin == 1:
+        args.use_builtin = True
+    else:
+        args.use_builtin = False
+
     generate_utils.config.BYTES_PER_CHAR = int(args.bytes_per_char)
     generate_utils.config.CHARS_PER_SYNC = int(args.chars_per_sync)
     generate_utils.config.BOARD_ROWS = int(args.rows)
     generate_utils.config.BOARD_COLS = int(args.cols)
 
     transcribeLoop(args.mic, args.language, args.model, args.enable_local_beep,
-            args.cpu)
+            args.cpu, args.use_builtin)
 

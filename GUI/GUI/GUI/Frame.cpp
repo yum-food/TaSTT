@@ -35,6 +35,7 @@ namespace {
         ID_PY_APP_MODEL_PANEL,
         ID_PY_APP_ENABLE_LOCAL_BEEP,
         ID_PY_APP_USE_CPU,
+        ID_PY_APP_USE_BUILTIN,
         ID_PY_APP_ROWS,
         ID_PY_APP_COLS,
         ID_PY_APP_WINDOW_DURATION,
@@ -433,6 +434,15 @@ Frame::Frame()
                 );
                 py_app_use_cpu_ = py_app_use_cpu;
 
+                auto* py_app_use_builtin = new wxCheckBox(py_config_panel,
+                    ID_PY_APP_USE_CPU, "Use built-in chatbox");
+                py_app_use_builtin->SetValue(py_c.use_builtin);
+                py_app_use_builtin->SetToolTip(
+                    "If checked, text will be sent to the built-in text box "
+                    "instead of one attached to the current avatar."
+                );
+                py_app_use_builtin_ = py_app_use_builtin;
+
                 auto* py_app_start_button = new wxButton(py_config_panel, ID_PY_APP_START_BUTTON, "Begin transcribing");
                 auto* py_app_stop_button = new wxButton(py_config_panel, ID_PY_APP_STOP_BUTTON, "Stop transcribing");
 
@@ -443,6 +453,7 @@ Frame::Frame()
                 sizer->Add(py_app_config_panel_pairs, /*proportion=*/0, /*flags=*/wxEXPAND);
                 sizer->Add(py_app_enable_local_beep, /*proportion=*/0, /*flags=*/wxEXPAND);
                 sizer->Add(py_app_use_cpu, /*proportion=*/0, /*flags=*/wxEXPAND);
+                sizer->Add(py_app_use_builtin, /*proportion=*/0, /*flags=*/wxEXPAND);
                 sizer->Add(py_app_start_button, /*proportion=*/0, /*flags=*/wxEXPAND);
                 sizer->Add(py_app_stop_button, /*proportion=*/0, /*flags=*/wxEXPAND);
             }
@@ -935,6 +946,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     }
     const bool enable_local_beep = py_app_enable_local_beep_->GetValue();
     const bool use_cpu = py_app_use_cpu_->GetValue();
+    const bool use_builtin = py_app_use_builtin_->GetValue();
     std::string rows_str = py_app_rows_->GetValue().ToStdString();
     std::string cols_str = py_app_cols_->GetValue().ToStdString();
     std::string window_duration_str = py_app_window_duration_->GetValue().ToStdString();
@@ -978,6 +990,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     py_c.window_duration = std::to_string(window_duration);
     py_c.enable_local_beep = enable_local_beep;
     py_c.use_cpu = use_cpu;
+    py_c.use_builtin = use_builtin;
     py_c.Serialize(TranscriptionAppConfig::kConfigPath);
 
     wxProcess* p = PythonWrapper::StartApp(std::move(cb), py_c);

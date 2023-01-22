@@ -159,6 +159,7 @@ wxProcess* PythonWrapper::StartApp(
 		"--cols", config.cols,
 		"--window_duration_s", config.window_duration,
 		"--cpu", config.use_cpu ? "1" : "0",
+		"--use_builtin", config.use_builtin ? "1" : "0",
 		},
 		std::move(exit_callback));
 }

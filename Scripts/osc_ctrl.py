@@ -30,6 +30,7 @@ class OscState:
         self.client = getClient(ip, port)
         self.pager = MultiLinePager(chars_per_sync, rows, cols)
         self.encoding= generateEncoding()
+        self.builtin_msg = ""  # The last message sent to the built-in chatbox
 
     def reset(self):
         self.pager.reset()
@@ -136,6 +137,23 @@ def pageMessage(osc_state: OscState, msg: str) -> bool:
     if msg_slice != empty_slice:
         addr="/avatar/parameters/" + generate_utils.getSpeechNoiseToggleParam()
         osc_state.client.send_message(addr, False)
+
+# Like `pageMessage` but uses the built-in chatbox. The built-in chatbox
+# truncates data at about 150 chars, so just send the suffix of the message for
+# now.
+def pageMessageBuiltin(osc_state: OscState, msg: str) -> bool:
+    msg_begin = max(len(msg) - 140, 0)
+    msg_suffix = msg[msg_begin:len(msg)]
+
+    if osc_state.builtin_msg != msg:
+        addr="/chatbox/typing"
+        osc_state.client.send_message(addr, False)
+
+        addr="/chatbox/input"
+        osc_state.client.send_message(addr, (msg_suffix, True))
+        osc_state.builtin_msg = msg
+
+    return False  # Not paging
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

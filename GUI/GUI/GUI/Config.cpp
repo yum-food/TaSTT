@@ -77,7 +77,8 @@ TranscriptionAppConfig::TranscriptionAppConfig()
 	cols("48"),
 	window_duration("15"),
 	enable_local_beep(true),
-	use_cpu(false)
+	use_cpu(false),
+	use_builtin(false)
 {}
 
 bool TranscriptionAppConfig::Serialize(const std::filesystem::path& path) {
@@ -94,8 +95,8 @@ bool TranscriptionAppConfig::Serialize(const std::filesystem::path& path) {
 	root["window_duration"] << ryml::to_substr(window_duration);
 	root["enable_local_beep"] << enable_local_beep;
 	root["use_cpu"] << use_cpu;
-
-	return Config::Serialize(path, &t);
+	root["use_builtin"] << use_builtin;
+  return Config::Serialize(path, &t);
 }
 
 bool TranscriptionAppConfig::Deserialize(const std::filesystem::path& path) {
@@ -123,6 +124,7 @@ bool TranscriptionAppConfig::Deserialize(const std::filesystem::path& path) {
 	root.get_if("window_duration", &c.window_duration);
 	root.get_if("enable_local_beep", &c.enable_local_beep);
 	root.get_if("use_cpu", &c.use_cpu);
+	root.get_if("use_builtin", &c.use_builtin);
 
 	*this = std::move(c);
 	return true;

@@ -46,6 +46,7 @@ public:
 	std::string window_duration;
 	bool enable_local_beep;
 	bool use_cpu;
+	bool use_builtin;
 };
 
 // Represents the configurable fields for the Unity app.
