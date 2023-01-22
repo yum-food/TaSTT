@@ -251,8 +251,11 @@ Frame::Frame()
     py_app_(nullptr),
     py_app_drain_(this, ID_PY_APP_DRAIN)
 {
-    TranscriptionAppConfig c;
-    c.Deserialize(TranscriptionAppConfig::kConfigPath);
+    TranscriptionAppConfig py_c;
+    py_c.Deserialize(TranscriptionAppConfig::kConfigPath);
+
+    UnityAppConfig unity_c;
+    unity_c.Deserialize(UnityAppConfig::kConfigPath);
 
     auto* main_panel = new wxPanel(this, ID_MAIN_PANEL);
 	main_panel_ = main_panel;
@@ -301,7 +304,7 @@ Frame::Frame()
                 {
                     auto* py_app_mic = new wxChoice(py_app_config_panel_pairs, ID_PY_APP_MIC, wxDefaultPosition,
                         wxDefaultSize, kNumMicChoices, kMicChoices);
-                    int mic_idx = GetDropdownChoiceIndex(kMicChoices, kNumMicChoices, c.microphone, kMicDefault);
+                    int mic_idx = GetDropdownChoiceIndex(kMicChoices, kNumMicChoices, py_c.microphone, kMicDefault);
                     py_app_mic->SetSelection(mic_idx);
                     py_app_mic->SetToolTip(
                         "Select which microphone to listen to when "
@@ -311,7 +314,7 @@ Frame::Frame()
 
                     auto* py_app_lang = new wxChoice(py_app_config_panel_pairs, ID_PY_APP_LANG, wxDefaultPosition,
                         wxDefaultSize, kNumLangChoices, kLangChoices);
-                    int lang_idx = GetDropdownChoiceIndex(kLangChoices, kNumLangChoices, c.language, kLangDefault);
+                    int lang_idx = GetDropdownChoiceIndex(kLangChoices, kNumLangChoices, py_c.language, kLangDefault);
                     py_app_lang->SetSelection(lang_idx);
                     py_app_lang->SetToolTip("Select which language you will "
                         "speak in. It will be transcribed into that language. "
@@ -323,7 +326,7 @@ Frame::Frame()
 
                     auto* py_app_model = new wxChoice(py_app_config_panel_pairs, ID_PY_APP_MODEL, wxDefaultPosition,
                         wxDefaultSize, kNumModelChoices, kModelChoices);
-                    int model_idx = GetDropdownChoiceIndex(kModelChoices, kNumModelChoices, c.model, kModelDefault);
+                    int model_idx = GetDropdownChoiceIndex(kModelChoices, kNumModelChoices, py_c.model, kModelDefault);
                     py_app_model->SetSelection(model_idx);
                     py_app_model->SetToolTip("Select which version of "
                         "the transcription model to use. 'base' is a good "
@@ -336,7 +339,7 @@ Frame::Frame()
                     auto* py_app_chars_per_sync = new wxChoice(py_app_config_panel_pairs,
                         ID_PY_APP_CHARS_PER_SYNC, wxDefaultPosition,
                         wxDefaultSize, kNumCharsPerSync, kCharsPerSync);
-                    int chars_idx = GetDropdownChoiceIndex(kCharsPerSync, kNumCharsPerSync, c.chars_per_sync, kCharsDefault);
+                    int chars_idx = GetDropdownChoiceIndex(kCharsPerSync, kNumCharsPerSync, py_c.chars_per_sync, kCharsDefault);
                     py_app_chars_per_sync->SetSelection(chars_idx);
                     py_app_chars_per_sync->SetToolTip(
                         "VRChat syncs avatar parameters roughly 5 times per "
@@ -348,7 +351,7 @@ Frame::Frame()
                     auto* py_app_bytes_per_char = new wxChoice(py_app_config_panel_pairs,
                         ID_PY_APP_BYTES_PER_CHAR, wxDefaultPosition,
                         wxDefaultSize, kNumBytesPerChar, kBytesPerChar);
-                    int bytes_idx = GetDropdownChoiceIndex(kBytesPerChar, kNumBytesPerChar, c.bytes_per_char, kBytesDefault);
+                    int bytes_idx = GetDropdownChoiceIndex(kBytesPerChar, kNumBytesPerChar, py_c.bytes_per_char, kBytesDefault);
                     py_app_bytes_per_char->SetSelection(bytes_idx);
 					py_app_bytes_per_char->SetToolTip(
 						"If you speak a language that uses non-ASCII "
@@ -356,21 +359,21 @@ Frame::Frame()
                     py_app_bytes_per_char_ = py_app_bytes_per_char;
 
                     auto* py_app_rows = new wxTextCtrl(py_app_config_panel_pairs,
-                        ID_PY_APP_ROWS, c.rows,
+                        ID_PY_APP_ROWS, py_c.rows,
                         wxDefaultPosition, wxDefaultSize, /*style=*/0);
                     py_app_rows->SetToolTip(
                         "The number of rows on the text box.");
                     py_app_rows_ = py_app_rows;
 
                     auto* py_app_cols = new wxTextCtrl(py_app_config_panel_pairs,
-                        ID_PY_APP_COLS, c.cols,
+                        ID_PY_APP_COLS, py_c.cols,
                         wxDefaultPosition, wxDefaultSize, /*style=*/0);
                     py_app_cols->SetToolTip(
                         "The number of columns on the text box.");
                     py_app_cols_ = py_app_cols;
 
                     auto* py_app_window_duration = new wxTextCtrl(py_app_config_panel_pairs,
-                        ID_PY_APP_WINDOW_DURATION, c.window_duration,
+                        ID_PY_APP_WINDOW_DURATION, py_c.window_duration,
                         wxDefaultPosition, wxDefaultSize, /*style=*/0);
                     py_app_window_duration->SetToolTip(
                         "This controls how long the slice of audio that "
@@ -411,7 +414,7 @@ Frame::Frame()
 
                 auto* py_app_enable_local_beep = new wxCheckBox(py_config_panel,
                     ID_PY_APP_ENABLE_LOCAL_BEEP, "Enable local beep");
-                py_app_enable_local_beep->SetValue(c.enable_local_beep);
+                py_app_enable_local_beep->SetValue(py_c.enable_local_beep);
                 py_app_enable_local_beep->SetToolTip(
                     "By default, TaSTT will play a sound (audible only to "
                     "you) when it begins transcription and when it stops. "
@@ -421,7 +424,7 @@ Frame::Frame()
 
                 auto* py_app_use_cpu = new wxCheckBox(py_config_panel,
                     ID_PY_APP_USE_CPU, "Use CPU");
-                py_app_use_cpu->SetValue(c.use_cpu);
+                py_app_use_cpu->SetValue(py_c.use_cpu);
                 py_app_use_cpu->SetToolTip(
                     "If checked, the transcription engine will run on your "
                     "CPU instead of your GPU. This is typically much slower "
@@ -468,19 +471,19 @@ Frame::Frame()
                     auto* unity_assets_file_picker = new wxDirPickerCtrl(
                         unity_config_panel_pairs,
                         ID_UNITY_ASSETS_FILE_PICKER,
-                        /*path=*/wxEmptyString,
+                        /*path=*/unity_c.assets_path,
                         /*message=*/"Unity Assets folder"
                         );
                     unity_assets_file_picker->SetToolTip(
                         "The path to the Assets folder for your avatar's "
                         "Unity project. Example:\n"
-						"C:\\Users\\yum\\unity\\kumadan\\Assets");
+						"py_c:\\Users\\yum\\unity\\kumadan\\Assets");
                     unity_assets_file_picker_ = unity_assets_file_picker;
 
                     auto* unity_animator_file_picker = new wxFilePickerCtrl(
                         unity_config_panel_pairs,
                         ID_UNITY_ANIMATOR_FILE_PICKER,
-                        /*path=*/wxEmptyString,
+                        /*path=*/unity_c.fx_path,
                         /*message=*/"FX controller path",
                         /*wildcard=*/wxFileSelectorDefaultWildcardStr,
                         /*pos=*/wxDefaultPosition,
@@ -489,13 +492,13 @@ Frame::Frame()
                     unity_animator_file_picker->SetToolTip(
                         "The path to your avatar's FX layer. You can find "
                         "this in your avatar descriptor. Example:\n"
-						"C:\\Users\\yum\\unity\\kumadan\\Assets\\kumadan_fx.controller");
+						"py_c:\\Users\\yum\\unity\\kumadan\\Assets\\kumadan_fx.controller");
                     unity_animator_file_picker_ = unity_animator_file_picker;
 
                     auto* unity_parameters_file_picker = new wxFilePickerCtrl(
                         unity_config_panel_pairs,
                         ID_UNITY_PARAMETERS_FILE_PICKER,
-                        /*path=*/wxEmptyString,
+                        /*path=*/unity_c.params_path,
                         /*message=*/"Avatar parameters path",
                         /*wildcard=*/wxFileSelectorDefaultWildcardStr,
                         /*pos=*/wxDefaultPosition,
@@ -504,13 +507,13 @@ Frame::Frame()
                     unity_parameters_file_picker->SetToolTip(
                         "The path to your avatar's parameters. You can find "
                         "this in your avatar descriptor. Example:\n"
-						"C:\\Users\\yum\\unity\\kumadan\\Assets\\kumadan_parameters.asset");
+						"py_c:\\Users\\yum\\unity\\kumadan\\Assets\\kumadan_parameters.asset");
                     unity_parameters_file_picker_ = unity_parameters_file_picker;
 
                     auto* unity_menu_file_picker = new wxFilePickerCtrl(
                         unity_config_panel_pairs,
                         ID_UNITY_MENU_FILE_PICKER,
-                        /*path=*/wxEmptyString,
+                        /*path=*/unity_c.menu_path,
                         /*message=*/"Avatar menu path",
                         /*wildcard=*/wxFileSelectorDefaultWildcardStr,
                         /*pos=*/wxDefaultPosition,
@@ -519,7 +522,7 @@ Frame::Frame()
                     unity_menu_file_picker->SetToolTip(
                         "The path to your avatar's menu. You can find "
                         "this in your avatar descriptor. Example:\n"
-						"C:\\Users\\yum\\unity\\kumadan\\Assets\\kumadan_menu.asset");
+						"py_c:\\Users\\yum\\unity\\kumadan\\Assets\\kumadan_menu.asset");
                     unity_menu_file_picker_ = unity_menu_file_picker;
 
 					auto* unity_animator_generated_dir = new wxTextCtrl(unity_config_panel_pairs,
@@ -574,7 +577,9 @@ Frame::Frame()
                     auto* unity_chars_per_sync = new wxChoice(unity_config_panel_pairs,
                         ID_UNITY_CHARS_PER_SYNC, wxDefaultPosition,
                         wxDefaultSize, kNumCharsPerSync, kCharsPerSync);
-                    unity_chars_per_sync->SetSelection(kCharsDefault);
+                    int chars_idx = GetDropdownChoiceIndex(kCharsPerSync, kNumCharsPerSync,
+                        std::to_string(unity_c.chars_per_sync), kCharsDefault);
+                    unity_chars_per_sync->SetSelection(chars_idx);
 					unity_chars_per_sync->SetToolTip(
 						"VRChat syncs avatar parameters roughly 5 times per "
 						"second. We use this to send text to the box. By "
@@ -585,21 +590,23 @@ Frame::Frame()
                     auto* unity_bytes_per_char = new wxChoice(unity_config_panel_pairs,
                         ID_UNITY_BYTES_PER_CHAR, wxDefaultPosition,
                         wxDefaultSize, kNumBytesPerChar, kBytesPerChar);
-                    unity_bytes_per_char->SetSelection(kBytesDefault);
+					int bytes_idx = GetDropdownChoiceIndex(kBytesPerChar,
+                        kNumBytesPerChar, std::to_string(unity_c.bytes_per_char), kBytesDefault);
+                    unity_bytes_per_char->SetSelection(bytes_idx);
 					unity_bytes_per_char->SetToolTip(
 						"If you speak a language that uses non-ASCII "
 						"characters (i.e. not English), set this to 2.");
                     unity_bytes_per_char_ = unity_bytes_per_char;
 
                     auto* unity_rows = new wxTextCtrl(unity_config_panel_pairs,
-                        ID_UNITY_ROWS, /*value=*/"4",
+                        ID_UNITY_ROWS, std::to_string(unity_c.rows),
                         wxDefaultPosition, wxDefaultSize, /*style=*/0);
                     unity_rows->SetToolTip(
                         "The number of rows on the text box.");
                     unity_rows_ = unity_rows;
 
                     auto* unity_cols = new wxTextCtrl(unity_config_panel_pairs,
-                        ID_UNITY_COLS, /*value=*/"48",
+                        ID_UNITY_COLS, std::to_string(unity_c.cols),
                         wxDefaultPosition, wxDefaultSize, /*style=*/0);
                     unity_cols->SetToolTip(
                         "The number of columns on the text box.");
@@ -797,22 +804,26 @@ void Frame::OnGenerateFX(wxCommandEvent& event)
     if (chars_per_sync_idx == wxNOT_FOUND) {
         chars_per_sync_idx = kCharsDefault;
     }
-    std::string chars_per_sync = kCharsPerSync[chars_per_sync_idx].ToStdString();
+    std::string chars_per_sync_str = kCharsPerSync[chars_per_sync_idx].ToStdString();
     int bytes_per_char_idx = unity_bytes_per_char_->GetSelection();
     if (bytes_per_char_idx == wxNOT_FOUND) {
         bytes_per_char_idx = kBytesDefault;
     }
-    std::string bytes_per_char = kBytesPerChar[bytes_per_char_idx].ToStdString();
+    std::string bytes_per_char_str = kBytesPerChar[bytes_per_char_idx].ToStdString();
 
     std::string rows_str = unity_rows_->GetValue().ToStdString();
     std::string cols_str = unity_cols_->GetValue().ToStdString();
-    int rows, cols;
+    int rows, cols, bytes_per_char, chars_per_sync;
     try {
         rows = std::stoi(rows_str);
         cols = std::stoi(cols_str);
+        bytes_per_char = std::stoi(bytes_per_char_str);
+        chars_per_sync = std::stoi(chars_per_sync_str);
     }
     catch (const std::invalid_argument&) {
-		Log(unity_out_, "Could not parse rows \"{}\" or cols \"{}\" as an integer\n", rows_str, cols_str);
+		Log(unity_out_, "Could not parse rows \"{}\", cols \"{}\", bytes per "
+            "char \"{}\", or chars per sync \"{}\" as an integer\n",
+            rows_str, cols_str, bytes_per_char_str, chars_per_sync_str);
         return;
     }
     catch (const std::out_of_range&) {
@@ -820,20 +831,24 @@ void Frame::OnGenerateFX(wxCommandEvent& event)
         return;
     }
 
+    UnityAppConfig unity_c;
+    unity_c.assets_path = unity_assets_path.string();
+    unity_c.fx_path = unity_animator_path.string();
+    unity_c.params_path = unity_parameters_path.string();
+    unity_c.menu_path = unity_menu_path.string();
+    unity_c.bytes_per_char = chars_per_sync;
+    unity_c.chars_per_sync = chars_per_sync;
+    unity_c.rows = rows;
+    unity_c.cols = cols;
+    unity_c.Serialize(UnityAppConfig::kConfigPath);
+
     std::string out;
     if (!PythonWrapper::GenerateAnimator(
-        unity_assets_path,
-        unity_animator_path,
-        unity_parameters_path,
-        unity_menu_path,
+        unity_c,
         unity_animator_generated_dir,
         unity_animator_generated_name,
         unity_parameters_generated_name,
         unity_menu_generated_name,
-        chars_per_sync,
-        bytes_per_char,
-        rows,
-        cols,
         unity_out_)) {
         wxLogError("Failed to generate animator:\n%s\n", out.c_str());
     }
@@ -952,20 +967,20 @@ void Frame::OnAppStart(wxCommandEvent& event) {
         return;
     }
 
-    TranscriptionAppConfig c;
-    c.microphone = kMicChoices[which_mic].ToStdString();
-    c.language = kLangChoices[which_lang].ToStdString();
-    c.model = kModelChoices[which_model].ToStdString();
-    c.chars_per_sync = kCharsPerSync[chars_per_sync_idx].ToStdString();
-    c.bytes_per_char = kBytesPerChar[bytes_per_char_idx].ToStdString();
-    c.rows = std::to_string(rows);
-    c.cols = std::to_string(cols);
-    c.window_duration = std::to_string(window_duration);
-    c.enable_local_beep = enable_local_beep;
-    c.use_cpu = use_cpu;
-    c.Serialize(TranscriptionAppConfig::kConfigPath);
+    TranscriptionAppConfig py_c;
+    py_c.microphone = kMicChoices[which_mic].ToStdString();
+    py_c.language = kLangChoices[which_lang].ToStdString();
+    py_c.model = kModelChoices[which_model].ToStdString();
+    py_c.chars_per_sync = kCharsPerSync[chars_per_sync_idx].ToStdString();
+    py_c.bytes_per_char = kBytesPerChar[bytes_per_char_idx].ToStdString();
+    py_c.rows = std::to_string(rows);
+    py_c.cols = std::to_string(cols);
+    py_c.window_duration = std::to_string(window_duration);
+    py_c.enable_local_beep = enable_local_beep;
+    py_c.use_cpu = use_cpu;
+    py_c.Serialize(TranscriptionAppConfig::kConfigPath);
 
-    wxProcess* p = PythonWrapper::StartApp(std::move(cb), c);
+    wxProcess* p = PythonWrapper::StartApp(std::move(cb), py_c);
     if (!p) {
         Log(transcribe_out_, "Failed to launch transcription engine\n");
         return;

@@ -155,6 +155,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="ryml.h" />
     <ClInclude Include="ScopeGuard.h" />
+    <ClInclude Include="Util.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="GUI.rc" />

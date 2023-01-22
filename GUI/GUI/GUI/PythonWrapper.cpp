@@ -1,5 +1,6 @@
 #include "Logging.h"
 #include "PythonWrapper.h"
+#include "Util.h"
 
 #include "Config.h"
 
@@ -162,26 +163,12 @@ wxProcess* PythonWrapper::StartApp(
 		std::move(exit_callback));
 }
 
-// Wrap the filesystem path in quotes, escaping intermediate quotes with \\.
-std::string Quote(const std::filesystem::path& p) {
-	std::ostringstream oss;
-	oss << std::quoted(p.string());
-	return oss.str();
-}
-
 bool PythonWrapper::GenerateAnimator(
-	const std::filesystem::path& unity_assets_path,
-	const std::filesystem::path& unity_animator_path,
-	const std::filesystem::path& unity_parameters_path,
-	const std::filesystem::path& unity_menu_path,
+	const UnityAppConfig& config,
 	const std::string& unity_animator_generated_dir,
 	const std::string& unity_animator_generated_name,
 	const std::string& unity_parameters_generated_name,
 	const std::string& unity_menu_generated_name,
-	const std::string& chars_per_sync,
-	const std::string& bytes_per_char,
-	const int rows,
-	const int cols,
 	wxTextCtrl* out) {
 	// Python script locations
 	std::string libunity_path = "Resources/Scripts/libunity.py";
@@ -194,7 +181,7 @@ bool PythonWrapper::GenerateAnimator(
 
 	// Generated directory locations
 	std::filesystem::path tastt_generated_dir_path =
-		std::filesystem::path(unity_assets_path) / unity_animator_generated_dir;
+		std::filesystem::path(config.assets_path) / unity_animator_generated_dir;
 	std::filesystem::path guid_map_path =
 		tastt_generated_dir_path / "guid.map";
 	std::filesystem::path tastt_animations_path =
@@ -222,13 +209,13 @@ bool PythonWrapper::GenerateAnimator(
 		tastt_generated_dir_path / unity_animator_generated_name;
 
 	{
-		Log(out, "Generating shader for {}x{} board...", rows, cols);
+		Log(out, "Generating shader for {}x{} board...", config.rows, config.cols);
 
 		std::string py_stdout, py_stderr;
 		if (InvokeWithArgs({ generate_shader_path,
-			"--bytes_per_char", bytes_per_char,
-			"--rows", std::to_string(rows),
-			"--cols", std::to_string(cols),
+			"--bytes_per_char", std::to_string(config.bytes_per_char),
+			"--rows", std::to_string(config.rows),
+			"--cols", std::to_string(config.cols),
 			"--shader_template", shader_template_path,
 			"--shader_path", shader_path },
 			&py_stdout, &py_stderr)) {
@@ -312,7 +299,7 @@ bool PythonWrapper::GenerateAnimator(
 		Log(out, "Generating guid.map... ");
 		std::string py_stdout, py_stderr;
 		if (PythonWrapper::InvokeWithArgs({ libunity_path, "guid_map",
-			"--project_root", Quote(unity_assets_path),
+			"--project_root", Quote(config.assets_path),
 			"--save_to", Quote(guid_map_path), },
 			&py_stdout, &py_stderr)) {
 			Log(out, "success!\n");
@@ -337,10 +324,10 @@ bool PythonWrapper::GenerateAnimator(
 		if (InvokeWithArgs({ libtastt_path, "gen_anims",
 			"--gen_anim_dir", Quote(tastt_animations_path),
 			"--guid_map", Quote(guid_map_path),
-			"--chars_per_sync", chars_per_sync,
-			"--bytes_per_char", bytes_per_char,
-			"--rows", std::to_string(rows),
-			"--cols", std::to_string(cols)},
+			"--chars_per_sync", std::to_string(config.chars_per_sync),
+			"--bytes_per_char", std::to_string(config.bytes_per_char),
+			"--rows", std::to_string(config.rows),
+			"--cols", std::to_string(config.cols)},
 			&py_stdout, &py_stderr)) {
 			Log(out, "success!\n");
 			Log(out, py_stdout.c_str());
@@ -365,10 +352,10 @@ bool PythonWrapper::GenerateAnimator(
 			"--fx_dest", Quote(tastt_fx0_path),
 			"--gen_anim_dir", Quote(tastt_animations_path),
 			"--guid_map", Quote(guid_map_path),
-			"--chars_per_sync", chars_per_sync,
-			"--bytes_per_char", bytes_per_char,
-			"--rows", std::to_string(rows),
-			"--cols", std::to_string(cols)},
+			"--chars_per_sync", std::to_string(config.chars_per_sync),
+			"--bytes_per_char", std::to_string(config.bytes_per_char),
+			"--rows", std::to_string(config.rows),
+			"--cols", std::to_string(config.cols)},
 			&py_stdout, &py_stderr)) {
 			Log(out, "success!\n");
 			Log(out, py_stdout.c_str());
@@ -415,7 +402,7 @@ bool PythonWrapper::GenerateAnimator(
 		Log(out, "Merging with user animator... ");
 		std::string py_stdout, py_stderr;
 		if (InvokeWithArgs({ libunity_path, "merge",
-			"--fx0", Quote(unity_animator_path),
+			"--fx0", Quote(config.fx_path),
 			"--fx1", Quote(tastt_fx1_path),
 			"--fx_dest", Quote(tastt_fx2_path), },
 			&py_stdout, &py_stderr)) {
@@ -464,10 +451,10 @@ bool PythonWrapper::GenerateAnimator(
 		Log(out, "Generating avatar parameters... ");
 		std::string py_stdout, py_stderr;
 		if (InvokeWithArgs({ generate_params_path,
-			"--old_params", Quote(unity_parameters_path),
+			"--old_params", Quote(config.params_path),
 			"--new_params", Quote(tastt_params_path),
-			"--chars_per_sync", chars_per_sync,
-			"--bytes_per_char", bytes_per_char },
+			"--chars_per_sync", std::to_string(config.chars_per_sync),
+			"--bytes_per_char", std::to_string(config.bytes_per_char) },
 			&py_stdout, &py_stderr)) {
 			Log(out, "success!\n");
 			Log(out, py_stdout.c_str());
@@ -490,7 +477,7 @@ bool PythonWrapper::GenerateAnimator(
 		std::string py_stdout, py_stderr;
 		// No idea why, but inlining this into `InvokeWithArgs` confuses the compiler.
 		std::vector<std::string> args = { generate_menu_path,
-			"--old_menu", Quote(unity_menu_path),
+			"--old_menu", Quote(config.menu_path),
 			"--new_menu", Quote(tastt_menu_path), };
 		if (InvokeWithArgs( std::move(args),
 			&py_stdout, &py_stderr)) {

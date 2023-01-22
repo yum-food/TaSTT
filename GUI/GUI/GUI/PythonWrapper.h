@@ -55,18 +55,11 @@ namespace PythonWrapper
 		const TranscriptionAppConfig& config);
 
 	bool GenerateAnimator(
-		const std::filesystem::path& unity_assets_path,
-		const std::filesystem::path& unity_animator_path,
-		const std::filesystem::path& unity_parameters_path,
-		const std::filesystem::path& unity_menu_path,
+		const UnityAppConfig& config,
 		const std::string& unity_animator_generated_dir,
 		const std::string& unity_animator_generated_name,
 		const std::string& unity_parameters_generated_name,
 		const std::string& unity_menu_generated_name,
-		const std::string& chars_per_sync,
-		const std::string& bytes_per_char,
-		int rows,
-		int cols,
 		wxTextCtrl* out);
 };
 

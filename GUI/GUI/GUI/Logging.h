@@ -13,6 +13,26 @@
 #include <string_view>
 
 namespace Logging {
+
+#if 0
+	class Log {
+	public:
+		static Log& Get() {
+			static Log l;
+			return l;
+		}
+
+		bool Write(const std::string& text);
+
+	private:
+		Log() {}
+
+		bool Open(const std::string& path);
+
+		int fd_;
+	};
+#endif
+
 	// Remove personally identifying information (PII) from str.
 	//
 	// For example, this translates "C:/Users/foo/Desktop" to "C:/Users/*****/Desktop".
