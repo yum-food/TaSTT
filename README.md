@@ -1,10 +1,12 @@
 ## TaSTT: A deliciously free STT
 
 TaSTT (pronounced "tasty") is a free speech-to-text tool for VRChat. It uses
-local machine transcription to turn your voice into text, then sends it into
-VRChat via OSC.
+a GPU-based transcription algorithm to turn your voice into text, then sends it
+into VRChat via OSC.
 
-![Speech-to-text demo](Images/speech_to_text_demo.gif)
+To get started, download the latest .zip from [the releases page](https://github.com/yum-food/TaSTT/releases/latest).
+
+[![Speech-to-text demo](https://img.youtube.com/vi/u5h-ivkwS0M/0.jpg)](https://youtube.com/watch?v=u5h-ivkwS0M)
 
 Contents:
 
@@ -35,12 +37,14 @@ Basic controls:
 
 * Customizable board resolution, [up to ridiculous sizes](https://www.youtube.com/watch?v=u5h-ivkwS0M).
 * 8-bit and 16-bit character encodings.
-* Japanese, Korean, and Chinese glyphs included.
-* Multiple language support.
+* Multi-language support.
+  * Japanese, Korean, and Chinese glyphs included.
 * Resizable.
-* Audio feedback: hear distinct beeps when transcription starts and stops.
-  * May also enable in-game noise indicator, to grab others' attention.
-* Visual transcription indicator.
+* Audio feedback: hear distinct beeps when transcription starts and stops
+  (optional).
+  * May also enable in-game noise indicator, to grab others' attention
+    (optional).
+* Visual transcription indicator (optional).
 * Locks to world space when done speaking.
 * Can use built-in chatbox (usable with public avatars!)
 * Privacy-respecting: transcription is done on your GPU, not in the cloud.
@@ -49,6 +53,27 @@ Basic controls:
 * Free as in beer.
 * Free as in freedom.
 * MIT license.
+
+## Requirements
+
+* ~5GB disk space
+  * I apologize that this is so big. The libraries used to perform
+    GPU-accelerated transcription (pytorch and whisper) are really,
+    really big. There is no performant implementation of Whisper or a
+    any other comparable algorithm available in a systems programming
+    language, so for now we're stuck with this. You only need to
+    download this stuff once!
+* NVIDIA GPU with at least 2GB of spare VRAM.
+  * You *can* run it in CPU mode, but it's really slow and lags you a
+    lot more, so I wouldn't recommend it.
+  * I've tested on a 1080 Ti and a 3090 and saw comparable performance.
+* SteamVR.
+  * No Oculus support, yet.
+* Left joystick click must not be bound to anything else.
+* No write defaults on your avatar if you're using the custom text box.
+
+For the last 3 bullets: please let me know in the Discord if these are
+deal breakers. I'd be happy to fix them!
 
 ### Motivation
 
