@@ -847,7 +847,7 @@ void Frame::OnGenerateFX(wxCommandEvent& event)
     unity_c.fx_path = unity_animator_path.string();
     unity_c.params_path = unity_parameters_path.string();
     unity_c.menu_path = unity_menu_path.string();
-    unity_c.bytes_per_char = chars_per_sync;
+    unity_c.bytes_per_char = bytes_per_char;
     unity_c.chars_per_sync = chars_per_sync;
     unity_c.rows = rows;
     unity_c.cols = cols;
