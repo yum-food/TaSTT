@@ -390,51 +390,74 @@
         uv_margin *= 4;
         float2 uv_with_margin = AddMarginToUV(uv, uv_margin);
 
-        int letter = GetLetterParameter(uv_with_margin);
+        fixed4 text = fixed4(0, 0, 0, 0);
+        for (int i = 0; i < 5; i++) {
+          // Sample the cartesian neighbors of this pixel and average them
+          // together.
+          float2 aa_uv = uv_with_margin;
+          [forcecase] switch (i)
+          {
+            case 0:
+              // Do nothing
+              break;
+            case 1:
+              aa_uv.x += 0.0005;
+              break;
+            case 2:
+              aa_uv.x -= 0.0005;
+              break;
+            case 3:
+              aa_uv.y += 0.0005;
+              break;
+            case 4:
+              aa_uv.y -= 0.0005;
+              break;
+          }
+          int letter = GetLetterParameter(aa_uv);
 
-        float texture_cols;
-        float texture_rows;
-        float2 letter_uv;
-        if (letter < 0xE000) {
-          texture_cols = 128.0;
-          texture_rows = 64.0;
-          letter_uv = GetLetter(uv_with_margin, letter, texture_cols, texture_rows, NCOLS, NROWS);
-        } else {
-          texture_cols = 8.0;
-          texture_rows = 8.0;
-          letter_uv = GetLetter(uv_with_margin, letter, texture_cols, texture_rows, 8, 4);
+          float texture_cols;
+          float texture_rows;
+          float2 letter_uv;
+          if (letter < 0xE000) {
+            texture_cols = 128.0;
+            texture_rows = 64.0;
+            letter_uv = GetLetter(uv_with_margin, letter, texture_cols, texture_rows, NCOLS, NROWS);
+          } else {
+            texture_cols = 8.0;
+            texture_rows = 8.0;
+            letter_uv = GetLetter(uv_with_margin, letter, texture_cols, texture_rows, 8, 4);
+          }
+
+          int which_texture = (int) floor(letter / (64 * 128));
+          [forcecase] switch (which_texture)
+          {
+            case 0:
+              text += _Font_0x0000_0x1FFF.Sample(sampler_linear_repeat, letter_uv);
+              break;
+            case 1:
+              text += _Font_0x2000_0x3FFF.Sample(sampler_linear_repeat, letter_uv);
+              break;
+            case 2:
+              text += _Font_0x4000_0x5FFF.Sample(sampler_linear_repeat, letter_uv);
+              break;
+            case 3:
+              text += _Font_0x6000_0x7FFF.Sample(sampler_linear_repeat, letter_uv);
+              break;
+            case 4:
+              text += _Font_0x8000_0x9FFF.Sample(sampler_linear_repeat, letter_uv);
+              break;
+            case 5:
+              text += _Font_0xA000_0xBFFF.Sample(sampler_linear_repeat, letter_uv);
+              break;
+            case 6:
+              text += _Font_0xC000_0xDFFF.Sample(sampler_linear_repeat, letter_uv);
+              break;
+            default:
+              text += _Img_0xE000_0xE03F.Sample(sampler_linear_repeat, letter_uv);
+              break;
+          }
         }
-
-        fixed4 text;
-
-        int which_texture = (int) floor(letter / (64 * 128));
-        [forcecase] switch (which_texture)
-        {
-          case 0:
-            text = _Font_0x0000_0x1FFF.Sample(sampler_linear_repeat, letter_uv);
-            break;
-          case 1:
-            text = _Font_0x2000_0x3FFF.Sample(sampler_linear_repeat, letter_uv);
-            break;
-          case 2:
-            text = _Font_0x4000_0x5FFF.Sample(sampler_linear_repeat, letter_uv);
-            break;
-          case 3:
-            text = _Font_0x6000_0x7FFF.Sample(sampler_linear_repeat, letter_uv);
-            break;
-          case 4:
-            text = _Font_0x8000_0x9FFF.Sample(sampler_linear_repeat, letter_uv);
-            break;
-          case 5:
-            text = _Font_0xA000_0xBFFF.Sample(sampler_linear_repeat, letter_uv);
-            break;
-          case 6:
-            text = _Font_0xC000_0xDFFF.Sample(sampler_linear_repeat, letter_uv);
-            break;
-          default:
-            text = _Img_0xE000_0xE03F.Sample(sampler_linear_repeat, letter_uv);
-            break;
-        }
+        text /= 5.0;
         fixed4 black = fixed4(0,0,0,1);
         if (text.r == black.r && text.g == black.g && text.b == black.b && text.a == black.a) {
           return TaSTT_Backplate.Sample(sampler_linear_repeat, uv);
