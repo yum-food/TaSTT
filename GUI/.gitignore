@@ -4,3 +4,5 @@ TaSTT.zip
 
 # ignore net-fetched dependencies
 PortableGit*
+Python*
+python-*

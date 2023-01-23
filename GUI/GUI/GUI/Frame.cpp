@@ -743,7 +743,10 @@ void Frame::OnSetupPython(wxCommandEvent& event)
         }
     }
 
+    // TODO(yum) do this in a requirements.txt and run this command
+    // asynchronously so the GUI doesn't hang
     const std::vector<std::string> pip_deps{
+        "future==0.18.2",
         "openvr",
         "pillow",
         "pyaudio",

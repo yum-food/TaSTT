@@ -63,30 +63,6 @@ if (-Not (Test-Path $git_dir)) {
   Read-Host -Prompt "Press enter once PortableGit is installed at $pwd\PortableGit"
 }
 
-$future_version = "0.18.3"
-$future_path = "future-$future_version.tar.gz"
-if (-Not (Test-Path $future_path)) {
-  # Source: https://pypi.org/project/future/#files
-  $FUTURE_0_18_3_URL = "https://files.pythonhosted.org/packages/8f/2e/cf6accf7415237d6faeeebdc7832023c90e0282aa16fd3263db0eb4715ec/future-0.18.3.tar.gz"
-  $FUTURE_URL = $FUTURE_0_18_3_URL
-  $FUTURE_FILE = $(Split-Path -Path $FUTURE_URL -Leaf)
-
-  if (-Not (Test-Path $FUTURE_FILE)) {
-    Invoke-WebRequest $FUTURE_URL -OutFile $FUTURE_FILE
-  }
-  if (-Not (Test-Path Python/Dependencies)) {
-    mkdir Python/Dependencies
-  }
-  if (-Not (Test-Path Python/Dependencies/future-$future_version)) {
-    mkdir Python/Dependencies/future-$future_version
-  }
-  pushd Python/Dependencies >$null
-  tar -xvzf ../../$FUTURE_FILE
-  popd >$null
-
-  echo "Dependencies/future-$future_version" >> Python/python310._pth
-}
-
 mkdir $install_dir > $null
 mkdir $install_dir/Resources > $null
 cp -Recurse ../Animations TaSTT/Resources/Animations
