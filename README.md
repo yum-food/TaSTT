@@ -36,17 +36,25 @@ Basic controls:
 ## Features
 
 * Customizable board resolution, [up to ridiculous sizes](https://www.youtube.com/watch?v=u5h-ivkwS0M).
-* 8-bit and 16-bit character encodings.
+* Lighweight design:
+  * Custom textbox requires as few as 65 parameter bits
+  * Transcription doesn't affect VRChat framerate much, since VRC is heavily
+    CPU-bound. Performance impact when not speaking is negligible.
 * Multi-language support.
-  * Japanese, Korean, and Chinese glyphs included.
-* Resizable.
-* Audio feedback: hear distinct beeps when transcription starts and stops
-  (optional).
-  * May also enable in-game noise indicator, to grab others' attention
-    (optional).
-* Visual transcription indicator (optional).
+  * Japanese, Korean, and Chinese glyphs included, among many other languages.
+  * Whisper natively supports transcription in [100 languages](
+    https://github.com/openai/whisper/blob/main/whisper/tokenizer.py#L10).
+* Customizable:
+  * Text color, background color, and border color are customizable in the shader.
+  * Text background may be an image.
+  * Border width and rounding are customizable.
+* Works with the built-in chatbox (usable with public avatars!)
+* Many optional quality-of-life features:
+  * Audio feedback: hear distinct beeps when transcription starts and stops.
+  * May also enable in-game noise indicator, to grab others' attention.
+  * Visual transcription indicator.
+  * Resize with a blendtree in your radial menu.
 * Locks to world space when done speaking.
-* Can use built-in chatbox (usable with public avatars!)
 * Privacy-respecting: transcription is done on your GPU, not in the cloud.
 * Hackable.
 * From-scratch implementation.

@@ -2,23 +2,30 @@
 {
   Properties
   {
-    _Font_0x0000_0x1FFF ("Font 0 (unicode 0x0000 - 0x1FFFF)", 2D) = "white" {}
-    _Font_0x2000_0x3FFF ("Font 1 (unicode 0x2000 - 0x3FFFF)", 2D) = "white" {}
-    _Font_0x4000_0x5FFF ("Font 2 (unicode 0x4000 - 0x5FFFF)", 2D) = "white" {}
-    _Font_0x6000_0x7FFF ("Font 3 (unicode 0x6000 - 0x7FFFF)", 2D) = "white" {}
-    _Font_0x8000_0x9FFF ("Font 4 (unicode 0x8000 - 0x9FFFF)", 2D) = "white" {}
-    _Font_0xA000_0xBFFF ("Font 5 (unicode 0xA000 - 0xBFFFF)", 2D) = "white" {}
-    _Font_0xC000_0xDFFF ("Font 6 (unicode 0xC000 - 0xDFFFF)", 2D) = "white" {}
-    _Img_0xE000_0xE03F  ("Images 0", 2D) = "white" {}
+    Text_Color ("Text Color", Color) = (1, 1, 1, 1)
+    Background_Color ("Background Color", Color) = (0, 0, 0, 1)
+    Margin_Color ("Margin color", Color) = (1, 1, 1, 1)
 
     [MaterialToggle] Render_Margin("Render margin", float) = 1
     [MaterialToggle] Render_Visual_Indicator("Render visual speech indicator", float) = 1
     Margin_Scale("Margin scale", float) = 0.03
     Margin_Rounding_Scale("Margin rounding scale", float) = 0.03
+    [MaterialToggle] Enable_Margin_Effect_Squares(
+        "Enable margin effect: Squares", float) = 0
 
-    TaSTT_Backplate("TaSTT_Backplate", 2D) = "black" {}
-    TaSTT_Indicator_0("TaSTT_Indicator_0", float) = 0
-    TaSTT_Indicator_1("TaSTT_Indicator_1", float) = 0
+    [MaterialToggle] Use_Custom_Background("Enable custom background", float) = 0
+    Custom_Background("Custom background", 2D) = "black" {}
+
+    _Font_0x0000_0x1FFF ("_Font 0 (unicode 0x0000 - 0x1FFFF)", 2D) = "white" {}
+    _Font_0x2000_0x3FFF ("_Font 1 (unicode 0x2000 - 0x3FFFF)", 2D) = "white" {}
+    _Font_0x4000_0x5FFF ("_Font 2 (unicode 0x4000 - 0x5FFFF)", 2D) = "white" {}
+    _Font_0x6000_0x7FFF ("_Font 3 (unicode 0x6000 - 0x7FFFF)", 2D) = "white" {}
+    _Font_0x8000_0x9FFF ("_Font 4 (unicode 0x8000 - 0x9FFFF)", 2D) = "white" {}
+    _Font_0xA000_0xBFFF ("_Font 5 (unicode 0xA000 - 0xBFFFF)", 2D) = "white" {}
+    _Font_0xC000_0xDFFF ("_Font 6 (unicode 0xC000 - 0xDFFFF)", 2D) = "white" {}
+    _Img_0xE000_0xE03F  ("_Images 0", 2D) = "white" {}
+    _TaSTT_Indicator_0("_TaSTT_Indicator_0", float) = 0
+    _TaSTT_Indicator_1("_TaSTT_Indicator_1", float) = 0
 
     // %TEMPLATE__UNITY_ROW_COL_PARAMS%
   }
@@ -62,10 +69,15 @@
       Texture2D _Font_0xC000_0xDFFF;
       Texture2D _Img_0xE000_0xE03F;
 
+      fixed4 Text_Color;
+      fixed4 Background_Color;
+      fixed4 Margin_Color;
+
       float Render_Margin;
       float Render_Visual_Indicator;
       float Margin_Scale;
       float Margin_Rounding_Scale;
+      float Enable_Margin_Effect_Squares;
 
       // %TEMPLATE__CG_ROW_COL_CONSTANTS%
 
@@ -83,8 +95,8 @@
         return ((RGB - 1) * HSV.y + 1) * HSV.z;
       }
 
-      float TaSTT_Indicator_0;
-      float TaSTT_Indicator_1;
+      float _TaSTT_Indicator_0;
+      float _TaSTT_Indicator_1;
       static const float3 TaSTT_Indicator_Color_0 = HSVtoRGB(float3(0.00, 0.7, 1.0));
       static const float3 TaSTT_Indicator_Color_1 = HSVtoRGB(float3(0.07, 0.7, 1.0));
       static const float3 TaSTT_Indicator_Color_2 = HSVtoRGB(float3(0.30, 0.7, 1.0));
@@ -98,7 +110,8 @@
           alpha);
       }
 
-      Texture2D TaSTT_Backplate;
+      float Use_Custom_Background;
+      Texture2D Custom_Background;
 
       // %TEMPLATE__CG_ROW_COL_PARAMS%
 
@@ -347,6 +360,15 @@
         return fixed4(col, 1.0);
       }
 
+      fixed4 margin_effect(v2f i)
+      {
+        if (Enable_Margin_Effect_Squares) {
+          return effect_squares(i);
+        } else {
+          return Margin_Color;
+        }
+      }
+
       fixed4 frag (v2f i) : SV_Target
       {
         float2 uv = i.uv;
@@ -361,7 +383,7 @@
         if (Render_Margin) {
           if (Margin_Rounding_Scale > 0.0) {
             if (InMarginRounding(uv, uv_margin, Margin_Rounding_Scale, /*interior=*/true)) {
-              return effect_squares(i);
+              return margin_effect(i);
             }
             if (InMarginRounding(uv, uv_margin, Margin_Rounding_Scale, /*interior=*/false)) {
               return fixed4(0, 0, 0, 0);
@@ -369,10 +391,10 @@
           }
           if (InMargin(uv, uv_margin)) {
             if (InSpeechIndicator(uv, uv_margin)) {
-              if (floor(TaSTT_Indicator_0) == 1.0) {
+              if (floor(_TaSTT_Indicator_0) == 1.0) {
                 // Actively speaking
                 return float3tofixed4(TaSTT_Indicator_Color_2, 1.0);
-              } else if (floor(TaSTT_Indicator_1) == 1.0) {
+              } else if (floor(_TaSTT_Indicator_1) == 1.0) {
                 // Done speaking, waiting for paging.
                 return float3tofixed4(TaSTT_Indicator_Color_1, 1.0);
               } else {
@@ -382,7 +404,7 @@
             }
 
             if (Render_Margin) {
-              return effect_squares(i);
+              return margin_effect(i);
             }
           }
         }
@@ -391,29 +413,8 @@
         float2 uv_with_margin = AddMarginToUV(uv, uv_margin);
 
         fixed4 text = fixed4(0, 0, 0, 0);
-        for (int i = 0; i < 5; i++) {
-          // Sample the cartesian neighbors of this pixel and average them
-          // together.
-          float2 aa_uv = uv_with_margin;
-          [forcecase] switch (i)
-          {
-            case 0:
-              // Do nothing
-              break;
-            case 1:
-              aa_uv.x += 0.0005;
-              break;
-            case 2:
-              aa_uv.x -= 0.0005;
-              break;
-            case 3:
-              aa_uv.y += 0.0005;
-              break;
-            case 4:
-              aa_uv.y -= 0.0005;
-              break;
-          }
-          int letter = GetLetterParameter(aa_uv);
+        {
+          int letter = GetLetterParameter(uv_with_margin);
 
           float texture_cols;
           float texture_rows;
@@ -432,37 +433,40 @@
           [forcecase] switch (which_texture)
           {
             case 0:
-              text += _Font_0x0000_0x1FFF.Sample(sampler_linear_repeat, letter_uv);
+              text = _Font_0x0000_0x1FFF.Sample(sampler_linear_repeat, letter_uv);
               break;
             case 1:
-              text += _Font_0x2000_0x3FFF.Sample(sampler_linear_repeat, letter_uv);
+              text = _Font_0x2000_0x3FFF.Sample(sampler_linear_repeat, letter_uv);
               break;
             case 2:
-              text += _Font_0x4000_0x5FFF.Sample(sampler_linear_repeat, letter_uv);
+              text = _Font_0x4000_0x5FFF.Sample(sampler_linear_repeat, letter_uv);
               break;
             case 3:
-              text += _Font_0x6000_0x7FFF.Sample(sampler_linear_repeat, letter_uv);
+              text = _Font_0x6000_0x7FFF.Sample(sampler_linear_repeat, letter_uv);
               break;
             case 4:
-              text += _Font_0x8000_0x9FFF.Sample(sampler_linear_repeat, letter_uv);
+              text = _Font_0x8000_0x9FFF.Sample(sampler_linear_repeat, letter_uv);
               break;
             case 5:
-              text += _Font_0xA000_0xBFFF.Sample(sampler_linear_repeat, letter_uv);
+              text = _Font_0xA000_0xBFFF.Sample(sampler_linear_repeat, letter_uv);
               break;
             case 6:
-              text += _Font_0xC000_0xDFFF.Sample(sampler_linear_repeat, letter_uv);
+              text = _Font_0xC000_0xDFFF.Sample(sampler_linear_repeat, letter_uv);
               break;
             default:
-              text += _Img_0xE000_0xE03F.Sample(sampler_linear_repeat, letter_uv);
+              text = _Img_0xE000_0xE03F.Sample(sampler_linear_repeat, letter_uv);
               break;
           }
         }
-        text /= 5.0;
         fixed4 black = fixed4(0,0,0,1);
         if (text.r == black.r && text.g == black.g && text.b == black.b && text.a == black.a) {
-          return TaSTT_Backplate.Sample(sampler_linear_repeat, uv);
+          if (Use_Custom_Background) {
+            return Custom_Background.Sample(sampler_linear_repeat, uv);
+          } else {
+            return Background_Color;
+          }
         } else {
-          return text;
+          return Text_Color;
         }
       }
       ENDCG
