@@ -73,6 +73,7 @@ TranscriptionAppConfig::TranscriptionAppConfig()
 	model("base.en"),
 	chars_per_sync("20"),
 	bytes_per_char("1"),
+	button("left joystick"),
 	rows("4"),
 	cols("48"),
 	window_duration("15"),
@@ -90,6 +91,7 @@ bool TranscriptionAppConfig::Serialize(const std::filesystem::path& path) {
 	root["model"] << ryml::to_substr(model);
 	root["chars_per_sync"] << ryml::to_substr(chars_per_sync);
 	root["bytes_per_char"] << ryml::to_substr(bytes_per_char);
+	root["button"] << ryml::to_substr(button);
 	root["rows"] << ryml::to_substr(rows);
 	root["cols"] << ryml::to_substr(cols);
 	root["window_duration"] << ryml::to_substr(window_duration);
@@ -119,6 +121,7 @@ bool TranscriptionAppConfig::Deserialize(const std::filesystem::path& path) {
 	root.get_if("model", &c.model);
 	root.get_if("chars_per_sync", &c.chars_per_sync);
 	root.get_if("bytes_per_char", &c.bytes_per_char);
+	root.get_if("button", &c.button);
 	root.get_if("rows", &c.rows);
 	root.get_if("cols", &c.cols);
 	root.get_if("window_duration", &c.window_duration);

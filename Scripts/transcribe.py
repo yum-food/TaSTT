@@ -317,7 +317,8 @@ def sendAudio(audio_state, use_builtin: bool):
             # Pace this out
             time.sleep(0.01)
 
-def readControllerInput(audio_state, enable_local_beep, use_builtin):
+def readControllerInput(audio_state, enable_local_beep: bool,
+        use_builtin: bool, button: str):
     session = None
     first = True
     while session == None and audio_state.run_app == True:
@@ -334,11 +335,15 @@ def readControllerInput(audio_state, enable_local_beep, use_builtin):
     osc_ctrl.indicateSpeech(audio_state.osc_state.client, False)
     osc_ctrl.indicatePaging(audio_state.osc_state.client, False)
 
+    hand_id = steamvr.hands[button.split()[0]]
+    button_id = steamvr.buttons[button.split()[1]]
+
     last_rising = time.time()
     while audio_state.run_app == True:
         time.sleep(0.05)
 
-        event = steamvr.pollButtonPress(session)
+        event = steamvr.pollButtonPress(session, hand_id=hand_id,
+                button_id=button_id)
 
         if event == steamvr.EVENT_RISING_EDGE:
             last_rising = time.time()
@@ -387,7 +392,8 @@ def readControllerInput(audio_state, enable_local_beep, use_builtin):
 # model should correspond to one of the Whisper models defined in
 # whisper/__init__.py. Examples: tiny, base, small, medium.
 def transcribeLoop(mic: str, language: str, model: str,
-        enable_local_beep: bool, use_cpu: bool, use_builtin: bool):
+        enable_local_beep: bool, use_cpu: bool, use_builtin: bool,
+        button: str):
     audio_state = getMicStream(mic)
     audio_state.language = whisper.tokenizer.TO_LANGUAGE_CODE[language]
 
@@ -408,7 +414,7 @@ def transcribeLoop(mic: str, language: str, model: str,
     send_audio_thd.daemon = True
     send_audio_thd.start()
 
-    controller_input_thd = threading.Thread(target = readControllerInput, args = [audio_state, enable_local_beep, use_builtin])
+    controller_input_thd = threading.Thread(target = readControllerInput, args = [audio_state, enable_local_beep, use_builtin, button])
     controller_input_thd.daemon = True
     controller_input_thd.start()
 
@@ -452,6 +458,7 @@ if __name__ == "__main__":
     parser.add_argument("--window_duration_s", type=int, help="The length in seconds of the audio recording handed to the transcription algorithm")
     parser.add_argument("--cpu", type=int, help="If set to 1, use CPU instead of GPU")
     parser.add_argument("--use_builtin", type=int, help="If set to 1, use the text box built into the game.")
+    parser.add_argument("--button", type=str, help="The controller button used to start/stop transcription. E.g. \"left joystick\"")
     args = parser.parse_args()
 
     if not args.mic:
@@ -469,6 +476,10 @@ if __name__ == "__main__":
 
     if not args.rows or not args.cols:
         print("--rows and --cols required", file=sys.stderr)
+        sys.exit(1)
+
+    if not args.button:
+        print("--button required", file=sys.stderr)
         sys.exit(1)
 
     if args.window_duration_s:
@@ -490,5 +501,5 @@ if __name__ == "__main__":
     generate_utils.config.BOARD_COLS = int(args.cols)
 
     transcribeLoop(args.mic, args.language, args.model, args.enable_local_beep,
-            args.cpu, args.use_builtin)
+            args.cpu, args.use_builtin, args.button)
 

@@ -9,6 +9,15 @@ EVENT_NONE = 0
 EVENT_RISING_EDGE = 1
 EVENT_FALLING_EDGE = 2
 
+hands = {}
+hands["left"] = vr.TrackedControllerRole_LeftHand
+hands["right"] = vr.TrackedControllerRole_RightHand
+
+buttons = {}
+buttons["a"] = vr.k_EButton_IndexController_A
+buttons["b"] = vr.k_EButton_IndexController_B
+buttons["joystick"] = vr.k_EButton_Axis0
+
 class SessionState:
     def __init__(self):
         self.system = vr.init(vr.VRApplication_Background)
@@ -24,11 +33,11 @@ class SessionState:
 #   2 - button falling edge
 def pollButtonPress(
         session_state: SessionState,
-        controller: vr.ETrackedControllerRole = vr.TrackedControllerRole_LeftHand,
-        button: vr.EVRButtonId = vr.k_EButton_Axis0
+        hand_id: vr.ETrackedControllerRole = hands["left"],
+        button_id: vr.EVRButtonId = buttons["joystick"],
         ) -> int:
-    lh_idx = session_state.system.getTrackedDeviceIndexForControllerRole(vr.TrackedControllerRole_LeftHand)
-    #print("Left hand device idx: {}".format(lh_idx))
+    lh_idx = session_state.system.getTrackedDeviceIndexForControllerRole(hand_id)
+    #print("left hand device idx: {}".format(lh_idx))
 
     got_state, state = session_state.system.getControllerState(lh_idx)
     if not got_state:
@@ -41,13 +50,11 @@ def pollButtonPress(
     # differentiate movement from clicking, we create a dead zone: if the event
     # fires while the stick isn't moved far from center, we assume it's a
     # click, not movement.
-    dead_zone_radius = 0.5
+    dead_zone_radius = 0.7
 
-    # This is the ID of event for the joystick being clicked.
-    joy_click = vr.k_EButton_Axis0
-    joy_click_mask = (1 << joy_click)
+    button_mask = (1 << button_id)
     ret = EVENT_NONE
-    if (state.ulButtonPressed & joy_click_mask) != 0 and\
+    if (state.ulButtonPressed & button_mask) != 0 and\
             (state.rAxis[0].x**2 + state.rAxis[0].y**2 < dead_zone_radius**2):
         #print("button pressed: %016x" % state.ulButtonPressed)
         #for i in range(0, 5):
@@ -65,7 +72,7 @@ if __name__ == "__main__":
     while True:
         time.sleep(0.1)
 
-        event = pollButtonPress(session_state)
+        event = pollButtonPress(session_state, hand_id = hands["left"], button_id = buttons["joystick"])
         if event == EVENT_RISING_EDGE:
             print("rising edge")
         elif event == EVENT_FALLING_EDGE:

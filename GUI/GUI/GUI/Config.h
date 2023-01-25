@@ -41,6 +41,7 @@ public:
 	std::string model;
 	std::string chars_per_sync;
 	std::string bytes_per_char;
+	std::string button;
 	std::string rows;
 	std::string cols;
 	std::string window_duration;

@@ -46,6 +46,7 @@ private:
     // TODO(yum) figure out how to deduplicate these objects
     wxChoice* py_app_chars_per_sync_;
     wxChoice* py_app_bytes_per_char_;
+    wxChoice* py_app_button_;
     wxChoice* unity_chars_per_sync_;
     wxChoice* unity_bytes_per_char_;
 

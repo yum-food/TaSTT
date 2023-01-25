@@ -154,6 +154,7 @@ wxProcess* PythonWrapper::StartApp(
 		"--model", config.model,
 		"--chars_per_sync", config.chars_per_sync,
 		"--bytes_per_char", config.bytes_per_char,
+		"--button", Quote(config.button),
 		"--enable_local_beep", config.enable_local_beep ? "1" : "0",
 		"--rows", config.rows,
 		"--cols", config.cols,

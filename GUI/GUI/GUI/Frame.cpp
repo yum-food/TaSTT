@@ -32,6 +32,7 @@ namespace {
         ID_PY_APP_MODEL,
         ID_PY_APP_CHARS_PER_SYNC,
         ID_PY_APP_BYTES_PER_CHAR,
+        ID_PY_APP_BUTTON,
         ID_PY_APP_MODEL_PANEL,
         ID_PY_APP_ENABLE_LOCAL_BEEP,
         ID_PY_APP_USE_CPU,
@@ -230,6 +231,17 @@ namespace {
     // Sorry international users. Optimize for English speakers, by default.
     constexpr int kBytesDefault = 0;
 
+    const wxString kButton[] = {
+        "left joystick",
+        "left a",
+        "left b",
+        "right joystick",
+        "right a",
+        "right b",
+    };
+    const size_t kNumButtons = sizeof(kButton) / sizeof(kButton[0]);
+    constexpr int kButtonDefault = 0;
+
     // Given the string value of a dropdown menu's entry, find its index. If no
     // entry matches, return `default_index`.
 	int GetDropdownChoiceIndex(const wxString menu[],
@@ -360,6 +372,17 @@ Frame::Frame()
 						"characters (i.e. not English), set this to 2.");
                     py_app_bytes_per_char_ = py_app_bytes_per_char;
 
+                    auto* py_app_button = new wxChoice(py_app_config_panel_pairs,
+                        ID_PY_APP_BUTTON, wxDefaultPosition,
+                        wxDefaultSize, kNumButtons, kButton);
+                    int button_idx = GetDropdownChoiceIndex(kButton, kNumButtons, py_c.button, kButtonDefault);
+                    py_app_button->SetSelection(button_idx);
+                    py_app_button->SetToolTip(
+                        "You will use this button in game to start and stop "
+                        "transcription. Set it to a button you're not using "
+                        "for anything else!");
+                    py_app_button_ = py_app_button;
+
                     auto* py_app_rows = new wxTextCtrl(py_app_config_panel_pairs,
                         ID_PY_APP_ROWS, py_c.rows,
                         wxDefaultPosition, wxDefaultSize, /*style=*/0);
@@ -403,6 +426,9 @@ Frame::Frame()
 
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs, wxID_ANY, /*label=*/"Bytes per character:"));
                     sizer->Add(py_app_bytes_per_char, /*proportion=*/0, /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs, wxID_ANY, /*label=*/"Button:"));
+                    sizer->Add(py_app_button, /*proportion=*/0, /*flags=*/wxEXPAND);
 
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs, wxID_ANY, /*label=*/"Text box rows:"));
                     sizer->Add(py_app_rows, /*proportion=*/0, /*flags=*/wxEXPAND);
@@ -946,6 +972,10 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     if (bytes_per_char_idx == wxNOT_FOUND) {
         bytes_per_char_idx = kBytesDefault;
     }
+    int button_idx = py_app_button_->GetSelection();
+    if (button_idx == wxNOT_FOUND) {
+        button_idx = kBytesDefault;
+    }
     const bool enable_local_beep = py_app_enable_local_beep_->GetValue();
     const bool use_cpu = py_app_use_cpu_->GetValue();
     const bool use_builtin = py_app_use_builtin_->GetValue();
@@ -987,6 +1017,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     py_c.model = kModelChoices[which_model].ToStdString();
     py_c.chars_per_sync = kCharsPerSync[chars_per_sync_idx].ToStdString();
     py_c.bytes_per_char = kBytesPerChar[bytes_per_char_idx].ToStdString();
+    py_c.button = kButton[button_idx].ToStdString();
     py_c.rows = std::to_string(rows);
     py_c.cols = std::to_string(cols);
     py_c.window_duration = std::to_string(window_duration);
