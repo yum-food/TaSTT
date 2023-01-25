@@ -54,6 +54,7 @@ private:
     wxCheckBox* py_app_use_builtin_;
 
     wxProcess* py_app_;
+    wxProcess* env_proc_;
     wxTimer py_app_drain_;
 
     void OnExit(wxCommandEvent& event);
@@ -64,7 +65,7 @@ private:
     void OnAppStart(wxCommandEvent& event);
     void OnAppStop(wxCommandEvent& event);
     void OnAppDrain(wxTimerEvent& event);
-    void DrainApp(wxProcess* proc, wxTextCtrl *frame);
+    void DrainAsyncOutput(wxProcess* proc, wxTextCtrl *frame);
     void OnGenerateFX(wxCommandEvent& event);
     void OnUnityParamChangeImpl();
     void OnUnityParamChange(wxCommandEvent& event);

@@ -250,6 +250,7 @@ using ::Logging::Log;
 Frame::Frame()
     : wxFrame(nullptr, wxID_ANY, "TaSTT"),
     py_app_(nullptr),
+    env_proc_(nullptr),
     py_app_drain_(this, ID_PY_APP_DRAIN)
 {
     TranscriptionAppConfig py_c;
@@ -731,6 +732,16 @@ void Frame::OnNavbarUnity(wxCommandEvent& event)
 
 void Frame::OnSetupPython(wxCommandEvent& event)
 {
+    if (env_proc_) {
+        if (wxProcess::Exists(env_proc_->GetPid())) {
+            Log(transcribe_out_, "Environment setup already running\n");
+            return;
+        }
+        delete env_proc_;
+        env_proc_ = nullptr;
+        return;
+    }
+
     Log(transcribe_out_, "Setting up Python virtual environment\n");
     Log(transcribe_out_, "This could take several minutes, please be patient!\n");
     Log(transcribe_out_, "This will download ~5GB of dependencies.\n");
@@ -743,31 +754,25 @@ void Frame::OnSetupPython(wxCommandEvent& event)
         }
     }
 
-    // TODO(yum) do this in a requirements.txt and run this command
-    // asynchronously so the GUI doesn't hang
-    const std::vector<std::string> pip_deps{
-        "future==0.18.2",
-        "openvr",
-        "pillow",
-        "pyaudio",
-        "python-osc",
-        "playsound==1.2.2",
-        "torch --extra-index-url https://download.pytorch.org/whl/cu116",
-        "git+https://github.com/openai/whisper.git",
-        "editdistance",
-    };
-
-    for (const auto& pip_dep : pip_deps) {
-		Log(transcribe_out_, "  Installing {}\n", pip_dep);
-        std::string py_stdout, py_stderr;
-        bool res = PythonWrapper::InvokeWithArgs({ "-m", "pip", "install", pip_dep }, &py_stdout, &py_stderr);
-        if (!res) {
-			Log(transcribe_out_, "Failed to install {}: {}\n", pip_dep, py_stderr);
-            return;
-        }
-    }
-
-	Log(transcribe_out_, "Python virtual environment successfully set up!\n");
+	auto cb = [&](wxProcess* proc, int ret) -> void {
+		Log(transcribe_out_, "Environment setup completed with code {}\n", ret);
+		if (ret == 0) {
+			Log(transcribe_out_, "Python virtual environment successfully set up!\n");
+		}
+		DrainAsyncOutput(proc, transcribe_out_);
+		return;
+	};
+	wxProcess* p = PythonWrapper::InvokeAsyncWithArgs({
+        "-u",  // Unbuffered output
+		"-m pip",
+		"install",
+		"-r Resources/Scripts/requirements.txt",
+		}, std::move(cb));
+	if (!p) {
+		Log(transcribe_out_, "Failed to launch environment setup thread!\n");
+		return;
+	}
+    env_proc_ = p;
 }
 
 void Frame::OnDumpMics(wxCommandEvent& event)
@@ -921,12 +926,6 @@ void Frame::OnAppStart(wxCommandEvent& event) {
 
 	Log(transcribe_out_, "Launching transcription engine\n");
 
-    auto cb = [&](wxProcess* proc, int ret) -> void {
-        Log(transcribe_out_, "Transcription engine exited with code {}\n", ret);
-        DrainApp(proc, transcribe_out_);
-		return;
-    };
-
     int which_mic = py_app_mic_->GetSelection();
     if (which_mic == wxNOT_FOUND) {
         which_mic = kMicDefault;
@@ -996,6 +995,11 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     py_c.use_builtin = use_builtin;
     py_c.Serialize(TranscriptionAppConfig::kConfigPath);
 
+    auto cb = [&](wxProcess* proc, int ret) -> void {
+        Log(transcribe_out_, "Transcription engine exited with code {}\n", ret);
+        DrainAsyncOutput(proc, transcribe_out_);
+		return;
+    };
     wxProcess* p = PythonWrapper::StartApp(std::move(cb), py_c);
     if (!p) {
         Log(transcribe_out_, "Failed to launch transcription engine\n");
@@ -1023,7 +1027,7 @@ void Frame::OnAppStop(wxCommandEvent& event) {
             wxMilliSleep(10);
         }
 
-		DrainApp(py_app_, transcribe_out_);
+		DrainAsyncOutput(py_app_, transcribe_out_);
 
         // Now shut it down.
 		bool first = true;
@@ -1046,10 +1050,11 @@ void Frame::OnAppStop(wxCommandEvent& event) {
 }
 
 void Frame::OnAppDrain(wxTimerEvent& event) {
-	DrainApp(py_app_, transcribe_out_);
+	DrainAsyncOutput(py_app_, transcribe_out_);
+	DrainAsyncOutput(env_proc_, transcribe_out_);
 }
 
-void Frame::DrainApp(wxProcess* proc, wxTextCtrl* frame) {
+void Frame::DrainAsyncOutput(wxProcess* proc, wxTextCtrl* frame) {
     if (!proc) {
         return;
     }

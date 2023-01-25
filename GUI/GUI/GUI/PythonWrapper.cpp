@@ -147,7 +147,7 @@ wxProcess* PythonWrapper::StartApp(
 	std::function<void(wxProcess* proc, int ret)>&& exit_callback,
 	const TranscriptionAppConfig& config) {
 	return InvokeAsyncWithArgs({
-		"-u",
+		"-u",  // Unbuffered output
 		"Resources/Scripts/transcribe.py",
 		"--mic", config.microphone,
 		"--lang", config.language,
