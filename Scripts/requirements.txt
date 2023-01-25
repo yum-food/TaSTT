@@ -4,6 +4,7 @@ pillow
 pyaudio
 python-osc
 playsound==1.2.2
-torch --extra-index-url https://download.pytorch.org/whl/cu116
+--extra-index-url https://download.pytorch.org/whl/cu116
+torch
 git+https://github.com/openai/whisper.git
 editdistance
