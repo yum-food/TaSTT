@@ -132,22 +132,22 @@ if __name__ == "__main__":
     nrows = int(args.rows)
     ncols = int(args.cols)
 
-    replacement = generateUnityParams(nbytes, nrows, ncols, prefix = "    ")
+    replacement = generateUnityParams(nbytes, nrows, ncols, prefix = "")
     #print(replacement)
     macro = "// %TEMPLATE__UNITY_ROW_COL_PARAMS%"
-    assert(applyLineMacro(args.shader_template, args.shader_path, macro, replacement) == 1)
+    applyLineMacro(args.shader_template, args.shader_path, macro, replacement)
 
-    replacement = generateCgParams(nbytes, nrows, ncols, prefix = "      ")
+    replacement = generateCgParams(nbytes, nrows, ncols, prefix = "  ")
     #print(replacement)
     macro = "// %TEMPLATE__CG_ROW_COL_PARAMS%"
-    assert(applyLineMacro(args.shader_path, args.shader_path, macro, replacement) == 1)
+    applyLineMacro(args.shader_path, args.shader_path, macro, replacement)
 
-    replacement = generateCgConstants(nbytes, nrows, ncols, prefix = "      ")
+    replacement = generateCgConstants(nbytes, nrows, ncols, prefix = "  ")
     #print(replacement)
     macro = "// %TEMPLATE__CG_ROW_COL_CONSTANTS%"
-    assert(applyLineMacro(args.shader_path, args.shader_path, macro, replacement) == 1)
+    applyLineMacro(args.shader_path, args.shader_path, macro, replacement)
 
-    replacement = generateLetterAccessor(nbytes, nrows, ncols, prefix = "          ")
+    replacement = generateLetterAccessor(nbytes, nrows, ncols, prefix = "      ")
     #print(replacement)
     macro = "// %TEMPLATE__CG_LETTER_ACCESSOR%"
-    assert(applyLineMacro(args.shader_path, args.shader_path, macro, replacement) == 1)
+    applyLineMacro(args.shader_path, args.shader_path, macro, replacement)

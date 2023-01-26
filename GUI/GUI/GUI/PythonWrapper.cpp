@@ -179,7 +179,9 @@ bool PythonWrapper::GenerateAnimator(
 	std::string generate_menu_path = "Resources/Scripts/generate_menu.py";
 	std::string generate_shader_path = "Resources/Scripts/generate_shader.py";
 	std::string shader_template_path = "Resources/Shaders/TaSTT_template.shader";
+	std::string shader_lighting_template_path = "Resources/Shaders/TaSTT_lighting_template.cginc";
 	std::string shader_path = "Resources/Shaders/TaSTT.shader";
+	std::string shader_lighting_path = "Resources/Shaders/TaSTT_lighting.cginc";
 
 	// Generated directory locations
 	std::filesystem::path tastt_generated_dir_path =
@@ -211,7 +213,7 @@ bool PythonWrapper::GenerateAnimator(
 		tastt_generated_dir_path / unity_animator_generated_name;
 
 	{
-		Log(out, "Generating shader for {}x{} board...", config.rows, config.cols);
+		Log(out, "Generating shader for {}x{} board (pass 0)...", config.rows, config.cols);
 
 		std::string py_stdout, py_stderr;
 		if (InvokeWithArgs({ generate_shader_path,
@@ -220,6 +222,33 @@ bool PythonWrapper::GenerateAnimator(
 			"--cols", std::to_string(config.cols),
 			"--shader_template", shader_template_path,
 			"--shader_path", shader_path },
+			&py_stdout, &py_stderr)) {
+			Log(out, "success!\n");
+			Log(out, py_stdout.c_str());
+			if (!py_stdout.empty()) {
+				Log(out, "\n");
+			}
+			Log(out, py_stderr.c_str());
+			if (!py_stderr.empty()) {
+				Log(out, "\n");
+			}
+		}
+		else {
+			wxLogError("Failed to generate shader: %s", py_stderr.c_str());
+			Log(out, "failed!\n");
+			return false;
+		}
+	}
+	{
+		Log(out, "Generating shader for {}x{} board (pass 1)...", config.rows, config.cols);
+
+		std::string py_stdout, py_stderr;
+		if (InvokeWithArgs({ generate_shader_path,
+			"--bytes_per_char", std::to_string(config.bytes_per_char),
+			"--rows", std::to_string(config.rows),
+			"--cols", std::to_string(config.cols),
+			"--shader_template", shader_lighting_template_path,
+			"--shader_path", shader_lighting_path },
 			&py_stdout, &py_stderr)) {
 			Log(out, "success!\n");
 			Log(out, py_stdout.c_str());
