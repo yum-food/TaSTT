@@ -18,6 +18,8 @@
     [MaterialToggle] Enable_Margin_Effect_Squares(
         "Enable margin effect: Squares", float) = 0
 
+    [MaterialToggle] Enable_Dithering("Enable font dithering", float) = 1
+
     [MaterialToggle] Use_Custom_Background("Enable custom background", float) = 0
     Custom_Background("Custom background", 2D) = "black" {}
 

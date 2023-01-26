@@ -26,6 +26,8 @@ struct v2f
 float Use_Custom_Background;
 sampler2D Custom_Background;
 
+float Enable_Dithering;
+
 sampler2D _Font_0x0000_0x1FFF;
 float4 _Font_0x0000_0x1FFF_TexelSize;
 sampler2D _Font_0x2000_0x3FFF;
@@ -407,6 +409,13 @@ fixed4 light(v2f i, fixed4 unlit)
   return fixed4(pbr, unlit.a);
 }
 
+bool f3ltf3(fixed3 a, fixed3 b)
+{
+  return a[0] < b[0] &&
+    a[1] < b[1] &&
+    a[2] < b[2];
+}
+
 fixed4 frag (v2f i) : SV_Target
 {
   float2 uv = i.uv;
@@ -451,16 +460,8 @@ fixed4 frag (v2f i) : SV_Target
   uv_margin *= 4;
   float2 uv_with_margin = AddMarginToUV(uv, uv_margin);
 
-  // We use ddx/ddy to get the correct mipmaps of the font textures. This
-  // confers 2 main benefits:
-  //   1. We don't use as much VRAM for distant players.
-  //   2. Glyphs anti-alias much more nicely.
-  // Dividing the derivative subjectively makes the resulting mip-maps look a
-  // little more legible.
-  float2 iddx = ddx(i.uv.x) / 2;
-  float2 iddy = ddy(i.uv.y) / 2;
-
   fixed4 text = fixed4(0, 0, 0, 0);
+  bool discard_text = false;
   {
     int letter = GetLetterParameter(uv_with_margin);
 
@@ -477,12 +478,25 @@ fixed4 frag (v2f i) : SV_Target
       letter_uv = GetLetter(uv_with_margin, letter, texture_cols, texture_rows, 8, 4);
     }
 
+    if (letter_uv.x == 0 && letter_uv.y == 0) {
+      discard_text = true;
+    }
+
     // Add a small amount of temporal noise to the letter UV. This makes text
     // more readable at intermediate distances.
     // Assume that all glyph bitmaps have the same texelsize.
-    float noise = frac(i.position.x * i.position.y) + _SinTime[3]/2;
-    letter_uv.x += noise * _Font_0x0000_0x1FFF_TexelSize[0];
-    letter_uv.y += noise * _Font_0x0000_0x1FFF_TexelSize[1];
+    if (Enable_Dithering) {
+      float noise = (2 * frac(i.position.x * i.position.y) + (_SinTime[3] + 1)) / 4;
+      letter_uv.x += noise * _Font_0x0000_0x1FFF_TexelSize[0];
+      letter_uv.y += noise * _Font_0x0000_0x1FFF_TexelSize[1];
+    }
+
+    // We use ddx/ddy to get the correct mipmaps of the font textures. This
+    // confers 2 main benefits:
+    //   1. We don't use as much VRAM for distant players.
+    //   2. Glyphs anti-alias much more nicely.
+    float2 iddx = ddx(letter_uv.x);
+    float2 iddy = ddy(letter_uv.y);
 
     int which_texture = (int) floor(letter / (64 * 128));
     [forcecase] switch (which_texture)
@@ -513,9 +527,13 @@ fixed4 frag (v2f i) : SV_Target
         break;
     }
   }
-  fixed4 black = fixed4(0,0,0,1);
-  if (text.r == black.r && text.g == black.g && text.b == black.b && text.a == black.a) {
+  // The edges of each letter cell can be slightly grey due to mip maps.
+  // Detect this and shade it as the background.
+  fixed3 grey = fixed3(.1,.1,.1);
+  if (f3ltf3(text.rgb, grey) || discard_text) {
     if (Use_Custom_Background) {
+      float2 iddx = ddx(uv.x);
+      float2 iddy = ddy(uv.y);
       return light(
           i,
           tex2Dgrad(Custom_Background, uv, iddx, iddy));
