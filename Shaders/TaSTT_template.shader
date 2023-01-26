@@ -9,7 +9,6 @@
     [Gamma] Metallic("Metallic", Range(0, 1)) = 0.5
     Smoothness("Smoothness", Range(0, 1)) = 0.2
     Emissive("Emissive", Range(0, 1)) = 0.1
-    SpecularTint("Specular Tint", Color) = (1, 1, 1, 1)
 
     [MaterialToggle] Render_Margin("Render margin", float) = 1
     [MaterialToggle] Render_Visual_Indicator("Render visual speech indicator", float) = 1

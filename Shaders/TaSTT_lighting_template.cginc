@@ -48,7 +48,6 @@ float4 _Img_0xE000_0xE03F_TexelSize;
 fixed4 Text_Color;
 fixed4 Background_Color;
 fixed4 Margin_Color;
-fixed4 Specular_Tint;
 
 float Metallic;
 float Smoothness;
@@ -368,7 +367,7 @@ UnityLight GetLight(v2f i)
   return light;
 }
 
-UnityIndirect GetIndirect(v2f i) {
+UnityIndirect GetIndirect(v2f i, float3 view_dir) {
   UnityIndirect indirect;
   indirect.diffuse = 0;
   indirect.specular = 0;
@@ -379,6 +378,15 @@ UnityIndirect GetIndirect(v2f i) {
 
   #if defined(FORWARD_BASE_PASS)
   indirect.diffuse += max(0, ShadeSH9(float4(i.normal, 1)));
+  float3 reflect_dir = reflect(-view_dir, i.normal);
+  // There's a nonlinear relationship between mipmap level and roughness.
+  float roughness = 1 - Smoothness;
+  roughness *= 1.7 - .7 * roughness;
+  float3 env_sample = UNITY_SAMPLE_TEXCUBE_LOD(
+      unity_SpecCube0,
+      reflect_dir,
+      roughness * UNITY_SPECCUBE_LOD_STEPS);
+  indirect.specular = env_sample;
   #endif
 
   return indirect;
@@ -402,7 +410,7 @@ fixed4 light(v2f i, fixed4 unlit)
 
   fixed3 pbr = UNITY_BRDF_PBS(albedo, specular_tint,
       one_minus_reflectivity, Smoothness,
-      i.normal, view_dir, GetLight(i), GetIndirect(i)).rgb;
+      i.normal, view_dir, GetLight(i), GetIndirect(i, view_dir)).rgb;
 
   pbr = lerp(pbr.rgb, unlit.rgb, Emissive);
 
