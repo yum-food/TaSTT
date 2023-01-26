@@ -23,16 +23,25 @@ struct v2f
   #endif
 };
 
-SamplerState sampler_linear_repeat;
+float Use_Custom_Background;
+sampler2D Custom_Background;
 
-Texture2D _Font_0x0000_0x1FFF;
-Texture2D _Font_0x2000_0x3FFF;
-Texture2D _Font_0x4000_0x5FFF;
-Texture2D _Font_0x6000_0x7FFF;
-Texture2D _Font_0x8000_0x9FFF;
-Texture2D _Font_0xA000_0xBFFF;
-Texture2D _Font_0xC000_0xDFFF;
-Texture2D _Img_0xE000_0xE03F;
+sampler2D _Font_0x0000_0x1FFF;
+float4 _Font_0x0000_0x1FFF_TexelSize;
+sampler2D _Font_0x2000_0x3FFF;
+float4 _Font_0x2000_0x3FFF_TexelSize;
+sampler2D _Font_0x4000_0x5FFF;
+float4 _Font_0x4000_0x5FFF_TexelSize;
+sampler2D _Font_0x6000_0x7FFF;
+float4 _Font_0x6000_0x7FFF_TexelSize;
+sampler2D _Font_0x8000_0x9FFF;
+float4 _Font_0x8000_0x9FFF_TexelSize;
+sampler2D _Font_0xA000_0xBFFF;
+float4 _Font_0xA000_0xBFFF_TexelSize;
+sampler2D _Font_0xC000_0xDFFF;
+float4 _Font_0xC000_0xDFFF_TexelSize;
+sampler2D _Img_0xE000_0xE03F;
+float4 _Img_0xE000_0xE03F_TexelSize;
 
 fixed4 Text_Color;
 fixed4 Background_Color;
@@ -79,9 +88,6 @@ fixed4 float3tofixed4(in float3 f3, in float alpha)
     f3.b,
     alpha);
 }
-
-float Use_Custom_Background;
-Texture2D Custom_Background;
 
 // %TEMPLATE__CG_ROW_COL_PARAMS%
 
@@ -242,30 +248,6 @@ float2 GetLetter(float2 uv, int nth_letter,
   result.y = LETTER_UV_ROW;
 
   return result;
-}
-
-Texture2D GetTexture(int which_letter) {
-  int which_texture = (int) floor(which_letter / (64 * 64));
-
-  [forcecase] switch (which_letter)
-  {
-    case 0:
-      return _Font_0x0000_0x1FFF;
-    case 1:
-      return _Font_0x2000_0x3FFF;
-    case 2:
-      return _Font_0x4000_0x5FFF;
-    case 3:
-      return _Font_0x6000_0x7FFF;
-    case 4:
-      return _Font_0x8000_0x9FFF;
-    case 5:
-      return _Font_0xA000_0xBFFF;
-    case 6:
-      return _Font_0xC000_0xDFFF;
-    default:
-      return _Font_0x0000_0x1FFF;
-  }
 }
 
 // Get the value of the parameter for the cell we're in.
@@ -469,6 +451,15 @@ fixed4 frag (v2f i) : SV_Target
   uv_margin *= 4;
   float2 uv_with_margin = AddMarginToUV(uv, uv_margin);
 
+  // We use ddx/ddy to get the correct mipmaps of the font textures. This
+  // confers 2 main benefits:
+  //   1. We don't use as much VRAM for distant players.
+  //   2. Glyphs anti-alias much more nicely.
+  // Dividing the derivative subjectively makes the resulting mip-maps look a
+  // little more legible.
+  float2 iddx = ddx(i.uv.x) / 2;
+  float2 iddy = ddy(i.uv.y) / 2;
+
   fixed4 text = fixed4(0, 0, 0, 0);
   {
     int letter = GetLetterParameter(uv_with_margin);
@@ -486,32 +477,39 @@ fixed4 frag (v2f i) : SV_Target
       letter_uv = GetLetter(uv_with_margin, letter, texture_cols, texture_rows, 8, 4);
     }
 
+    // Add a small amount of temporal noise to the letter UV. This makes text
+    // more readable at intermediate distances.
+    // Assume that all glyph bitmaps have the same texelsize.
+    float noise = frac(i.position.x * i.position.y) + _SinTime[3]/2;
+    letter_uv.x += noise * _Font_0x0000_0x1FFF_TexelSize[0];
+    letter_uv.y += noise * _Font_0x0000_0x1FFF_TexelSize[1];
+
     int which_texture = (int) floor(letter / (64 * 128));
     [forcecase] switch (which_texture)
     {
       case 0:
-        text = _Font_0x0000_0x1FFF.Sample(sampler_linear_repeat, letter_uv);
+        text = tex2Dgrad(_Font_0x0000_0x1FFF, letter_uv, iddx, iddy);
         break;
       case 1:
-        text = _Font_0x2000_0x3FFF.Sample(sampler_linear_repeat, letter_uv);
+        text = tex2Dgrad(_Font_0x2000_0x3FFF, letter_uv, iddx, iddy);
         break;
       case 2:
-        text = _Font_0x4000_0x5FFF.Sample(sampler_linear_repeat, letter_uv);
+        text = tex2Dgrad(_Font_0x4000_0x5FFF, letter_uv, iddx, iddy);
         break;
       case 3:
-        text = _Font_0x6000_0x7FFF.Sample(sampler_linear_repeat, letter_uv);
+        text = tex2Dgrad(_Font_0x6000_0x7FFF, letter_uv, iddx, iddy);
         break;
       case 4:
-        text = _Font_0x8000_0x9FFF.Sample(sampler_linear_repeat, letter_uv);
+        text = tex2Dgrad(_Font_0x8000_0x9FFF, letter_uv, iddx, iddy);
         break;
       case 5:
-        text = _Font_0xA000_0xBFFF.Sample(sampler_linear_repeat, letter_uv);
+        text = tex2Dgrad(_Font_0xA000_0xBFFF, letter_uv, iddx, iddy);
         break;
       case 6:
-        text = _Font_0xC000_0xDFFF.Sample(sampler_linear_repeat, letter_uv);
+        text = tex2Dgrad(_Font_0xC000_0xDFFF, letter_uv, iddx, iddy);
         break;
       default:
-        text = _Img_0xE000_0xE03F.Sample(sampler_linear_repeat, letter_uv);
+        text = tex2Dgrad(_Img_0xE000_0xE03F, letter_uv, iddx, iddy);
         break;
     }
   }
@@ -520,7 +518,7 @@ fixed4 frag (v2f i) : SV_Target
     if (Use_Custom_Background) {
       return light(
           i,
-          Custom_Background.Sample(sampler_linear_repeat, uv));
+          tex2Dgrad(Custom_Background, uv, iddx, iddy));
     } else {
       return light(i, Background_Color);
     }
