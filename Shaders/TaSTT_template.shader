@@ -59,9 +59,9 @@
     }
     Pass {
       Tags {
-        "RenderType"="Opaque"
-          "Queue"="AlphaTest+499"
-          "LightMode" = "ForwardAdd"
+        "RenderType" = "Opaque"
+        "LightMode" = "ForwardAdd"
+        "Queue"="AlphaTest+499"
       }
       Blend One One
       ZWrite Off
@@ -79,3 +79,4 @@
     }
   }
 }
+

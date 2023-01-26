@@ -93,6 +93,9 @@ void getVertexLightColor(inout v2f i)
   float3 light_vec = light_pos - i.worldPos;
   float3 light_dir = normalize(light_vec);
   float ndotl = DotClamped(i.normal, light_dir);
+  // Light fills an expanding sphere with surface area 4 * pi * r^2.
+  // By conservation of energy, this means that at distance r, light intensity
+  // is proportional to 1/(r^2).
   float attenuation = 1 / (1 + dot(light_vec, light_vec) * unity_4LightAtten0.x);
   i.vertexLightColor = unity_LightColor[0].rgb * ndotl * attenuation;
 
@@ -366,9 +369,6 @@ fixed4 margin_effect(v2f i)
 
 UnityLight GetLight(v2f i)
 {
-  // Light fills an expanding sphere with surface area 4 * pi * r^2.
-  // By conservation of energy, this means that at distance r, light intensity
-  // is proportional to 1/(r^2).
   UNITY_LIGHT_ATTENUATION(attenuation, 0, i.worldPos);
   float3 light_color = _LightColor0.rgb * attenuation;
 
@@ -530,3 +530,4 @@ fixed4 frag (v2f i) : SV_Target
 }
 
 #endif  // TASTT_LIGHTING
+

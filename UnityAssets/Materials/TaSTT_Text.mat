@@ -13,12 +13,16 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 3000
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - Custom_Background:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - TaSTT_Backplate:
         m_Texture: {fileID: 2800000, guid: 06c9223f22185d54b920542d45168c6b, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -92,12 +96,17 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - Margin_Scale: 0.06
+    - Emissive: 0.1
+    - Enable_Margin_Effect_Squares: 0
     - Margin_Rounding_Scale: 0.11
+    - Margin_Scale: 0.06
+    - Metallic: 0.5
     - Render_Margin: 1
     - Render_Visual_Indicator: 0
+    - Smoothness: 0.2
     - TaSTT_Indicator_0: 0
     - TaSTT_Indicator_1: 0
+    - Use_Custom_Background: 0
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
@@ -496,8 +505,14 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
+    - _TaSTT_Indicator_0: 0
+    - _TaSTT_Indicator_1: 0
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
+    - Background_Color: {r: 0, g: 0, b: 0, a: 1}
+    - Margin_Color: {r: 1, g: 1, b: 1, a: 1}
+    - SpecularTint: {r: 1, g: 1, b: 1, a: 1}
+    - Text_Color: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 0.8, g: 0.8, b: 0.8, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
