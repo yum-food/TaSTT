@@ -6,6 +6,11 @@
     Background_Color ("Background Color", Color) = (0, 0, 0, 1)
     Margin_Color ("Margin color", Color) = (1, 1, 1, 1)
 
+    [Gamma] Metallic("Metallic", Range(0, 1)) = 0.2
+    Smoothness("Smoothness", Range(0, 1)) = 0.2
+    Emissive("Emissive", Range(0, 1)) = 0.2
+    SpecularTint("Specular Tint", Color) = (1, 1, 1, 1)
+
     [MaterialToggle] Render_Margin("Render margin", float) = 1
     [MaterialToggle] Render_Visual_Indicator("Render visual speech indicator", float) = 1
     Margin_Scale("Margin scale", float) = 0.03
@@ -31,7 +36,11 @@
   }
   SubShader
   {
-    Tags { "RenderType"="Opaque" "Queue"="AlphaTest"}
+    Tags {
+      "RenderType"="Opaque"
+      "Queue"="AlphaTest+499"
+      "LightMode" = "ForwardBase"
+    }
     LOD 100
 
     Pass
@@ -41,21 +50,23 @@
       CGPROGRAM
       #pragma vertex vert
       #pragma fragment frag
-      #pragma multi_compile
+      #pragma target 3.0
 
-      //#include "UnityCG.cginc"
+      #include "UnityPBSLighting.cginc"
 
       struct appdata
       {
-        float4 vertex : POSITION;
+        float4 position : POSITION;
         float2 uv : TEXCOORD0;
         float3 normal : NORMAL;
       };
 
       struct v2f
       {
+        float4 position : SV_POSITION;
         float2 uv : TEXCOORD0;
-        float4 vertex : SV_POSITION;
+        float3 normal : TEXCOORD1;
+        float3 worldPos : TEXCOORD2;
       };
 
       SamplerState sampler_linear_repeat;
@@ -72,6 +83,11 @@
       fixed4 Text_Color;
       fixed4 Background_Color;
       fixed4 Margin_Color;
+      fixed4 Specular_Tint;
+
+      float Metallic;
+      float Smoothness;
+      float Emissive;
 
       float Render_Margin;
       float Render_Visual_Indicator;
@@ -118,8 +134,10 @@
       v2f vert (appdata v)
       {
         v2f o;
-        o.vertex = UnityObjectToClipPos(v.vertex);
+        o.position = mul(UNITY_MATRIX_MVP, v.position);
+        o.worldPos = mul(unity_ObjectToWorld, v.position);
         o.uv = 1.0 - v.uv;
+        o.normal = UnityObjectToWorldNormal(v.normal);
         return o;
       }
 
@@ -369,9 +387,41 @@
         }
       }
 
+      fixed4 light (v2f i, fixed4 unlit)
+      {
+        fixed3 albedo = unlit.rgb;
+
+        float3 light_dir = _WorldSpaceLightPos0.xyz;
+        float3 light_color = _LightColor0.rgb;
+        float3 view_dir = normalize(_WorldSpaceCameraPos - i.worldPos);
+
+        float3 specular_tint;
+        float one_minus_reflectivity;
+        albedo = DiffuseAndSpecularFromMetallic(
+          albedo, Metallic, specular_tint, one_minus_reflectivity);
+
+        UnityLight light;
+        light.color = light_color;
+        light.dir = light_dir;
+        light.ndotl = DotClamped(i.normal, light_dir);
+
+        UnityIndirect indirect_light;
+        indirect_light.diffuse = 0;
+        indirect_light.specular = 0;
+
+        fixed3 pbr = UNITY_BRDF_PBS(albedo, specular_tint,
+            one_minus_reflectivity, Smoothness,
+            i.normal, view_dir, light, indirect_light).rgb;
+
+        pbr = lerp(pbr.rgb, albedo, Emissive);
+
+        return fixed4(pbr, unlit.a);
+      }
+
       fixed4 frag (v2f i) : SV_Target
       {
         float2 uv = i.uv;
+        i.normal = normalize(i.normal);
 
         // Derived from github.com/pema99/shader-knowledge (MIT license).
         if (unity_CameraProjection[2][0] != 0.0 ||
@@ -383,28 +433,28 @@
         if (Render_Margin) {
           if (Margin_Rounding_Scale > 0.0) {
             if (InMarginRounding(uv, uv_margin, Margin_Rounding_Scale, /*interior=*/true)) {
-              return margin_effect(i);
+              return light(i, margin_effect(i));
             }
             if (InMarginRounding(uv, uv_margin, Margin_Rounding_Scale, /*interior=*/false)) {
-              return fixed4(0, 0, 0, 0);
+              return light(i, fixed4(0, 0, 0, 0));
             }
           }
           if (InMargin(uv, uv_margin)) {
             if (InSpeechIndicator(uv, uv_margin)) {
               if (floor(_TaSTT_Indicator_0) == 1.0) {
                 // Actively speaking
-                return float3tofixed4(TaSTT_Indicator_Color_2, 1.0);
+                return light(i, float3tofixed4(TaSTT_Indicator_Color_2, 1.0));
               } else if (floor(_TaSTT_Indicator_1) == 1.0) {
                 // Done speaking, waiting for paging.
-                return float3tofixed4(TaSTT_Indicator_Color_1, 1.0);
+                return light(i, float3tofixed4(TaSTT_Indicator_Color_1, 1.0));
               } else {
                 // Neither speaking nor paging.
-                return float3tofixed4(TaSTT_Indicator_Color_0, 1.0);
+                return light(i, float3tofixed4(TaSTT_Indicator_Color_0, 1.0));
               }
             }
 
             if (Render_Margin) {
-              return margin_effect(i);
+              return light(i, margin_effect(i));
             }
           }
         }
@@ -461,12 +511,14 @@
         fixed4 black = fixed4(0,0,0,1);
         if (text.r == black.r && text.g == black.g && text.b == black.b && text.a == black.a) {
           if (Use_Custom_Background) {
-            return Custom_Background.Sample(sampler_linear_repeat, uv);
+            return light(
+                i,
+                Custom_Background.Sample(sampler_linear_repeat, uv));
           } else {
-            return Background_Color;
+            return light(i, Background_Color);
           }
         } else {
-          return Text_Color;
+          return light(i, Text_Color);
         }
       }
       ENDCG
