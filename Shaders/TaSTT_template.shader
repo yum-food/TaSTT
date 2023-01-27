@@ -19,8 +19,15 @@
 
     [MaterialToggle] Enable_Dithering("Enable font dithering", float) = 1
 
-    [MaterialToggle] Use_Custom_Background("Enable custom background", float) = 0
-    Custom_Background("Custom background", 2D) = "black" {}
+    [MaterialToggle] BG_Enable("Enable custom background", float) = 0
+    BG_BaseColor("Background base color", 2D) = "black" {}
+    [NoScaleOffset] BG_NormalMap ("Background normal map", 2D) = "bump" {}
+    BG_NormalStrength ("Background normal strength", Float) = 1
+    BG_Smoothness("Background smoothness", 2D) = "black" {}
+    [MaterialToggle]BG_Smoothness_Invert("Invert background smoothness", float) = 1
+    BG_Metallic("Background metallic", 2D) = "black" {}
+    BG_Emission_Mask("Background emission mask", 2D) = "black" {}
+    BG_Emission_Color("Background emission color", Color) = (0, 0, 0)
 
     _Font_0x0000_0x1FFF ("_Font 0 (unicode 0x0000 - 0x1FFFF)", 2D) = "white" {}
     _Font_0x2000_0x3FFF ("_Font 1 (unicode 0x2000 - 0x3FFFF)", 2D) = "white" {}
@@ -79,5 +86,6 @@
       ENDCG
     }
   }
+  //CustomEditor "TaSTTShaderGUI"
 }
 
