@@ -1,8 +1,8 @@
 ## TaSTT: A deliciously free STT
 
 TaSTT (pronounced "tasty") is a free speech-to-text tool for VRChat. It uses
-a GPU-based transcription algorithm to turn your voice into text, then sends it
-into VRChat via OSC.
+[a GPU-based transcription algorithm](https://github.com/openai/whisper) to
+turn your voice into text, then sends it into VRChat via OSC.
 
 To get started, download the latest .zip from [the releases page](https://github.com/yum-food/TaSTT/releases/latest).
 
@@ -12,16 +12,17 @@ Contents:
 
 0. [Usage and setup](#usage-and-setup)
 1. [Features](#features)
-2. [Motivation](#motivation)
-3. [Design overview](#design-overview)
-4. [Contributing](#contributing)
-5. [Backlog](#backlog)
+2. [Requirements](#requirements)
+3. [Motivation](#motivation)
+4. [Design overview](#design-overview)
+5. [Contributing](#contributing)
+6. [Backlog](#backlog)
 
 Made with love by yum\_food.
 
 ## Usage and setup
 
-Get the latest package from [the releases page](https://github.com/yum-food/TaSTT/releases/latest).
+Download the latest .zip from [the releases page](https://github.com/yum-food/TaSTT/releases/latest).
 
 Please [join the discord](https://discord.gg/YWmCvbCRyn) to share feedback and
 get technical help.
@@ -29,8 +30,8 @@ get technical help.
 To build your own package from source, see GUI/README.md.
 
 Basic controls:
-* Short click the left joystick to toggle transcription.
-* Long click the left joystick to hide the text box.
+* Short click to toggle transcription.
+* Long click to hide the text box.
 * Scale it up/down in the radial menu.
 
 ## Features
@@ -45,9 +46,11 @@ Basic controls:
   * Whisper natively supports transcription in [100 languages](
     https://github.com/openai/whisper/blob/main/whisper/tokenizer.py#L10).
 * Customizable:
+  * Control button may be set to left/right a/b/joystick.
   * Text color, background color, and border color are customizable in the shader.
   * Text background may be an image.
   * Border width and rounding are customizable.
+  * Shader supports physically based shading: smoothness, metallic, and emissive.
 * Works with the built-in chatbox (usable with public avatars!)
 * Many optional quality-of-life features:
   * Audio feedback: hear distinct beeps when transcription starts and stops.
@@ -83,7 +86,7 @@ Basic controls:
 For the last 3 bullets: please let me know in the Discord if these are
 deal breakers. I'd be happy to fix them!
 
-### Motivation
+## Motivation
 
 Many VRChat players choose not to use their mics, but as a practical matter,
 occasionally have to communicate. I want this to be as simple, efficient, and
@@ -106,7 +109,7 @@ reason or another:
    to this repository. There are two crucial differences: it's GPL not MIT, and
    it doesn't abstract away the command line.
 
-### Design overview
+## Design overview
 
 These are the important bits:
 
@@ -159,11 +162,15 @@ character set:
     (M chars per cell)
 ```
 
-### Contributing
+## Contributing
 
 Contributions welcome. Send a pull request to this repository.
 
-### Backlog
+See GUI/README.md for instructions on building the GUI.
+
+Ping the discord if you need help getting set up.
+
+## Backlog
 
 1. Better Unity integrations
    1. Port all scripts to Unity-native C# scripts.
@@ -189,9 +196,9 @@ Contributions welcome. Send a pull request to this repository.
       algorithms available; or, figure out how to integrate with
    7. ~~Save UI input fields to config file. Persist across process exit. It's
       annoying having to re-enter the config every time I use the STT.~~ DONE
-   8. Customizable controller bindings. Someone mentioned they use left click
+   8. ~~Customizable controller bindings. Someone mentioned they use left click
       to unmute. Let's work around users, not make them change their existing
-      keybinds.
+      keybinds.~~ DONE
 4. Optimization
    1. ~~Utilize the avatar 3.0 SDK's ability to drive parameters to reduce the
      total # of parameters (and therefore OSC messages & sync events). Note
@@ -221,4 +228,5 @@ Contributions welcome. Send a pull request to this repository.
    1. Smooth scrolling.
    2. ~~Infinite scrolling.~~ DONE
    3. ~~Sound indicator, maybe like animal crossing :)~~ DONE
+   4. Support texture-based PBR shading
 
