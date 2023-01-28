@@ -65,7 +65,7 @@ def generate():
     result += generate_utils.replaceMacros(BOOL_PARAM, params)
 
     params["PARAM_NAME"] = generate_utils.getScaleParam()
-    params["DEFAULT_FLOAT"] = "0.2"
+    params["DEFAULT_FLOAT"] = "0.1"
     result += generate_utils.replaceMacros(FLOAT_PARAM, params)
     params["DEFAULT_FLOAT"] = "0"
 

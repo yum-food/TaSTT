@@ -48,7 +48,8 @@ Basic controls:
 * Customizable:
   * Control button may be set to left/right a/b/joystick.
   * Text color, background color, and border color are customizable in the shader.
-  * Text background may be an image.
+  * Text background may be customized with PBR textures: base color, normal,
+    metallic, roughness, and emission are all implemented.
   * Border width and rounding are customizable.
   * Shader supports physically based shading: smoothness, metallic, and emissive.
 * Works with the built-in chatbox (usable with public avatars!)

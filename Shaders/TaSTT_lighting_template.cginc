@@ -504,6 +504,9 @@ bool f3ltf3(fixed3 a, fixed3 b)
 fixed4 frag(v2f i) : SV_Target
 {
   float2 uv = i.uv.zw;
+  // Fix text orientation
+  uv.y = 0.5 - uv.y;
+  uv.x = 1.0 - uv.x;
   uv.y *= 2;  // Text box has 2:1 aspect ratio
 
   // Derived from github.com/pema99/shader-knowledge (MIT license).
