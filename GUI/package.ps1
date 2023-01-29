@@ -20,13 +20,7 @@ if (-Not (Test-Path $py_dir)) {
   mkdir Python
   Expand-Archive $PYTHON_FILE -DestinationPath Python
 
-  # Required for pip to work with embedded python
-  echo "import site" | Out-File -FilePath Python/python310._pth -Encoding "utf8" -Append
-  # Required for TaSTT python script imports to work
-  echo "../Scripts" | Out-File -FilePath Python/python310._pth -Encoding "utf8" -Append
-  # Required for pip-installed dependency imports to work
-  echo "Lib" | Out-File -FilePath Python/python310._pth -Encoding "utf8" -Append
-  echo "Lib/site-packages" | Out-File -FilePath Python/python310._pth -Encoding "utf8" -Append
+  rm Python/python310._pth
 }
 
 $pip_path = "$py_dir/get-pip.py"
