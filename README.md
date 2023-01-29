@@ -68,7 +68,7 @@ Basic controls:
 
 ## Requirements
 
-* ~5GB disk space
+* ~8GB disk space
   * I apologize that this is so big. The libraries used to perform
     GPU-accelerated transcription (pytorch and whisper) are really,
     really big. There is no performant implementation of Whisper or a
