@@ -132,7 +132,7 @@ void getVertexLightColor(inout v2f i)
 v2f vert(appdata v)
 {
   v2f o;
-  o.position = mul(UNITY_MATRIX_MVP, v.position);
+  o.position = UnityObjectToClipPos(v.position);
   o.worldPos = mul(unity_ObjectToWorld, v.position);
   o.normal = UnityObjectToWorldNormal(v.normal);
   o.uv.xy = TRANSFORM_TEX(v.uv, BG_BaseColor);
@@ -504,10 +504,27 @@ bool f3ltf3(fixed3 a, fixed3 b)
 fixed4 frag(v2f i) : SV_Target
 {
   float2 uv = i.uv.zw;
+
   // Fix text orientation
   uv.y = 0.5 - uv.y;
   uv.x = 1.0 - uv.x;
   uv.y *= 2;  // Text box has 2:1 aspect ratio
+
+  if (Enable_Dithering) {
+    // Add noise to UV.
+    // Here, iddx and iddy tell us how big the current UV cell is with respect to
+    // screen space (i.e. how many pixels wide it is).
+    float iddx = ddx(uv.x);
+    float iddy = ddy(uv.y);
+    float noise = sin(_Time[3] + 1.0 / frac(iddx * uv.x + iddy * uv.y));
+    uv.x += noise * iddx / 4.0;
+    uv.y += noise * iddy / 4.0;
+    // Too decaffeinated to figure out why: if we don't clamp to [.001, .999],
+    // then faint outlines show up around the edge of the box. This is related
+    // to the exterior transparency added in margin rounding.
+    uv.x = max(0.001, min(0.999, uv.x));
+    uv.y = max(0.001, min(0.999, uv.y));
+  }
 
   // Derived from github.com/pema99/shader-knowledge (MIT license).
   if (unity_CameraProjection[2][0] != 0.0 ||
@@ -570,21 +587,12 @@ fixed4 frag(v2f i) : SV_Target
       discard_text = true;
     }
 
-    // Add a small amount of temporal noise to the letter UV. This makes text
-    // more readable at intermediate distances.
-    // Assume that all glyph bitmaps have the same texelsize.
-    if (Enable_Dithering) {
-      float noise = (2 * frac(i.position.x * i.position.y) + (_SinTime[3] + 1)) / 4;
-      letter_uv.x += noise * _Font_0x0000_0x1FFF_TexelSize[0];
-      letter_uv.y += noise * _Font_0x0000_0x1FFF_TexelSize[1];
-    }
-
     // We use ddx/ddy to get the correct mipmaps of the font textures. This
     // confers 2 main benefits:
     //   1. We don't use as much VRAM for distant players.
     //   2. Glyphs anti-alias much more nicely.
-    float2 iddx = ddx(letter_uv.x);
-    float2 iddy = ddy(letter_uv.y);
+    float iddx = ddx(letter_uv.x);
+    float iddy = ddy(letter_uv.y);
 
     int which_texture = (int) floor(letter / (64 * 128));
     [forcecase] switch (which_texture)
@@ -617,7 +625,7 @@ fixed4 frag(v2f i) : SV_Target
   }
   // The edges of each letter cell can be slightly grey due to mip maps.
   // Detect this and shade it as the background.
-  fixed3 grey = fixed3(.3,.3,.3);
+  fixed3 grey = fixed3(.4,.4,.4);
   if (f3ltf3(text.rgb, grey) || discard_text) {
     if (BG_Enable) {
       return light(i,
