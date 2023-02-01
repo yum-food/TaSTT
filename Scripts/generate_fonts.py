@@ -17,7 +17,9 @@ layout_engine = ImageFont.Layout.BASIC
 unifont = ImageFont.truetype("Fonts/unifont-15.0.01.ttf", full_sz, layout_engine=layout_engine)
 unifont_half = ImageFont.truetype("Fonts/unifont-15.0.01.ttf", half_sz, layout_engine=layout_engine)
 
-noto_sans_mono = ImageFont.truetype("Fonts/Noto_Sans_Mono/NotoSansMono-VariableFont_wdth,wght.ttf", full_sz, layout_engine=layout_engine)
+noto_sans_mono = ImageFont.truetype(
+        "Fonts/Noto_Sans_Mono/static/NotoSansMono/NotoSansMono-Bold.ttf",
+        full_sz, index=0, layout_engine=layout_engine)
 
 noto_sans_sc_half = ImageFont.truetype("Fonts/Noto_Sans_Simplified_Chinese/NotoSansSC-Regular.otf", half_sz, layout_engine=layout_engine)
 
