@@ -531,7 +531,7 @@ fixed4 frag(v2f i) : SV_Target
         return light(i, margin_effect(i));
       }
       if (InMarginRounding(uv, uv_margin, Margin_Rounding_Scale, /*interior=*/false)) {
-        return light(i, fixed4(0, 0, 0, 0));
+        return fixed4(0, 0, 0, 0);
       }
     }
     if (InMargin(uv, uv_margin)) {
