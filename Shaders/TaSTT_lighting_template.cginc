@@ -39,6 +39,7 @@ float4 BG_Smoothness_ST;
 float4 BG_Emission_Mask_ST;
 
 float Enable_Dithering;
+float AA_Amount;
 
 sampler2D _Font_0x0000_0x1FFF;
 float4 _Font_0x0000_0x1FFF_TexelSize;
@@ -501,6 +502,13 @@ bool f3ltf3(fixed3 a, fixed3 b)
     a[2] < b[2];
 }
 
+float prng(float2 v)
+{
+  float2 res2 = float2(cos(v.x * _Time[2]), sin(v.y * _Time[2]));
+  float res = dot(res2, res2) / 2;
+  return res * res;
+}
+
 fixed4 frag(v2f i) : SV_Target
 {
   float2 uv = i.uv.zw;
@@ -509,22 +517,6 @@ fixed4 frag(v2f i) : SV_Target
   uv.y = 0.5 - uv.y;
   uv.x = 1.0 - uv.x;
   uv.y *= 2;  // Text box has 2:1 aspect ratio
-
-  if (Enable_Dithering) {
-    // Add noise to UV.
-    // Here, iddx and iddy tell us how big the current UV cell is with respect to
-    // screen space (i.e. how many pixels wide it is).
-    float iddx = ddx(uv.x);
-    float iddy = ddy(uv.y);
-    float noise = sin(_Time[3] + 1.0 / frac(iddx * uv.x + iddy * uv.y));
-    uv.x += noise * iddx / 4.0;
-    uv.y += noise * iddy / 4.0;
-    // Too decaffeinated to figure out why: if we don't clamp to [.001, .999],
-    // then faint outlines show up around the edge of the box. This is related
-    // to the exterior transparency added in margin rounding.
-    uv.x = max(0.001, min(0.999, uv.x));
-    uv.y = max(0.001, min(0.999, uv.y));
-  }
 
   // Derived from github.com/pema99/shader-knowledge (MIT license).
   if (unity_CameraProjection[2][0] != 0.0 ||
@@ -567,62 +559,95 @@ fixed4 frag(v2f i) : SV_Target
 
   fixed4 text = fixed4(0, 0, 0, 0);
   bool discard_text = false;
+
+  int letter = GetLetterParameter(uv_with_margin);
+
+  float texture_cols;
+  float texture_rows;
+  float2 letter_uv;
+  if (letter < 0xE000) {
+    texture_cols = 128.0;
+    texture_rows = 64.0;
+    letter_uv = GetLetter(uv_with_margin, letter, texture_cols, texture_rows, NCOLS, NROWS);
+  } else {
+    texture_cols = 8.0;
+    texture_rows = 8.0;
+    letter_uv = GetLetter(uv_with_margin, letter, texture_cols, texture_rows, 8, 4);
+  }
+
+  if (letter_uv.x == 0 && letter_uv.y == 0) {
+    discard_text = true;
+  }
+
+  // We use ddx/ddy to get the correct mipmaps of the font textures. This
+  // confers 2 main benefits:
+  //   1. We don't use as much VRAM for distant players.
+  //   2. Glyphs anti-alias much more nicely.
+  const float iddx = ddx(letter_uv.x);
+  const float iddy = ddy(letter_uv.y);
+
+  if (Enable_Dithering) {
+    // Add noise to UV.
+    // Here, iddx and iddy tell us how big the current UV cell is with respect to
+    // screen space (i.e. how many pixels wide it is).
+    float noise = prng(letter_uv);
+    letter_uv.x += noise * iddx / 4.0;
+    letter_uv.y += noise * iddy / 4.0;
+  }
+
+  // Loop-independent anti-aliasing variables.
+  // See `aa_sample_algorithm.py` for simpler code demonstrating this concept.
+  // Basically we're taking evenly spaced samples inside a region as large as
+  // the current pixel.
+  const float iddx_convex = max(iddx, 1.0 / iddx);
+  const float iddy_convex = max(iddy, 1.0 / iddy);
+  const int aa_amount = AA_Amount;
+  const float aa_region = iddx_convex * iddy_convex;
+  const float aa_stride = aa_region / aa_amount;
+
+  [unroll(5)]
+  for (int aa_i = 0; aa_i < aa_amount; aa_i++)
   {
-    int letter = GetLetterParameter(uv_with_margin);
+    float aa_region_i = aa_stride * aa_i + aa_stride / 2;
+    float aa_region_x = aa_region_i / iddy_convex;
+    float aa_region_y = fmod(aa_region_i, iddy_convex);
 
-    float texture_cols;
-    float texture_rows;
-    float2 letter_uv;
-    if (letter < 0xE000) {
-      texture_cols = 128.0;
-      texture_rows = 64.0;
-      letter_uv = GetLetter(uv_with_margin, letter, texture_cols, texture_rows, NCOLS, NROWS);
-    } else {
-      texture_cols = 8.0;
-      texture_rows = 8.0;
-      letter_uv = GetLetter(uv_with_margin, letter, texture_cols, texture_rows, 8, 4);
-    }
+    aa_region_x = lerp(0, iddx, aa_region_x / iddx_convex);
+    aa_region_y = lerp(0, iddy, aa_region_y / iddy_convex);
 
-    if (letter_uv.x == 0 && letter_uv.y == 0) {
-      discard_text = true;
-    }
-
-    // We use ddx/ddy to get the correct mipmaps of the font textures. This
-    // confers 2 main benefits:
-    //   1. We don't use as much VRAM for distant players.
-    //   2. Glyphs anti-alias much more nicely.
-    float iddx = ddx(letter_uv.x);
-    float iddy = ddy(letter_uv.y);
+    float2 cur_letter_uv = letter_uv + float2(aa_region_x, aa_region_y) * 1;
 
     int which_texture = (int) floor(letter / (64 * 128));
     [forcecase] switch (which_texture)
     {
       case 0:
-        text = tex2Dgrad(_Font_0x0000_0x1FFF, letter_uv, iddx, iddy);
+        text += tex2Dgrad(_Font_0x0000_0x1FFF, cur_letter_uv, iddx, iddy);
         break;
       case 1:
-        text = tex2Dgrad(_Font_0x2000_0x3FFF, letter_uv, iddx, iddy);
+        text += tex2Dgrad(_Font_0x2000_0x3FFF, cur_letter_uv, iddx, iddy);
         break;
       case 2:
-        text = tex2Dgrad(_Font_0x4000_0x5FFF, letter_uv, iddx, iddy);
+        text += tex2Dgrad(_Font_0x4000_0x5FFF, cur_letter_uv, iddx, iddy);
         break;
       case 3:
-        text = tex2Dgrad(_Font_0x6000_0x7FFF, letter_uv, iddx, iddy);
+        text += tex2Dgrad(_Font_0x6000_0x7FFF, cur_letter_uv, iddx, iddy);
         break;
       case 4:
-        text = tex2Dgrad(_Font_0x8000_0x9FFF, letter_uv, iddx, iddy);
+        text += tex2Dgrad(_Font_0x8000_0x9FFF, cur_letter_uv, iddx, iddy);
         break;
       case 5:
-        text = tex2Dgrad(_Font_0xA000_0xBFFF, letter_uv, iddx, iddy);
+        text += tex2Dgrad(_Font_0xA000_0xBFFF, cur_letter_uv, iddx, iddy);
         break;
       case 6:
-        text = tex2Dgrad(_Font_0xC000_0xDFFF, letter_uv, iddx, iddy);
+        text += tex2Dgrad(_Font_0xC000_0xDFFF, cur_letter_uv, iddx, iddy);
         break;
       default:
-        text = tex2Dgrad(_Img_0xE000_0xE03F, letter_uv, iddx, iddy);
+        text += tex2Dgrad(_Img_0xE000_0xE03F, cur_letter_uv, iddx, iddy);
         break;
     }
   }
+  text /= aa_amount;
+
   // The edges of each letter cell can be slightly grey due to mip maps.
   // Detect this and shade it as the background.
   fixed3 grey = fixed3(.4,.4,.4);
