@@ -40,7 +40,7 @@
     _Font_0x8000_0x9FFF ("_Font 4 (unicode 0x8000 - 0x9FFFF)", 2D) = "white" {}
     _Font_0xA000_0xBFFF ("_Font 5 (unicode 0xA000 - 0xBFFFF)", 2D) = "white" {}
     _Font_0xC000_0xDFFF ("_Font 6 (unicode 0xC000 - 0xDFFFF)", 2D) = "white" {}
-    _Img_0xE000_0xE03F  ("_Images 0", 2D) = "white" {}
+    _Img_0xE000_0xE03F  ("_Images", 2D) = "white" {}
     _TaSTT_Indicator_0("_TaSTT_Indicator_0", float) = 0
     _TaSTT_Indicator_1("_TaSTT_Indicator_1", float) = 0
 

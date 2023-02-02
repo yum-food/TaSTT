@@ -1,28 +1,23 @@
 #!/usr/bin/env python3
 
+from datetime import datetime
+from emotes_v2 import EmotesState
+from functools import partial
+from playsound import playsound
+
 import argparse
 import copy
-from datetime import datetime
 import os
 import osc_ctrl
-from functools import partial
 import generate_utils
-# python3 -m pip install pyaudio
-# License: MIT.
 import pyaudio
 import numpy as np
-# python3 -m pip install playsound==1.2.2
-# License: MIT.
-from playsound import playsound
 import steamvr
 import string_matcher
 import sys
 import threading
 import time
 import wave
-# python3 -m pip install git+https://github.com/openai/whisper.git
-# python3 -m pip install torch -f https://download.pytorch.org/whl/torch_stable.html
-# License: MIT.
 import whisper
 
 class Config:
@@ -303,14 +298,14 @@ def transcribeAudio(audio_state, model, use_cpu: bool):
             audio_state.transcribe_no_change_count = 0
             audio_state.transcribe_sleep_duration = audio_state.transcribe_sleep_duration_min_s
 
-def sendAudio(audio_state, use_builtin: bool):
+def sendAudio(audio_state, use_builtin: bool, estate: EmotesState):
     while audio_state.run_app == True:
         text = audio_state.committed_text + " " + audio_state.text
         if use_builtin:
             ret = osc_ctrl.pageMessageBuiltin(audio_state.osc_state, text)
             time.sleep(1.5)
         else:
-            ret = osc_ctrl.pageMessage(audio_state.osc_state, text)
+            ret = osc_ctrl.pageMessage(audio_state.osc_state, text, estate)
             is_paging = (ret == False)
             osc_ctrl.indicatePaging(audio_state.osc_state.client, is_paging)
 
@@ -393,7 +388,7 @@ def readControllerInput(audio_state, enable_local_beep: bool,
 # whisper/__init__.py. Examples: tiny, base, small, medium.
 def transcribeLoop(mic: str, language: str, model: str,
         enable_local_beep: bool, use_cpu: bool, use_builtin: bool,
-        button: str):
+        button: str, estate: EmotesState):
     audio_state = getMicStream(mic)
     audio_state.language = whisper.tokenizer.TO_LANGUAGE_CODE[language]
 
@@ -410,7 +405,7 @@ def transcribeLoop(mic: str, language: str, model: str,
     transcribe_audio_thd.daemon = True
     transcribe_audio_thd.start()
 
-    send_audio_thd = threading.Thread(target = sendAudio, args = [audio_state, use_builtin])
+    send_audio_thd = threading.Thread(target = sendAudio, args = [audio_state, use_builtin, estate])
     send_audio_thd.daemon = True
     send_audio_thd.start()
 
@@ -459,6 +454,7 @@ if __name__ == "__main__":
     parser.add_argument("--cpu", type=int, help="If set to 1, use CPU instead of GPU")
     parser.add_argument("--use_builtin", type=int, help="If set to 1, use the text box built into the game.")
     parser.add_argument("--button", type=str, help="The controller button used to start/stop transcription. E.g. \"left joystick\"")
+    parser.add_argument("--emotes_pickle", type=str, help="The path to emotes pickle. See emotes_v2.py for details.")
     args = parser.parse_args()
 
     if not args.mic:
@@ -482,6 +478,10 @@ if __name__ == "__main__":
         print("--button required", file=sys.stderr)
         sys.exit(1)
 
+    if not args.emotes_pickle:
+        print("--emotes_pickle required", file=sys.stderr)
+        sys.exit(1)
+
     if args.window_duration_s:
         config.MAX_LENGTH_S = int(args.window_duration_s)
 
@@ -495,11 +495,14 @@ if __name__ == "__main__":
     else:
         args.use_builtin = False
 
+    estate = EmotesState()
+    estate.load(args.emotes_pickle)
+
     generate_utils.config.BYTES_PER_CHAR = int(args.bytes_per_char)
     generate_utils.config.CHARS_PER_SYNC = int(args.chars_per_sync)
     generate_utils.config.BOARD_ROWS = int(args.rows)
     generate_utils.config.BOARD_COLS = int(args.cols)
 
     transcribeLoop(args.mic, args.language, args.model, args.enable_local_beep,
-            args.cpu, args.use_builtin, args.button)
+            args.cpu, args.use_builtin, args.button, estate)
 

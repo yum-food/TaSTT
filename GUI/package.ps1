@@ -62,6 +62,7 @@ mkdir $install_dir/Resources > $null
 cp -Recurse ../Animations TaSTT/Resources/Animations
 mkdir TaSTT/Resources/Fonts
 cp -Recurse ../Fonts/Bitmaps TaSTT/Resources/Fonts/Bitmaps
+cp -Recurse ../Fonts/Emotes TaSTT/Resources/Fonts/Emotes
 cp -Recurse ../Images TaSTT/Resources/Images
 cp -Recurse Python TaSTT/Resources/Python
 cp -Recurse PortableGit TaSTT/Resources/PortableGit

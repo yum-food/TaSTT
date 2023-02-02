@@ -19,6 +19,26 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - BG_BaseColor:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - BG_Emission_Mask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - BG_Metallic:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - BG_NormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - BG_Smoothness:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - Custom_Background:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -76,7 +96,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Img_0xE000_0xE03F:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 054057c5bf512e842854e6746e754159, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -96,7 +116,12 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - AA_Amount: 5
+    - BG_Enable: 0
+    - BG_NormalStrength: 1
+    - BG_Smoothness_Invert: 1
     - Emissive: 0.1
+    - Enable_Dithering: 1
     - Enable_Margin_Effect_Squares: 0
     - Margin_Rounding_Scale: 0.11
     - Margin_Scale: 0.06
@@ -510,6 +535,7 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
+    - BG_Emission_Color: {r: 0, g: 0, b: 0, a: 1}
     - Background_Color: {r: 0, g: 0, b: 0, a: 1}
     - Margin_Color: {r: 1, g: 1, b: 1, a: 1}
     - SpecularTint: {r: 1, g: 1, b: 1, a: 1}

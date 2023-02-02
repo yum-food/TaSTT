@@ -11,6 +11,10 @@
 
 using ::Logging::Log;
 
+namespace {
+	constexpr const char kEmotesPickle[] = "Resources/Fonts/Bitmaps/emotes.map";
+}  // namespace
+
 class PythonProcess : public wxProcess {
 public:
 	PythonProcess(std::function<void(wxProcess* proc, int ret)>&& exit_callback) : exit_cb_(exit_callback) {
@@ -185,6 +189,7 @@ wxProcess* PythonWrapper::StartApp(
 		"--window_duration_s", config.window_duration,
 		"--cpu", config.use_cpu ? "1" : "0",
 		"--use_builtin", config.use_builtin ? "1" : "0",
+		"--emotes_pickle", kEmotesPickle,
 		},
 		std::move(exit_callback));
 }
@@ -199,6 +204,7 @@ bool PythonWrapper::GenerateAnimator(
 	// Python script locations
 	std::string libunity_path = "Resources/Scripts/libunity.py";
 	std::string libtastt_path = "Resources/Scripts/libtastt.py";
+	std::string generate_emotes_path = "Resources/Scripts/emotes_v2.py";
 	std::string generate_params_path = "Resources/Scripts/generate_params.py";
 	std::string generate_menu_path = "Resources/Scripts/generate_menu.py";
 	std::string generate_shader_path = "Resources/Scripts/generate_shader.py";
@@ -259,6 +265,34 @@ bool PythonWrapper::GenerateAnimator(
 			"--shader_template", shader_lighting_template_path,
 			"--shader_path", shader_lighting_path },
 			"Failed to generate shader", out)) {
+			return false;
+		}
+	}
+	{
+		Log(out, "Generating emotes... ");
+
+		std::string py_stdout, py_stderr;
+		if (InvokeWithArgs({ generate_emotes_path,
+			"Resources/Fonts/Emotes/",
+			/*board_aspect_ratio=*/ std::to_string(6),
+			/*texture_aspect_ratio=*/ std::to_string(2),
+			"Resources/Fonts/Bitmaps/emotes.png",
+			kEmotesPickle
+			},
+			&py_stdout, &py_stderr)) {
+			Log(out, "success!\n");
+			Log(out, py_stdout.c_str());
+			if (!py_stdout.empty()) {
+				Log(out, "\n");
+			}
+			Log(out, py_stderr.c_str());
+			if (!py_stderr.empty()) {
+				Log(out, "\n");
+			}
+		}
+		else {
+			wxLogError("Failed to generate emotes: %s", py_stderr.c_str());
+			Log(out, "failed!\n");
 			return false;
 		}
 	}

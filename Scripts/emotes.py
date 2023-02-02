@@ -111,15 +111,27 @@ def addImageToTexture(tex: Image, img_path: str, x: int, y:int):
 def parseArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument("--texture_path", type=str, help="Path to save the generated texture.")
+    parser.add_argument("--rows", type=str, help="The number of rows on the board")
+    parser.add_argument("--cols", type=str, help="The number of columns on the board")
     args = parser.parse_args()
 
-    if not args.texture_path:
-        args.texture_path = "img_texture.png"
+    if not args.texture_path or not args.rows or not args.cols:
+        print("--texture_path, --rows, --cols required", file=sys.stderr)
+        sys.exit(1)
 
     return args
 
 if __name__ == "__main__":
     args = parseArgs()
+
+    rows = int(args.rows)
+    cols = int(args.cols)
+    # board is this much wider than tall
+    board_aspect_ratio = 2
+    # each cell a square divided into `rows`x`cols` is this much wider than tall
+    cell_aspect_ratio = rows / cols
+    # each cell is this much wider than tall
+    board_cell_aspect_ratio = board_aspect_ratio * cell_aspect_ratio
 
     tex = openTexture(args.texture_path)
     for i in range(0, len(IMG_TEX_DATA)):

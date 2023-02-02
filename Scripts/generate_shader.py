@@ -64,8 +64,8 @@ def generateCgConstants(nbytes: int, nrows: int, ncols: int, prefix: str = "") -
 #              case 1:
 #              ...
 #
-#                res |= ((int) _Letter_Row00_Col00_Byte0) << (0 * 8);
-#                res |= ((int) _Letter_Row00_Col00_Byte1) << (1 * 8);
+#                res |= ((int) round(_Letter_Row00_Col00_Byte0)) << (0 * 8);
+#                res |= ((int) round(_Letter_Row00_Col00_Byte1)) << (1 * 8);
 #                continue;
 #              }
 #        }
@@ -84,7 +84,7 @@ def generateLetterAccessor(nbytes: int, nrows: int, ncols: int, prefix: str = ""
             lines.append(prefix + "      case {}:".format(col))
             for byte in range(0, nbytes):
                 param_name = generate_utils.getShaderParamByRowColByte(row, col, byte)
-                lines.append(prefix + "        res |= ((int) {}) << ({} * 8);".format(param_name, byte))
+                lines.append(prefix + "        res |= ((int) round({})) << ({} * 8);".format(param_name, byte))
             lines.append(prefix + "        return res;")
         lines.append(prefix + "      default:")
         lines.append(prefix + "        return 0;")

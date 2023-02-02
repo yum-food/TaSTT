@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
-import argparse
+from emotes_v2 import EmotesState
 from generate_utils import config
-import generate_utils
+from math import ceil
 from paging import MultiLinePager
 from pythonosc import udp_client
-from math import ceil
+
+import argparse
+import generate_utils
 import time
 
 # Based on a couple experiments, this seems like about as fast as we can go
@@ -87,7 +89,7 @@ def updateRegion(client, region_idx, letter_encoded):
 # Sends one slice of `msg` to the board then returns. Slices are sent
 # in FIFO order; e.g., the most recently spoken words are sent last.
 # Returns True if done paging, False otherwise.
-def pageMessage(osc_state: OscState, msg: str) -> bool:
+def pageMessage(osc_state: OscState, msg: str, estate: EmotesState) -> bool:
     msg_slice, slice_idx = osc_state.pager.getNextSlice(msg)
     if slice_idx == -1:
         return True

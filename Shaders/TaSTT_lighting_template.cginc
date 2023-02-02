@@ -231,7 +231,8 @@ bool InMarginRounding(float2 uv, float2 margin, float rounding, bool interior)
 // in the texture being sampled.
 float2 GetLetter(float2 uv, int nth_letter,
     float texture_cols, float texture_rows,
-    float board_cols, float board_rows)
+    float board_cols, float board_rows,
+    float margin)
 {
   // UV spans from [0,1] to [0,1].
   // 'U' is horizontal; cols.
@@ -248,11 +249,14 @@ float2 GetLetter(float2 uv, int nth_letter,
   // Avoid rendering pixels right on the edge of the slot. If we were to
   // do this, then that value would get stretched due to clamping
   // (AddMarginToUV), resulting in long lines on the edge of the display.
-  if (CHAR_FRAC_ROW < 0.01 ||
-      CHAR_FRAC_COL < 0.01 ||
-      CHAR_FRAC_ROW > 0.99 ||
-      CHAR_FRAC_COL > 0.99) {
-    return float2(0, 0);
+  float lo = margin / 2;
+  float hi = 1.0 - margin / 2;
+  if (margin != 0 &&
+      (CHAR_FRAC_ROW < lo ||
+      CHAR_FRAC_COL < lo ||
+      CHAR_FRAC_ROW > hi ||
+      CHAR_FRAC_COL > hi)) {
+    return float2(-1, -1);
   }
 
   float LETTER_COL = fmod(nth_letter, floor(texture_cols));
@@ -576,17 +580,20 @@ fixed4 frag(v2f i) : SV_Target
   float texture_cols;
   float texture_rows;
   float2 letter_uv;
+  bool is_emote = false;
   if (letter < 0xE000) {
     texture_cols = 128.0;
     texture_rows = 64.0;
-    letter_uv = GetLetter(uv_with_margin, letter, texture_cols, texture_rows, NCOLS, NROWS);
+    letter_uv = GetLetter(uv_with_margin, letter % 0x2000, texture_cols, texture_rows, NCOLS, NROWS, /*margin=*/0.02);
   } else {
+    is_emote = true;
     texture_cols = 8.0;
-    texture_rows = 8.0;
-    letter_uv = GetLetter(uv_with_margin, letter, texture_cols, texture_rows, 8, 4);
+    texture_rows = 4.0;
+    // This will need to be updated if we create multiple emote textures.
+    letter_uv = GetLetter(uv_with_margin, letter % 0x2000, texture_cols, texture_rows, NCOLS, NROWS, /*margin=*/0);
   }
 
-  if (letter_uv.x == 0 && letter_uv.y == 0) {
+  if (letter_uv.x == -1 && letter_uv.y == -1) {
     discard_text = true;
   }
 
@@ -626,7 +633,17 @@ fixed4 frag(v2f i) : SV_Target
     aa_region_x = lerp(0, iddx, aa_region_x / iddx_convex);
     aa_region_y = lerp(0, iddy, aa_region_y / iddy_convex);
 
-    float2 cur_letter_uv = letter_uv + float2(aa_region_x, aa_region_y) * 1;
+    //float2 cur_letter_uv = letter_uv + float2(aa_region_x, aa_region_y);
+    float2 cur_letter_uv = letter_uv;
+   
+    if (is_emote) {
+      // Emotes are broken up into several pieces and packed tightly. Thus one
+      // emote may wrap around the edge of the texture. Clamping near the edge
+      // of the texture avoids a small line from appearing in the middle of
+      // these textures.
+      float epsilon = 0.002;
+      cur_letter_uv.x = clamp(cur_letter_uv.x, epsilon, 1.0 - epsilon);
+    }
 
     int which_texture = (int) floor(letter / (64 * 128));
     [forcecase] switch (which_texture)
@@ -652,9 +669,12 @@ fixed4 frag(v2f i) : SV_Target
       case 6:
         text += tex2Dgrad(_Font_0xC000_0xDFFF, cur_letter_uv, iddx, iddy);
         break;
-      default:
+      case 7:
         text += tex2Dgrad(_Img_0xE000_0xE03F, cur_letter_uv, iddx, iddy);
         break;
+      default:
+        // Return some distinctive pattern that will look like a bug.
+        return fixed4(1, 0, _SinTime[0], 1);
     }
   }
   text /= aa_amount;
@@ -662,9 +682,10 @@ fixed4 frag(v2f i) : SV_Target
   // The edges of each letter cell can be slightly grey due to mip maps.
   // Detect this and shade it as the background.
   fixed3 grey = fixed3(.4,.4,.4);
-  if (f3ltf3(text.rgb, grey) || discard_text) {
+  if (f3ltf3(text.rgb, grey) || discard_text || is_emote) {
+    fixed4 bg;
     if (BG_Enable) {
-      return light(i,
+      bg = light(i,
         BG_BaseColor,
         BG_NormalMap,
         BG_NormalStrength,
@@ -674,8 +695,12 @@ fixed4 frag(v2f i) : SV_Target
         BG_Emission_Mask,
         BG_Emission_Color);
     } else {
-      return light(i, Background_Color);
+      bg = light(i, Background_Color);
     }
+    if (is_emote) {
+      bg.rgb = lerp(bg.rgb, text.rgb, text.w);
+    }
+    return bg;
   } else {
     return light(i, Text_Color);
   }
