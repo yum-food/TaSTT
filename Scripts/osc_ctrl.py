@@ -90,6 +90,8 @@ def updateRegion(client, region_idx, letter_encoded):
 # in FIFO order; e.g., the most recently spoken words are sent last.
 # Returns True if done paging, False otherwise.
 def pageMessage(osc_state: OscState, msg: str, estate: EmotesState) -> bool:
+    msg = estate.encode_emotes(msg)
+
     msg_slice, slice_idx = osc_state.pager.getNextSlice(msg)
     if slice_idx == -1:
         return True

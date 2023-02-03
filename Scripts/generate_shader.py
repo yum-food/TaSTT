@@ -48,11 +48,11 @@ def generateCgConstants(nbytes: int, nrows: int, ncols: int, prefix: str = "") -
 
 # This is the basic idea of what we're generating:
 #      // Get the value of the parameter for the cell we're in.
-#      int GetLetterParameter(float2 uv)
+#      uint GetLetterParameter(float2 uv)
 #      {
 #        float CHAR_COL = floor(uv.x * Cols);
 #        float CHAR_ROW = floor(uv.y * Rows);
-#        int res = 0;
+#        uint res = 0;
 #
 #          [forcecase] switch(CHAR_ROW) {
 #            case n:
@@ -64,8 +64,8 @@ def generateCgConstants(nbytes: int, nrows: int, ncols: int, prefix: str = "") -
 #              case 1:
 #              ...
 #
-#                res |= ((int) round(_Letter_Row00_Col00_Byte0)) << (0 * 8);
-#                res |= ((int) round(_Letter_Row00_Col00_Byte1)) << (1 * 8);
+#                res |= ((uint) round(_Letter_Row00_Col00_Byte0)) << (0 * 8);
+#                res |= ((uint) round(_Letter_Row00_Col00_Byte1)) << (1 * 8);
 #                continue;
 #              }
 #        }
@@ -84,7 +84,7 @@ def generateLetterAccessor(nbytes: int, nrows: int, ncols: int, prefix: str = ""
             lines.append(prefix + "      case {}:".format(col))
             for byte in range(0, nbytes):
                 param_name = generate_utils.getShaderParamByRowColByte(row, col, byte)
-                lines.append(prefix + "        res |= ((int) round({})) << ({} * 8);".format(param_name, byte))
+                lines.append(prefix + "        res |= ((uint) round({})) << ({} * 8);".format(param_name, byte))
             lines.append(prefix + "        return res;")
         lines.append(prefix + "      default:")
         lines.append(prefix + "        return 0;")

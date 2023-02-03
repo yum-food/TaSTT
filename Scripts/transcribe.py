@@ -368,7 +368,7 @@ def readControllerInput(audio_state, enable_local_beep: bool,
                     audio_state.audio_paused = True
 
                     if enable_local_beep == 1:
-                        playsound(os.path.abspath("../Sounds/Noise_Off_Quiet.wav"))
+                        playsound(os.path.abspath("Resources/Sounds/Noise_Off_Quiet.wav"))
                 elif state == PAUSE_STATE:
                     state = RECORD_STATE
                     if not use_builtin:
@@ -382,7 +382,7 @@ def readControllerInput(audio_state, enable_local_beep: bool,
                     audio_state.audio_paused = False
 
                     if enable_local_beep == 1:
-                        playsound(os.path.abspath("../Sounds/Noise_On_Quiet.wav"))
+                        playsound(os.path.abspath("Resources/Sounds/Noise_On_Quiet.wav"))
 
 # model should correspond to one of the Whisper models defined in
 # whisper/__init__.py. Examples: tiny, base, small, medium.
@@ -436,10 +436,13 @@ if __name__ == "__main__":
 
     print("args: {}".format(" ".join(sys.argv)))
 
-    # Set cwd to the directory holding the script
+    # Set cwd to TaSTT/
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)
+    dname = os.path.dirname(dname)
+    dname = os.path.dirname(dname)
     os.chdir(dname)
+    print(f"Set cwd to {os.getcwd()}")
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--mic", type=str, help="Which mic to use. Options: index, focusrite. Default: index")

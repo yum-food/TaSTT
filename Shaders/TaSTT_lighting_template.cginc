@@ -273,7 +273,7 @@ float2 GetLetter(float2 uv, int nth_letter,
 }
 
 // Get the value of the parameter for the cell we're in.
-int GetLetterParameter(float2 uv)
+uint GetLetterParameter(float2 uv)
 {
   float CHAR_COL = floor(uv.x * NCOLS);
   float CHAR_ROW = floor(uv.y * NROWS);
@@ -575,7 +575,7 @@ fixed4 frag(v2f i) : SV_Target
   fixed4 text = fixed4(0, 0, 0, 0);
   bool discard_text = false;
 
-  int letter = GetLetterParameter(uv_with_margin);
+  uint letter = GetLetterParameter(uv_with_margin);
 
   float texture_cols;
   float texture_rows;
@@ -587,8 +587,8 @@ fixed4 frag(v2f i) : SV_Target
     letter_uv = GetLetter(uv_with_margin, letter % 0x2000, texture_cols, texture_rows, NCOLS, NROWS, /*margin=*/0.02);
   } else {
     is_emote = true;
-    texture_cols = 8.0;
-    texture_rows = 4.0;
+    texture_cols = 16.0;
+    texture_rows = 8.0;
     // This will need to be updated if we create multiple emote textures.
     letter_uv = GetLetter(uv_with_margin, letter % 0x2000, texture_cols, texture_rows, NCOLS, NROWS, /*margin=*/0);
   }
@@ -604,7 +604,7 @@ fixed4 frag(v2f i) : SV_Target
   const float iddx = ddx(letter_uv.x);
   const float iddy = ddy(letter_uv.y);
 
-  if (Enable_Dithering) {
+  if (Enable_Dithering && !is_emote) {
     // Add noise to UV.
     // Here, iddx and iddy tell us how big the current UV cell is with respect to
     // screen space (i.e. how many pixels wide it is).
@@ -635,17 +635,8 @@ fixed4 frag(v2f i) : SV_Target
 
     //float2 cur_letter_uv = letter_uv + float2(aa_region_x, aa_region_y);
     float2 cur_letter_uv = letter_uv;
-   
-    if (is_emote) {
-      // Emotes are broken up into several pieces and packed tightly. Thus one
-      // emote may wrap around the edge of the texture. Clamping near the edge
-      // of the texture avoids a small line from appearing in the middle of
-      // these textures.
-      float epsilon = 0.002;
-      cur_letter_uv.x = clamp(cur_letter_uv.x, epsilon, 1.0 - epsilon);
-    }
 
-    int which_texture = (int) floor(letter / (64 * 128));
+    int which_texture = (int) floor(letter / (uint) (64 * 128));
     [forcecase] switch (which_texture)
     {
       case 0:
