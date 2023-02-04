@@ -142,6 +142,9 @@ def pageMessage(osc_state: OscState, msg: str) -> bool:
 # truncates data at about 150 chars, so just send the suffix of the message for
 # now.
 def pageMessageBuiltin(osc_state: OscState, msg: str) -> bool:
+    if len(msg) == 0 or msg.isspace():
+        return False  # Not paging
+
     msg_begin = max(len(msg) - 140, 0)
     msg_suffix = msg[msg_begin:len(msg)]
 

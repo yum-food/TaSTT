@@ -355,7 +355,7 @@ def readControllerInput(audio_state, enable_local_beep: bool,
                 if not use_builtin:
                     osc_ctrl.indicateSpeech(audio_state.osc_state.client, False)
                     osc_ctrl.toggleBoard(audio_state.osc_state.client, False)
-                #playsound(os.path.abspath("../Sounds/Noise_Off.wav"))
+                #playsound(os.path.abspath("../Sounds/Noise_Off_Quiet.wav"))
 
                 resetAudioLocked(audio_state)
                 resetDisplayLocked(audio_state)
@@ -373,7 +373,7 @@ def readControllerInput(audio_state, enable_local_beep: bool,
                     audio_state.audio_paused = True
 
                     if enable_local_beep == 1:
-                        playsound(os.path.abspath("../Sounds/Noise_Off.wav"))
+                        playsound(os.path.abspath("../Sounds/Noise_Off_Quiet.wav"))
                 elif state == PAUSE_STATE:
                     state = RECORD_STATE
                     if not use_builtin:
@@ -387,7 +387,7 @@ def readControllerInput(audio_state, enable_local_beep: bool,
                     audio_state.audio_paused = False
 
                     if enable_local_beep == 1:
-                        playsound(os.path.abspath("../Sounds/Noise_On.wav"))
+                        playsound(os.path.abspath("../Sounds/Noise_On_Quiet.wav"))
 
 # model should correspond to one of the Whisper models defined in
 # whisper/__init__.py. Examples: tiny, base, small, medium.
