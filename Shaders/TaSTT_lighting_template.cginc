@@ -688,8 +688,12 @@ fixed4 frag(v2f i) : SV_Target
     } else {
       bg = light(i, Background_Color);
     }
-    if (is_emote) {
-      bg.rgb = lerp(bg.rgb, text.rgb, text.w);
+    // Hack: If alpha (text.w) is less than 0.5, don't render it. This
+    // eliminates outlines around simple emotes with transparent backgrounds.
+    if (is_emote && text.w > 0.5) {
+      // Use emote alpha to mix emote color with background color (compositing).
+      text.rgb = lerp(bg.rgb, text.rgb, text.w);
+      bg = light(i, fixed4(text.rgb, 1.0));
     }
     return bg;
   } else {
