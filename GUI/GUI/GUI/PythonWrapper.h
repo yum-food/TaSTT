@@ -37,6 +37,9 @@ namespace PythonWrapper
 	bool InvokeWithArgs(std::vector<std::string>&& args, std::string* py_stdout,
 		std::string* py_stderr = NULL);
 
+	bool InvokeWithArgs(std::vector<std::string>&& args,
+		const std::string&& err_msg, wxTextCtrl* out);
+
 	// Execute python --version.
 	std::string GetVersion();
 

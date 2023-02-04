@@ -16,6 +16,7 @@ namespace {
 		ID_NAVBAR,
 		ID_NAVBAR_BUTTON_TRANSCRIBE,
 		ID_NAVBAR_BUTTON_UNITY,
+		ID_NAVBAR_BUTTON_DEBUG,
         ID_PY_PANEL,
         ID_PY_CONFIG_PANEL,
         ID_PY_APP_CONFIG_PANEL_PAIRS,
@@ -57,6 +58,13 @@ namespace {
         ID_UNITY_BYTES_PER_CHAR,
         ID_UNITY_ROWS,
         ID_UNITY_COLS,
+		ID_DEBUG_PANEL,
+		ID_DEBUG_OUT,
+		ID_DEBUG_CONFIG_PANEL,
+		ID_DEBUG_BUTTON_CLEAR_PIP,
+		ID_DEBUG_BUTTON_LIST_PIP,
+		ID_DEBUG_BUTTON_RESET_VENV,
+		ID_DEBUG_BUTTON_CLEAR_OSC,
     };
 
     const wxString kMicChoices[] = {
@@ -278,12 +286,14 @@ Frame::Frame()
         {
 			auto* navbar_button_transcribe = new wxButton(navbar, ID_NAVBAR_BUTTON_TRANSCRIBE, "Transcription");
 			auto* navbar_button_unity = new wxButton(navbar, ID_NAVBAR_BUTTON_UNITY, "Unity");
+			auto* navbar_button_debug = new wxButton(navbar, ID_NAVBAR_BUTTON_DEBUG, "Debug");
 
 			auto* sizer = new wxBoxSizer(wxVERTICAL);
 			navbar->SetSizer(sizer);
 
 			sizer->Add(navbar_button_transcribe, /*proportion=*/0, /*flags=*/wxEXPAND);
 			sizer->Add(navbar_button_unity, /*proportion=*/0, /*flags=*/wxEXPAND);
+			sizer->Add(navbar_button_debug, /*proportion=*/0, /*flags=*/wxEXPAND);
         }
 
         auto* transcribe_panel = new wxPanel(main_panel, ID_PY_PANEL);
@@ -706,22 +716,93 @@ Frame::Frame()
         }
         unity_panel_->Hide();
 
+        auto* debug_panel = new wxPanel(main_panel, ID_DEBUG_PANEL);
+        debug_panel_ = debug_panel;
+        {
+            const auto debug_out_sz = wxSize(/*x_px=*/480, /*y_px=*/160);
+            auto* debug_out = new wxTextCtrl(debug_panel, ID_DEBUG_OUT,
+                wxEmptyString,
+                wxDefaultPosition,
+                debug_out_sz, wxTE_MULTILINE | wxTE_READONLY);
+            debug_out->SetMinSize(debug_out_sz);
+            debug_out_ = debug_out;
+
+            auto* debug_config_panel = new wxPanel(debug_panel, ID_DEBUG_CONFIG_PANEL);
+			{
+				auto* debug_button_list_pip = new wxButton(debug_config_panel, ID_DEBUG_BUTTON_LIST_PIP, "List pip packages");
+                debug_button_list_pip->SetToolTip(
+					"List the packages (and versions) installed in the "
+                    "virtual environment by pip. Also list the contents "
+                    "of the pip cache.");
+				debug_button_list_pip->SetWindowStyleFlag(wxBU_EXACTFIT);
+
+				auto* debug_button_clear_pip = new wxButton(debug_config_panel, ID_DEBUG_BUTTON_CLEAR_PIP, "Clear pip cache");
+                // The real explanation: we install a special version of torch
+                // using --extra-index-url, and I'm like 99% sure that pip
+                // doesn't correctly detect that we want this version instead
+                // of the normal version.
+                debug_button_clear_pip->SetToolTip(
+					"TaSTT uses a piece of software called pip to install "
+                    "Python dependencies. To enable reusing packages across "
+                    "different Python projects, pip installs packages in a "
+                    "system-wide cache. Sometimes the contents of this cache "
+                    "can get stale (it's complicated) and clearing the cache "
+                    "can fix issues.");
+				debug_button_clear_pip->SetWindowStyleFlag(wxBU_EXACTFIT);
+
+				auto* debug_button_reset_venv = new wxButton(debug_config_panel, ID_DEBUG_BUTTON_RESET_VENV, "Reset python virtual environment");
+                debug_button_reset_venv->SetToolTip(
+                    "Uninstall all Python packages installed into the virtual "
+                    "environment. Do this after clearing pip!");
+				debug_button_reset_venv->SetWindowStyleFlag(wxBU_EXACTFIT);
+
+				auto* debug_button_clear_osc = new wxButton(debug_config_panel, ID_DEBUG_BUTTON_CLEAR_OSC, "Clear OSC configs");
+                debug_button_clear_osc->SetToolTip(
+					"No idea if this actually does anything valuable yet. I "
+                    "think making certain animator changes (s.a. turning on "
+                    "multi-byte character encoding) require you to reset "
+                    "(i.e. delete) your OSC config. This button deletes all "
+                    "your OSC configs.");
+				debug_button_clear_osc->SetWindowStyleFlag(wxBU_EXACTFIT);
+
+				auto* sizer = new wxBoxSizer(wxVERTICAL);
+				debug_config_panel->SetSizer(sizer);
+				sizer->Add(debug_button_list_pip, /*proportion=*/0, /*flags=*/wxEXPAND);
+				sizer->Add(debug_button_clear_pip, /*proportion=*/0, /*flags=*/wxEXPAND);
+				sizer->Add(debug_button_reset_venv, /*proportion=*/0, /*flags=*/wxEXPAND);
+				sizer->Add(debug_button_clear_osc, /*proportion=*/0, /*flags=*/wxEXPAND);
+			}
+
+            auto* sizer = new wxBoxSizer(wxHORIZONTAL);
+            debug_panel->SetSizer(sizer);
+            sizer->Add(debug_config_panel, /*proportion=*/0, /*flags=*/wxEXPAND);
+            sizer->Add(debug_out, /*proportion=*/1, /*flags=*/wxEXPAND);
+        }
+        debug_panel_->Hide();
+
 		auto* sizer = new wxBoxSizer(wxHORIZONTAL);
 		main_panel->SetSizer(sizer);
 		sizer->Add(navbar, /*proportion=*/0, /*flags=*/wxEXPAND);
 		sizer->Add(transcribe_panel, /*proportion=*/1, /*flags=*/wxEXPAND);
 		sizer->Add(unity_panel, /*proportion=*/1, /*flags=*/wxEXPAND);
+		sizer->Add(debug_panel, /*proportion=*/1, /*flags=*/wxEXPAND);
     }
 
 	Bind(wxEVT_MENU, &Frame::OnExit, this, wxID_EXIT);
 	Bind(wxEVT_BUTTON, &Frame::OnNavbarTranscribe, this, ID_NAVBAR_BUTTON_TRANSCRIBE);
 	Bind(wxEVT_BUTTON, &Frame::OnNavbarUnity, this, ID_NAVBAR_BUTTON_UNITY);
+	Bind(wxEVT_BUTTON, &Frame::OnNavbarDebug, this, ID_NAVBAR_BUTTON_DEBUG);
 	Bind(wxEVT_BUTTON, &Frame::OnAppStart, this, ID_PY_APP_START_BUTTON);
 	Bind(wxEVT_BUTTON, &Frame::OnAppStop, this, ID_PY_APP_STOP_BUTTON);
     Bind(wxEVT_TIMER,  &Frame::OnAppDrain, this, ID_PY_APP_DRAIN);
 	Bind(wxEVT_BUTTON, &Frame::OnSetupPython, this, ID_PY_SETUP_BUTTON);
 	Bind(wxEVT_BUTTON, &Frame::OnDumpMics, this, ID_PY_DUMP_MICS_BUTTON);
 	Bind(wxEVT_BUTTON, &Frame::OnGenerateFX, this, ID_UNITY_BUTTON_GEN_ANIMATOR);
+	Bind(wxEVT_BUTTON, &Frame::OnListPip, this, ID_DEBUG_BUTTON_LIST_PIP);
+	Bind(wxEVT_BUTTON, &Frame::OnClearPip, this, ID_DEBUG_BUTTON_CLEAR_PIP);
+	Bind(wxEVT_BUTTON, &Frame::OnListPip, this, ID_DEBUG_BUTTON_LIST_PIP);
+	Bind(wxEVT_BUTTON, &Frame::OnResetVenv, this, ID_DEBUG_BUTTON_RESET_VENV);
+	Bind(wxEVT_BUTTON, &Frame::OnClearOSC, this, ID_DEBUG_BUTTON_CLEAR_OSC);
     Bind(wxEVT_CHOICE, &Frame::OnUnityParamChange, this, ID_UNITY_CHARS_PER_SYNC);
     Bind(wxEVT_CHOICE, &Frame::OnUnityParamChange, this, ID_UNITY_BYTES_PER_CHAR);
 
@@ -746,6 +827,7 @@ void Frame::OnNavbarTranscribe(wxCommandEvent& event)
 {
     transcribe_panel_->Show();
     unity_panel_->Hide();
+    debug_panel_->Hide();
     Resize();
 }
 
@@ -753,6 +835,15 @@ void Frame::OnNavbarUnity(wxCommandEvent& event)
 {
     transcribe_panel_->Hide();
     unity_panel_->Show();
+    debug_panel_->Hide();
+    Resize();
+}
+
+void Frame::OnNavbarDebug(wxCommandEvent& event)
+{
+    transcribe_panel_->Hide();
+    unity_panel_->Hide();
+    debug_panel_->Show();
     Resize();
 }
 
@@ -897,6 +988,79 @@ void Frame::OnGenerateFX(wxCommandEvent& event)
         unity_out_)) {
         wxLogError("Failed to generate animator:\n%s\n", out.c_str());
     }
+}
+
+void Frame::OnListPip(wxCommandEvent& event)
+{
+    Log(debug_out_, "Listing pip packages... ");
+    PythonWrapper::InvokeWithArgs({
+        "-m pip",
+        "list",
+        }, "Failed to list pip packages", debug_out_);
+
+    Log(debug_out_, "Listing pip cache... ");
+    PythonWrapper::InvokeWithArgs({
+        "-m pip",
+        "cache",
+        "list",
+        }, "Failed to list pip cache", debug_out_);
+}
+
+void Frame::OnClearPip(wxCommandEvent& event)
+{
+    Log(debug_out_, "Clearing pip cache... ");
+    PythonWrapper::InvokeWithArgs({
+        "-m pip",
+        "cache",
+        "purge",
+        }, "Failed to clear pip cache", debug_out_);
+}
+
+void Frame::OnResetVenv(wxCommandEvent& event)
+{
+	Log(debug_out_, "Resetting virtual environment... ");
+
+	const std::string py_dir = "Resources/Python/Lib/site-packages";
+
+    if (!std::filesystem::is_directory(py_dir)) {
+		Log(debug_out_, "Python package directory not exist at {}, assuming "
+            "already deleted!\n", py_dir);
+        return;
+    }
+
+	std::error_code err;
+	if (std::filesystem::remove_all(py_dir, err)) {
+		Log(debug_out_, "success!\n");
+	}
+	else {
+		wxLogError("Failed to reset virtual environment: %s", err.message());
+		Log(debug_out_, "failed!\n");
+	}
+}
+
+void Frame::OnClearOSC(wxCommandEvent& event)
+{
+    std::filesystem::path osc_path = "C:/Users";
+    osc_path /= wxGetUserName().ToStdString();
+    osc_path /= "AppData/LocalLow/VRChat/vrchat/OSC";
+    osc_path = osc_path.lexically_normal();
+    Log(debug_out_, "OSC configs are stored at {}\n", osc_path.string());
+
+    if (!std::filesystem::is_directory(osc_path)) {
+		Log(debug_out_, "OSC configs do not exist at {}, assuming already "
+            "deleted!\n", osc_path.string());
+        return;
+    }
+
+    Log(debug_out_, "Deleting OSC configs... ");
+	std::error_code err;
+	if (std::filesystem::remove_all(osc_path, err)) {
+		Log(debug_out_, "success!\n");
+	}
+	else {
+		wxLogError("Failed to delete OSC configs: %s", err.message());
+		Log(debug_out_, "failed!\n");
+	}
 }
 
 void Frame::OnUnityParamChangeImpl() {

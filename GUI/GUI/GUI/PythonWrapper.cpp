@@ -117,6 +117,30 @@ bool PythonWrapper::InvokeWithArgs(std::vector<std::string>&& args,
 		std::move(args), py_stdout, py_stderr);
 }
 
+bool PythonWrapper::InvokeWithArgs(std::vector<std::string>&& args,
+	const std::string&& err_msg,
+	wxTextCtrl* const out) {
+	std::string py_stdout, py_stderr;
+	if (InvokeWithArgs(std::move(args), &py_stdout, &py_stderr)) {
+		Log(out, "success!\n");
+		Log(out, py_stdout.c_str());
+		if (!py_stdout.empty()) {
+			Log(out, "\n");
+		}
+		Log(out, py_stderr.c_str());
+		if (!py_stderr.empty()) {
+			Log(out, "\n");
+		}
+		return true;
+	}
+	else {
+		wxLogError("%s: %s", err_msg, py_stderr.c_str());
+		Log(out, "failed!\n");
+		return false;
+	}
+}
+
+
 std::string PythonWrapper::GetVersion() {
 	std::string py_stdout, py_stderr;
     bool ok = InvokeWithArgs({ "--version" }, &py_stdout, &py_stderr);
@@ -214,28 +238,13 @@ bool PythonWrapper::GenerateAnimator(
 
 	{
 		Log(out, "Generating shader for {}x{} board (pass 0)...", config.rows, config.cols);
-
-		std::string py_stdout, py_stderr;
-		if (InvokeWithArgs({ generate_shader_path,
+		if (!InvokeWithArgs({ generate_shader_path,
 			"--bytes_per_char", std::to_string(config.bytes_per_char),
 			"--rows", std::to_string(config.rows),
 			"--cols", std::to_string(config.cols),
 			"--shader_template", shader_template_path,
 			"--shader_path", shader_path },
-			&py_stdout, &py_stderr)) {
-			Log(out, "success!\n");
-			Log(out, py_stdout.c_str());
-			if (!py_stdout.empty()) {
-				Log(out, "\n");
-			}
-			Log(out, py_stderr.c_str());
-			if (!py_stderr.empty()) {
-				Log(out, "\n");
-			}
-		}
-		else {
-			wxLogError("Failed to generate shader: %s", py_stderr.c_str());
-			Log(out, "failed!\n");
+			"Failed to generate shader", out)) {
 			return false;
 		}
 	}
@@ -243,26 +252,13 @@ bool PythonWrapper::GenerateAnimator(
 		Log(out, "Generating shader for {}x{} board (pass 1)...", config.rows, config.cols);
 
 		std::string py_stdout, py_stderr;
-		if (InvokeWithArgs({ generate_shader_path,
+		if (!InvokeWithArgs({ generate_shader_path,
 			"--bytes_per_char", std::to_string(config.bytes_per_char),
 			"--rows", std::to_string(config.rows),
 			"--cols", std::to_string(config.cols),
 			"--shader_template", shader_lighting_template_path,
 			"--shader_path", shader_lighting_path },
-			&py_stdout, &py_stderr)) {
-			Log(out, "success!\n");
-			Log(out, py_stdout.c_str());
-			if (!py_stdout.empty()) {
-				Log(out, "\n");
-			}
-			Log(out, py_stderr.c_str());
-			if (!py_stderr.empty()) {
-				Log(out, "\n");
-			}
-		}
-		else {
-			wxLogError("Failed to generate shader: %s", py_stderr.c_str());
-			Log(out, "failed!\n");
+			"Failed to generate shader", out)) {
 			return false;
 		}
 	}
@@ -328,203 +324,89 @@ bool PythonWrapper::GenerateAnimator(
 	}
 	{
 		Log(out, "Generating guid.map... ");
-		std::string py_stdout, py_stderr;
-		if (PythonWrapper::InvokeWithArgs({ libunity_path, "guid_map",
+		if (!InvokeWithArgs({ libunity_path, "guid_map",
 			"--project_root", Quote(config.assets_path),
 			"--save_to", Quote(guid_map_path), },
-			&py_stdout, &py_stderr)) {
-			Log(out, "success!\n");
-			Log(out, py_stdout.c_str());
-			if (!py_stdout.empty()) {
-				Log(out, "\n");
-			}
-			Log(out, py_stderr.c_str());
-			if (!py_stderr.empty()) {
-				Log(out, "\n");
-			}
-		}
-		else {
-			wxLogError("Failed to generate guid.map: %s", py_stderr.c_str());
-			Log(out, "failed!\n");
+			"Failed to generate guid.map", out)) {
 			return false;
 		}
 	}
 	{
 		Log(out, "Generating animations... ");
-		std::string py_stdout, py_stderr;
-		if (InvokeWithArgs({ libtastt_path, "gen_anims",
+		if (!InvokeWithArgs({ libtastt_path, "gen_anims",
 			"--gen_anim_dir", Quote(tastt_animations_path),
 			"--guid_map", Quote(guid_map_path),
 			"--chars_per_sync", std::to_string(config.chars_per_sync),
 			"--bytes_per_char", std::to_string(config.bytes_per_char),
 			"--rows", std::to_string(config.rows),
 			"--cols", std::to_string(config.cols)},
-			&py_stdout, &py_stderr)) {
-			Log(out, "success!\n");
-			Log(out, py_stdout.c_str());
-			if (!py_stdout.empty()) {
-				Log(out, "\n");
-			}
-			Log(out, py_stderr.c_str());
-			if (!py_stderr.empty()) {
-				Log(out, "\n");
-			}
-		}
-		else {
-			wxLogError("Failed to generate animations: %s", py_stderr.c_str());
-			Log(out, "failed!\n");
+			"Failed to generate animations", out)) {
 			return false;
 		}
 	}
 	{
 		Log(out, "Generating FX layer... ");
-		std::string py_stdout, py_stderr;
-		if (InvokeWithArgs({ libtastt_path, "gen_fx",
+		if (!InvokeWithArgs({ libtastt_path, "gen_fx",
 			"--fx_dest", Quote(tastt_fx0_path),
 			"--gen_anim_dir", Quote(tastt_animations_path),
 			"--guid_map", Quote(guid_map_path),
 			"--chars_per_sync", std::to_string(config.chars_per_sync),
 			"--bytes_per_char", std::to_string(config.bytes_per_char),
 			"--rows", std::to_string(config.rows),
-			"--cols", std::to_string(config.cols)},
-			&py_stdout, &py_stderr)) {
-			Log(out, "success!\n");
-			Log(out, py_stdout.c_str());
-			if (!py_stdout.empty()) {
-				Log(out, "\n");
-			}
-			Log(out, py_stderr.c_str());
-			if (!py_stderr.empty()) {
-				Log(out, "\n");
-			}
-		}
-		else {
-			wxLogError("Failed to generate FX layer: %s", py_stderr.c_str());
-			Log(out, "failed!\n");
+			"--cols", std::to_string(config.cols) },
+			"Failed to generate FX layer", out)) {
 			return false;
 		}
 	}
 	{
 		Log(out, "Adding enable/disable toggle... ");
-		std::string py_stdout, py_stderr;
-		if (InvokeWithArgs({ libunity_path, "add_toggle",
+		if (!InvokeWithArgs({ libunity_path, "add_toggle",
 			"--fx0", Quote(tastt_fx0_path),
 			"--fx_dest", Quote(tastt_fx1_path),
 			"--gen_anim_dir", Quote(tastt_animations_path),
 			"--guid_map", Quote(guid_map_path), },
-			&py_stdout, &py_stderr)) {
-			Log(out, "success!\n");
-			Log(out, py_stdout.c_str());
-			if (!py_stdout.empty()) {
-				Log(out, "\n");
-			}
-			Log(out, py_stderr.c_str());
-			if (!py_stderr.empty()) {
-				Log(out, "\n");
-			}
-		}
-		else {
-			wxLogError("Failed to add enable/disable toggle: %s", py_stderr.c_str());
-			Log(out, "failed!\n");
+			"Failed to add enable/disable toggle", out)) {
 			return false;
 		}
 	}
 	{
 		Log(out, "Merging with user animator... ");
-		std::string py_stdout, py_stderr;
-		if (InvokeWithArgs({ libunity_path, "merge",
+		if (!InvokeWithArgs({ libunity_path, "merge",
 			"--fx0", Quote(config.fx_path),
 			"--fx1", Quote(tastt_fx1_path),
 			"--fx_dest", Quote(tastt_fx2_path), },
-			&py_stdout, &py_stderr)) {
-			Log(out, "success!\n");
-			Log(out, py_stdout.c_str());
-			if (!py_stdout.empty()) {
-				Log(out, "\n");
-			}
-			Log(out, py_stderr.c_str());
-			if (!py_stderr.empty()) {
-				Log(out, "\n");
-			}
-		}
-		else {
-			wxLogError("Failed to merge animators: %s", py_stderr.c_str());
-			Log(out, "failed!\n");
+			"Failed to merge animators", out)) {
 			return false;
 		}
 	}
 	{
 		Log(out, "Setting noop animations... ");
-		std::string py_stdout, py_stderr;
-		if (InvokeWithArgs({ libunity_path, "set_noop_anim",
+		if (!InvokeWithArgs({ libunity_path, "set_noop_anim",
 			"--fx0", Quote(tastt_fx2_path),
 			"--fx_dest", Quote(tastt_animator_path),
 			"--gen_anim_dir", Quote(tastt_animations_path),
 			"--guid_map", Quote(guid_map_path), },
-			&py_stdout, &py_stderr)) {
-			Log(out, "success!\n");
-			Log(out, py_stdout.c_str());
-			if (!py_stdout.empty()) {
-				Log(out, "\n");
-			}
-			Log(out, py_stderr.c_str());
-			if (!py_stderr.empty()) {
-				Log(out, "\n");
-			}
-		}
-		else {
-			wxLogError("Failed to set noop animations: %s", py_stderr.c_str());
-			Log(out, "failed!\n");
+			"Failed to set noop animations", out)) {
 			return false;
 		}
 	}
 	{
 		Log(out, "Generating avatar parameters... ");
-		std::string py_stdout, py_stderr;
-		if (InvokeWithArgs({ generate_params_path,
+		if (!InvokeWithArgs({ generate_params_path,
 			"--old_params", Quote(config.params_path),
 			"--new_params", Quote(tastt_params_path),
 			"--chars_per_sync", std::to_string(config.chars_per_sync),
 			"--bytes_per_char", std::to_string(config.bytes_per_char) },
-			&py_stdout, &py_stderr)) {
-			Log(out, "success!\n");
-			Log(out, py_stdout.c_str());
-			if (!py_stdout.empty()) {
-				Log(out, "\n");
-			}
-			Log(out, py_stderr.c_str());
-			if (!py_stderr.empty()) {
-				Log(out, "\n");
-			}
-		}
-		else {
-			wxLogError("Failed to generate avatar parameters: %s", py_stderr.c_str());
-			Log(out, "failed!\n");
+			"Failed to generate avatar parameters", out)) {
 			return false;
 		}
 	}
 	{
 		Log(out, "Generating avatar menu... ");
-		std::string py_stdout, py_stderr;
-		// No idea why, but inlining this into `InvokeWithArgs` confuses the compiler.
-		std::vector<std::string> args = { generate_menu_path,
+		if (!InvokeWithArgs({ generate_menu_path,
 			"--old_menu", Quote(config.menu_path),
-			"--new_menu", Quote(tastt_menu_path), };
-		if (InvokeWithArgs( std::move(args),
-			&py_stdout, &py_stderr)) {
-			Log(out, "success!\n");
-			Log(out, py_stdout.c_str());
-			if (!py_stdout.empty()) {
-				Log(out, "\n");
-			}
-			Log(out, py_stderr.c_str());
-			if (!py_stderr.empty()) {
-				Log(out, "\n");
-			}
-		}
-		else {
-			wxLogError("Failed to generate avatar menu: %s", py_stderr.c_str());
-			Log(out, "failed!\n");
+			"--new_menu", Quote(tastt_menu_path) },
+			"Failed to generate avatar menu", out)) {
 			return false;
 		}
 	}

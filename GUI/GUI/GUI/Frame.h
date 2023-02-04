@@ -20,9 +20,11 @@ private:
     wxPanel* main_panel_;
     wxPanel* transcribe_panel_;
     wxPanel* unity_panel_;
+    wxPanel* debug_panel_;
 
     wxTextCtrl* transcribe_out_;
     wxTextCtrl* unity_out_;
+    wxTextCtrl* debug_out_;
 
     wxTextCtrl* unity_animator_generated_dir_;
     wxTextCtrl* unity_animator_generated_name_;
@@ -61,6 +63,7 @@ private:
     void OnExit(wxCommandEvent& event);
     void OnNavbarTranscribe(wxCommandEvent& event);
     void OnNavbarUnity(wxCommandEvent& event);
+    void OnNavbarDebug(wxCommandEvent& event);
     void OnSetupPython(wxCommandEvent& event);
     void OnDumpMics(wxCommandEvent& event);
     void OnAppStart(wxCommandEvent& event);
@@ -70,6 +73,10 @@ private:
     void OnGenerateFX(wxCommandEvent& event);
     void OnUnityParamChangeImpl();
     void OnUnityParamChange(wxCommandEvent& event);
+    void OnListPip(wxCommandEvent& event);
+    void OnClearPip(wxCommandEvent& event);
+    void OnResetVenv(wxCommandEvent& event);
+    void OnClearOSC(wxCommandEvent& event);
 
     void LoadAndSetIcons();
     void Resize();
