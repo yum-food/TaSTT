@@ -30,6 +30,9 @@
     BG_Emission_Mask("Background emission mask", 2D) = "black" {}
     BG_Emission_Color("Background emission color", Color) = (0, 0, 0)
 
+    [MaterialToggle] Enable_Custom_Cubemap("Enable custom cubemap", float) = 0
+		Custom_Cubemap("Custom cubemap", Cube) = "" {}
+
     _Font_0x0000_0x1FFF ("_Font 0 (unicode 0x0000 - 0x1FFFF)", 2D) = "white" {}
     _Font_0x2000_0x3FFF ("_Font 1 (unicode 0x2000 - 0x3FFFF)", 2D) = "white" {}
     _Font_0x4000_0x5FFF ("_Font 2 (unicode 0x4000 - 0x5FFFF)", 2D) = "white" {}

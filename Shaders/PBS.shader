@@ -12,6 +12,9 @@
     BG_Emission_Mask("Background emission mask", 2D) = "black" {}
     BG_Emission_Color("Background emission color", Color) = (0, 0, 0)
 
+    [MaterialToggle] Enable_Custom_Cubemap("Enable custom cubemap", float) = 0
+		Custom_Cubemap("Custom cubemap", Cube) = "" {}
+
     // %TEMPLATE__UNITY_ROW_COL_PARAMS%
   }
   SubShader

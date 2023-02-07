@@ -72,6 +72,9 @@ float Margin_Scale;
 float Margin_Rounding_Scale;
 float Enable_Margin_Effect_Squares;
 
+float Enable_Custom_Cubemap;
+UNITY_DECLARE_TEXCUBE(Custom_Cubemap);
+
 // %TEMPLATE__CG_ROW_COL_CONSTANTS%
 
 float3 HUEtoRGB(in float H)
@@ -398,10 +401,18 @@ UnityIndirect GetIndirect(v2f i, float3 view_dir, float smoothness) {
   // There's a nonlinear relationship between mipmap level and roughness.
   float roughness = 1 - smoothness;
   roughness *= 1.7 - .7 * roughness;
-  float3 env_sample = UNITY_SAMPLE_TEXCUBE_LOD(
-      unity_SpecCube0,
-      reflect_dir,
-      roughness * UNITY_SPECCUBE_LOD_STEPS);
+  float3 env_sample;
+  if (Enable_Custom_Cubemap) {
+    env_sample = UNITY_SAMPLE_TEXCUBE_LOD(
+        Custom_Cubemap,
+        reflect_dir,
+        roughness * UNITY_SPECCUBE_LOD_STEPS);
+  } else {
+    env_sample = UNITY_SAMPLE_TEXCUBE_LOD(
+        unity_SpecCube0,
+        reflect_dir,
+        roughness * UNITY_SPECCUBE_LOD_STEPS);
+  }
   indirect.specular = env_sample;
   #endif
 
