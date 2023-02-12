@@ -72,4 +72,5 @@ public:
 	int bytes_per_char;
 	int rows;
 	int cols;
+	bool clear_osc;
 };

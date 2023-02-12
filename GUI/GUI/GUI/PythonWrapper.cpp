@@ -410,6 +410,29 @@ bool PythonWrapper::GenerateAnimator(
 			return false;
 		}
 	}
+	if (config.clear_osc) {
+		std::filesystem::path osc_path = "C:/Users";
+		osc_path /= wxGetUserName().ToStdString();
+		osc_path /= "AppData/LocalLow/VRChat/vrchat/OSC";
+		osc_path = osc_path.lexically_normal();
+		Log(out, "OSC configs are stored at {}\n", osc_path.string());
+		Log(out, "Clearing OSC configs... ");
+
+		if (std::filesystem::is_directory(osc_path)) {
+			std::error_code err;
+			if (std::filesystem::remove_all(osc_path, err)) {
+				Log(out, "success!\n");
+			}
+			else {
+				wxLogError("Failed to delete OSC configs: %s", err.message());
+				Log(out, "failed!\n");
+			}
+		}
+		else {
+			Log(out, "OSC configs do not exist at {}, assuming already "
+				"cleared!\n", osc_path.string());
+		}
+	}
 
 	Log(out, "Done!\n");
 	return true;

@@ -58,6 +58,7 @@ namespace {
         ID_UNITY_BYTES_PER_CHAR,
         ID_UNITY_ROWS,
         ID_UNITY_COLS,
+        ID_UNITY_CLEAR_OSC,
 		ID_DEBUG_PANEL,
 		ID_DEBUG_OUT,
 		ID_DEBUG_CONFIG_PANEL,
@@ -480,8 +481,10 @@ Frame::Frame()
                 );
                 py_app_use_builtin_ = py_app_use_builtin;
 
-                auto* py_app_start_button = new wxButton(py_config_panel, ID_PY_APP_START_BUTTON, "Begin transcribing");
-                auto* py_app_stop_button = new wxButton(py_config_panel, ID_PY_APP_STOP_BUTTON, "Stop transcribing");
+                // Hack: Add newlines before and after the button text to make
+                // the buttons bigger, and easier to click from inside VR.
+                auto* py_app_start_button = new wxButton(py_config_panel, ID_PY_APP_START_BUTTON, "\nBegin transcribing\n\n");
+                auto* py_app_stop_button = new wxButton(py_config_panel, ID_PY_APP_STOP_BUTTON, "\nStop transcribing\n\n");
 
                 auto* sizer = new wxBoxSizer(wxVERTICAL);
                 py_config_panel->SetSizer(sizer);
@@ -525,7 +528,7 @@ Frame::Frame()
                     unity_assets_file_picker->SetToolTip(
                         "The path to the Assets folder for your avatar's "
                         "Unity project. Example:\n"
-						"py_c:\\Users\\yum\\unity\\kumadan\\Assets");
+						"C:\\Users\\yum\\unity\\kumadan\\Assets");
                     unity_assets_file_picker_ = unity_assets_file_picker;
 
                     auto* unity_animator_file_picker = new wxFilePickerCtrl(
@@ -540,7 +543,7 @@ Frame::Frame()
                     unity_animator_file_picker->SetToolTip(
                         "The path to your avatar's FX layer. You can find "
                         "this in your avatar descriptor. Example:\n"
-						"py_c:\\Users\\yum\\unity\\kumadan\\Assets\\kumadan_fx.controller");
+						"C:\\Users\\yum\\unity\\kumadan\\Assets\\kumadan_fx.controller");
                     unity_animator_file_picker_ = unity_animator_file_picker;
 
                     auto* unity_parameters_file_picker = new wxFilePickerCtrl(
@@ -555,7 +558,7 @@ Frame::Frame()
                     unity_parameters_file_picker->SetToolTip(
                         "The path to your avatar's parameters. You can find "
                         "this in your avatar descriptor. Example:\n"
-						"py_c:\\Users\\yum\\unity\\kumadan\\Assets\\kumadan_parameters.asset");
+						"C:\\Users\\yum\\unity\\kumadan\\Assets\\kumadan_parameters.asset");
                     unity_parameters_file_picker_ = unity_parameters_file_picker;
 
                     auto* unity_menu_file_picker = new wxFilePickerCtrl(
@@ -570,7 +573,7 @@ Frame::Frame()
                     unity_menu_file_picker->SetToolTip(
                         "The path to your avatar's menu. You can find "
                         "this in your avatar descriptor. Example:\n"
-						"py_c:\\Users\\yum\\unity\\kumadan\\Assets\\kumadan_menu.asset");
+						"C:\\Users\\yum\\unity\\kumadan\\Assets\\kumadan_menu.asset");
                     unity_menu_file_picker_ = unity_menu_file_picker;
 
 					auto* unity_animator_generated_dir = new wxTextCtrl(unity_config_panel_pairs,
@@ -700,12 +703,26 @@ Frame::Frame()
                     sizer->Add(unity_cols, /*proportion=*/0, /*flags=*/wxEXPAND);
                 }
 
+				auto* clear_osc = new wxCheckBox(unity_config_panel,
+					ID_UNITY_CLEAR_OSC, "Clear OSC configs");
+				clear_osc->SetValue(unity_c.clear_osc);
+				clear_osc->SetToolTip(
+					"If checked, VRChat's OSC configs will be cleared. "
+					"VRC SDK has a bug where parameters added to an "
+					"existing avatar are not added to the avatar's OSC "
+					"config. By clearing configs, VRC SDK is forced to "
+					"regenerate them. The regenerated config will include "
+					"the STT parameters. Check this if you are updating "
+					"an existing avatar.");
+                unity_clear_osc_ = clear_osc;
+
 				auto* unity_button_gen_fx = new wxButton(unity_config_panel, ID_UNITY_BUTTON_GEN_ANIMATOR, "Generate avatar assets");
                 unity_button_gen_fx->SetWindowStyleFlag(wxBU_EXACTFIT);
 
 				auto* sizer = new wxBoxSizer(wxVERTICAL);
 				unity_config_panel->SetSizer(sizer);
 				sizer->Add(unity_config_panel_pairs);
+                sizer->Add(clear_osc);
 				sizer->Add(unity_button_gen_fx, /*proportion=*/0, /*flags=*/wxEXPAND);
             }
 
@@ -809,6 +826,9 @@ Frame::Frame()
 	// wx needs this to be able to load PNGs.
 	wxImage::AddHandler(&png_handler_);
 	LoadAndSetIcons();
+
+    // Make tooltips show up for longer.
+    wxToolTip::SetAutoPop(/*milliseconds=*/ 10 * 1000);
 
     Resize();
 	OnUnityParamChangeImpl();
@@ -976,6 +996,7 @@ void Frame::OnGenerateFX(wxCommandEvent& event)
     unity_c.chars_per_sync = chars_per_sync;
     unity_c.rows = rows;
     unity_c.cols = cols;
+    unity_c.clear_osc = unity_clear_osc_->GetValue();
     unity_c.Serialize(UnityAppConfig::kConfigPath);
 
     std::string out;

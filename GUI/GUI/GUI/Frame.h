@@ -55,6 +55,7 @@ private:
     wxCheckBox* py_app_enable_local_beep_;
     wxCheckBox* py_app_use_cpu_;
     wxCheckBox* py_app_use_builtin_;
+    wxCheckBox* unity_clear_osc_;
 
     wxProcess* py_app_;
     wxProcess* env_proc_;

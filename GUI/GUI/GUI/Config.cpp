@@ -141,7 +141,8 @@ UnityAppConfig::UnityAppConfig()
 	chars_per_sync(20),
 	bytes_per_char(1),
 	rows(4),
-	cols(48)
+	cols(48),
+	clear_osc(false)
 {}
 
 bool UnityAppConfig::Serialize(const std::filesystem::path& path) {
@@ -156,6 +157,7 @@ bool UnityAppConfig::Serialize(const std::filesystem::path& path) {
 	root["bytes_per_char"] << bytes_per_char;
 	root["rows"] << rows;
 	root["cols"] << cols;
+	root["clear_osc"] << clear_osc;
 
 	return Config::Serialize(path, &t);
 }
@@ -179,6 +181,7 @@ bool UnityAppConfig::Deserialize(const std::filesystem::path& path) {
 	root.get_if("bytes_per_char", &c.bytes_per_char);
 	root.get_if("rows", &c.rows);
 	root.get_if("cols", &c.cols);
+	root.get_if("clear_osc", &c.clear_osc);
 
 	root.get_if("assets_path", &c.assets_path);
 	root.get_if("fx_path", &c.fx_path);
