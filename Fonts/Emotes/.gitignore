@@ -1,0 +1,2 @@
+# Don't check in any images (licensing risk).
+*.png
