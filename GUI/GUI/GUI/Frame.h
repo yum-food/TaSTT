@@ -78,6 +78,8 @@ private:
     void OnClearPip(wxCommandEvent& event);
     void OnResetVenv(wxCommandEvent& event);
     void OnClearOSC(wxCommandEvent& event);
+    void OnBackupVenv(wxCommandEvent& event);
+    void OnRestoreVenv(wxCommandEvent& event);
 
     void LoadAndSetIcons();
     void Resize();

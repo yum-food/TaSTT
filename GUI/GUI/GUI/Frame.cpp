@@ -66,6 +66,8 @@ namespace {
 		ID_DEBUG_BUTTON_LIST_PIP,
 		ID_DEBUG_BUTTON_RESET_VENV,
 		ID_DEBUG_BUTTON_CLEAR_OSC,
+		ID_DEBUG_BUTTON_BACKUP_VENV,
+		ID_DEBUG_BUTTON_RESTORE_VENV,
     };
 
     const wxString kMicChoices[] = {
@@ -782,12 +784,24 @@ Frame::Frame()
                     "your OSC configs.");
 				debug_button_clear_osc->SetWindowStyleFlag(wxBU_EXACTFIT);
 
+				auto* debug_button_backup_venv = new wxButton(debug_config_panel, ID_DEBUG_BUTTON_BACKUP_VENV, "Back up virtual env");
+                debug_button_backup_venv->SetToolTip(
+                    "Back up the virtual environment to ~/Downloads/TaSTT_venv");
+				debug_button_backup_venv->SetWindowStyleFlag(wxBU_EXACTFIT);
+
+				auto* debug_button_restore_venv = new wxButton(debug_config_panel, ID_DEBUG_BUTTON_RESTORE_VENV, "Restore virtual env");
+                debug_button_restore_venv->SetToolTip(
+                    "Restore the virtual environment from ~/Downloads/TaSTT_venv");
+				debug_button_restore_venv->SetWindowStyleFlag(wxBU_EXACTFIT);
+
 				auto* sizer = new wxBoxSizer(wxVERTICAL);
 				debug_config_panel->SetSizer(sizer);
 				sizer->Add(debug_button_list_pip, /*proportion=*/0, /*flags=*/wxEXPAND);
 				sizer->Add(debug_button_clear_pip, /*proportion=*/0, /*flags=*/wxEXPAND);
 				sizer->Add(debug_button_reset_venv, /*proportion=*/0, /*flags=*/wxEXPAND);
 				sizer->Add(debug_button_clear_osc, /*proportion=*/0, /*flags=*/wxEXPAND);
+				sizer->Add(debug_button_backup_venv, /*proportion=*/0, /*flags=*/wxEXPAND);
+				sizer->Add(debug_button_restore_venv, /*proportion=*/0, /*flags=*/wxEXPAND);
 			}
 
             auto* sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -820,6 +834,8 @@ Frame::Frame()
 	Bind(wxEVT_BUTTON, &Frame::OnListPip, this, ID_DEBUG_BUTTON_LIST_PIP);
 	Bind(wxEVT_BUTTON, &Frame::OnResetVenv, this, ID_DEBUG_BUTTON_RESET_VENV);
 	Bind(wxEVT_BUTTON, &Frame::OnClearOSC, this, ID_DEBUG_BUTTON_CLEAR_OSC);
+	Bind(wxEVT_BUTTON, &Frame::OnBackupVenv, this, ID_DEBUG_BUTTON_BACKUP_VENV);
+	Bind(wxEVT_BUTTON, &Frame::OnRestoreVenv, this, ID_DEBUG_BUTTON_RESTORE_VENV);
     Bind(wxEVT_CHOICE, &Frame::OnUnityParamChange, this, ID_UNITY_CHARS_PER_SYNC);
     Bind(wxEVT_CHOICE, &Frame::OnUnityParamChange, this, ID_UNITY_BYTES_PER_CHAR);
 
@@ -1082,6 +1098,89 @@ void Frame::OnClearOSC(wxCommandEvent& event)
 		wxLogError("Failed to delete OSC configs: %s", err.message());
 		Log(debug_out_, "failed!\n");
 	}
+}
+
+void Frame::OnBackupVenv(wxCommandEvent& event)
+{
+    std::filesystem::path venv_path = "C:/Users";
+    venv_path /= wxGetUserName().ToStdString();
+    venv_path /= "Downloads/TaSTT_venv";
+    venv_path = venv_path.lexically_normal();
+    Log(debug_out_, "Backing up virtual environment to {}\n",
+        venv_path.string());
+
+    if (std::filesystem::is_directory(venv_path)) {
+        Log(debug_out_, "Old backup found, removing... ");
+        std::error_code err;
+        if (!std::filesystem::remove_all(venv_path, err)) {
+            wxLogError("Failed to remove old virtual environment backup: %s",
+                err.message());
+            Log(debug_out_, "failed!\n");
+            return;
+        }
+		Log(debug_out_, "success!\n");
+    }
+
+	Log(debug_out_, "Copying venv... ");
+	auto opts = std::filesystem::copy_options();
+	opts |= std::filesystem::copy_options::overwrite_existing;
+	opts |= std::filesystem::copy_options::recursive;
+	std::error_code error;
+	std::filesystem::copy("Resources/Python", venv_path, opts, error);
+	if (error.value()) {
+		wxLogError("Failed to back up virtual environment: %s (%d)",
+            error.message(), error.value());
+		Log(debug_out_, "failed!\n");
+        return;
+	}
+	Log(debug_out_, "success!\n");
+}
+
+void Frame::OnRestoreVenv(wxCommandEvent& event)
+{
+    std::filesystem::path venv_path = "C:/Users";
+    venv_path /= wxGetUserName().ToStdString();
+    venv_path /= "Downloads/TaSTT_venv";
+    venv_path = venv_path.lexically_normal();
+    Log(debug_out_, "Restoring virtual environment from {}\n",
+        venv_path.string());
+
+    if (!std::filesystem::is_directory(venv_path)) {
+        wxLogError("Virtual environment backup does not exist at %s",
+            venv_path.string());
+        Log(debug_out_, "Failed!\n");
+    }
+
+    if (std::filesystem::is_directory("Resources/Python")) {
+        Log(debug_out_, "Removing active virtual environment... ");
+        std::error_code err;
+        if (!std::filesystem::remove_all("Resources/Python", err)) {
+            wxLogError("Failed to remove active virtual environment: %s",
+                err.message());
+            Log(debug_out_, "failed!\n");
+            return;
+        }
+		Log(debug_out_, "success!\n");
+    }
+
+	Log(debug_out_, "Copying venv... ");
+	auto opts = std::filesystem::copy_options();
+	opts |= std::filesystem::copy_options::overwrite_existing;
+	opts |= std::filesystem::copy_options::recursive;
+	std::error_code error;
+	std::filesystem::copy(venv_path, "Resources/Python", opts, error);
+	if (error.value()) {
+		wxLogError("Failed to copy venv: %s (%d)", error.message(),
+            error.value());
+		Log(debug_out_, "failed!\n");
+        return;
+	}
+	Log(debug_out_, "success!\n");
+
+	Log(debug_out_, "Setting up virtual env to ensure consistency. Most "
+		"packages should not be re-acquired. Output is printed to the "
+        "transcription panel.\n");
+    OnSetupPython(event);
 }
 
 void Frame::OnUnityParamChangeImpl() {
