@@ -67,44 +67,61 @@ bool Config::Deserialize(const std::filesystem::path& path,
 	return true;
 }
 
-TranscriptionAppConfig::TranscriptionAppConfig()
+AppConfig::AppConfig()
 	: microphone("index"),
 	language("english"),
 	model("base.en"),
-	chars_per_sync("20"),
-	bytes_per_char("1"),
 	button("left joystick"),
-	rows("4"),
-	cols("48"),
 	window_duration("15"),
+
 	enable_local_beep(true),
 	use_cpu(false),
-	use_builtin(false)
+	use_builtin(false),
+
+	chars_per_sync(20),
+	bytes_per_char(1),
+	rows(4),
+	cols(48),
+
+	assets_path(),
+	fx_path(),
+	params_path(),
+	menu_path(),
+	clear_osc(false)
 {}
 
-bool TranscriptionAppConfig::Serialize(const std::filesystem::path& path) {
+bool AppConfig::Serialize(const std::filesystem::path& path) {
 	ryml::Tree t;
 	ryml::NodeRef root = t.rootref();
 	root |= ryml::MAP;
 	root["microphone"] << ryml::to_substr(microphone);
 	root["language"] << ryml::to_substr(language);
 	root["model"] << ryml::to_substr(model);
-	root["chars_per_sync"] << ryml::to_substr(chars_per_sync);
-	root["bytes_per_char"] << ryml::to_substr(bytes_per_char);
 	root["button"] << ryml::to_substr(button);
-	root["rows"] << ryml::to_substr(rows);
-	root["cols"] << ryml::to_substr(cols);
 	root["window_duration"] << ryml::to_substr(window_duration);
+
 	root["enable_local_beep"] << enable_local_beep;
 	root["use_cpu"] << use_cpu;
 	root["use_builtin"] << use_builtin;
+
+	root["chars_per_sync"] << chars_per_sync;
+	root["bytes_per_char"] << bytes_per_char;
+	root["rows"] << rows;
+	root["cols"] << cols;
+
+	root["assets_path"] << ryml::to_substr(assets_path);
+	root["fx_path"] << ryml::to_substr(fx_path);
+	root["params_path"] << ryml::to_substr(params_path);
+	root["menu_path"] << ryml::to_substr(menu_path);
+	root["clear_osc"] << clear_osc;
+
   return Config::Serialize(path, &t);
 }
 
-bool TranscriptionAppConfig::Deserialize(const std::filesystem::path& path) {
+bool AppConfig::Deserialize(const std::filesystem::path& path) {
 	std::error_code err;
 	if (!std::filesystem::exists(path, err)) {
-		*this = TranscriptionAppConfig();
+		*this = AppConfig();
 		return true;
 	}
 
@@ -115,78 +132,27 @@ bool TranscriptionAppConfig::Deserialize(const std::filesystem::path& path) {
 	}
 
 	ryml::ConstNodeRef root = t.rootref();
-	TranscriptionAppConfig c;
+	AppConfig c;
 	root.get_if("microphone", &c.microphone);
 	root.get_if("language", &c.language);
 	root.get_if("model", &c.model);
-	root.get_if("chars_per_sync", &c.chars_per_sync);
-	root.get_if("bytes_per_char", &c.bytes_per_char);
 	root.get_if("button", &c.button);
-	root.get_if("rows", &c.rows);
-	root.get_if("cols", &c.cols);
 	root.get_if("window_duration", &c.window_duration);
+
 	root.get_if("enable_local_beep", &c.enable_local_beep);
 	root.get_if("use_cpu", &c.use_cpu);
 	root.get_if("use_builtin", &c.use_builtin);
 
-	*this = std::move(c);
-	return true;
-}
-
-UnityAppConfig::UnityAppConfig()
-	: assets_path(),
-	fx_path(),
-	params_path(),
-	menu_path(),
-	chars_per_sync(20),
-	bytes_per_char(1),
-	rows(4),
-	cols(48),
-	clear_osc(false)
-{}
-
-bool UnityAppConfig::Serialize(const std::filesystem::path& path) {
-	ryml::Tree t;
-	ryml::NodeRef root = t.rootref();
-	root |= ryml::MAP;
-	root["assets_path"] << ryml::to_substr(assets_path);
-	root["fx_path"] << ryml::to_substr(fx_path);
-	root["params_path"] << ryml::to_substr(params_path);
-	root["menu_path"] << ryml::to_substr(menu_path);
-	root["chars_per_sync"] << chars_per_sync;
-	root["bytes_per_char"] << bytes_per_char;
-	root["rows"] << rows;
-	root["cols"] << cols;
-	root["clear_osc"] << clear_osc;
-
-	return Config::Serialize(path, &t);
-}
-
-bool UnityAppConfig::Deserialize(const std::filesystem::path& path) {
-	std::error_code err;
-	if (!std::filesystem::exists(path, err)) {
-		*this = UnityAppConfig();
-		return true;
-	}
-
-	ryml::Tree t;
-	if (!Config::Deserialize(path, &t)) {
-		return false;
-	}
-
-	ryml::ConstNodeRef root = t.rootref();
-	UnityAppConfig c;
-
 	root.get_if("chars_per_sync", &c.chars_per_sync);
 	root.get_if("bytes_per_char", &c.bytes_per_char);
 	root.get_if("rows", &c.rows);
 	root.get_if("cols", &c.cols);
-	root.get_if("clear_osc", &c.clear_osc);
 
 	root.get_if("assets_path", &c.assets_path);
 	root.get_if("fx_path", &c.fx_path);
 	root.get_if("params_path", &c.params_path);
 	root.get_if("menu_path", &c.menu_path);
+	root.get_if("clear_osc", &c.clear_osc);
 
 	*this = std::move(c);
 	return true;

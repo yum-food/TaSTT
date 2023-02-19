@@ -55,10 +55,10 @@ namespace PythonWrapper
 	// app restarts.
 	wxProcess* StartApp(
 		std::function<void(wxProcess* proc, int ret)>&& exit_callback,
-		const TranscriptionAppConfig& config);
+		const AppConfig& config);
 
 	bool GenerateAnimator(
-		const UnityAppConfig& config,
+		const AppConfig& config,
 		const std::string& unity_animator_generated_dir,
 		const std::string& unity_animator_generated_name,
 		const std::string& unity_parameters_generated_name,

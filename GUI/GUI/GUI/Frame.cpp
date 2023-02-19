@@ -2,8 +2,6 @@
 #include "Logging.h"
 #include "PythonWrapper.h"
 
-#include "Config.h"
-
 #include <filesystem>
 #include <string>
 #include <vector>
@@ -276,45 +274,48 @@ Frame::Frame()
     env_proc_(nullptr),
     py_app_drain_(this, ID_PY_APP_DRAIN)
 {
-    TranscriptionAppConfig py_c;
-    py_c.Deserialize(TranscriptionAppConfig::kConfigPath);
-
-    UnityAppConfig unity_c;
-    unity_c.Deserialize(UnityAppConfig::kConfigPath);
+    app_c_.Deserialize(AppConfig::kConfigPath);
 
     auto* main_panel = new wxPanel(this, ID_MAIN_PANEL);
 	main_panel_ = main_panel;
     {
         auto* navbar = new wxPanel(main_panel, ID_NAVBAR);
         {
-			auto* navbar_button_transcribe = new wxButton(navbar, ID_NAVBAR_BUTTON_TRANSCRIBE, "Transcription");
-			auto* navbar_button_unity = new wxButton(navbar, ID_NAVBAR_BUTTON_UNITY, "Unity");
-			auto* navbar_button_debug = new wxButton(navbar, ID_NAVBAR_BUTTON_DEBUG, "Debug");
+			auto* navbar_button_transcribe = new wxButton(navbar,
+                ID_NAVBAR_BUTTON_TRANSCRIBE, "Transcription");
+			auto* navbar_button_unity = new wxButton(navbar,
+                ID_NAVBAR_BUTTON_UNITY, "Unity");
+			auto* navbar_button_debug = new wxButton(navbar,
+                ID_NAVBAR_BUTTON_DEBUG, "Debug");
 
 			auto* sizer = new wxBoxSizer(wxVERTICAL);
 			navbar->SetSizer(sizer);
 
-			sizer->Add(navbar_button_transcribe, /*proportion=*/0, /*flags=*/wxEXPAND);
-			sizer->Add(navbar_button_unity, /*proportion=*/0, /*flags=*/wxEXPAND);
-			sizer->Add(navbar_button_debug, /*proportion=*/0, /*flags=*/wxEXPAND);
+			sizer->Add(navbar_button_transcribe, /*proportion=*/0,
+                /*flags=*/wxEXPAND);
+			sizer->Add(navbar_button_unity, /*proportion=*/0,
+                /*flags=*/wxEXPAND);
+			sizer->Add(navbar_button_debug, /*proportion=*/0,
+                /*flags=*/wxEXPAND);
         }
 
         auto* transcribe_panel = new wxPanel(main_panel, ID_PY_PANEL);
         transcribe_panel_ = transcribe_panel;
         {
             const auto transcribe_out_sz = wxSize(/*x_px=*/480, /*y_px=*/160);
-            auto* transcribe_out = new wxTextCtrl(transcribe_panel, ID_TRANSCRIBE_OUT,
-                wxEmptyString,
-                wxDefaultPosition,
+            auto* transcribe_out = new wxTextCtrl(transcribe_panel,
+                ID_TRANSCRIBE_OUT, wxEmptyString, wxDefaultPosition,
                 transcribe_out_sz, wxTE_MULTILINE | wxTE_READONLY);
             transcribe_out->SetMinSize(transcribe_out_sz);
             transcribe_out_ = transcribe_out;
 
             Log(transcribe_out_, "{}\n", PythonWrapper::GetVersion());
 
-            auto* py_config_panel = new wxPanel(transcribe_panel, ID_PY_CONFIG_PANEL);
+            auto* py_config_panel = new wxPanel(transcribe_panel,
+                ID_PY_CONFIG_PANEL);
             {
-                auto* py_setup_button = new wxButton(py_config_panel, ID_PY_SETUP_BUTTON, "Set up Python virtual environment");
+                auto* py_setup_button = new wxButton(py_config_panel,
+                    ID_PY_SETUP_BUTTON, "Set up Python virtual environment");
                 py_setup_button->SetToolTip(
                     "TaSTT uses the Python programming language to provide both "
                     "transcription services and to interface with Unity. "
@@ -322,27 +323,27 @@ Frame::Frame()
                     "called a 'virtual environment'. Click this button to "
                     "install those dependencies. This only has to be done "
                     "once when you install a new version of TaSTT.");
-                auto* py_dump_mics_button = new wxButton(py_config_panel, ID_PY_DUMP_MICS_BUTTON, "List input devices");
+                auto* py_dump_mics_button = new wxButton(py_config_panel,
+                    ID_PY_DUMP_MICS_BUTTON, "List input devices");
                 py_dump_mics_button->SetToolTip(
                     "List the microphones (and input devices) attached to "
                     "your computer. To use a microphone, enter the number "
                     "to its left in the 'Microphone' dropdown.");
-                auto* py_app_config_panel_pairs = new wxPanel(py_config_panel, ID_PY_APP_CONFIG_PANEL_PAIRS);
+                auto* py_app_config_panel_pairs = new wxPanel(py_config_panel,
+                    ID_PY_APP_CONFIG_PANEL_PAIRS);
                 {
-                    auto* py_app_mic = new wxChoice(py_app_config_panel_pairs, ID_PY_APP_MIC, wxDefaultPosition,
+                    auto* py_app_mic = new wxChoice(py_app_config_panel_pairs,
+                        ID_PY_APP_MIC, wxDefaultPosition,
                         wxDefaultSize, kNumMicChoices, kMicChoices);
-                    int mic_idx = GetDropdownChoiceIndex(kMicChoices, kNumMicChoices, py_c.microphone, kMicDefault);
-                    py_app_mic->SetSelection(mic_idx);
                     py_app_mic->SetToolTip(
                         "Select which microphone to listen to when "
                         "transcribing. To get list microphones and get their "
                         "numbers, click 'List input devices'.");
                     py_app_mic_ = py_app_mic;
 
-                    auto* py_app_lang = new wxChoice(py_app_config_panel_pairs, ID_PY_APP_LANG, wxDefaultPosition,
-                        wxDefaultSize, kNumLangChoices, kLangChoices);
-                    int lang_idx = GetDropdownChoiceIndex(kLangChoices, kNumLangChoices, py_c.language, kLangDefault);
-                    py_app_lang->SetSelection(lang_idx);
+                    auto* py_app_lang = new wxChoice(py_app_config_panel_pairs,
+                        ID_PY_APP_LANG, wxDefaultPosition, wxDefaultSize,
+                        kNumLangChoices, kLangChoices);
                     py_app_lang->SetToolTip("Select which language you will "
                         "speak in. It will be transcribed into that language. "
                         "If using a language with non-ASCII characters (i.e. "
@@ -351,10 +352,10 @@ Frame::Frame()
                         "make sure you're not using a *.en model.");
                     py_app_lang_ = py_app_lang;
 
-                    auto* py_app_model = new wxChoice(py_app_config_panel_pairs, ID_PY_APP_MODEL, wxDefaultPosition,
-                        wxDefaultSize, kNumModelChoices, kModelChoices);
-                    int model_idx = GetDropdownChoiceIndex(kModelChoices, kNumModelChoices, py_c.model, kModelDefault);
-                    py_app_model->SetSelection(model_idx);
+                    auto* py_app_model = new wxChoice(
+                        py_app_config_panel_pairs, ID_PY_APP_MODEL,
+                        wxDefaultPosition, wxDefaultSize, kNumModelChoices,
+                        kModelChoices);
                     py_app_model->SetToolTip("Select which version of "
                         "the transcription model to use. 'base' is a good "
                         "choice for most users. 'small' is slightly more "
@@ -363,11 +364,10 @@ Frame::Frame()
                         "don't work for other languages.");
                     py_app_model_ = py_app_model;
 
-                    auto* py_app_chars_per_sync = new wxChoice(py_app_config_panel_pairs,
-                        ID_PY_APP_CHARS_PER_SYNC, wxDefaultPosition,
-                        wxDefaultSize, kNumCharsPerSync, kCharsPerSync);
-                    int chars_idx = GetDropdownChoiceIndex(kCharsPerSync, kNumCharsPerSync, py_c.chars_per_sync, kCharsDefault);
-                    py_app_chars_per_sync->SetSelection(chars_idx);
+                    auto* py_app_chars_per_sync = new wxChoice(
+                        py_app_config_panel_pairs, ID_PY_APP_CHARS_PER_SYNC,
+                        wxDefaultPosition, wxDefaultSize, kNumCharsPerSync,
+                        kCharsPerSync);
                     py_app_chars_per_sync->SetToolTip(
                         "VRChat syncs avatar parameters roughly 5 times per "
                         "second. We use this to send text to the box. By "
@@ -375,11 +375,10 @@ Frame::Frame()
                         "faster, but you'll use more avatar parameters.");
                     py_app_chars_per_sync_ = py_app_chars_per_sync;
 
-                    auto* py_app_bytes_per_char = new wxChoice(py_app_config_panel_pairs,
-                        ID_PY_APP_BYTES_PER_CHAR, wxDefaultPosition,
-                        wxDefaultSize, kNumBytesPerChar, kBytesPerChar);
-                    int bytes_idx = GetDropdownChoiceIndex(kBytesPerChar, kNumBytesPerChar, py_c.bytes_per_char, kBytesDefault);
-                    py_app_bytes_per_char->SetSelection(bytes_idx);
+                    auto* py_app_bytes_per_char = new wxChoice(
+                        py_app_config_panel_pairs, ID_PY_APP_BYTES_PER_CHAR,
+                        wxDefaultPosition, wxDefaultSize, kNumBytesPerChar,
+                        kBytesPerChar);
 					py_app_bytes_per_char->SetToolTip(
 						"If you speak a language that uses non-ASCII "
 						"characters (i.e. not English), set this to 2.");
@@ -388,8 +387,6 @@ Frame::Frame()
                     auto* py_app_button = new wxChoice(py_app_config_panel_pairs,
                         ID_PY_APP_BUTTON, wxDefaultPosition,
                         wxDefaultSize, kNumButtons, kButton);
-                    int button_idx = GetDropdownChoiceIndex(kButton, kNumButtons, py_c.button, kButtonDefault);
-                    py_app_button->SetSelection(button_idx);
                     py_app_button->SetToolTip(
                         "You will use this button in game to start and stop "
                         "transcription. Set it to a button you're not using "
@@ -397,22 +394,23 @@ Frame::Frame()
                     py_app_button_ = py_app_button;
 
                     auto* py_app_rows = new wxTextCtrl(py_app_config_panel_pairs,
-                        ID_PY_APP_ROWS, py_c.rows,
+                        ID_PY_APP_ROWS, std::to_string(app_c_.rows),
                         wxDefaultPosition, wxDefaultSize, /*style=*/0);
                     py_app_rows->SetToolTip(
                         "The number of rows on the text box.");
                     py_app_rows_ = py_app_rows;
 
                     auto* py_app_cols = new wxTextCtrl(py_app_config_panel_pairs,
-                        ID_PY_APP_COLS, py_c.cols,
+                        ID_PY_APP_COLS, std::to_string(app_c_.cols),
                         wxDefaultPosition, wxDefaultSize, /*style=*/0);
                     py_app_cols->SetToolTip(
                         "The number of columns on the text box.");
                     py_app_cols_ = py_app_cols;
 
-                    auto* py_app_window_duration = new wxTextCtrl(py_app_config_panel_pairs,
-                        ID_PY_APP_WINDOW_DURATION, py_c.window_duration,
-                        wxDefaultPosition, wxDefaultSize, /*style=*/0);
+                    auto* py_app_window_duration = new wxTextCtrl(
+                        py_app_config_panel_pairs, ID_PY_APP_WINDOW_DURATION,
+                        app_c_.window_duration, wxDefaultPosition,
+                        wxDefaultSize, /*style=*/0);
                     py_app_window_duration->SetToolTip(
                         "This controls how long the slice of audio that "
                         "we feed the transcription algorithm is, in seconds. "
@@ -425,37 +423,55 @@ Frame::Frame()
                     auto* sizer = new wxFlexGridSizer(/*cols=*/2);
                     py_app_config_panel_pairs->SetSizer(sizer);
 
-                    sizer->Add(new wxStaticText(py_app_config_panel_pairs, wxID_ANY, /*label=*/"Microphone:"));
-                    sizer->Add(py_app_mic, /*proportion=*/0, /*flags=*/wxEXPAND);
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Microphone:"));
+                    sizer->Add(py_app_mic, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
 
-                    sizer->Add(new wxStaticText(py_app_config_panel_pairs, wxID_ANY, /*label=*/"Language:"));
-                    sizer->Add(py_app_lang, /*proportion=*/0, /*flags=*/wxEXPAND);
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Language:"));
+                    sizer->Add(py_app_lang, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
 
-                    sizer->Add(new wxStaticText(py_app_config_panel_pairs, wxID_ANY, /*label=*/"Model:"));
-                    sizer->Add(py_app_model, /*proportion=*/0, /*flags=*/wxEXPAND);
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Model:"));
+                    sizer->Add(py_app_model, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
 
-                    sizer->Add(new wxStaticText(py_app_config_panel_pairs, wxID_ANY, /*label=*/"Characters per sync:"));
-                    sizer->Add(py_app_chars_per_sync, /*proportion=*/0, /*flags=*/wxEXPAND);
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Characters per sync:"));
+                    sizer->Add(py_app_chars_per_sync, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
 
-                    sizer->Add(new wxStaticText(py_app_config_panel_pairs, wxID_ANY, /*label=*/"Bytes per character:"));
-                    sizer->Add(py_app_bytes_per_char, /*proportion=*/0, /*flags=*/wxEXPAND);
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Bytes per character:"));
+                    sizer->Add(py_app_bytes_per_char, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
 
-                    sizer->Add(new wxStaticText(py_app_config_panel_pairs, wxID_ANY, /*label=*/"Button:"));
-                    sizer->Add(py_app_button, /*proportion=*/0, /*flags=*/wxEXPAND);
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Button:"));
+                    sizer->Add(py_app_button, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
 
-                    sizer->Add(new wxStaticText(py_app_config_panel_pairs, wxID_ANY, /*label=*/"Text box rows:"));
-                    sizer->Add(py_app_rows, /*proportion=*/0, /*flags=*/wxEXPAND);
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Text box rows:"));
+                    sizer->Add(py_app_rows, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
 
-                    sizer->Add(new wxStaticText(py_app_config_panel_pairs, wxID_ANY, /*label=*/"Text box columns:"));
-                    sizer->Add(py_app_cols, /*proportion=*/0, /*flags=*/wxEXPAND);
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Text box columns:"));
+                    sizer->Add(py_app_cols, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
 
-                    sizer->Add(new wxStaticText(py_app_config_panel_pairs, wxID_ANY, /*label=*/"Window duration (s):"));
-                    sizer->Add(py_app_window_duration, /*proportion=*/0, /*flags=*/wxEXPAND);
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Window duration (s):"));
+                    sizer->Add(py_app_window_duration, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
                 }
 
                 auto* py_app_enable_local_beep = new wxCheckBox(py_config_panel,
                     ID_PY_APP_ENABLE_LOCAL_BEEP, "Enable local beep");
-                py_app_enable_local_beep->SetValue(py_c.enable_local_beep);
+                py_app_enable_local_beep->SetValue(app_c_.enable_local_beep);
                 py_app_enable_local_beep->SetToolTip(
                     "By default, TaSTT will play a sound (audible only to "
                     "you) when it begins transcription and when it stops. "
@@ -465,7 +481,7 @@ Frame::Frame()
 
                 auto* py_app_use_cpu = new wxCheckBox(py_config_panel,
                     ID_PY_APP_USE_CPU, "Use CPU");
-                py_app_use_cpu->SetValue(py_c.use_cpu);
+                py_app_use_cpu->SetValue(app_c_.use_cpu);
                 py_app_use_cpu->SetToolTip(
                     "If checked, the transcription engine will run on your "
                     "CPU instead of your GPU. This is typically much slower "
@@ -476,7 +492,7 @@ Frame::Frame()
 
                 auto* py_app_use_builtin = new wxCheckBox(py_config_panel,
                     ID_PY_APP_USE_CPU, "Use built-in chatbox");
-                py_app_use_builtin->SetValue(py_c.use_builtin);
+                py_app_use_builtin->SetValue(app_c_.use_builtin);
                 py_app_use_builtin->SetToolTip(
                     "If checked, text will be sent to the built-in text box "
                     "instead of one attached to the current avatar."
@@ -485,19 +501,29 @@ Frame::Frame()
 
                 // Hack: Add newlines before and after the button text to make
                 // the buttons bigger, and easier to click from inside VR.
-                auto* py_app_start_button = new wxButton(py_config_panel, ID_PY_APP_START_BUTTON, "\nBegin transcribing\n\n");
-                auto* py_app_stop_button = new wxButton(py_config_panel, ID_PY_APP_STOP_BUTTON, "\nStop transcribing\n\n");
+                auto* py_app_start_button = new wxButton(py_config_panel,
+                    ID_PY_APP_START_BUTTON, "\nBegin transcribing\n\n");
+                auto* py_app_stop_button = new wxButton(py_config_panel,
+                    ID_PY_APP_STOP_BUTTON, "\nStop transcribing\n\n");
 
                 auto* sizer = new wxBoxSizer(wxVERTICAL);
                 py_config_panel->SetSizer(sizer);
-                sizer->Add(py_setup_button, /*proportion=*/0, /*flags=*/wxEXPAND);
-                sizer->Add(py_dump_mics_button, /*proportion=*/0, /*flags=*/wxEXPAND);
-                sizer->Add(py_app_config_panel_pairs, /*proportion=*/0, /*flags=*/wxEXPAND);
-                sizer->Add(py_app_enable_local_beep, /*proportion=*/0, /*flags=*/wxEXPAND);
-                sizer->Add(py_app_use_cpu, /*proportion=*/0, /*flags=*/wxEXPAND);
-                sizer->Add(py_app_use_builtin, /*proportion=*/0, /*flags=*/wxEXPAND);
-                sizer->Add(py_app_start_button, /*proportion=*/0, /*flags=*/wxEXPAND);
-                sizer->Add(py_app_stop_button, /*proportion=*/0, /*flags=*/wxEXPAND);
+                sizer->Add(py_setup_button, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+                sizer->Add(py_dump_mics_button, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+                sizer->Add(py_app_config_panel_pairs, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+                sizer->Add(py_app_enable_local_beep, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+                sizer->Add(py_app_use_cpu, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+                sizer->Add(py_app_use_builtin, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+                sizer->Add(py_app_start_button, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+                sizer->Add(py_app_stop_button, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
             }
 
             auto* sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -517,14 +543,16 @@ Frame::Frame()
             unity_out->SetMinSize(unity_out_sz);
             unity_out_ = unity_out;
 
-            auto* unity_config_panel = new wxPanel(unity_panel, ID_UNITY_CONFIG_PANEL);
+            auto* unity_config_panel = new wxPanel(unity_panel,
+                ID_UNITY_CONFIG_PANEL);
             {
-				auto* unity_config_panel_pairs = new wxPanel(unity_config_panel, ID_UNITY_CONFIG_PANEL_PAIRS);
+				auto* unity_config_panel_pairs = new wxPanel(unity_config_panel,
+                    ID_UNITY_CONFIG_PANEL_PAIRS);
                 {
                     auto* unity_assets_file_picker = new wxDirPickerCtrl(
                         unity_config_panel_pairs,
                         ID_UNITY_ASSETS_FILE_PICKER,
-                        /*path=*/unity_c.assets_path,
+                        /*path=*/app_c_.assets_path,
                         /*message=*/"Unity Assets folder"
                         );
                     unity_assets_file_picker->SetToolTip(
@@ -536,7 +564,7 @@ Frame::Frame()
                     auto* unity_animator_file_picker = new wxFilePickerCtrl(
                         unity_config_panel_pairs,
                         ID_UNITY_ANIMATOR_FILE_PICKER,
-                        /*path=*/unity_c.fx_path,
+                        /*path=*/app_c_.fx_path,
                         /*message=*/"FX controller path",
                         /*wildcard=*/wxFileSelectorDefaultWildcardStr,
                         /*pos=*/wxDefaultPosition,
@@ -551,7 +579,7 @@ Frame::Frame()
                     auto* unity_parameters_file_picker = new wxFilePickerCtrl(
                         unity_config_panel_pairs,
                         ID_UNITY_PARAMETERS_FILE_PICKER,
-                        /*path=*/unity_c.params_path,
+                        /*path=*/app_c_.params_path,
                         /*message=*/"Avatar parameters path",
                         /*wildcard=*/wxFileSelectorDefaultWildcardStr,
                         /*pos=*/wxDefaultPosition,
@@ -561,12 +589,13 @@ Frame::Frame()
                         "The path to your avatar's parameters. You can find "
                         "this in your avatar descriptor. Example:\n"
 						"C:\\Users\\yum\\unity\\kumadan\\Assets\\kumadan_parameters.asset");
-                    unity_parameters_file_picker_ = unity_parameters_file_picker;
+                    unity_parameters_file_picker_ =
+                        unity_parameters_file_picker;
 
                     auto* unity_menu_file_picker = new wxFilePickerCtrl(
                         unity_config_panel_pairs,
                         ID_UNITY_MENU_FILE_PICKER,
-                        /*path=*/unity_c.menu_path,
+                        /*path=*/app_c_.menu_path,
                         /*message=*/"Avatar menu path",
                         /*wildcard=*/wxFileSelectorDefaultWildcardStr,
                         /*pos=*/wxDefaultPosition,
@@ -578,7 +607,8 @@ Frame::Frame()
 						"C:\\Users\\yum\\unity\\kumadan\\Assets\\kumadan_menu.asset");
                     unity_menu_file_picker_ = unity_menu_file_picker;
 
-					auto* unity_animator_generated_dir = new wxTextCtrl(unity_config_panel_pairs,
+					auto* unity_animator_generated_dir = new wxTextCtrl(
+                        unity_config_panel_pairs,
                         ID_UNITY_ANIMATOR_GENERATED_DIR,
 						wxEmptyString, wxDefaultPosition, wxDefaultSize,
                         wxTE_READONLY);
@@ -589,9 +619,11 @@ Frame::Frame()
                         "It places them in this folder, which it creates "
                         "under your Unity project's Assets folder. Any data "
                         "inside this folder may be overwritten!");
-                    unity_animator_generated_dir_ = unity_animator_generated_dir;
+                    unity_animator_generated_dir_ =
+                        unity_animator_generated_dir;
 
-					auto* unity_animator_generated_name = new wxTextCtrl(unity_config_panel_pairs,
+					auto* unity_animator_generated_name = new wxTextCtrl(
+                        unity_config_panel_pairs,
                         ID_UNITY_ANIMATOR_GENERATED_NAME,
 						wxEmptyString, wxDefaultPosition, wxDefaultSize,
                         wxTE_READONLY);
@@ -603,19 +635,23 @@ Frame::Frame()
                         "you're done!");
                     unity_animator_generated_name_ = unity_animator_generated_name;
 
-					auto* unity_parameters_generated_name = new wxTextCtrl(unity_config_panel_pairs,
+					auto* unity_parameters_generated_name = new wxTextCtrl(
+                        unity_config_panel_pairs,
                         ID_UNITY_PARAMETERS_GENERATED_NAME,
 						wxEmptyString, wxDefaultPosition, wxDefaultSize,
                         wxTE_READONLY);
-                    unity_parameters_generated_name->AppendText("TaSTT_Parameters.asset");
+                    unity_parameters_generated_name->AppendText(
+                        "TaSTT_Parameters.asset");
                     unity_parameters_generated_name->SetToolTip(
                         "The name of the parameters file that TaSTT generates. "
                         "It will be placed inside the generated assets "
                         "folder. Put this on your avatar descriptor when "
                         "you're done!");
-                    unity_parameters_generated_name_ = unity_parameters_generated_name;
+                    unity_parameters_generated_name_ =
+                        unity_parameters_generated_name;
 
-					auto* unity_menu_generated_name = new wxTextCtrl(unity_config_panel_pairs,
+					auto* unity_menu_generated_name = new wxTextCtrl(
+                        unity_config_panel_pairs,
                         ID_UNITY_MENU_GENERATED_NAME,
 						wxEmptyString, wxDefaultPosition, wxDefaultSize,
                         wxTE_READONLY);
@@ -627,12 +663,10 @@ Frame::Frame()
                         "you're done!");
                     unity_menu_generated_name_ = unity_menu_generated_name;
 
-                    auto* unity_chars_per_sync = new wxChoice(unity_config_panel_pairs,
+                    auto* unity_chars_per_sync = new wxChoice(
+                        unity_config_panel_pairs,
                         ID_UNITY_CHARS_PER_SYNC, wxDefaultPosition,
                         wxDefaultSize, kNumCharsPerSync, kCharsPerSync);
-                    int chars_idx = GetDropdownChoiceIndex(kCharsPerSync, kNumCharsPerSync,
-                        std::to_string(unity_c.chars_per_sync), kCharsDefault);
-                    unity_chars_per_sync->SetSelection(chars_idx);
 					unity_chars_per_sync->SetToolTip(
 						"VRChat syncs avatar parameters roughly 5 times per "
 						"second. We use this to send text to the box. By "
@@ -640,26 +674,24 @@ Frame::Frame()
 						"faster, but you'll use more avatar parameters.");
                     unity_chars_per_sync_ = unity_chars_per_sync;
 
-                    auto* unity_bytes_per_char = new wxChoice(unity_config_panel_pairs,
+                    auto* unity_bytes_per_char = new wxChoice(
+                        unity_config_panel_pairs,
                         ID_UNITY_BYTES_PER_CHAR, wxDefaultPosition,
                         wxDefaultSize, kNumBytesPerChar, kBytesPerChar);
-					int bytes_idx = GetDropdownChoiceIndex(kBytesPerChar,
-                        kNumBytesPerChar, std::to_string(unity_c.bytes_per_char), kBytesDefault);
-                    unity_bytes_per_char->SetSelection(bytes_idx);
 					unity_bytes_per_char->SetToolTip(
 						"If you speak a language that uses non-ASCII "
 						"characters (i.e. not English), set this to 2.");
                     unity_bytes_per_char_ = unity_bytes_per_char;
 
                     auto* unity_rows = new wxTextCtrl(unity_config_panel_pairs,
-                        ID_UNITY_ROWS, std::to_string(unity_c.rows),
+                        ID_UNITY_ROWS, std::to_string(app_c_.rows),
                         wxDefaultPosition, wxDefaultSize, /*style=*/0);
                     unity_rows->SetToolTip(
                         "The number of rows on the text box.");
                     unity_rows_ = unity_rows;
 
                     auto* unity_cols = new wxTextCtrl(unity_config_panel_pairs,
-                        ID_UNITY_COLS, std::to_string(unity_c.cols),
+                        ID_UNITY_COLS, std::to_string(app_c_.cols),
                         wxDefaultPosition, wxDefaultSize, /*style=*/0);
                     unity_cols->SetToolTip(
                         "The number of columns on the text box.");
@@ -668,46 +700,62 @@ Frame::Frame()
                     auto* sizer = new wxFlexGridSizer(/*cols=*/2);
                     unity_config_panel_pairs->SetSizer(sizer);
 
-                    sizer->Add(new wxStaticText(unity_config_panel_pairs, wxID_ANY, /*label=*/"Unity Assets folder:"));
+                    sizer->Add(new wxStaticText(unity_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Unity Assets folder:"));
                     sizer->Add(unity_assets_file_picker);
 
-                    sizer->Add(new wxStaticText(unity_config_panel_pairs, wxID_ANY, /*label=*/"FX controller:"));
+                    sizer->Add(new wxStaticText(unity_config_panel_pairs,
+                        wxID_ANY, /*label=*/"FX controller:"));
                     sizer->Add(unity_animator_file_picker);
 
-                    sizer->Add(new wxStaticText(unity_config_panel_pairs, wxID_ANY, /*label=*/"Avatar parameters:"));
+                    sizer->Add(new wxStaticText(unity_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Avatar parameters:"));
                     sizer->Add(unity_parameters_file_picker);
 
-                    sizer->Add(new wxStaticText(unity_config_panel_pairs, wxID_ANY, /*label=*/"Avatar menu:"));
+                    sizer->Add(new wxStaticText(unity_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Avatar menu:"));
                     sizer->Add(unity_menu_file_picker);
 
-                    sizer->Add(new wxStaticText(unity_config_panel_pairs, wxID_ANY, /*label=*/"Generated assets folder:"));
+                    sizer->Add(new wxStaticText(unity_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Generated assets folder:"));
                     sizer->Add(unity_animator_generated_dir);
 
-                    sizer->Add(new wxStaticText(unity_config_panel_pairs, wxID_ANY, /*label=*/"Generated FX controller:"));
+                    sizer->Add(new wxStaticText(unity_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Generated FX controller:"));
                     sizer->Add(unity_animator_generated_name);
 
-                    sizer->Add(new wxStaticText(unity_config_panel_pairs, wxID_ANY, /*label=*/"Generated parameters:"));
+                    sizer->Add(new wxStaticText(unity_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Generated parameters:"));
                     sizer->Add(unity_parameters_generated_name);
 
-                    sizer->Add(new wxStaticText(unity_config_panel_pairs, wxID_ANY, /*label=*/"Generated menu:"));
+                    sizer->Add(new wxStaticText(unity_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Generated menu:"));
                     sizer->Add(unity_menu_generated_name);
 
-                    sizer->Add(new wxStaticText(unity_config_panel_pairs, wxID_ANY, /*label=*/"Characters per sync:"));
-                    sizer->Add(unity_chars_per_sync, /*proportion=*/0, /*flags=*/wxEXPAND);
+                    sizer->Add(new wxStaticText(unity_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Characters per sync:"));
+                    sizer->Add(unity_chars_per_sync, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
 
-                    sizer->Add(new wxStaticText(unity_config_panel_pairs, wxID_ANY, /*label=*/"Bytes per character:"));
-                    sizer->Add(unity_bytes_per_char, /*proportion=*/0, /*flags=*/wxEXPAND);
+                    sizer->Add(new wxStaticText(unity_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Bytes per character:"));
+                    sizer->Add(unity_bytes_per_char, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
 
-                    sizer->Add(new wxStaticText(unity_config_panel_pairs, wxID_ANY, /*label=*/"Text box rows:"));
-                    sizer->Add(unity_rows, /*proportion=*/0, /*flags=*/wxEXPAND);
+                    sizer->Add(new wxStaticText(unity_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Text box rows:"));
+                    sizer->Add(unity_rows, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
 
-                    sizer->Add(new wxStaticText(unity_config_panel_pairs, wxID_ANY, /*label=*/"Text box columns:"));
-                    sizer->Add(unity_cols, /*proportion=*/0, /*flags=*/wxEXPAND);
+                    sizer->Add(new wxStaticText(unity_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Text box columns:"));
+                    sizer->Add(unity_cols, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
                 }
 
 				auto* clear_osc = new wxCheckBox(unity_config_panel,
 					ID_UNITY_CLEAR_OSC, "Clear OSC configs");
-				clear_osc->SetValue(unity_c.clear_osc);
+				clear_osc->SetValue(app_c_.clear_osc);
 				clear_osc->SetToolTip(
 					"If checked, VRChat's OSC configs will be cleared. "
 					"VRC SDK has a bug where parameters added to an "
@@ -718,19 +766,22 @@ Frame::Frame()
 					"an existing avatar.");
                 unity_clear_osc_ = clear_osc;
 
-				auto* unity_button_gen_fx = new wxButton(unity_config_panel, ID_UNITY_BUTTON_GEN_ANIMATOR, "Generate avatar assets");
+				auto* unity_button_gen_fx = new wxButton(unity_config_panel,
+                    ID_UNITY_BUTTON_GEN_ANIMATOR, "Generate avatar assets");
                 unity_button_gen_fx->SetWindowStyleFlag(wxBU_EXACTFIT);
 
 				auto* sizer = new wxBoxSizer(wxVERTICAL);
 				unity_config_panel->SetSizer(sizer);
 				sizer->Add(unity_config_panel_pairs);
                 sizer->Add(clear_osc);
-				sizer->Add(unity_button_gen_fx, /*proportion=*/0, /*flags=*/wxEXPAND);
+				sizer->Add(unity_button_gen_fx, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
             }
 
             auto* sizer = new wxBoxSizer(wxHORIZONTAL);
             unity_panel->SetSizer(sizer);
-            sizer->Add(unity_config_panel, /*proportion=*/0, /*flags=*/wxEXPAND);
+            sizer->Add(unity_config_panel, /*proportion=*/0,
+                /*flags=*/wxEXPAND);
             sizer->Add(unity_out, /*proportion=*/1, /*flags=*/wxEXPAND);
         }
         unity_panel_->Hide();
@@ -746,16 +797,19 @@ Frame::Frame()
             debug_out->SetMinSize(debug_out_sz);
             debug_out_ = debug_out;
 
-            auto* debug_config_panel = new wxPanel(debug_panel, ID_DEBUG_CONFIG_PANEL);
+            auto* debug_config_panel = new wxPanel(debug_panel,
+                ID_DEBUG_CONFIG_PANEL);
 			{
-				auto* debug_button_list_pip = new wxButton(debug_config_panel, ID_DEBUG_BUTTON_LIST_PIP, "List pip packages");
+				auto* debug_button_list_pip = new wxButton(debug_config_panel,
+                    ID_DEBUG_BUTTON_LIST_PIP, "List pip packages");
                 debug_button_list_pip->SetToolTip(
 					"List the packages (and versions) installed in the "
                     "virtual environment by pip. Also list the contents "
                     "of the pip cache.");
 				debug_button_list_pip->SetWindowStyleFlag(wxBU_EXACTFIT);
 
-				auto* debug_button_clear_pip = new wxButton(debug_config_panel, ID_DEBUG_BUTTON_CLEAR_PIP, "Clear pip cache");
+				auto* debug_button_clear_pip = new wxButton(debug_config_panel,
+                    ID_DEBUG_BUTTON_CLEAR_PIP, "Clear pip cache");
                 // The real explanation: we install a special version of torch
                 // using --extra-index-url, and I'm like 99% sure that pip
                 // doesn't correctly detect that we want this version instead
@@ -769,13 +823,16 @@ Frame::Frame()
                     "can fix issues.");
 				debug_button_clear_pip->SetWindowStyleFlag(wxBU_EXACTFIT);
 
-				auto* debug_button_reset_venv = new wxButton(debug_config_panel, ID_DEBUG_BUTTON_RESET_VENV, "Reset python virtual environment");
+				auto* debug_button_reset_venv = new wxButton(
+                    debug_config_panel, ID_DEBUG_BUTTON_RESET_VENV,
+                    "Reset python virtual environment");
                 debug_button_reset_venv->SetToolTip(
                     "Uninstall all Python packages installed into the virtual "
                     "environment. Do this after clearing pip!");
 				debug_button_reset_venv->SetWindowStyleFlag(wxBU_EXACTFIT);
 
-				auto* debug_button_clear_osc = new wxButton(debug_config_panel, ID_DEBUG_BUTTON_CLEAR_OSC, "Clear OSC configs");
+				auto* debug_button_clear_osc = new wxButton(debug_config_panel,
+                    ID_DEBUG_BUTTON_CLEAR_OSC, "Clear OSC configs");
                 debug_button_clear_osc->SetToolTip(
 					"No idea if this actually does anything valuable yet. I "
                     "think making certain animator changes (s.a. turning on "
@@ -784,29 +841,42 @@ Frame::Frame()
                     "your OSC configs.");
 				debug_button_clear_osc->SetWindowStyleFlag(wxBU_EXACTFIT);
 
-				auto* debug_button_backup_venv = new wxButton(debug_config_panel, ID_DEBUG_BUTTON_BACKUP_VENV, "Back up virtual env");
+				auto* debug_button_backup_venv = new wxButton(
+                    debug_config_panel, ID_DEBUG_BUTTON_BACKUP_VENV,
+                    "Back up virtual env");
                 debug_button_backup_venv->SetToolTip(
-                    "Back up the virtual environment to ~/Downloads/TaSTT_venv");
+                    "Back up the virtual environment to "
+                    "~/Downloads/TaSTT_venv");
 				debug_button_backup_venv->SetWindowStyleFlag(wxBU_EXACTFIT);
 
-				auto* debug_button_restore_venv = new wxButton(debug_config_panel, ID_DEBUG_BUTTON_RESTORE_VENV, "Restore virtual env");
+				auto* debug_button_restore_venv = new wxButton(
+                    debug_config_panel, ID_DEBUG_BUTTON_RESTORE_VENV,
+                    "Restore virtual env");
                 debug_button_restore_venv->SetToolTip(
-                    "Restore the virtual environment from ~/Downloads/TaSTT_venv");
+                    "Restore the virtual environment from "
+                    "~/Downloads/TaSTT_venv");
 				debug_button_restore_venv->SetWindowStyleFlag(wxBU_EXACTFIT);
 
 				auto* sizer = new wxBoxSizer(wxVERTICAL);
 				debug_config_panel->SetSizer(sizer);
-				sizer->Add(debug_button_list_pip, /*proportion=*/0, /*flags=*/wxEXPAND);
-				sizer->Add(debug_button_clear_pip, /*proportion=*/0, /*flags=*/wxEXPAND);
-				sizer->Add(debug_button_reset_venv, /*proportion=*/0, /*flags=*/wxEXPAND);
-				sizer->Add(debug_button_clear_osc, /*proportion=*/0, /*flags=*/wxEXPAND);
-				sizer->Add(debug_button_backup_venv, /*proportion=*/0, /*flags=*/wxEXPAND);
-				sizer->Add(debug_button_restore_venv, /*proportion=*/0, /*flags=*/wxEXPAND);
+				sizer->Add(debug_button_list_pip, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+				sizer->Add(debug_button_clear_pip, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+				sizer->Add(debug_button_reset_venv, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+				sizer->Add(debug_button_clear_osc, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+				sizer->Add(debug_button_backup_venv, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+				sizer->Add(debug_button_restore_venv, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
 			}
 
             auto* sizer = new wxBoxSizer(wxHORIZONTAL);
             debug_panel->SetSizer(sizer);
-            sizer->Add(debug_config_panel, /*proportion=*/0, /*flags=*/wxEXPAND);
+            sizer->Add(debug_config_panel, /*proportion=*/0,
+                /*flags=*/wxEXPAND);
             sizer->Add(debug_out, /*proportion=*/1, /*flags=*/wxEXPAND);
         }
         debug_panel_->Hide();
@@ -820,7 +890,8 @@ Frame::Frame()
     }
 
 	Bind(wxEVT_MENU, &Frame::OnExit, this, wxID_EXIT);
-	Bind(wxEVT_BUTTON, &Frame::OnNavbarTranscribe, this, ID_NAVBAR_BUTTON_TRANSCRIBE);
+	Bind(wxEVT_BUTTON, &Frame::OnNavbarTranscribe, this,
+        ID_NAVBAR_BUTTON_TRANSCRIBE);
 	Bind(wxEVT_BUTTON, &Frame::OnNavbarUnity, this, ID_NAVBAR_BUTTON_UNITY);
 	Bind(wxEVT_BUTTON, &Frame::OnNavbarDebug, this, ID_NAVBAR_BUTTON_DEBUG);
 	Bind(wxEVT_BUTTON, &Frame::OnAppStart, this, ID_PY_APP_START_BUTTON);
@@ -828,16 +899,20 @@ Frame::Frame()
     Bind(wxEVT_TIMER,  &Frame::OnAppDrain, this, ID_PY_APP_DRAIN);
 	Bind(wxEVT_BUTTON, &Frame::OnSetupPython, this, ID_PY_SETUP_BUTTON);
 	Bind(wxEVT_BUTTON, &Frame::OnDumpMics, this, ID_PY_DUMP_MICS_BUTTON);
-	Bind(wxEVT_BUTTON, &Frame::OnGenerateFX, this, ID_UNITY_BUTTON_GEN_ANIMATOR);
+	Bind(wxEVT_BUTTON, &Frame::OnGenerateFX, this,
+        ID_UNITY_BUTTON_GEN_ANIMATOR);
 	Bind(wxEVT_BUTTON, &Frame::OnListPip, this, ID_DEBUG_BUTTON_LIST_PIP);
 	Bind(wxEVT_BUTTON, &Frame::OnClearPip, this, ID_DEBUG_BUTTON_CLEAR_PIP);
 	Bind(wxEVT_BUTTON, &Frame::OnListPip, this, ID_DEBUG_BUTTON_LIST_PIP);
 	Bind(wxEVT_BUTTON, &Frame::OnResetVenv, this, ID_DEBUG_BUTTON_RESET_VENV);
 	Bind(wxEVT_BUTTON, &Frame::OnClearOSC, this, ID_DEBUG_BUTTON_CLEAR_OSC);
 	Bind(wxEVT_BUTTON, &Frame::OnBackupVenv, this, ID_DEBUG_BUTTON_BACKUP_VENV);
-	Bind(wxEVT_BUTTON, &Frame::OnRestoreVenv, this, ID_DEBUG_BUTTON_RESTORE_VENV);
-    Bind(wxEVT_CHOICE, &Frame::OnUnityParamChange, this, ID_UNITY_CHARS_PER_SYNC);
-    Bind(wxEVT_CHOICE, &Frame::OnUnityParamChange, this, ID_UNITY_BYTES_PER_CHAR);
+	Bind(wxEVT_BUTTON, &Frame::OnRestoreVenv, this,
+        ID_DEBUG_BUTTON_RESTORE_VENV);
+    Bind(wxEVT_CHOICE, &Frame::OnUnityParamChange, this,
+        ID_UNITY_CHARS_PER_SYNC);
+    Bind(wxEVT_CHOICE, &Frame::OnUnityParamChange, this,
+        ID_UNITY_BYTES_PER_CHAR);
 
 	// wx needs this to be able to load PNGs.
 	wxImage::AddHandler(&png_handler_);
@@ -846,11 +921,73 @@ Frame::Frame()
     // Make tooltips show up for longer.
     wxToolTip::SetAutoPop(/*milliseconds=*/ 10 * 1000);
 
+    // Initialize input fields using AppConfig.
+    ApplyConfigToInputFields();
+
     Resize();
 	OnUnityParamChangeImpl();
 
     // Every 100 milliseconds we drain output from the Python app.
     py_app_drain_.Start(/*milliseconds=*/100);
+}
+
+void Frame::ApplyConfigToInputFields()
+{
+    // Transcription panel
+    auto* py_app_mic = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_MIC));
+	int mic_idx = GetDropdownChoiceIndex(kMicChoices,
+		kNumMicChoices, app_c_.microphone, kMicDefault);
+	py_app_mic->SetSelection(mic_idx);
+
+    auto* py_app_lang = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_LANG));
+	int lang_idx = GetDropdownChoiceIndex(kLangChoices,
+		kNumLangChoices, app_c_.language, kLangDefault);
+	py_app_lang->SetSelection(lang_idx);
+
+    auto* py_app_model = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_MODEL));
+	int model_idx = GetDropdownChoiceIndex(kModelChoices,
+		kNumModelChoices, app_c_.model, kModelDefault);
+	py_app_model->SetSelection(model_idx);
+
+    auto* py_app_button = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_BUTTON));
+	int button_idx = GetDropdownChoiceIndex(kButton,
+		kNumButtons, app_c_.button, kButtonDefault);
+	py_app_button->SetSelection(button_idx);
+
+    auto* py_app_chars_per_sync = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_CHARS_PER_SYNC));
+	int chars_idx = GetDropdownChoiceIndex(kCharsPerSync,
+		kNumCharsPerSync, std::to_string(app_c_.chars_per_sync),
+		kCharsDefault);
+	py_app_chars_per_sync->SetSelection(chars_idx);
+
+    auto* py_app_bytes_per_char = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_BYTES_PER_CHAR));
+	int bytes_idx = GetDropdownChoiceIndex(kBytesPerChar,
+		kNumBytesPerChar, std::to_string(app_c_.bytes_per_char),
+		kBytesDefault);
+	py_app_bytes_per_char->SetSelection(bytes_idx);
+
+    auto* py_app_rows = static_cast<wxTextCtrl*>(FindWindowById(ID_PY_APP_ROWS));
+    py_app_rows->Clear();
+    py_app_rows->AppendText(std::to_string(app_c_.rows));
+
+    auto* py_app_cols = static_cast<wxTextCtrl*>(FindWindowById(ID_PY_APP_COLS));
+    py_app_cols->Clear();
+    py_app_cols->AppendText(std::to_string(app_c_.cols));
+
+    // Unity panel
+    auto* unity_chars_per_sync = static_cast<wxChoice*>(FindWindowById(ID_UNITY_CHARS_PER_SYNC));
+	unity_chars_per_sync->SetSelection(chars_idx);
+
+    auto* unity_bytes_per_char = static_cast<wxChoice*>(FindWindowById(ID_UNITY_BYTES_PER_CHAR));
+	unity_bytes_per_char->SetSelection(bytes_idx);
+
+    auto* unity_rows = static_cast<wxTextCtrl*>(FindWindowById(ID_UNITY_ROWS));
+    unity_rows->Clear();
+    unity_rows->AppendText(std::to_string(app_c_.rows));
+
+    auto* unity_cols = static_cast<wxTextCtrl*>(FindWindowById(ID_UNITY_COLS));
+    unity_cols->Clear();
+    unity_cols->AppendText(std::to_string(app_c_.cols));
 }
 
 void Frame::OnExit(wxCommandEvent& event)
@@ -861,6 +998,9 @@ void Frame::OnExit(wxCommandEvent& event)
 
 void Frame::OnNavbarTranscribe(wxCommandEvent& event)
 {
+    // Initialize input fields using AppConfig.
+    ApplyConfigToInputFields();
+
     transcribe_panel_->Show();
     unity_panel_->Hide();
     debug_panel_->Hide();
@@ -869,6 +1009,9 @@ void Frame::OnNavbarTranscribe(wxCommandEvent& event)
 
 void Frame::OnNavbarUnity(wxCommandEvent& event)
 {
+    // Initialize input fields using AppConfig.
+    ApplyConfigToInputFields();
+
     transcribe_panel_->Hide();
     unity_panel_->Show();
     debug_panel_->Hide();
@@ -877,6 +1020,9 @@ void Frame::OnNavbarUnity(wxCommandEvent& event)
 
 void Frame::OnNavbarDebug(wxCommandEvent& event)
 {
+    // Initialize input fields using AppConfig.
+    ApplyConfigToInputFields();
+
     transcribe_panel_->Hide();
     unity_panel_->Hide();
     debug_panel_->Show();
@@ -896,7 +1042,8 @@ void Frame::OnSetupPython(wxCommandEvent& event)
     }
 
     Log(transcribe_out_, "Setting up Python virtual environment\n");
-    Log(transcribe_out_, "This could take several minutes, please be patient!\n");
+    Log(transcribe_out_, "This could take several minutes, please be "
+        "patient!\n");
     Log(transcribe_out_, "This will download ~5GB of dependencies.\n");
 
     {
@@ -910,7 +1057,8 @@ void Frame::OnSetupPython(wxCommandEvent& event)
 	auto cb = [&](wxProcess* proc, int ret) -> void {
 		Log(transcribe_out_, "Environment setup completed with code {}\n", ret);
 		if (ret == 0) {
-			Log(transcribe_out_, "Python virtual environment successfully set up!\n");
+			Log(transcribe_out_, "Python virtual environment successfully "
+                "set up!\n");
 		}
 		DrainAsyncOutput(proc, transcribe_out_);
 		return;
@@ -933,11 +1081,13 @@ void Frame::OnDumpMics(wxCommandEvent& event)
     Log(transcribe_out_, "{}\n", PythonWrapper::DumpMics());
 }
 
-bool GetUserPath(const std::string& raw, std::filesystem::path& clean, const std::string& err_prefix = "", bool must_exist = true) {
+bool GetUserPath(const std::string& raw, std::filesystem::path& clean,
+    const std::string& err_prefix = "", bool must_exist = true) {
     clean = raw;
     if (must_exist && !std::filesystem::exists(clean)) {
         std::ostringstream oss;
-        oss << err_prefix << ": User-provided path does not exist at " << clean << std::endl;
+        oss << err_prefix << ": User-provided path does not exist at "
+            << clean << std::endl;
         wxLogError(oss.str().c_str());
         return false;
     }
@@ -947,41 +1097,51 @@ bool GetUserPath(const std::string& raw, std::filesystem::path& clean, const std
 void Frame::OnGenerateFX(wxCommandEvent& event)
 {
     std::filesystem::path unity_assets_path;
-    if (!GetUserPath(unity_assets_file_picker_->GetPath().ToStdString(), unity_assets_path,
+    if (!GetUserPath(unity_assets_file_picker_->GetPath().ToStdString(),
+        unity_assets_path,
         "Cannot generate FX layer: Failed to validate assets directory")) {
         return;
     }
     std::filesystem::path unity_animator_path;
-    if (!GetUserPath(unity_animator_file_picker_->GetPath().ToStdString(), unity_animator_path,
+    if (!GetUserPath(unity_animator_file_picker_->GetPath().ToStdString(),
+        unity_animator_path,
         "Cannot generate FX layer: Failed to validate animator directory")) {
         return;
     }
     std::filesystem::path unity_parameters_path;
-    if (!GetUserPath(unity_parameters_file_picker_->GetPath().ToStdString(), unity_parameters_path,
+    if (!GetUserPath(unity_parameters_file_picker_->GetPath().ToStdString(),
+        unity_parameters_path,
         "Cannot generate FX layer: Failed to validate parameters directory")) {
         return;
     }
     std::filesystem::path unity_menu_path;
-    if (!GetUserPath(unity_menu_file_picker_->GetPath().ToStdString(), unity_menu_path,
+    if (!GetUserPath(unity_menu_file_picker_->GetPath().ToStdString(),
+        unity_menu_path,
         "Cannot generate FX layer: Failed to validate menu directory")) {
         return;
     }
 
-    std::string unity_animator_generated_dir = unity_animator_generated_dir_->GetLineText(0).ToStdString();
-    std::string unity_animator_generated_name = unity_animator_generated_name_->GetLineText(0).ToStdString();
-    std::string unity_parameters_generated_name = unity_parameters_generated_name_->GetLineText(0).ToStdString();
-    std::string unity_menu_generated_name = unity_menu_generated_name_->GetLineText(0).ToStdString();
+    std::string unity_animator_generated_dir =
+        unity_animator_generated_dir_->GetLineText(0).ToStdString();
+    std::string unity_animator_generated_name =
+        unity_animator_generated_name_->GetLineText(0).ToStdString();
+    std::string unity_parameters_generated_name =
+        unity_parameters_generated_name_->GetLineText(0).ToStdString();
+    std::string unity_menu_generated_name =
+        unity_menu_generated_name_->GetLineText(0).ToStdString();
 
     int chars_per_sync_idx = unity_chars_per_sync_->GetSelection();
     if (chars_per_sync_idx == wxNOT_FOUND) {
         chars_per_sync_idx = kCharsDefault;
     }
-    std::string chars_per_sync_str = kCharsPerSync[chars_per_sync_idx].ToStdString();
+    std::string chars_per_sync_str =
+        kCharsPerSync[chars_per_sync_idx].ToStdString();
     int bytes_per_char_idx = unity_bytes_per_char_->GetSelection();
     if (bytes_per_char_idx == wxNOT_FOUND) {
         bytes_per_char_idx = kBytesDefault;
     }
-    std::string bytes_per_char_str = kBytesPerChar[bytes_per_char_idx].ToStdString();
+    std::string bytes_per_char_str =
+        kBytesPerChar[bytes_per_char_idx].ToStdString();
 
     std::string rows_str = unity_rows_->GetValue().ToStdString();
     std::string cols_str = unity_cols_->GetValue().ToStdString();
@@ -999,25 +1159,25 @@ void Frame::OnGenerateFX(wxCommandEvent& event)
         return;
     }
     catch (const std::out_of_range&) {
-		Log(unity_out_, "Rows \"{}\" or cols \"{}\" are out of range\n", rows_str, cols_str);
+		Log(unity_out_, "Rows \"{}\" or cols \"{}\" are out of range\n",
+            rows_str, cols_str);
         return;
     }
 
-    UnityAppConfig unity_c;
-    unity_c.assets_path = unity_assets_path.string();
-    unity_c.fx_path = unity_animator_path.string();
-    unity_c.params_path = unity_parameters_path.string();
-    unity_c.menu_path = unity_menu_path.string();
-    unity_c.bytes_per_char = bytes_per_char;
-    unity_c.chars_per_sync = chars_per_sync;
-    unity_c.rows = rows;
-    unity_c.cols = cols;
-    unity_c.clear_osc = unity_clear_osc_->GetValue();
-    unity_c.Serialize(UnityAppConfig::kConfigPath);
+    app_c_.assets_path = unity_assets_path.string();
+    app_c_.fx_path = unity_animator_path.string();
+    app_c_.params_path = unity_parameters_path.string();
+    app_c_.menu_path = unity_menu_path.string();
+    app_c_.bytes_per_char = bytes_per_char;
+    app_c_.chars_per_sync = chars_per_sync;
+    app_c_.rows = rows;
+    app_c_.cols = cols;
+    app_c_.clear_osc = unity_clear_osc_->GetValue();
+    app_c_.Serialize(AppConfig::kConfigPath);
 
     std::string out;
     if (!PythonWrapper::GenerateAnimator(
-        unity_c,
+        app_c_,
         unity_animator_generated_dir,
         unity_animator_generated_name,
         unity_parameters_generated_name,
@@ -1265,19 +1425,32 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     const bool use_builtin = py_app_use_builtin_->GetValue();
     std::string rows_str = py_app_rows_->GetValue().ToStdString();
     std::string cols_str = py_app_cols_->GetValue().ToStdString();
-    std::string window_duration_str = py_app_window_duration_->GetValue().ToStdString();
-    int rows, cols, window_duration;
+    std::string chars_per_sync_str =
+        kCharsPerSync[chars_per_sync_idx].ToStdString();
+    std::string bytes_per_char_str =
+        kBytesPerChar[bytes_per_char_idx].ToStdString();
+    std::string window_duration_str =
+        py_app_window_duration_->GetValue().ToStdString();
+    int rows, cols, chars_per_sync, bytes_per_char, window_duration;
     try {
         rows = std::stoi(rows_str);
         cols = std::stoi(cols_str);
+        chars_per_sync = std::stoi(chars_per_sync_str);
+        bytes_per_char = std::stoi(bytes_per_char_str);
         window_duration = std::stoi(window_duration_str);
     }
     catch (const std::invalid_argument&) {
-		Log(transcribe_out_, "Could not parse rows \"{}\", cols \"{}\", or window duration \"{}\" as an integer\n", rows_str, cols_str);
+		Log(transcribe_out_, "Could not parse rows \"{}\", cols \"{}\", chars "
+            "per sync \"{}\", bytes per char \"{}\" or window duration \"{}\" "
+            "as an integer\n", rows_str, cols_str, chars_per_sync_str,
+            bytes_per_char_str, window_duration_str);
         return;
     }
     catch (const std::out_of_range&) {
-		Log(transcribe_out_, "Rows \"{}\", cols \"{}\", or window duration \"{}\" are out of range\n", rows_str, cols_str, window_duration);
+		Log(transcribe_out_, "Rows \"{}\", cols \"{}\", chars per sync "
+            "\"{}\", bytes per char \"{}\" or window duration \"{}\" are out "
+            "of range\n", rows_str, cols_str, chars_per_sync_str,
+            bytes_per_char_str, window_duration_str);
         return;
     }
     const int max_rows = 10;
@@ -1286,7 +1459,8 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     const int max_window_duration_s = 28;
     if (rows < 0 || rows > max_rows ||
         cols < 0 || cols > max_cols ||
-        window_duration < min_window_duration_s || window_duration > max_window_duration_s) {
+        window_duration < min_window_duration_s ||
+        window_duration > max_window_duration_s) {
         Log(transcribe_out_, "Rows not on [{},{}] or cols not on [{},{}] or "
             "window_duration not on [{},{}]\n",
             0, max_rows,
@@ -1295,27 +1469,26 @@ void Frame::OnAppStart(wxCommandEvent& event) {
         return;
     }
 
-    TranscriptionAppConfig py_c;
-    py_c.microphone = kMicChoices[which_mic].ToStdString();
-    py_c.language = kLangChoices[which_lang].ToStdString();
-    py_c.model = kModelChoices[which_model].ToStdString();
-    py_c.chars_per_sync = kCharsPerSync[chars_per_sync_idx].ToStdString();
-    py_c.bytes_per_char = kBytesPerChar[bytes_per_char_idx].ToStdString();
-    py_c.button = kButton[button_idx].ToStdString();
-    py_c.rows = std::to_string(rows);
-    py_c.cols = std::to_string(cols);
-    py_c.window_duration = std::to_string(window_duration);
-    py_c.enable_local_beep = enable_local_beep;
-    py_c.use_cpu = use_cpu;
-    py_c.use_builtin = use_builtin;
-    py_c.Serialize(TranscriptionAppConfig::kConfigPath);
+    app_c_.microphone = kMicChoices[which_mic].ToStdString();
+    app_c_.language = kLangChoices[which_lang].ToStdString();
+    app_c_.model = kModelChoices[which_model].ToStdString();
+    app_c_.chars_per_sync = chars_per_sync;
+    app_c_.bytes_per_char = bytes_per_char;
+    app_c_.button = kButton[button_idx].ToStdString();
+    app_c_.rows = rows;
+    app_c_.cols = cols;
+    app_c_.window_duration = std::to_string(window_duration);
+    app_c_.enable_local_beep = enable_local_beep;
+    app_c_.use_cpu = use_cpu;
+    app_c_.use_builtin = use_builtin;
+    app_c_.Serialize(AppConfig::kConfigPath);
 
     auto cb = [&](wxProcess* proc, int ret) -> void {
         Log(transcribe_out_, "Transcription engine exited with code {}\n", ret);
         DrainAsyncOutput(proc, transcribe_out_);
 		return;
     };
-    wxProcess* p = PythonWrapper::StartApp(std::move(cb), py_c);
+    wxProcess* p = PythonWrapper::StartApp(std::move(cb), app_c_);
     if (!p) {
         Log(transcribe_out_, "Failed to launch transcription engine\n");
         return;

@@ -1,3 +1,7 @@
+param(
+  [switch]$skip_zip = $false
+)
+
 $install_dir = "TaSTT"
 
 if (Test-Path $install_dir) {
@@ -72,5 +76,7 @@ cp -Recurse ../Sounds TaSTT/Resources/Sounds
 cp -Recurse ../UnityAssets TaSTT/Resources/UnityAssets
 cp GUI/x64/Release/GUI.exe TaSTT/TaSTT.exe
 
-Compress-Archive -Path "$install_dir" -DestinationPath "$install_dir.zip" -Force
+if (-Not $skip_zip) {
+  Compress-Archive -Path "$install_dir" -DestinationPath "$install_dir.zip" -Force
+}
 

@@ -173,19 +173,19 @@ bool PythonWrapper::InstallPip(std::string* out) {
 
 wxProcess* PythonWrapper::StartApp(
 	std::function<void(wxProcess* proc, int ret)>&& exit_callback,
-	const TranscriptionAppConfig& config) {
+	const AppConfig& config) {
 	return InvokeAsyncWithArgs({
 		"-u",  // Unbuffered output
 		"Resources/Scripts/transcribe.py",
 		"--mic", config.microphone,
 		"--lang", config.language,
 		"--model", config.model,
-		"--chars_per_sync", config.chars_per_sync,
-		"--bytes_per_char", config.bytes_per_char,
+		"--chars_per_sync", std::to_string(config.chars_per_sync),
+		"--bytes_per_char", std::to_string(config.bytes_per_char),
 		"--button", Quote(config.button),
 		"--enable_local_beep", config.enable_local_beep ? "1" : "0",
-		"--rows", config.rows,
-		"--cols", config.cols,
+		"--rows", std::to_string(config.rows),
+		"--cols", std::to_string(config.cols),
 		"--window_duration_s", config.window_duration,
 		"--cpu", config.use_cpu ? "1" : "0",
 		"--use_builtin", config.use_builtin ? "1" : "0",
@@ -195,7 +195,7 @@ wxProcess* PythonWrapper::StartApp(
 }
 
 bool PythonWrapper::GenerateAnimator(
-	const UnityAppConfig& config,
+	const AppConfig& config,
 	const std::string& unity_animator_generated_dir,
 	const std::string& unity_animator_generated_name,
 	const std::string& unity_parameters_generated_name,

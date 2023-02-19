@@ -7,6 +7,8 @@
 #include <wx/wx.h>
 #endif
 
+#include "Config.h"
+
 #include <memory>
 
 class Frame : public wxFrame
@@ -60,6 +62,11 @@ private:
     wxProcess* py_app_;
     wxProcess* env_proc_;
     wxTimer py_app_drain_;
+
+    AppConfig app_c_;
+
+    // Initialize GUI input fields using `app_c_`.
+    void ApplyConfigToInputFields();
 
     void OnExit(wxCommandEvent& event);
     void OnNavbarTranscribe(wxCommandEvent& event);

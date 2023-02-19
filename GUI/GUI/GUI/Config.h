@@ -22,55 +22,43 @@ protected:
 		ryml::Tree* t);
 };
 
-// Represents the configurable fields for the transcription app.
-class TranscriptionAppConfig : public Config {
+// Represents the configurable fields for the GUI. Used by both the
+// Transcription panel and the Unity panel.
+class AppConfig : public Config {
 public:
-	virtual ~TranscriptionAppConfig() {}
+	virtual ~AppConfig() {}
 
-	TranscriptionAppConfig();
+	AppConfig();
 
 	bool Serialize(const std::filesystem::path& path) override;
 
 	bool Deserialize(const std::filesystem::path& path) override;
 
 	// The default path at which configs are serialized.
-	static constexpr char kConfigPath[] = "Resources/transcription_app_config.yml";
+	static constexpr char kConfigPath[] = "Resources/app_config.yml";
 
+	// Transcription-specific settings.
 	std::string microphone;
 	std::string language;
 	std::string model;
-	std::string chars_per_sync;
-	std::string bytes_per_char;
 	std::string button;
-	std::string rows;
-	std::string cols;
 	std::string window_duration;
+
 	bool enable_local_beep;
 	bool use_cpu;
 	bool use_builtin;
-};
 
-// Represents the configurable fields for the Unity app.
-class UnityAppConfig : public Config {
-public:
-	virtual ~UnityAppConfig() {}
-
-	UnityAppConfig();
-
-	bool Serialize(const std::filesystem::path& path) override;
-
-	bool Deserialize(const std::filesystem::path& path) override;
-
-	// The default path at which configs are serialized.
-	static constexpr char kConfigPath[] = "Resources/unity_app_config.yml";
-
-	std::string assets_path;
-	std::string fx_path;
-	std::string params_path;
-	std::string menu_path;
+	// Unity and transcription shared settings.
 	int chars_per_sync;
 	int bytes_per_char;
 	int rows;
 	int cols;
+
+	// Unity-specific settings.
+	std::string assets_path;
+	std::string fx_path;
+	std::string params_path;
+	std::string menu_path;
 	bool clear_osc;
 };
+
