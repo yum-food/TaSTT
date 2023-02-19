@@ -48,6 +48,7 @@ class AudioState:
         self.stream = None
 
         self.text = ""
+        self.tokens = []
         self.committed_text = ""
         self.frames = []
 
@@ -197,7 +198,7 @@ def resetAudio(audio_state):
     audio_state.transcribe_lock.release()
 
 # Transcribe the audio recorded in a file.
-def transcribe(audio_state, model, frames, use_cpu: bool):
+def transcribe(audio_state, model, frames, use_cpu: bool, prev_tokens = []):
     start_time = time.time()
 
     frames = audio_state.frames
@@ -220,7 +221,7 @@ def transcribe(audio_state, model, frames, use_cpu: bool):
         use_gpu = not use_cpu
         options = whisper.DecodingOptions(language = audio_state.language,
                 beam_size = 5, temperature = temp, without_timestamps = True,
-                fp16 = use_gpu)
+                fp16 = use_gpu, prompt = prev_tokens)
         result = whisper.decode(model, mel, options)
 
         if result.avg_logprob < -1.0:
@@ -238,7 +239,7 @@ def transcribe(audio_state, model, frames, use_cpu: bool):
             result = None
             continue
 
-        result = result.text
+        result = (result.text, result.tokens)
         break
 
     return result
@@ -266,11 +267,13 @@ def transcribeAudio(audio_state, model, use_cpu: bool):
                     audio_state.transcribe_sleep_duration_max_s,
                     longer_sleep_dur)
 
-        text = transcribe(audio_state, model, audio_state.frames, use_cpu)
-        if not text:
+        result = transcribe(audio_state, model, audio_state.frames, use_cpu,
+                audio_state.tokens)
+        if not result:
             print("no transcription, spin ({} seconds)".format(time.time() - last_transcribe_time))
             last_transcribe_time = time.time()
             continue
+        text, tokens = result
 
         if audio_state.drop_transcription:
             audio_state.drop_transcription = False
@@ -284,6 +287,7 @@ def transcribeAudio(audio_state, model, use_cpu: bool):
 
         audio_state.text = string_matcher.matchStrings(audio_state.text,
                 text, window_size = 25)
+        audio_state.tokens = tokens
 
         now = time.time()
         print("Transcription ({} seconds): {}".format(
