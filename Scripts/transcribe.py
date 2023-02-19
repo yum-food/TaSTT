@@ -252,10 +252,9 @@ def transcribeAudio(audio_state, model, use_cpu: bool):
         else:
             time.sleep(0.05)
 
+        audio_state.transcribe_no_change_count += 1
         # Increase sleep time. Code below will set sleep time back to minimum
         # if a change is detected.
-        if audio_state.transcribe_no_change_count < 10:
-            audio_state.transcribe_no_change_count += 1
         longer_sleep_dur = audio_state.transcribe_sleep_duration
         longer_sleep_dur += audio_state.transcribe_sleep_duration_min_s * (1.3**audio_state.transcribe_no_change_count)
         if audio_state.audio_paused:

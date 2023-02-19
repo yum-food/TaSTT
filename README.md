@@ -200,6 +200,12 @@ Ping the discord if you need help getting set up.
    8. ~~Customizable controller bindings. Someone mentioned they use left click
       to unmute. Let's work around users, not make them change their existing
       keybinds.~~ DONE
+   9. One-click upgrade. Fetch latest stable release, copy over virtual env and
+      UI configs, relaunch.
+   10. Browser source for OBS. Blocker: the transcription layer doesn't handle
+      long pauses well.
+   11. Test suite. Some long representative transcripts with mechanical word
+       error rate (WER) calculation.
 4. Optimization
    1. ~~Utilize the avatar 3.0 SDK's ability to drive parameters to reduce the
      total # of parameters (and therefore OSC messages & sync events). Note

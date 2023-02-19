@@ -68,8 +68,12 @@ class EmotesState:
         self.bits = {}
 
     def load(self, pickle_path):
-        with open(pickle_path, 'rb') as f:
-            self.bits = pickle.load(f)
+        try:
+            with open(pickle_path, 'rb') as f:
+                self.bits = pickle.load(f)
+        except FileNotFoundError:
+            print(f"Emotes map does not exist at {pickle_path}",
+                    file=sys.stderr)
 
     # This is quite slow since we do a search and replace (O(n))
     # for each keyword O(m) times each variant of said keyword (O(k)).
