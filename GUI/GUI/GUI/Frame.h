@@ -87,6 +87,8 @@ private:
 
     // Initialize GUI input fields using `app_c_`.
     void ApplyConfigToInputFields();
+    // Populate dynamically-generated input fields, such as microphone lists.
+    void PopulateDynamicInputFields();
 
     void OnExit(wxCommandEvent& event);
     void OnNavbarTranscribe(wxCommandEvent& event);
@@ -95,7 +97,6 @@ private:
     void OnNavbarWhisper(wxCommandEvent& event);
     void OnSetupPython(wxCommandEvent& event);
     void OnDumpMics(wxCommandEvent& event);
-    void OnWhisperDumpMics(wxCommandEvent& event);
     void OnAppStart(wxCommandEvent& event);
     void OnAppStop(wxCommandEvent& event);
     void OnWhisperStart(wxCommandEvent& event);

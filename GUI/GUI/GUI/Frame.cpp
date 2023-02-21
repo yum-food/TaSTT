@@ -72,7 +72,7 @@ namespace {
 		ID_WHISPER_OUT,
 		ID_WHISPER_CONFIG_PANEL,
 		ID_WHISPER_SETUP_BUTTON,
-		ID_WHISPER_DUMP_MICS_BUTTON,
+		//ID_WHISPER_DUMP_MICS_BUTTON,
 		ID_WHISPER_CONFIG_PANEL_PAIRS,
 		ID_WHISPER_MIC,
 		ID_WHISPER_LANG,
@@ -107,6 +107,21 @@ namespace {
     };
     const size_t kNumMicChoices = sizeof(kMicChoices) / sizeof(kMicChoices[0]);
     constexpr int kMicDefault = 0;  // index
+
+    wxString kWhisperMicChoices[] = {
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+    };
+    const size_t kNumWhisperMicChoices = sizeof(kWhisperMicChoices) / sizeof(kWhisperMicChoices[0]);
+    constexpr int kWhisperMicDefault = 0;  // index
 
     // lifted from whisper/tokenizer.py
 	const wxString kLangChoices[] = {
@@ -322,24 +337,24 @@ Frame::Frame()
         auto* navbar = new wxPanel(main_panel, ID_NAVBAR);
         {
 			auto* navbar_button_transcribe = new wxButton(navbar,
-                ID_NAVBAR_BUTTON_TRANSCRIBE, "Transcription");
+                ID_NAVBAR_BUTTON_TRANSCRIBE, "Transcription (PY)");
 			auto* navbar_button_unity = new wxButton(navbar,
                 ID_NAVBAR_BUTTON_UNITY, "Unity");
 			auto* navbar_button_debug = new wxButton(navbar,
                 ID_NAVBAR_BUTTON_DEBUG, "Debug");
 			auto* navbar_button_whisper = new wxButton(navbar,
-                ID_NAVBAR_BUTTON_WHISPER, "WhisperCPP");
+                ID_NAVBAR_BUTTON_WHISPER, "Transcription (CPP)");
 
 			auto* sizer = new wxBoxSizer(wxVERTICAL);
 			navbar->SetSizer(sizer);
 
 			sizer->Add(navbar_button_transcribe, /*proportion=*/0,
                 /*flags=*/wxEXPAND);
+			sizer->Add(navbar_button_whisper, /*proportion=*/0,
+                /*flags=*/wxEXPAND);
 			sizer->Add(navbar_button_unity, /*proportion=*/0,
                 /*flags=*/wxEXPAND);
 			sizer->Add(navbar_button_debug, /*proportion=*/0,
-                /*flags=*/wxEXPAND);
-			sizer->Add(navbar_button_whisper, /*proportion=*/0,
                 /*flags=*/wxEXPAND);
         }
 
@@ -843,27 +858,12 @@ Frame::Frame()
             auto* whisper_config_panel = new wxPanel(whisper_panel,
                 ID_WHISPER_CONFIG_PANEL);
             {
-                auto* whisper_setup_button = new wxButton(whisper_config_panel,
-                    ID_WHISPER_SETUP_BUTTON, "Set up Python virtual environment");
-                whisper_setup_button->SetToolTip(
-                    "TaSTT uses the Python programming language to provide both "
-                    "transcription services and to interface with Unity. "
-                    "It installs its dependencies into an isolated folder "
-                    "called a 'virtual environment'. Click this button to "
-                    "install those dependencies. This only has to be done "
-                    "once when you install a new version of TaSTT.");
-                auto* whisper_dump_mics_button = new wxButton(whisper_config_panel,
-                    ID_WHISPER_DUMP_MICS_BUTTON, "List input devices");
-                whisper_dump_mics_button->SetToolTip(
-                    "List the microphones (and input devices) attached to "
-                    "your computer. To use a microphone, enter the number "
-                    "to its left in the 'Microphone' dropdown.");
                 auto* whisper_config_panel_pairs = new wxPanel(whisper_config_panel,
                     ID_WHISPER_CONFIG_PANEL_PAIRS);
                 {
                     auto* whisper_mic = new wxChoice(whisper_config_panel_pairs,
                         ID_WHISPER_MIC, wxDefaultPosition,
-                        wxDefaultSize, kNumMicChoices, kMicChoices);
+                        wxDefaultSize, kNumWhisperMicChoices, kWhisperMicChoices);
                     whisper_mic->SetToolTip(
                         "Select which microphone to listen to when "
                         "transcribing. To get list microphones and get their "
@@ -1037,10 +1037,6 @@ Frame::Frame()
 
                 auto* sizer = new wxBoxSizer(wxVERTICAL);
                 whisper_config_panel->SetSizer(sizer);
-                sizer->Add(whisper_setup_button, /*proportion=*/0,
-                    /*flags=*/wxEXPAND);
-                sizer->Add(whisper_dump_mics_button, /*proportion=*/0,
-                    /*flags=*/wxEXPAND);
                 sizer->Add(whisper_config_panel_pairs, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
                 sizer->Add(whisper_enable_local_beep, /*proportion=*/0,
@@ -1060,8 +1056,8 @@ Frame::Frame()
             sizer->Add(whisper_config_panel, /*proportion=*/0, /*flags=*/wxEXPAND);
             sizer->Add(whisper_out, /*proportion=*/1, /*flags=*/wxEXPAND);
         }
-        whisper_panel_->Hide();
         whisper_ = std::make_unique<WhisperCPP>(whisper_out_);
+        whisper_panel_->Hide();
 
         auto* debug_panel = new wxPanel(main_panel, ID_DEBUG_PANEL);
         debug_panel_ = debug_panel;
@@ -1180,7 +1176,7 @@ Frame::Frame()
     Bind(wxEVT_TIMER,  &Frame::OnAppDrain, this, ID_PY_APP_DRAIN);
 	Bind(wxEVT_BUTTON, &Frame::OnSetupPython, this, ID_PY_SETUP_BUTTON);
 	Bind(wxEVT_BUTTON, &Frame::OnDumpMics, this, ID_PY_DUMP_MICS_BUTTON);
-	Bind(wxEVT_BUTTON, &Frame::OnWhisperDumpMics, this, ID_WHISPER_DUMP_MICS_BUTTON);
+	//Bind(wxEVT_BUTTON, &Frame::OnWhisperDumpMics, this, ID_WHISPER_DUMP_MICS_BUTTON);
 	Bind(wxEVT_BUTTON, &Frame::OnGenerateFX, this,
         ID_UNITY_BUTTON_GEN_ANIMATOR);
 	Bind(wxEVT_BUTTON, &Frame::OnListPip, this, ID_DEBUG_BUTTON_LIST_PIP);
@@ -1205,6 +1201,7 @@ Frame::Frame()
 
     // Initialize input fields using AppConfig.
     ApplyConfigToInputFields();
+    PopulateDynamicInputFields();
 
     Resize();
 	OnUnityParamChangeImpl();
@@ -1258,7 +1255,8 @@ void Frame::ApplyConfigToInputFields()
 
     // Whisper panel
     auto* whisper_mic = static_cast<wxChoice*>(FindWindowById(ID_WHISPER_MIC));
-	whisper_mic->SetSelection(mic_idx);
+    int whisper_mic_idx = app_c_.whisper_mic;
+	whisper_mic->SetSelection(whisper_mic_idx);
 
     auto* whisper_lang = static_cast<wxChoice*>(FindWindowById(ID_WHISPER_LANG));
 	whisper_lang->SetSelection(lang_idx);
@@ -1266,7 +1264,7 @@ void Frame::ApplyConfigToInputFields()
     auto* whisper_model = static_cast<wxChoice*>(FindWindowById(ID_WHISPER_MODEL));
 	int whisper_model_idx = GetDropdownChoiceIndex(kWhisperModelChoices,
 		kNumWhisperModelChoices, app_c_.whisper_model, kWhisperModelDefault);
-	whisper_model->SetSelection(model_idx);
+	whisper_model->SetSelection(whisper_model_idx);
 
     auto* whisper_button = static_cast<wxChoice*>(FindWindowById(ID_WHISPER_BUTTON));
 	whisper_button->SetSelection(button_idx);
@@ -1299,6 +1297,20 @@ void Frame::ApplyConfigToInputFields()
     auto* unity_cols = static_cast<wxTextCtrl*>(FindWindowById(ID_UNITY_COLS));
     unity_cols->Clear();
     unity_cols->AppendText(std::to_string(app_c_.cols));
+}
+
+void Frame::PopulateDynamicInputFields()
+{
+    whisper_->Init();
+    std::vector<std::string> mics;
+    if (whisper_->GetMics(mics)) {
+		std::vector<wxString> contents(mics.size());
+        auto* whisper_mic = static_cast<wxChoice*>(FindWindowById(ID_WHISPER_MIC));
+        for (int i = 0; i < std::min(mics.size(), kNumWhisperMicChoices); i++) {
+            contents[i] = mics[i];
+        }
+        whisper_mic->Set(contents);
+    }
 }
 
 void Frame::OnExit(wxCommandEvent& event)
@@ -1420,17 +1432,6 @@ void Frame::OnSetupPython(wxCommandEvent& event)
 void Frame::OnDumpMics(wxCommandEvent& event)
 {
     Log(transcribe_out_, "{}\n", PythonWrapper::DumpMics());
-}
-
-void Frame::OnWhisperDumpMics(wxCommandEvent& event)
-{
-    whisper_->Init();
-    std::vector<std::string> mics;
-    whisper_->GetMics(mics);
-    Log(whisper_out_, "Microphones:\n");
-    for (int i = 0; i < mics.size(); i++) {
-        Log(whisper_out_, "  {}: {}\n", i, mics[i]);
-    }
 }
 
 bool GetUserPath(const std::string& raw, std::filesystem::path& clean,
@@ -1902,7 +1903,7 @@ void Frame::OnWhisperStart(wxCommandEvent& event) {
     }
     int which_model = whisper_model_->GetSelection();
     if (which_model == wxNOT_FOUND) {
-        which_model = kModelDefault;
+        which_model = kWhisperModelDefault;
     }
     int chars_per_sync_idx = whisper_chars_per_sync_->GetSelection();
     if (chars_per_sync_idx == wxNOT_FOUND) {
@@ -1965,7 +1966,7 @@ void Frame::OnWhisperStart(wxCommandEvent& event) {
         return;
     }
 
-    app_c_.microphone = kMicChoices[which_mic].ToStdString();
+    app_c_.whisper_mic = which_mic;
     app_c_.language = kLangChoices[which_lang].ToStdString();
     app_c_.whisper_model = kWhisperModelChoices[which_model].ToStdString();
     app_c_.chars_per_sync = chars_per_sync;

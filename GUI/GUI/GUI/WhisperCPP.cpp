@@ -251,13 +251,12 @@ void WhisperCPP::Start(const AppConfig& c) {
 		return;
 	}
 
-	// TODO(yum) use app config to select mic
 	proc_ = new AppThread([&](AppThread* thd) {
 		Log(out_, "Transcription thread top\n");
 		run_ = true;
 
 		Whisper::iAudioCapture* mic_stream;
-		if (!OpenMic(1, mic_stream)) {
+		if (!OpenMic(c.whisper_mic, mic_stream)) {
 			return;
 		}
 		ScopeGuard mic_stream_cleanup([mic_stream]() { mic_stream->Release(); });
@@ -322,7 +321,8 @@ void WhisperCPP::Start(const AppConfig& c) {
 		Whisper::sFullParams wparams{};
 		context->fullDefaultParams(eSamplingStrategy::BeamSearch, &wparams);
 		wparams.language = Whisper::makeLanguageKey("en");  // TODO(yum) use config
-		wparams.n_max_text_ctx = 20;
+		// This must be set to keep memory usage from growing without bound.
+		wparams.n_max_text_ctx = 100;
 
 		wparams.new_segment_callback = [](iContext* context, uint32_t n_new, void* user_data) noexcept -> HRESULT {
 			wxTextCtrl* out = static_cast<wxTextCtrl*>(user_data);
@@ -346,12 +346,28 @@ void WhisperCPP::Start(const AppConfig& c) {
 			const int s0 = length.countSegments - n_new;
 			for (int i = s0; i < length.countSegments; i++) {
 				const sSegment& seg = segments[i];
-				Log(out, "{} ", seg.text);
+				bool is_metadata = false;
 				for (int j = 0; j < seg.countTokens; j++) {
 					const sToken& tok = tokens[seg.firstToken + j];
-					if (*tok.text == 0 || tok.text[0] == '[') {
+					if (tok.text[0] == '[') {
 						continue;
 					}
+					if (tok.text[0] == ' ' && (
+						tok.text[1] == '[' ||
+						tok.text[1] == '(')) {
+						if (tok.text[strlen(tok.text) - 1] == ']') {
+							continue;
+						}
+						is_metadata = true;
+						continue;
+					}
+					if (is_metadata && (
+						tok.text[strlen(tok.text) - 1] == ']' ||
+						tok.text[strlen(tok.text) - 1] == ')')) {
+						is_metadata = false;
+						continue;
+					}
+					Log(out, "{}", tok.text);
 				}
 			}
 			if (n_new) {
@@ -369,11 +385,12 @@ void WhisperCPP::Start(const AppConfig& c) {
 				Log(app->out_, "Exit transcription loop\n");
 				return S_FALSE;
 			}
+			// Sleeping here prevents the GUI from hanging.
+			// For some reason, printing is also required to prevent hanging.
 			static int i = 0;
-			if (++i % 10 == 0) {
+			if (++i % 20 == 0) {
 				Log(app->out_, "Spin {}\n", i);
 			}
-			// Sleeping here prevents the GUI from hanging.
 			wxThread::Sleep(10);
 			return S_OK;
 		};

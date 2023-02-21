@@ -63,5 +63,6 @@ public:
 
 	// WhisperCPP-specific settings.
 	std::string whisper_model;
+	int whisper_mic;
 };
 
