@@ -87,7 +87,9 @@ AppConfig::AppConfig()
 	fx_path(),
 	params_path(),
 	menu_path(),
-	clear_osc(false)
+	clear_osc(false),
+
+	whisper_model("ggml-base.en.bin")
 {}
 
 bool AppConfig::Serialize(const std::filesystem::path& path) {
@@ -114,6 +116,8 @@ bool AppConfig::Serialize(const std::filesystem::path& path) {
 	root["params_path"] << ryml::to_substr(params_path);
 	root["menu_path"] << ryml::to_substr(menu_path);
 	root["clear_osc"] << clear_osc;
+
+	root["whisper_model"] << whisper_model;
 
   return Config::Serialize(path, &t);
 }
@@ -153,6 +157,8 @@ bool AppConfig::Deserialize(const std::filesystem::path& path) {
 	root.get_if("params_path", &c.params_path);
 	root.get_if("menu_path", &c.menu_path);
 	root.get_if("clear_osc", &c.clear_osc);
+
+	root.get_if("whisper_model", &c.whisper_model);
 
 	*this = std::move(c);
 	return true;

@@ -60,5 +60,8 @@ public:
 	std::string params_path;
 	std::string menu_path;
 	bool clear_osc;
+
+	// WhisperCPP-specific settings.
+	std::string whisper_model;
 };
 

@@ -5,7 +5,7 @@ param(
 $install_dir = "TaSTT"
 
 if (Test-Path $install_dir) {
-  rm -Recurse $install_dir
+  rm -Recurse -Force $install_dir
 }
 
 $py_dir = "Python"
@@ -61,6 +61,12 @@ if (-Not (Test-Path $git_dir)) {
   Read-Host -Prompt "Press enter once PortableGit is installed at $pwd\PortableGit"
 }
 
+#$WHISPER_CHECKPOINT_URL = "https://huggingface.co/datasets/ggerganov/whisper.cpp/resolve/main/ggml-base.bin"
+#$WHISPER_CHECKPOINT_FILE = $(Split-Path -Path $WHISPER_CHECKPOINT_URL -Leaf)
+#if (-Not (Test-Path $WHISPER_CHECKPOINT_FILE)) {
+#  Invoke-WebRequest $WHISPER_CHECKPOINT_URL -OutFile $WHISPER_CHECKPOINT_FILE
+#}
+
 mkdir $install_dir > $null
 mkdir $install_dir/Resources > $null
 cp -Recurse ../Animations TaSTT/Resources/Animations
@@ -75,6 +81,9 @@ cp -Recurse ../Shaders TaSTT/Resources/Shaders
 cp -Recurse ../Sounds TaSTT/Resources/Sounds
 cp -Recurse ../UnityAssets TaSTT/Resources/UnityAssets
 cp GUI/x64/Release/GUI.exe TaSTT/TaSTT.exe
+cp GUI/GUI/Whisper/Whisper.dll TaSTT/Whisper.dll
+mkdir TaSTT/Resources/Models
+#cp $WHISPER_CHECKPOINT_FILE TaSTT/Resources/Models/
 
 if (-Not $skip_zip) {
   Compress-Archive -Path "$install_dir" -DestinationPath "$install_dir.zip" -Force

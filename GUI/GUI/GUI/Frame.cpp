@@ -1,6 +1,7 @@
 #include "Frame.h"
 #include "Logging.h"
 #include "PythonWrapper.h"
+#include "Util.h"
 
 #include <filesystem>
 #include <string>
@@ -15,6 +16,7 @@ namespace {
 		ID_NAVBAR_BUTTON_TRANSCRIBE,
 		ID_NAVBAR_BUTTON_UNITY,
 		ID_NAVBAR_BUTTON_DEBUG,
+		ID_NAVBAR_BUTTON_WHISPER,
         ID_PY_PANEL,
         ID_PY_CONFIG_PANEL,
         ID_PY_APP_CONFIG_PANEL_PAIRS,
@@ -66,6 +68,26 @@ namespace {
 		ID_DEBUG_BUTTON_CLEAR_OSC,
 		ID_DEBUG_BUTTON_BACKUP_VENV,
 		ID_DEBUG_BUTTON_RESTORE_VENV,
+		ID_WHISPER_PANEL,
+		ID_WHISPER_OUT,
+		ID_WHISPER_CONFIG_PANEL,
+		ID_WHISPER_SETUP_BUTTON,
+		ID_WHISPER_DUMP_MICS_BUTTON,
+		ID_WHISPER_CONFIG_PANEL_PAIRS,
+		ID_WHISPER_MIC,
+		ID_WHISPER_LANG,
+		ID_WHISPER_MODEL,
+		ID_WHISPER_CHARS_PER_SYNC,
+		ID_WHISPER_BYTES_PER_CHAR,
+		ID_WHISPER_BUTTON,
+		ID_WHISPER_ROWS,
+		ID_WHISPER_COLS,
+		ID_WHISPER_WINDOW_DURATION,
+		ID_WHISPER_ENABLE_LOCAL_BEEP,
+		ID_WHISPER_USE_CPU,
+		ID_WHISPER_USE_BUILTIN,
+		ID_WHISPER_START_BUTTON,
+		ID_WHISPER_STOP_BUTTON,
     };
 
     const wxString kMicChoices[] = {
@@ -205,6 +227,23 @@ namespace {
     const size_t kNumModelChoices = sizeof(kModelChoices) / sizeof(kModelChoices[0]);
     constexpr int kModelDefault = 2;  // base.en
 
+    // Source: https://huggingface.co/datasets/ggerganov/whisper.cpp/tree/main
+    const wxString kWhisperModelChoices[] = {
+        "ggml-tiny.bin",
+        "ggml-tiny.en.bin",
+        "ggml-base.bin",
+        "ggml-base.en.bin",
+        "ggml-small.bin",
+        "ggml-small.en.bin",
+        "ggml-medium.bin",
+        "ggml-medium.en.bin",
+        "ggml-large.bin",
+        "ggml-large.en.bin",
+    };
+    const size_t kNumWhisperModelChoices = sizeof(kWhisperModelChoices) /
+        sizeof(kWhisperModelChoices[0]);
+    constexpr int kWhisperModelDefault = 3;  // base.en
+
     const wxString kCharsPerSync[] = {
         "5",
         "6",
@@ -266,6 +305,7 @@ namespace {
 
 }  // namespace
 
+using ::Logging::DrainAsyncOutput;
 using ::Logging::Log;
 
 Frame::Frame()
@@ -287,6 +327,8 @@ Frame::Frame()
                 ID_NAVBAR_BUTTON_UNITY, "Unity");
 			auto* navbar_button_debug = new wxButton(navbar,
                 ID_NAVBAR_BUTTON_DEBUG, "Debug");
+			auto* navbar_button_whisper = new wxButton(navbar,
+                ID_NAVBAR_BUTTON_WHISPER, "WhisperCPP");
 
 			auto* sizer = new wxBoxSizer(wxVERTICAL);
 			navbar->SetSizer(sizer);
@@ -296,6 +338,8 @@ Frame::Frame()
 			sizer->Add(navbar_button_unity, /*proportion=*/0,
                 /*flags=*/wxEXPAND);
 			sizer->Add(navbar_button_debug, /*proportion=*/0,
+                /*flags=*/wxEXPAND);
+			sizer->Add(navbar_button_whisper, /*proportion=*/0,
                 /*flags=*/wxEXPAND);
         }
 
@@ -491,7 +535,7 @@ Frame::Frame()
                 py_app_use_cpu_ = py_app_use_cpu;
 
                 auto* py_app_use_builtin = new wxCheckBox(py_config_panel,
-                    ID_PY_APP_USE_CPU, "Use built-in chatbox");
+                    ID_PY_APP_USE_BUILTIN, "Use built-in chatbox");
                 py_app_use_builtin->SetValue(app_c_.use_builtin);
                 py_app_use_builtin->SetToolTip(
                     "If checked, text will be sent to the built-in text box "
@@ -786,6 +830,239 @@ Frame::Frame()
         }
         unity_panel_->Hide();
 
+        auto* whisper_panel = new wxPanel(main_panel, ID_WHISPER_PANEL);
+        whisper_panel_ = whisper_panel;
+        {
+            const auto whisper_out_sz = wxSize(/*x_px=*/480, /*y_px=*/160);
+            auto* whisper_out = new wxTextCtrl(whisper_panel,
+                ID_WHISPER_OUT, wxEmptyString, wxDefaultPosition,
+                whisper_out_sz, wxTE_MULTILINE | wxTE_READONLY);
+            whisper_out->SetMinSize(whisper_out_sz);
+            whisper_out_ = whisper_out;
+
+            auto* whisper_config_panel = new wxPanel(whisper_panel,
+                ID_WHISPER_CONFIG_PANEL);
+            {
+                auto* whisper_setup_button = new wxButton(whisper_config_panel,
+                    ID_WHISPER_SETUP_BUTTON, "Set up Python virtual environment");
+                whisper_setup_button->SetToolTip(
+                    "TaSTT uses the Python programming language to provide both "
+                    "transcription services and to interface with Unity. "
+                    "It installs its dependencies into an isolated folder "
+                    "called a 'virtual environment'. Click this button to "
+                    "install those dependencies. This only has to be done "
+                    "once when you install a new version of TaSTT.");
+                auto* whisper_dump_mics_button = new wxButton(whisper_config_panel,
+                    ID_WHISPER_DUMP_MICS_BUTTON, "List input devices");
+                whisper_dump_mics_button->SetToolTip(
+                    "List the microphones (and input devices) attached to "
+                    "your computer. To use a microphone, enter the number "
+                    "to its left in the 'Microphone' dropdown.");
+                auto* whisper_config_panel_pairs = new wxPanel(whisper_config_panel,
+                    ID_WHISPER_CONFIG_PANEL_PAIRS);
+                {
+                    auto* whisper_mic = new wxChoice(whisper_config_panel_pairs,
+                        ID_WHISPER_MIC, wxDefaultPosition,
+                        wxDefaultSize, kNumMicChoices, kMicChoices);
+                    whisper_mic->SetToolTip(
+                        "Select which microphone to listen to when "
+                        "transcribing. To get list microphones and get their "
+                        "numbers, click 'List input devices'.");
+                    whisper_mic_ = whisper_mic;
+
+                    auto* whisper_lang = new wxChoice(whisper_config_panel_pairs,
+                        ID_WHISPER_LANG, wxDefaultPosition, wxDefaultSize,
+                        kNumLangChoices, kLangChoices);
+                    whisper_lang->SetToolTip("Select which language you will "
+                        "speak in. It will be whisperd into that language. "
+                        "If using a language with non-ASCII characters (i.e. "
+                        "not English), make sure you have 'bytes per char' "
+                        "set to 2. If using something other than English, "
+                        "make sure you're not using a *.en model.");
+                    whisper_lang_ = whisper_lang;
+
+                    auto* whisper_model = new wxChoice(
+                        whisper_config_panel_pairs, ID_WHISPER_MODEL,
+                        wxDefaultPosition, wxDefaultSize, kNumWhisperModelChoices,
+                        kWhisperModelChoices);
+                    whisper_model->SetToolTip("Select which version of "
+                        "the transcription model to use. 'base' is a good "
+                        "choice for most users. 'small' is slightly more "
+                        "accurate, slower, and uses more VRAM. The *.en "
+                        "models are fine-tuned English language models, and "
+                        "don't work for other languages.");
+                    whisper_model_ = whisper_model;
+
+                    auto* whisper_chars_per_sync = new wxChoice(
+                        whisper_config_panel_pairs, ID_WHISPER_CHARS_PER_SYNC,
+                        wxDefaultPosition, wxDefaultSize, kNumCharsPerSync,
+                        kCharsPerSync);
+                    whisper_chars_per_sync->SetToolTip(
+                        "VRChat syncs avatar parameters roughly 5 times per "
+                        "second. We use this to send text to the box. By "
+                        "sending more characters per sync, the box will be "
+                        "faster, but you'll use more avatar parameters.");
+                    whisper_chars_per_sync_ = whisper_chars_per_sync;
+
+                    auto* whisper_bytes_per_char = new wxChoice(
+                        whisper_config_panel_pairs, ID_WHISPER_BYTES_PER_CHAR,
+                        wxDefaultPosition, wxDefaultSize, kNumBytesPerChar,
+                        kBytesPerChar);
+					whisper_bytes_per_char->SetToolTip(
+						"If you speak a language that uses non-ASCII "
+						"characters (i.e. not English), set this to 2.");
+                    whisper_bytes_per_char_ = whisper_bytes_per_char;
+
+                    auto* whisper_button = new wxChoice(whisper_config_panel_pairs,
+                        ID_WHISPER_BUTTON, wxDefaultPosition,
+                        wxDefaultSize, kNumButtons, kButton);
+                    whisper_button->SetToolTip(
+                        "You will use this button in game to start and stop "
+                        "transcription. Set it to a button you're not using "
+                        "for anything else!");
+                    whisper_button_ = whisper_button;
+
+                    auto* whisper_rows = new wxTextCtrl(whisper_config_panel_pairs,
+                        ID_WHISPER_ROWS, std::to_string(app_c_.rows),
+                        wxDefaultPosition, wxDefaultSize, /*style=*/0);
+                    whisper_rows->SetToolTip(
+                        "The number of rows on the text box.");
+                    whisper_rows_ = whisper_rows;
+
+                    auto* whisper_cols = new wxTextCtrl(whisper_config_panel_pairs,
+                        ID_WHISPER_COLS, std::to_string(app_c_.cols),
+                        wxDefaultPosition, wxDefaultSize, /*style=*/0);
+                    whisper_cols->SetToolTip(
+                        "The number of columns on the text box.");
+                    whisper_cols_ = whisper_cols;
+
+                    auto* whisper_window_duration = new wxTextCtrl(
+                        whisper_config_panel_pairs, ID_WHISPER_WINDOW_DURATION,
+                        app_c_.window_duration, wxDefaultPosition,
+                        wxDefaultSize, /*style=*/0);
+                    whisper_window_duration->SetToolTip(
+                        "This controls how long the slice of audio that "
+                        "we feed the transcription algorithm is, in seconds. "
+                        "Shorter values (as low as 10 seconds) can be whisperd "
+                        "more quickly, but are less accurate. Longer values "
+                        "(as high as 28 seconds) take longer to whisper, "
+                        "but are far more accurate.");
+                    whisper_window_duration_ = whisper_window_duration;
+
+                    auto* sizer = new wxFlexGridSizer(/*cols=*/2);
+                    whisper_config_panel_pairs->SetSizer(sizer);
+
+                    sizer->Add(new wxStaticText(whisper_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Microphone:"));
+                    sizer->Add(whisper_mic, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(whisper_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Language:"));
+                    sizer->Add(whisper_lang, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(whisper_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Model:"));
+                    sizer->Add(whisper_model, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(whisper_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Characters per sync:"));
+                    sizer->Add(whisper_chars_per_sync, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(whisper_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Bytes per character:"));
+                    sizer->Add(whisper_bytes_per_char, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(whisper_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Button:"));
+                    sizer->Add(whisper_button, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(whisper_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Text box rows:"));
+                    sizer->Add(whisper_rows, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(whisper_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Text box columns:"));
+                    sizer->Add(whisper_cols, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(whisper_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Window duration (s):"));
+                    sizer->Add(whisper_window_duration, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+                }
+
+                auto* whisper_enable_local_beep = new wxCheckBox(whisper_config_panel,
+                    ID_WHISPER_ENABLE_LOCAL_BEEP, "Enable local beep");
+                whisper_enable_local_beep->SetValue(app_c_.enable_local_beep);
+                whisper_enable_local_beep->SetToolTip(
+                    "By default, TaSTT will play a sound (audible only to "
+                    "you) when it begins transcription and when it stops. "
+                    "Uncheck this to disable that behavior."
+                );
+                whisper_enable_local_beep_ = whisper_enable_local_beep;
+
+                auto* whisper_use_cpu = new wxCheckBox(whisper_config_panel,
+                    ID_WHISPER_USE_CPU, "Use CPU");
+                whisper_use_cpu->SetValue(app_c_.use_cpu);
+                whisper_use_cpu->SetToolTip(
+                    "If checked, the transcription engine will run on your "
+                    "CPU instead of your GPU. This is typically much slower "
+                    "and should only be used if you aren't able to use your "
+                    "GPU."
+                );
+                whisper_use_cpu_ = whisper_use_cpu;
+
+                auto* whisper_use_builtin = new wxCheckBox(whisper_config_panel,
+                    ID_WHISPER_USE_BUILTIN, "Use built-in chatbox");
+                whisper_use_builtin->SetValue(app_c_.use_builtin);
+                whisper_use_builtin->SetToolTip(
+                    "If checked, text will be sent to the built-in text box "
+                    "instead of one attached to the current avatar."
+                );
+                whisper_use_builtin_ = whisper_use_builtin;
+
+                // Hack: Add newlines before and after the button text to make
+                // the buttons bigger, and easier to click from inside VR.
+                auto* whisper_start_button = new wxButton(whisper_config_panel,
+                    ID_WHISPER_START_BUTTON, "\nBegin transcribing\n\n");
+                auto* whisper_stop_button = new wxButton(whisper_config_panel,
+                    ID_WHISPER_STOP_BUTTON, "\nStop transcribing\n\n");
+
+                auto* sizer = new wxBoxSizer(wxVERTICAL);
+                whisper_config_panel->SetSizer(sizer);
+                sizer->Add(whisper_setup_button, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+                sizer->Add(whisper_dump_mics_button, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+                sizer->Add(whisper_config_panel_pairs, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+                sizer->Add(whisper_enable_local_beep, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+                sizer->Add(whisper_use_cpu, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+                sizer->Add(whisper_use_builtin, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+                sizer->Add(whisper_start_button, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+                sizer->Add(whisper_stop_button, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+            }
+
+            auto* sizer = new wxBoxSizer(wxHORIZONTAL);
+            whisper_panel->SetSizer(sizer);
+            sizer->Add(whisper_config_panel, /*proportion=*/0, /*flags=*/wxEXPAND);
+            sizer->Add(whisper_out, /*proportion=*/1, /*flags=*/wxEXPAND);
+        }
+        whisper_panel_->Hide();
+        whisper_ = std::make_unique<WhisperCPP>(whisper_out_);
+
         auto* debug_panel = new wxPanel(main_panel, ID_DEBUG_PANEL);
         debug_panel_ = debug_panel;
         {
@@ -887,6 +1164,7 @@ Frame::Frame()
 		sizer->Add(transcribe_panel, /*proportion=*/1, /*flags=*/wxEXPAND);
 		sizer->Add(unity_panel, /*proportion=*/1, /*flags=*/wxEXPAND);
 		sizer->Add(debug_panel, /*proportion=*/1, /*flags=*/wxEXPAND);
+		sizer->Add(whisper_panel, /*proportion=*/1, /*flags=*/wxEXPAND);
     }
 
 	Bind(wxEVT_MENU, &Frame::OnExit, this, wxID_EXIT);
@@ -894,11 +1172,15 @@ Frame::Frame()
         ID_NAVBAR_BUTTON_TRANSCRIBE);
 	Bind(wxEVT_BUTTON, &Frame::OnNavbarUnity, this, ID_NAVBAR_BUTTON_UNITY);
 	Bind(wxEVT_BUTTON, &Frame::OnNavbarDebug, this, ID_NAVBAR_BUTTON_DEBUG);
+	Bind(wxEVT_BUTTON, &Frame::OnNavbarWhisper, this, ID_NAVBAR_BUTTON_WHISPER);
 	Bind(wxEVT_BUTTON, &Frame::OnAppStart, this, ID_PY_APP_START_BUTTON);
 	Bind(wxEVT_BUTTON, &Frame::OnAppStop, this, ID_PY_APP_STOP_BUTTON);
+	Bind(wxEVT_BUTTON, &Frame::OnWhisperStart, this, ID_WHISPER_START_BUTTON);
+	Bind(wxEVT_BUTTON, &Frame::OnWhisperStop, this, ID_WHISPER_STOP_BUTTON);
     Bind(wxEVT_TIMER,  &Frame::OnAppDrain, this, ID_PY_APP_DRAIN);
 	Bind(wxEVT_BUTTON, &Frame::OnSetupPython, this, ID_PY_SETUP_BUTTON);
 	Bind(wxEVT_BUTTON, &Frame::OnDumpMics, this, ID_PY_DUMP_MICS_BUTTON);
+	Bind(wxEVT_BUTTON, &Frame::OnWhisperDumpMics, this, ID_WHISPER_DUMP_MICS_BUTTON);
 	Bind(wxEVT_BUTTON, &Frame::OnGenerateFX, this,
         ID_UNITY_BUTTON_GEN_ANIMATOR);
 	Bind(wxEVT_BUTTON, &Frame::OnListPip, this, ID_DEBUG_BUTTON_LIST_PIP);
@@ -974,6 +1256,35 @@ void Frame::ApplyConfigToInputFields()
     py_app_cols->Clear();
     py_app_cols->AppendText(std::to_string(app_c_.cols));
 
+    // Whisper panel
+    auto* whisper_mic = static_cast<wxChoice*>(FindWindowById(ID_WHISPER_MIC));
+	whisper_mic->SetSelection(mic_idx);
+
+    auto* whisper_lang = static_cast<wxChoice*>(FindWindowById(ID_WHISPER_LANG));
+	whisper_lang->SetSelection(lang_idx);
+
+    auto* whisper_model = static_cast<wxChoice*>(FindWindowById(ID_WHISPER_MODEL));
+	int whisper_model_idx = GetDropdownChoiceIndex(kWhisperModelChoices,
+		kNumWhisperModelChoices, app_c_.whisper_model, kWhisperModelDefault);
+	whisper_model->SetSelection(model_idx);
+
+    auto* whisper_button = static_cast<wxChoice*>(FindWindowById(ID_WHISPER_BUTTON));
+	whisper_button->SetSelection(button_idx);
+
+    auto* whisper_chars_per_sync = static_cast<wxChoice*>(FindWindowById(ID_WHISPER_CHARS_PER_SYNC));
+	whisper_chars_per_sync->SetSelection(chars_idx);
+
+    auto* whisper_bytes_per_char = static_cast<wxChoice*>(FindWindowById(ID_WHISPER_BYTES_PER_CHAR));
+	whisper_bytes_per_char->SetSelection(bytes_idx);
+
+    auto* whisper_rows = static_cast<wxTextCtrl*>(FindWindowById(ID_WHISPER_ROWS));
+    whisper_rows->Clear();
+    whisper_rows->AppendText(std::to_string(app_c_.rows));
+
+    auto* whisper_cols = static_cast<wxTextCtrl*>(FindWindowById(ID_WHISPER_COLS));
+    whisper_cols->Clear();
+    whisper_cols->AppendText(std::to_string(app_c_.cols));
+
     // Unity panel
     auto* unity_chars_per_sync = static_cast<wxChoice*>(FindWindowById(ID_UNITY_CHARS_PER_SYNC));
 	unity_chars_per_sync->SetSelection(chars_idx);
@@ -1001,9 +1312,13 @@ void Frame::OnNavbarTranscribe(wxCommandEvent& event)
     // Initialize input fields using AppConfig.
     ApplyConfigToInputFields();
 
-    transcribe_panel_->Show();
+    transcribe_panel_->Hide();
     unity_panel_->Hide();
     debug_panel_->Hide();
+    whisper_panel_->Hide();
+    Resize();
+
+    transcribe_panel_->Show();
     Resize();
 }
 
@@ -1013,8 +1328,12 @@ void Frame::OnNavbarUnity(wxCommandEvent& event)
     ApplyConfigToInputFields();
 
     transcribe_panel_->Hide();
-    unity_panel_->Show();
+    unity_panel_->Hide();
     debug_panel_->Hide();
+    whisper_panel_->Hide();
+    Resize();
+
+    unity_panel_->Show();
     Resize();
 }
 
@@ -1025,7 +1344,29 @@ void Frame::OnNavbarDebug(wxCommandEvent& event)
 
     transcribe_panel_->Hide();
     unity_panel_->Hide();
+    debug_panel_->Hide();
+    whisper_panel_->Hide();
+    Resize();
+
     debug_panel_->Show();
+    Resize();
+}
+
+void Frame::OnNavbarWhisper(wxCommandEvent& event)
+{
+    // Initialize input fields using AppConfig.
+    ApplyConfigToInputFields();
+
+    transcribe_panel_->Hide();
+    unity_panel_->Hide();
+    debug_panel_->Hide();
+    whisper_panel_->Hide();
+    Resize();
+
+    whisper_panel_->Show();
+
+    whisper_->Init();
+
     Resize();
 }
 
@@ -1079,6 +1420,17 @@ void Frame::OnSetupPython(wxCommandEvent& event)
 void Frame::OnDumpMics(wxCommandEvent& event)
 {
     Log(transcribe_out_, "{}\n", PythonWrapper::DumpMics());
+}
+
+void Frame::OnWhisperDumpMics(wxCommandEvent& event)
+{
+    whisper_->Init();
+    std::vector<std::string> mics;
+    whisper_->GetMics(mics);
+    Log(whisper_out_, "Microphones:\n");
+    for (int i = 0; i < mics.size(); i++) {
+        Log(whisper_out_, "  {}: {}\n", i, mics[i]);
+    }
 }
 
 bool GetUserPath(const std::string& raw, std::filesystem::path& clean,
@@ -1537,25 +1889,107 @@ void Frame::OnAppStop(wxCommandEvent& event) {
     }
 }
 
-void Frame::OnAppDrain(wxTimerEvent& event) {
-	DrainAsyncOutput(py_app_, transcribe_out_);
-	DrainAsyncOutput(env_proc_, transcribe_out_);
-}
+void Frame::OnWhisperStart(wxCommandEvent& event) {
+	Log(whisper_out_, "Launching transcription engine\n");
 
-void Frame::DrainAsyncOutput(wxProcess* proc, wxTextCtrl* frame) {
-    if (!proc) {
+    int which_mic = whisper_mic_->GetSelection();
+    if (which_mic == wxNOT_FOUND) {
+        which_mic = kMicDefault;
+    }
+    int which_lang = whisper_lang_->GetSelection();
+    if (which_lang == wxNOT_FOUND) {
+        which_lang = kLangDefault;
+    }
+    int which_model = whisper_model_->GetSelection();
+    if (which_model == wxNOT_FOUND) {
+        which_model = kModelDefault;
+    }
+    int chars_per_sync_idx = whisper_chars_per_sync_->GetSelection();
+    if (chars_per_sync_idx == wxNOT_FOUND) {
+        chars_per_sync_idx = kCharsDefault;
+    }
+    int bytes_per_char_idx = whisper_bytes_per_char_->GetSelection();
+    if (bytes_per_char_idx == wxNOT_FOUND) {
+        bytes_per_char_idx = kBytesDefault;
+    }
+    int button_idx = whisper_button_->GetSelection();
+    if (button_idx == wxNOT_FOUND) {
+        button_idx = kBytesDefault;
+    }
+    const bool enable_local_beep = whisper_enable_local_beep_->GetValue();
+    const bool use_cpu = whisper_use_cpu_->GetValue();
+    const bool use_builtin = whisper_use_builtin_->GetValue();
+    std::string rows_str = whisper_rows_->GetValue().ToStdString();
+    std::string cols_str = whisper_cols_->GetValue().ToStdString();
+    std::string chars_per_sync_str =
+        kCharsPerSync[chars_per_sync_idx].ToStdString();
+    std::string bytes_per_char_str =
+        kBytesPerChar[bytes_per_char_idx].ToStdString();
+    std::string window_duration_str =
+        whisper_window_duration_->GetValue().ToStdString();
+    int rows, cols, chars_per_sync, bytes_per_char, window_duration;
+    try {
+        rows = std::stoi(rows_str);
+        cols = std::stoi(cols_str);
+        chars_per_sync = std::stoi(chars_per_sync_str);
+        bytes_per_char = std::stoi(bytes_per_char_str);
+        window_duration = std::stoi(window_duration_str);
+    }
+    catch (const std::invalid_argument&) {
+		Log(whisper_out_, "Could not parse rows \"{}\", cols \"{}\", chars "
+            "per sync \"{}\", bytes per char \"{}\" or window duration \"{}\" "
+            "as an integer\n", rows_str, cols_str, chars_per_sync_str,
+            bytes_per_char_str, window_duration_str);
+        return;
+    }
+    catch (const std::out_of_range&) {
+		Log(whisper_out_, "Rows \"{}\", cols \"{}\", chars per sync "
+            "\"{}\", bytes per char \"{}\" or window duration \"{}\" are out "
+            "of range\n", rows_str, cols_str, chars_per_sync_str,
+            bytes_per_char_str, window_duration_str);
+        return;
+    }
+    const int max_rows = 10;
+    const int max_cols = 240;
+    const int min_window_duration_s = 10;
+    const int max_window_duration_s = 28;
+    if (rows < 0 || rows > max_rows ||
+        cols < 0 || cols > max_cols ||
+        window_duration < min_window_duration_s ||
+        window_duration > max_window_duration_s) {
+        Log(whisper_out_, "Rows not on [{},{}] or cols not on [{},{}] or "
+            "window_duration not on [{},{}]\n",
+            0, max_rows,
+            0, max_cols,
+            min_window_duration_s, max_window_duration_s);
         return;
     }
 
-    while (proc->IsInputAvailable()) {
-		wxTextInputStream iss(*(proc->GetInputStream()));
-        Log(frame, "  {}\n", iss.ReadLine());
-	}
+    app_c_.microphone = kMicChoices[which_mic].ToStdString();
+    app_c_.language = kLangChoices[which_lang].ToStdString();
+    app_c_.whisper_model = kWhisperModelChoices[which_model].ToStdString();
+    app_c_.chars_per_sync = chars_per_sync;
+    app_c_.bytes_per_char = bytes_per_char;
+    app_c_.button = kButton[button_idx].ToStdString();
+    app_c_.rows = rows;
+    app_c_.cols = cols;
+    app_c_.window_duration = std::to_string(window_duration);
+    app_c_.enable_local_beep = enable_local_beep;
+    app_c_.use_cpu = use_cpu;
+    app_c_.use_builtin = use_builtin;
+    app_c_.Serialize(AppConfig::kConfigPath);
 
-    while (proc->IsErrorAvailable()) {
-        wxTextInputStream iss(*(proc->GetErrorStream()));
-        Log(frame, "  {}\n", iss.ReadLine());
-	}
+    whisper_->Start(app_c_);
+    Log(whisper_out_, "Control flow exit start button\n");
+}
+
+void Frame::OnWhisperStop(wxCommandEvent& event) {
+    whisper_->Stop();
+}
+
+void Frame::OnAppDrain(wxTimerEvent& event) {
+	DrainAsyncOutput(py_app_, transcribe_out_);
+	DrainAsyncOutput(env_proc_, transcribe_out_);
 }
 
 void Frame::LoadAndSetIcons() {

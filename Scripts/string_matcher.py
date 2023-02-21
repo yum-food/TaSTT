@@ -55,6 +55,10 @@ def matchStrings(old_text: str, new_text: str, window_size = 3) -> str:
         if DEBUG:
             print("STRING MATCH exception path 1")
         return old_text
+    elif len(new_text) == 0:
+        return old_text
+    elif len(old_text) == 0:
+        return new_text
     elif len(old_text) >= window_size and len(new_text) >= window_size:
         # Find the window where the cumulative string distance
         # between the text in that window in the old/new transcription

@@ -7,6 +7,7 @@
 #include <stdio.h>
 
 #include <filesystem>
+#include <fstream>
 #include <sstream>
 
 using ::Logging::Log;
@@ -167,8 +168,21 @@ std::string PythonWrapper::DumpMics() {
 bool PythonWrapper::InstallPip(std::string* out) {
 	std::string result;
 
+	std::filesystem::path pip_flag = "Resources/Python/.pip_installed";
+	if (std::filesystem::exists(pip_flag)) {
+		return true;
+	}
+
 	std::string pip_path = "Resources/Python/get-pip.py";
-    return InvokeWithArgs({ pip_path }, out);
+	if (!InvokeWithArgs({ pip_path }, out)) {
+		return false;
+	}
+
+	// Create the flag file so subsstd::chrono::milliseconds(100));equent calls don't reinstall.
+	std::ofstream flag_ofs(pip_path);
+	flag_ofs.close();
+
+	return true;
 }
 
 wxProcess* PythonWrapper::StartApp(

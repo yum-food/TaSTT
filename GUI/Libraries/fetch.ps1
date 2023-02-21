@@ -1,34 +1,65 @@
+param(
+  [switch]$overwrite = $false
+)
+
 Set-PSDebug -trace 0
 
 $WX_3_2_1_URL = "https://github.com/wxWidgets/wxWidgets/releases/download/v3.2.1/wxWidgets-3.2.1.zip"
 $WX_URL = $WX_3_2_1_URL
 $WX_FILE = $(Split-Path -Path $WX_URL -Leaf)
 
+$WHISPER_1_7_0_URL = "https://github.com/Const-me/Whisper/releases/download/1.7.0/Library.zip"
+$WHISPER_URL = $WHISPER_1_7_0_URL
+$WHISPER_FILE = $(Split-Path -Path $WHISPER_URL -Leaf)
+
 pushd $PSScriptRoot
 
 # WX
-if (Test-Path wx) {
+if ((Test-Path wx) -And ($overwrite)) {
   rm -Recurse wx
 }
 
-mkdir wx
-pushd wx > $null
-Invoke-WebRequest $WX_URL -OutFile $WX_FILE
-Expand-Archive $WX_FILE -DestinationPath .
-popd > $null
+if (-Not (Test-Path wx)) {
+  mkdir wx
+  pushd wx > $null
+  Invoke-WebRequest $WX_URL -OutFile $WX_FILE
+  Expand-Archive $WX_FILE -DestinationPath .
+  popd > $null
+}
 
 # RAPIDYAML
-if (Test-Path rapidyaml) {
+if ((Test-Path rapidyaml) -And ($overwrite)) {
   rm -Recurse rapidyaml
 }
 
-git clone https://github.com/biojppm/rapidyaml
-pushd rapidyaml > $null
-git checkout v0.5.0
-git submodule update --init --recursive
+if (-Not (Test-Path rapidyaml)) {
+  git clone https://github.com/biojppm/rapidyaml
+  pushd rapidyaml > $null
+  git checkout v0.5.0
+  git submodule update --init --recursive
 
-python3 tools/amalgamate.py ryml.h
-cp ryml.h ../../GUI/GUI/ryml.h
+  python3 tools/amalgamate.py ryml.h
+  cp ryml.h ../../GUI/GUI/ryml.h
+}
+
+if ((Test-Path whisper) -And ($overwrite)) {
+  rm -Recurse whisper
+}
+
+if (-Not (Test-Path whisper)) {
+  mkdir whisper
+  pushd whisper > $null
+  Invoke-WebRequest $WHISPER_URL -OutFile $WHISPER_FILE
+  Expand-Archive $WHISPER_FILE -DestinationPath .
+  if (Test-Path ../../GUI/GUI/whisper/) {
+    rm -Recurse ../../GUI/GUI/whisper/
+  }
+  mkdir ../../GUI/GUI/whisper/
+  cp Include/*.h ../../GUI/GUI/whisper/
+  cp Linker/*.lib ../../GUI/GUI/whisper/Whisper.lib
+  cp Binary/*.dll ../../GUI/GUI/whisper/Whisper.dll
+  popd > $null
+}
 
 popd > $null  # rapidyaml
 

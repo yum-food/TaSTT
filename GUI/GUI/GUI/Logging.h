@@ -8,6 +8,9 @@
 #include <wx/wx.h>
 #endif
 
+#include <wx/process.h>
+#include <wx/txtstrm.h>
+
 #include <format>
 #include <string>
 #include <string_view>
@@ -49,6 +52,22 @@ namespace Logging {
 		const int max_frame_len_bytes = 10 * 1000 * 1000;
 		if (frame->GetLastPosition() > max_frame_len_bytes) {
 			frame->Remove(0, frame->GetLastPosition() - max_frame_len_bytes);
+		}
+	}
+
+	inline void DrainAsyncOutput(wxProcess* proc, wxTextCtrl* frame) {
+		if (!proc) {
+			return;
+		}
+
+		while (proc->IsInputAvailable()) {
+			wxTextInputStream iss(*(proc->GetInputStream()));
+			Log(frame, "  {}\n", iss.ReadLine());
+		}
+
+		while (proc->IsErrorAvailable()) {
+			wxTextInputStream iss(*(proc->GetErrorStream()));
+			Log(frame, "  {}\n", iss.ReadLine());
 		}
 	}
 }
