@@ -240,7 +240,6 @@ void WhisperCPP::Start(const AppConfig& c) {
 	}
 
 	transcription_thd_ = std::async(std::launch::async, [&]() -> void {
-		Log(out_, "Transcription thread top\n");
 		run_transcription_ = true;
 
 		Whisper::iAudioCapture* mic_stream;
@@ -361,12 +360,6 @@ void WhisperCPP::Start(const AppConfig& c) {
 				Log(app->out_, "Exit transcription loop\n");
 				return S_FALSE;
 			}
-			// Sleeping here prevents the GUI from hanging.
-			// For some reason, printing is also required to prevent hanging.
-			static int i = 0;
-			if (++i % 20 == 0) {
-				Log(app->out_, "Spin {}\n", i);
-			}
 			return S_OK;
 		};
 		callbacks.pv = this;
@@ -394,20 +387,20 @@ void WhisperCPP::Stop() {
 
 void WhisperCPP::StartBrowserSource(const AppConfig& c) {
 	if (!browser_src_thd_.valid()) {
-		Log(out_, "Transcription engine already running\n");
+		Log(out_, "Browser source already running\n");
 		return;
 	}
 
 	browser_src_thd_ = std::async(std::launch::async, [&]() -> void {
-#if 0
+		run_browser_src_ = true;
 		BrowserSource src(c.browser_src_port, out_);
 		src.Run(&run_browser_src_);
-#endif
+		Log(out_, "Browser source thread exit\n");
 	});
 }
 
 void WhisperCPP::StopBrowserSource() {
-	Log(out_, "Stopping browser source engine...\n");
+	Log(out_, "Stopping browser source...\n");
 	run_browser_src_ = false;
 	browser_src_thd_.wait();
 	Log(out_, "Done!\n");

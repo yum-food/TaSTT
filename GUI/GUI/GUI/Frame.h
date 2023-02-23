@@ -93,7 +93,7 @@ private:
     // Populate dynamically-generated input fields, such as microphone lists.
     void PopulateDynamicInputFields();
 
-    void OnExit(wxCommandEvent& event);
+    void OnExit(wxCloseEvent& event);
     void OnNavbarTranscribe(wxCommandEvent& event);
     void OnNavbarUnity(wxCommandEvent& event);
     void OnNavbarDebug(wxCommandEvent& event);
@@ -101,8 +101,10 @@ private:
     void OnSetupPython(wxCommandEvent& event);
     void OnDumpMics(wxCommandEvent& event);
     void OnAppStart(wxCommandEvent& event);
+    void OnAppStop();
     void OnAppStop(wxCommandEvent& event);
     void OnWhisperStart(wxCommandEvent& event);
+    void OnWhisperStop();
     void OnWhisperStop(wxCommandEvent& event);
     void OnAppDrain(wxTimerEvent& event);
     void OnGenerateFX(wxCommandEvent& event);

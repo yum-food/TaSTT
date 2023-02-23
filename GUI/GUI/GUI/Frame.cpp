@@ -952,10 +952,12 @@ Frame::Frame()
                         "but are far more accurate.");
                     whisper_window_duration_ = whisper_window_duration;
 
+                    // TODO(yum) make this mutable once we figure out how to
+                    // get oatpp to accept a runtime src port.
                     auto* whisper_browser_src_port = new wxTextCtrl(
                         whisper_config_panel_pairs, ID_WHISPER_BROWSER_SRC_PORT,
                         std::to_string(app_c_.browser_src_port), wxDefaultPosition,
-                        wxDefaultSize, /*style=*/0);
+                        wxDefaultSize, wxTE_READONLY);
                     whisper_browser_src_port->SetToolTip(
                         "This is the port that the browser source is hosted "
                         "on. If you aren't using TaSTT to stream, you can "
@@ -1200,7 +1202,7 @@ Frame::Frame()
 		sizer->Add(whisper_panel, /*proportion=*/1, /*flags=*/wxEXPAND);
     }
 
-	Bind(wxEVT_MENU, &Frame::OnExit, this, wxID_EXIT);
+	Bind(wxEVT_CLOSE_WINDOW, &Frame::OnExit, this, wxID_EXIT);
 	Bind(wxEVT_BUTTON, &Frame::OnNavbarTranscribe, this,
         ID_NAVBAR_BUTTON_TRANSCRIBE);
 	Bind(wxEVT_BUTTON, &Frame::OnNavbarUnity, this, ID_NAVBAR_BUTTON_UNITY);
@@ -1350,10 +1352,10 @@ void Frame::PopulateDynamicInputFields()
     }
 }
 
-void Frame::OnExit(wxCommandEvent& event)
+void Frame::OnExit(wxCloseEvent& event)
 {
-    OnAppStop(event);
-    Close(true);
+    OnAppStop();
+    OnWhisperStop();
 }
 
 void Frame::OnNavbarTranscribe(wxCommandEvent& event)
@@ -1887,7 +1889,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     py_app_ = p;
 }
 
-void Frame::OnAppStop(wxCommandEvent& event) {
+void Frame::OnAppStop() {
     if (py_app_) {
         const long pid = py_app_->GetPid();
 
@@ -1927,6 +1929,10 @@ void Frame::OnAppStop(wxCommandEvent& event) {
     }
 }
 
+void Frame::OnAppStop(wxCommandEvent& event) {
+    OnAppStop();
+}
+
 void Frame::OnWhisperStart(wxCommandEvent& event) {
 	Log(whisper_out_, "Launching transcription engine\n");
 
@@ -1956,7 +1962,6 @@ void Frame::OnWhisperStart(wxCommandEvent& event) {
     }
     const bool enable_local_beep = whisper_enable_local_beep_->GetValue();
     const bool use_cpu = whisper_use_cpu_->GetValue();
-    const bool use_builtin = whisper_enable_builtin_->GetValue();
     std::string rows_str = whisper_rows_->GetValue().ToStdString();
     std::string cols_str = whisper_cols_->GetValue().ToStdString();
     std::string chars_per_sync_str =
@@ -1965,13 +1970,16 @@ void Frame::OnWhisperStart(wxCommandEvent& event) {
         kBytesPerChar[bytes_per_char_idx].ToStdString();
     std::string window_duration_str =
         whisper_window_duration_->GetValue().ToStdString();
-    int rows, cols, chars_per_sync, bytes_per_char, window_duration;
+    std::string browser_src_port_str =
+        whisper_browser_src_port_->GetValue().ToStdString();
+    int rows, cols, chars_per_sync, bytes_per_char, window_duration, browser_src_port;
     try {
         rows = std::stoi(rows_str);
         cols = std::stoi(cols_str);
         chars_per_sync = std::stoi(chars_per_sync_str);
         bytes_per_char = std::stoi(bytes_per_char_str);
         window_duration = std::stoi(window_duration_str);
+        browser_src_port = std::stoi(browser_src_port_str);
     }
     catch (const std::invalid_argument&) {
 		Log(whisper_out_, "Could not parse rows \"{}\", cols \"{}\", chars "
@@ -2003,6 +2011,14 @@ void Frame::OnWhisperStart(wxCommandEvent& event) {
         return;
     }
 
+    const int min_port = 1024;
+    const int max_port = 65535;
+    if (browser_src_port < min_port || browser_src_port > max_port) {
+        Log(whisper_out_, "Browser source port not on [{},{}]\n",
+            min_port, max_port);
+        return;
+    }
+
     app_c_.whisper_mic = which_mic;
     app_c_.language = kLangChoices[which_lang].ToStdString();
     app_c_.whisper_model = kWhisperModelChoices[which_model].ToStdString();
@@ -2014,15 +2030,28 @@ void Frame::OnWhisperStart(wxCommandEvent& event) {
     app_c_.window_duration = std::to_string(window_duration);
     app_c_.enable_local_beep = enable_local_beep;
     app_c_.use_cpu = use_cpu;
-    app_c_.use_builtin = use_builtin;
+    app_c_.browser_src_port = browser_src_port;
+    app_c_.whisper_enable_browser_src = whisper_enable_browser_src_->GetValue();
+    app_c_.whisper_enable_builtin = whisper_enable_builtin_->GetValue();
+    app_c_.whisper_enable_custom = whisper_enable_custom_->GetValue();
     app_c_.Serialize(AppConfig::kConfigPath);
 
     whisper_->Start(app_c_);
-    Log(whisper_out_, "Control flow exit start button\n");
+    if (whisper_enable_browser_src_->GetValue()) {
+        Log(whisper_out_, "Frame launching browser src\n");
+        whisper_->StartBrowserSource(app_c_);
+    }
+}
+
+void Frame::OnWhisperStop() {
+    whisper_->Stop();
+    if (whisper_enable_browser_src_->GetValue()) {
+        whisper_->StopBrowserSource();
+    }
 }
 
 void Frame::OnWhisperStop(wxCommandEvent& event) {
-    whisper_->Stop();
+    OnWhisperStop();
 }
 
 void Frame::OnAppDrain(wxTimerEvent& event) {

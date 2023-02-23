@@ -52,9 +52,14 @@ public:
 class AppComponent
 {
 public:
-    // TODO(yum) parameterize port
+    AppComponent(uint16_t port) : port_(port) {}
+
+    // TODO(yum) make port configurable. oatpp examples show how to use a port
+    // that's available at boot time. Plumbing this with port_ or port causes
+    // oatpp to use a different port every time, which I think is caused by port_
+    // being uninitialized.
 	OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, serverConnectionProvider)([] {
-        return oatpp::network::tcp::server::ConnectionProvider::createShared({ "0.0.0.0", 8000, oatpp::network::Address::IP_4 });
+        return oatpp::network::tcp::server::ConnectionProvider::createShared({ "0.0.0.0", 9517, oatpp::network::Address::IP_4 });
         }());
 
     OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, httpRouter)([] {
@@ -69,6 +74,9 @@ public:
     OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, apiObjectMapper)([] {
         return oatpp::parser::json::mapping::ObjectMapper::createShared();
         }());
+
+private:
+    const uint16_t port_;
 };
 
 class BrowserSource

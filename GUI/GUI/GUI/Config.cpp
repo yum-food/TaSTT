@@ -92,7 +92,7 @@ AppConfig::AppConfig()
 	whisper_model("ggml-base.en.bin"),
 	whisper_mic(0),
 
-	browser_src_port(9010),
+	browser_src_port(9517),
 	whisper_enable_builtin(false),
 	whisper_enable_custom(true),
 	whisper_enable_browser_src(false)
