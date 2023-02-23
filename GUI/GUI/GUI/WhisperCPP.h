@@ -1,6 +1,5 @@
 #pragma once
 
-#include <wx/filepicker.h>
 #include <wx/wxprec.h>
 
 #ifndef WX_PRECOMP
@@ -11,7 +10,7 @@
 #include <wchar.h>
 #include <winerror.h>
 
-#include "whisperWindows.h"
+#include "whisper/whisperWindows.h"
 
 #include "Config.h"
 
@@ -38,12 +37,19 @@ public:
 	void Start(const AppConfig& c);
 	void Stop();
 
+	void StartBrowserSource(const AppConfig& c);
+	void StopBrowserSource();
+
 private:
 	bool GetMicsImpl(std::vector<Whisper::sCaptureDevice>& mics);
 
 	wxTextCtrl* out_;
 	Whisper::iMediaFoundation* f_;
 	bool did_init_;
-	std::future<void> proc_;
-	volatile bool run_;
+
+	std::future<void> transcription_thd_;
+	volatile bool run_transcription_;
+
+	std::future<void> browser_src_thd_;
+	volatile bool run_browser_src_;
 };

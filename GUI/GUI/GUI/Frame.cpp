@@ -83,9 +83,12 @@ namespace {
 		ID_WHISPER_ROWS,
 		ID_WHISPER_COLS,
 		ID_WHISPER_WINDOW_DURATION,
+		ID_WHISPER_BROWSER_SRC_PORT,
 		ID_WHISPER_ENABLE_LOCAL_BEEP,
 		ID_WHISPER_USE_CPU,
-		ID_WHISPER_USE_BUILTIN,
+		ID_WHISPER_ENABLE_BUILTIN,
+		ID_WHISPER_ENABLE_CUSTOM,
+		ID_WHISPER_ENABLE_BROWSER_SRC,
 		ID_WHISPER_START_BUTTON,
 		ID_WHISPER_STOP_BUTTON,
     };
@@ -949,6 +952,16 @@ Frame::Frame()
                         "but are far more accurate.");
                     whisper_window_duration_ = whisper_window_duration;
 
+                    auto* whisper_browser_src_port = new wxTextCtrl(
+                        whisper_config_panel_pairs, ID_WHISPER_BROWSER_SRC_PORT,
+                        std::to_string(app_c_.browser_src_port), wxDefaultPosition,
+                        wxDefaultSize, /*style=*/0);
+                    whisper_browser_src_port->SetToolTip(
+                        "This is the port that the browser source is hosted "
+                        "on. If you aren't using TaSTT to stream, you can "
+                        "ignore this option.");
+                    whisper_browser_src_port_ = whisper_browser_src_port;
+
                     auto* sizer = new wxFlexGridSizer(/*cols=*/2);
                     whisper_config_panel_pairs->SetSizer(sizer);
 
@@ -996,6 +1009,11 @@ Frame::Frame()
                         wxID_ANY, /*label=*/"Window duration (s):"));
                     sizer->Add(whisper_window_duration, /*proportion=*/0,
                         /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(whisper_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Browser source port:"));
+                    sizer->Add(whisper_browser_src_port, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
                 }
 
                 auto* whisper_enable_local_beep = new wxCheckBox(whisper_config_panel,
@@ -1019,14 +1037,29 @@ Frame::Frame()
                 );
                 whisper_use_cpu_ = whisper_use_cpu;
 
-                auto* whisper_use_builtin = new wxCheckBox(whisper_config_panel,
-                    ID_WHISPER_USE_BUILTIN, "Use built-in chatbox");
-                whisper_use_builtin->SetValue(app_c_.use_builtin);
-                whisper_use_builtin->SetToolTip(
-                    "If checked, text will be sent to the built-in text box "
-                    "instead of one attached to the current avatar."
+                auto* whisper_enable_builtin = new wxCheckBox(whisper_config_panel,
+                    ID_WHISPER_ENABLE_BUILTIN, "Send to built-in chatbox");
+                whisper_enable_builtin->SetValue(app_c_.whisper_enable_builtin);
+                whisper_enable_builtin->SetToolTip(
+                    "If checked, text will be sent to the built-in text box."
                 );
-                whisper_use_builtin_ = whisper_use_builtin;
+                whisper_enable_builtin_ = whisper_enable_builtin;
+
+                auto* whisper_enable_custom = new wxCheckBox(whisper_config_panel,
+                    ID_WHISPER_ENABLE_CUSTOM, "Send to custom chatbox");
+                whisper_enable_custom->SetValue(app_c_.whisper_enable_custom);
+                whisper_enable_custom->SetToolTip(
+                    "If checked, text will be sent to the custom text box."
+                );
+                whisper_enable_custom_ = whisper_enable_custom;
+
+                auto* whisper_enable_browser_src = new wxCheckBox(whisper_config_panel,
+                    ID_WHISPER_ENABLE_BROWSER_SRC, "Send to browser source");
+                whisper_enable_browser_src->SetValue(app_c_.whisper_enable_browser_src);
+                whisper_enable_browser_src->SetToolTip(
+                    "If checked, text will be sent to a browser source. If "
+                    "you're not using TaSTT to stream, you can ignore this option.");
+                whisper_enable_browser_src_ = whisper_enable_browser_src;
 
                 // Hack: Add newlines before and after the button text to make
                 // the buttons bigger, and easier to click from inside VR.
@@ -1043,7 +1076,11 @@ Frame::Frame()
                     /*flags=*/wxEXPAND);
                 sizer->Add(whisper_use_cpu, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
-                sizer->Add(whisper_use_builtin, /*proportion=*/0,
+                sizer->Add(whisper_enable_builtin, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+                sizer->Add(whisper_enable_custom, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+                sizer->Add(whisper_enable_browser_src, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
                 sizer->Add(whisper_start_button, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
@@ -1919,7 +1956,7 @@ void Frame::OnWhisperStart(wxCommandEvent& event) {
     }
     const bool enable_local_beep = whisper_enable_local_beep_->GetValue();
     const bool use_cpu = whisper_use_cpu_->GetValue();
-    const bool use_builtin = whisper_use_builtin_->GetValue();
+    const bool use_builtin = whisper_enable_builtin_->GetValue();
     std::string rows_str = whisper_rows_->GetValue().ToStdString();
     std::string cols_str = whisper_cols_->GetValue().ToStdString();
     std::string chars_per_sync_str =

@@ -1,3 +1,4 @@
+#include "BrowserSource.h"
 #include "Logging.h"
 #include "PythonWrapper.h"
 #include "ScopeGuard.h"
@@ -8,7 +9,7 @@
 #include <wchar.h>
 #include <winerror.h>
 
-#include "whisperWindows.h"
+#include "whisper/whisperWindows.h"
 
 #include <charconv>
 #include <codecvt>
@@ -61,11 +62,20 @@ namespace {
 };
 
 WhisperCPP::WhisperCPP(wxTextCtrl* out)
-	: out_(out), f_(nullptr), did_init_(false), proc_(), run_(false)
+	: out_(out), f_(nullptr), did_init_(false), run_transcription_(false), run_browser_src_(false)
 {
-	auto p = std::promise<void>();
-	proc_ = p.get_future();
-	p.set_value();
+	// Initialize futures so that valid() returns true. We use this as a proxy
+	// to tell whether they're still executing.
+	{
+		auto p = std::promise<void>();
+		transcription_thd_ = p.get_future();
+		p.set_value();
+	}
+	{
+		auto p = std::promise<void>();
+		browser_src_thd_ = p.get_future();
+		p.set_value();
+	}
 }
 
 WhisperCPP::~WhisperCPP() {
@@ -222,14 +232,14 @@ bool WhisperCPP::CreateContext(Whisper::iModel* model, Whisper::iContext*& conte
 }
 
 void WhisperCPP::Start(const AppConfig& c) {
-	if (!proc_.valid()) {
+	if (!transcription_thd_.valid()) {
 		Log(out_, "Transcription engine already running\n");
 		return;
 	}
 
-	proc_ = std::async(std::launch::async, [&]() -> void {
+	transcription_thd_ = std::async(std::launch::async, [&]() -> void {
 		Log(out_, "Transcription thread top\n");
-		run_ = true;
+		run_transcription_ = true;
 
 		Whisper::iAudioCapture* mic_stream;
 		if (!OpenMic(c.whisper_mic, mic_stream)) {
@@ -339,7 +349,7 @@ void WhisperCPP::Start(const AppConfig& c) {
 
 		callbacks.shouldCancel = [](void* pv) noexcept -> HRESULT __stdcall {
 			WhisperCPP* app = static_cast<WhisperCPP*>(pv);
-			if (!app->run_) {
+			if (!app->run_transcription_) {
 				Log(app->out_, "Exit transcription loop\n");
 				return S_FALSE;
 			}
@@ -369,8 +379,29 @@ void WhisperCPP::Start(const AppConfig& c) {
 
 void WhisperCPP::Stop() {
 	Log(out_, "Stopping transcription engine...\n");
-	run_ = false;
-	proc_.wait();
+	run_transcription_ = false;
+	transcription_thd_.wait();
+	Log(out_, "Done!\n");
+}
+
+void WhisperCPP::StartBrowserSource(const AppConfig& c) {
+	if (!browser_src_thd_.valid()) {
+		Log(out_, "Transcription engine already running\n");
+		return;
+	}
+
+	browser_src_thd_ = std::async(std::launch::async, [&]() -> void {
+#if 0
+		BrowserSource src(c.browser_src_port, out_);
+		src.Run(&run_browser_src_);
+#endif
+	});
+}
+
+void WhisperCPP::StopBrowserSource() {
+	Log(out_, "Stopping browser source engine...\n");
+	run_browser_src_ = false;
+	browser_src_thd_.wait();
 	Log(out_, "Done!\n");
 }
 

@@ -64,5 +64,11 @@ public:
 	// WhisperCPP-specific settings.
 	std::string whisper_model;
 	int whisper_mic;
+
+	// Browser source-specific settings.
+	int browser_src_port;
+	bool whisper_enable_builtin;
+	bool whisper_enable_custom;
+	bool whisper_enable_browser_src;
 };
 

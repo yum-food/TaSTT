@@ -90,7 +90,12 @@ AppConfig::AppConfig()
 	clear_osc(false),
 
 	whisper_model("ggml-base.en.bin"),
-	whisper_mic(0)
+	whisper_mic(0),
+
+	browser_src_port(9010),
+	whisper_enable_builtin(false),
+	whisper_enable_custom(true),
+	whisper_enable_browser_src(false)
 {}
 
 bool AppConfig::Serialize(const std::filesystem::path& path) {
@@ -120,6 +125,11 @@ bool AppConfig::Serialize(const std::filesystem::path& path) {
 
 	root["whisper_model"] << whisper_model;
 	root["whisper_mic"] << whisper_mic;
+
+	root["browser_src_port"] << browser_src_port;
+	root["whisper_enable_builtin"] << whisper_enable_builtin;
+	root["whisper_enable_custom"] << whisper_enable_custom;
+	root["whisper_enable_browser_src"] << whisper_enable_browser_src;
 
   return Config::Serialize(path, &t);
 }
@@ -162,6 +172,11 @@ bool AppConfig::Deserialize(const std::filesystem::path& path) {
 
 	root.get_if("whisper_model", &c.whisper_model);
 	root.get_if("whisper_mic", &c.whisper_mic);
+
+	root.get_if("browser_src_port", &c.browser_src_port);
+	root.get_if("whisper_enable_builtin", &c.whisper_enable_builtin);
+	root.get_if("whisper_enable_custom", &c.whisper_enable_custom);
+	root.get_if("whisper_enable_browser_src", &c.whisper_enable_browser_src);
 
 	*this = std::move(c);
 	return true;
