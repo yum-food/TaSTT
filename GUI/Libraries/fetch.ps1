@@ -86,8 +86,14 @@ if (-Not (Test-Path oatpp)) {
   pushd $OATPP_DIR > $null
   mkdir build
   pushd build > $null
-  cmake.exe .. -DCMAKE_BUILD_TYPE=Release -DOATPP_BUILD_TESTS=OFF
+  cmake.exe .. `
+      -DCMAKE_BUILD_TYPE=Release `
+      -DBUILD_SHARED_LIBS=OFF `
+      -DOATPP_MSVC_LINK_STATIC_RUNTIME=ON `
+      -DOATPP_BUILD_TESTS=OFF
   cmake.exe --build . -j $NPROC --config Release
+  cp src/Release/oatpp.lib ../../../../GUI/GUI/oatpp/
+  cp -Recurse ../src/oatpp/* ../../../../GUI/GUI/oatpp/
   popd > $null
   popd > $null
 }

@@ -75,8 +75,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(ProjectDir)/whisper/</LibraryPath>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)/whisper</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(ProjectDir)/whisper;$(ProjectDir)/oatpp</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -141,11 +141,12 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;comdlg32.lib;winspool.lib;shell32.lib;shlwapi.lib;ole32.lib;oleaut32.lib;uuid.lib;advapi32.lib;version.lib;comctl32.lib;rpcrt4.lib;ws2_32.lib;wininet.lib;winmm.lib;Whisper.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;comdlg32.lib;winspool.lib;shell32.lib;shlwapi.lib;ole32.lib;oleaut32.lib;uuid.lib;advapi32.lib;version.lib;comctl32.lib;rpcrt4.lib;ws2_32.lib;wininet.lib;winmm.lib;Whisper.lib;oatpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp" />
+    <ClCompile Include="BrowserSource.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="Frame.cpp" />
     <ClCompile Include="Logging.cpp" />
@@ -155,6 +156,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
+    <ClInclude Include="BrowserSource.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="Logging.h" />
