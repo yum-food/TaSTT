@@ -32,6 +32,12 @@ namespace PythonWrapper
 		std::string* py_stdout,
 		std::string* py_stderr = NULL);
 
+	// Invoke a command on the shell with arguments.
+	// On error, sets `out` to an error message and returns false.
+	bool InvokeCommandWithArgs(const std::string& cmd,
+		std::vector<std::string>&& args,
+		const std::function<void(const std::string& out, const std::string& err)>&& out_cb);
+
 	// Invoke the interpreter with arguments.
 	// On error, sets `out` to an error message and returns false.
 	bool InvokeWithArgs(std::vector<std::string>&& args, std::string* py_stdout,
@@ -40,6 +46,9 @@ namespace PythonWrapper
 	bool InvokeWithArgs(std::vector<std::string>&& args,
 		const std::string&& err_msg, wxTextCtrl* out);
 
+	bool InvokeWithArgs(std::vector<std::string>&& args,
+		const std::function<void(const std::string& out, const std::string& err)>&& out_cb);
+
 	// Execute python --version.
 	std::string GetVersion();
 
@@ -47,6 +56,7 @@ namespace PythonWrapper
 	std::string DumpMics();
 
 	// Execute get-pip.py.
+	bool InstallPip(const std::function<void(const std::string& out, const std::string& err)>&& out_cb);
 	bool InstallPip(std::string* out, std::string* err = nullptr);
 
 	// TODO(yum) both StartApp and GenerateAnimator should be

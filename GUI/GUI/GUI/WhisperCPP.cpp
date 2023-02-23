@@ -156,16 +156,18 @@ bool WhisperCPP::InstallDependencies() {
 		return true;
 	}
 
-	std::string py_stdout, py_stderr;
+	std::function<void(const std::string&, const std::string& out_cb)> out_cb =
+		[&](const std::string& out, const std::string& err) -> void {
+		Log(out_, out);
+		Log(out_, err);
+	};
 	bool ret = PythonWrapper::InvokeWithArgs({
 		"-u",  // Unbuffered output
 		"-m pip",
 		"install",
 		"-r Resources/Scripts/whisper_requirements.txt",
-		}, &py_stdout, &py_stderr);
+		}, std::move(out_cb));
 
-	Log(out_, py_stdout);
-	Log(out_, py_stderr);
 	if (!ret) {
 		Log(out_, "Failed to install dependencies!\n");
 		return false;
@@ -247,11 +249,17 @@ void WhisperCPP::Start(const AppConfig& c) {
 		}
 		ScopeGuard mic_stream_cleanup([mic_stream]() { mic_stream->Release(); });
 
-		std::string pip_out, pip_err;
-		Log(out_, "Installing pip\n");
-		if (!PythonWrapper::InstallPip(&pip_out, &pip_err)) {
-			Log(out_, "Failed to install pip: {}\n", pip_err);
-			return;
+		{
+			std::function<void(const std::string&, const std::string& out_cb)> out_cb =
+				[&](const std::string& out, const std::string& err) -> void {
+				Log(out_, out);
+				Log(out_, err);
+			};
+			Log(out_, "Installing pip\n");
+			if (!PythonWrapper::InstallPip(std::move(out_cb))) {
+				Log(out_, "Failed to install pip!\n");
+				return;
+			}
 		}
 		Log(out_, "Installing Python dependencies\n");
 		if (!InstallDependencies()) {
