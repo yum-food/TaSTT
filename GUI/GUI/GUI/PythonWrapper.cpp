@@ -41,7 +41,6 @@ wxProcess* PythonWrapper::InvokeAsyncWithArgs(std::vector<std::string>&& args,
 	}
 
 	auto *p = new PythonProcess(std::move(exit_callback));
-	// TODO(yum) we should hide the console & stream output to a friendlier interface
 	int pid = wxExecute(cmd_oss.str(), wxEXEC_ASYNC, p);
 
 	if (!pid) {
@@ -52,10 +51,27 @@ wxProcess* PythonWrapper::InvokeAsyncWithArgs(std::vector<std::string>&& args,
 	return p;
 }
 
+std::string GetWin32ErrMsg() {
+	DWORD error = GetLastError();
+	LPSTR err_msg = nullptr;
+	FormatMessageA(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL,
+		error,
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPSTR)&err_msg,
+		0,
+		NULL
+	);
+	ScopeGuard err_msg_cleanup([&]() { LocalFree(err_msg); });
+	return std::to_string(error) + ": " + err_msg;
+}
+
 bool PythonWrapper::InvokeCommandWithArgs(
 	const std::string& cmd,
 	std::vector<std::string>&& args,
 	std::string* py_stdout, std::string* py_stderr) {
+
 	std::ostringstream cmd_oss;
 	cmd_oss << cmd;
 	for (const auto& arg : args) {
@@ -64,66 +80,96 @@ bool PythonWrapper::InvokeCommandWithArgs(
 
 	HANDLE stdout_read{};
 	HANDLE stdout_write{};
-	SECURITY_ATTRIBUTES sec_attr{};
-	sec_attr.nLength = sizeof(sec_attr);
-	sec_attr.bInheritHandle = TRUE;
-	if (!CreatePipe(&stdout_read, &stdout_write, &sec_attr, 0)) {
+	SECURITY_ATTRIBUTES stdout_sec_attr{};
+	stdout_sec_attr.nLength = sizeof(stdout_sec_attr);
+	stdout_sec_attr.bInheritHandle = TRUE;
+	if (!CreatePipe(&stdout_read, &stdout_write, &stdout_sec_attr, 0)) {
 		if (py_stderr) {
 			std::ostringstream err_oss;
 			err_oss << "Error while executing python command \"" << cmd_oss.str()
-				<< "\": Failed to create stdout pipe" << std::endl;
+				<< "\": Failed to create stdout pipe: " << GetWin32ErrMsg() << std::endl;
 			*py_stderr = err_oss.str();
 		}
 		return false;
 	}
 	ScopeGuard stdout_cleanup([&]() {
-		CloseHandle(stdout_read);
-		CloseHandle(stdout_write);
+		if (stdout_read) {
+			CloseHandle(stdout_read);
+		}
+		if (stdout_write) {
+			CloseHandle(stdout_write);
+		}
 		});
+	SetHandleInformation(stdout_read, HANDLE_FLAG_INHERIT, 0);
 
 	HANDLE stderr_read{};
 	HANDLE stderr_write{};
-	if (!CreatePipe(&stderr_read, &stderr_write, &sec_attr, 0)) {
+	SECURITY_ATTRIBUTES stderr_sec_attr{};
+	stderr_sec_attr.nLength = sizeof(stderr_sec_attr);
+	stderr_sec_attr.bInheritHandle = TRUE;
+
+	if (!CreatePipe(&stderr_read, &stderr_write, &stderr_sec_attr, 0)) {
 		if (py_stderr) {
 			std::ostringstream err_oss;
 			err_oss << "Error while executing python command \"" << cmd_oss.str()
-				<< "\": Failed to create stderr pipe" << std::endl;
+				<< "\": Failed to create stderr pipe: " << GetWin32ErrMsg() << std::endl;
 			*py_stderr = err_oss.str();
 		}
 		return false;
 	}
 	ScopeGuard stderr_cleanup([&]() {
-		CloseHandle(stderr_read);
-		CloseHandle(stderr_write);
+		if (stderr_read) {
+			CloseHandle(stderr_read);
+		}
+		if (stderr_write) {
+			CloseHandle(stderr_write);
+		}
 		});
+	SetHandleInformation(stderr_read, HANDLE_FLAG_INHERIT, 0);
 
 	STARTUPINFOA si{};
 	si.cb = sizeof(si);
 	si.hStdOutput = stdout_write;
 	si.hStdError = stderr_write;
+	si.dwFlags |= STARTF_USESTDHANDLES;
+	si.dwFlags |= STARTF_USESHOWWINDOW;
+	si.wShowWindow = SW_HIDE;
 	PROCESS_INFORMATION pi{};
-	std::string path = "Resources/PortableGit/bin";
-	std::string env = "PATH=" + path;
-	//std::string env;
+	std::string env;
 
-	//std::string tmp_cmd = "Get-ChildItem";
+	{
+		std::vector<char> buf(4096, 0);
+		DWORD len = GetEnvironmentVariableA("PATH", buf.data(), buf.size() - 1);
+		if (len > 0) {
+			env = std::string("PATH=") + buf.data();
+		}
+		else {
+			std::ostringstream err_oss;
+			err_oss << "Error while executing python command \"" << cmd_oss.str()
+				<< "\": Failed to get PATH env variable: " << GetWin32ErrMsg() << std::endl;
+			*py_stderr = err_oss.str();
+			return false;
+		}
+		// TODO(yum) add git to PATH
+	}
 
 	std::string cmd_str = cmd_oss.str();
 	if (!CreateProcessA(NULL,  // application name
 		cmd_str.data(),
-		//tmp_cmd.data(),
 		NULL,  // process attributes
 		NULL,  // thread attributes
-		FALSE,  // whether to inherit parent's handles
+		TRUE,  // whether to inherit parent's handles
 		0,  // creation flags
-		env.data(),
-		NULL,  // current directory (use parent's)
+		//env.data(),
+		nullptr,  // env
+		std::filesystem::current_path().string().c_str(),  // current directory
 		&si,
 		&pi)) {
 		if (py_stderr) {
 			std::ostringstream err_oss;
+
 			err_oss << "Error while executing python command \"" << cmd_oss.str()
-				<< "\": Failed to launch process" << std::endl;
+				<< "\": Failed to launch process: " << GetWin32ErrMsg();
 			*py_stderr = err_oss.str();
 		}
 		return false;
@@ -133,26 +179,47 @@ bool PythonWrapper::InvokeCommandWithArgs(
 		CloseHandle(pi.hThread);
 		});
 
+	WaitForSingleObject(pi.hProcess, INFINITE);
 	std::ostringstream stdout_oss, stderr_oss;
-	std::vector<char> buf(4096, 0);
-	DWORD bytes_read = 0;
-	while (ReadFile(si.hStdOutput, buf.data(), buf.size(), &bytes_read, NULL) && bytes_read > 0) {
-		stdout_oss << std::string(buf.data(), bytes_read);
+
+	DWORD exit_code;
+	if (!GetExitCodeProcess(pi.hProcess, &exit_code)) {
+		stderr_oss << "Failed to get exit code!\n";
 	}
-	bytes_read = 0;
-	while (ReadFile(si.hStdError, buf.data(), buf.size(), &bytes_read, NULL) && bytes_read > 0) {
-		stderr_oss << std::string(buf.data(), bytes_read);
+	if (exit_code != 0) {
+		stderr_oss << "Command exited with code " << exit_code << ": "
+			<< GetWin32ErrMsg() << std::endl;
 	}
 
 	WaitForSingleObject(pi.hProcess, INFINITE);
 
-	// TODO(yum) retrieve exit code
+	// Close write ends of pipes. If we don't do this, the last read will block forever.
+	CloseHandle(stdout_write);
+	stdout_write = 0;
+	CloseHandle(stderr_write);
+	stderr_write = 0;
+
+	std::vector<char> buf(4096, 0);
+	DWORD bytes_read = 0;
+	while (ReadFile(stdout_read, buf.data(), buf.size(), &bytes_read, NULL) && bytes_read > 0) {
+		stdout_oss << std::string(buf.data(), bytes_read);
+	}
+	if (bytes_read < 0) {
+		stdout_oss << "Reading stdout failed: " << GetWin32ErrMsg();
+	}
+	bytes_read = 0;
+	while (ReadFile(stderr_read, buf.data(), buf.size(), &bytes_read, NULL) && bytes_read > 0) {
+		stderr_oss << std::string(buf.data(), bytes_read);
+	}
+	if (bytes_read < 0) {
+		stderr_oss << "Reading stderr failed: " << GetWin32ErrMsg();
+	}
 
 	*py_stdout = stdout_oss.str();
 	if (py_stderr) {
 		*py_stderr = stderr_oss.str();
 	}
-	return true;
+	return exit_code == 0;
 }
 
 bool PythonWrapper::InvokeWithArgs(std::vector<std::string>&& args,

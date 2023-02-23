@@ -247,7 +247,6 @@ void WhisperCPP::Start(const AppConfig& c) {
 		if (!InstallDependencies()) {
 			return;
 		}
-#if 1
 
 		std::filesystem::path model_path = "Resources/Models";
 		model_path /= c.whisper_model;
@@ -360,15 +359,6 @@ void WhisperCPP::Start(const AppConfig& c) {
 			Log(out_, "Capture failed: {}\n", hresultToString(err));
 			return;
 		}
-#else
-		while (run_) {
-			static int i = 0;
-			if (++i % 100 == 0) {
-				Log(out_, "Spin {}\n", i);
-			}
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
-		}
-#endif
 
 		Log(out_, "Exit transcription engine\n");
 	});
