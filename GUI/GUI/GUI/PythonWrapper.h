@@ -47,7 +47,7 @@ namespace PythonWrapper
 	std::string DumpMics();
 
 	// Execute get-pip.py.
-	bool InstallPip(std::string* out);
+	bool InstallPip(std::string* out, std::string* err = nullptr);
 
 	// TODO(yum) both StartApp and GenerateAnimator should be
 	// parameterized with config files instead of these ever-growing lists of

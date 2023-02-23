@@ -14,6 +14,7 @@
 #include <codecvt>
 #include <cwchar>
 #include <fstream>
+#include <future>
 #include <locale>
 #include <string>
 #include <vector>
@@ -60,9 +61,11 @@ namespace {
 };
 
 WhisperCPP::WhisperCPP(wxTextCtrl* out)
-	: out_(out), f_(nullptr), did_init_(false), proc_(nullptr), run_(false)
+	: out_(out), f_(nullptr), did_init_(false), proc_(), run_(false)
 {
-	Log(out_, "Setting concurrency to 2: {}\n", wxThread::SetConcurrency(2));
+	auto p = std::promise<void>();
+	proc_ = p.get_future();
+	p.set_value();
 }
 
 WhisperCPP::~WhisperCPP() {
@@ -135,32 +138,26 @@ bool WhisperCPP::OpenMic(const int idx, Whisper::iAudioCapture*& stream) {
 	return true;
 }
 
-bool WhisperCPP::InstallDependencies(wxProcess*& proc) {
+bool WhisperCPP::InstallDependencies() {
 	std::filesystem::path flag_file = "Resources/.whisper_deps_installed";
 	flag_file = flag_file.lexically_normal();
 
 	if (std::filesystem::exists(flag_file)) {
-		proc = nullptr;
 		return true;
 	}
 
-	auto cb = [&](wxProcess* proc, int ret) -> void {
-		Log(out_, "Dependency installation exited with code {}\n", ret);
-		if (ret == 0) {
-			Log(out_, "Dependency installation finished\n");
-		}
-		DrainAsyncOutput(proc, out_);
-		return;
-	};
-
-	proc = PythonWrapper::InvokeAsyncWithArgs({
+	std::string py_stdout, py_stderr;
+	bool ret = PythonWrapper::InvokeWithArgs({
 		"-u",  // Unbuffered output
 		"-m pip",
 		"install",
 		"-r Resources/Scripts/whisper_requirements.txt",
-		}, std::move(cb));
-	if (!proc) {
-		Log(out_, "Failed to launch installation thread!\n");
+		}, &py_stdout, &py_stderr);
+
+	Log(out_, py_stdout);
+	Log(out_, py_stderr);
+	if (!ret) {
+		Log(out_, "Failed to install dependencies!\n");
 		return false;
 	}
 
@@ -172,30 +169,25 @@ bool WhisperCPP::InstallDependencies(wxProcess*& proc) {
 }
 
 bool WhisperCPP::DownloadModel(const std::string& model_name,
-	const std::filesystem::path& fs_path, wxProcess*& proc) {
-	auto cb = [&](wxProcess* proc, int ret) -> void {
-		Log(out_, "Model download completed with code {}\n", ret);
-		if (ret == 0) {
-			Log(out_, "Model download finished\n");
-		}
-		DrainAsyncOutput(proc, out_);
-		return;
-	};
-
+	const std::filesystem::path& fs_path) {
 	std::ostringstream url_oss;
 	url_oss << "https://huggingface.co/datasets/ggerganov/whisper.cpp/resolve/main/";
 	url_oss << model_name;
 	Log(out_, "Model will be saved to {}\n", fs_path.lexically_normal().string());
-	proc = PythonWrapper::InvokeAsyncWithArgs({
+	std::string py_stdout, py_stderr;
+	bool ret = PythonWrapper::InvokeWithArgs({
 		"-u",  // Unbuffered output
 		"-m wget",
 		url_oss.str(),
 		"-o", fs_path.string(),
-		}, std::move(cb));
-	if (!proc) {
-		Log(out_, "Failed to launch download thread!\n");
+		}, &py_stdout, &py_stderr);
+	Log(out_, py_stdout);
+	Log(out_, py_stderr);
+	if (!ret) {
+		Log(out_, "Failed to download model!\n");
 		return false;
 	}
+
 	return true;
 }
 
@@ -229,29 +221,13 @@ bool WhisperCPP::CreateContext(Whisper::iModel* model, Whisper::iContext*& conte
 	return true;
 }
 
-WhisperCPP::AppThread::AppThread(
-	const std::function<void(AppThread* thd)>&& cb,
-	WhisperCPP* app)
-	: wxThread(wxTHREAD_DETACHED), cb_(cb), app_(app)
-{}
-WhisperCPP::AppThread::~AppThread()
-{
-	Log(app_->out_, "Destroy transcription thread\n");
-	app_->proc_ = nullptr;
-}
-
-void* WhisperCPP::AppThread::Entry() {
-	cb_(this);
-	return nullptr;
-}
-
 void WhisperCPP::Start(const AppConfig& c) {
-	if (proc_) {
+	if (!proc_.valid()) {
 		Log(out_, "Transcription engine already running\n");
 		return;
 	}
 
-	proc_ = new AppThread([&](AppThread* thd) {
+	proc_ = std::async(std::launch::async, [&]() -> void {
 		Log(out_, "Transcription thread top\n");
 		run_ = true;
 
@@ -261,28 +237,17 @@ void WhisperCPP::Start(const AppConfig& c) {
 		}
 		ScopeGuard mic_stream_cleanup([mic_stream]() { mic_stream->Release(); });
 
-		{
-			std::string output;
-			Log(out_, "Installing pip\n");
-			if (!PythonWrapper::InstallPip(&output)) {
-				Log(out_, "Failed to install pip: {}\n", output);
-			}
+		std::string pip_out, pip_err;
+		Log(out_, "Installing pip\n");
+		if (!PythonWrapper::InstallPip(&pip_out, &pip_err)) {
+			Log(out_, "Failed to install pip: {}\n", pip_err);
+			return;
 		}
-
-		{
-			Log(out_, "Installing Python dependencies\n");
-			wxProcess* proc = nullptr;
-			if (!InstallDependencies(proc)) {
-				return;
-			}
-			while (proc && proc->Exists(proc->GetPid())) {
-				if (!run_ || thd->TestDestroy()) {
-					proc->Kill(proc->GetPid(), wxSIGKILL);
-					return;
-				}
-				wxThread::Sleep(100);
-			}
+		Log(out_, "Installing Python dependencies\n");
+		if (!InstallDependencies()) {
+			return;
 		}
+#if 1
 
 		std::filesystem::path model_path = "Resources/Models";
 		model_path /= c.whisper_model;
@@ -291,18 +256,8 @@ void WhisperCPP::Start(const AppConfig& c) {
 		}
 		else {
 			Log(out_, "Downloading model {}\n", c.whisper_model);
-			wxProcess* proc = nullptr;
-			model_path = model_path.lexically_normal();
-			if (!DownloadModel(c.whisper_model, model_path, proc)) {
+			if (!DownloadModel(c.whisper_model, model_path)) {
 				return;
-			}
-			while (proc->Exists(proc->GetPid())) {
-				if (!run_ || thd->TestDestroy()) {
-					proc->Kill(proc->GetPid(), wxSIGKILL);
-					std::filesystem::remove(model_path);
-					return;
-				}
-				wxThread::Sleep(100);
 			}
 		}
 
@@ -349,22 +304,25 @@ void WhisperCPP::Start(const AppConfig& c) {
 				bool is_metadata = false;
 				for (int j = 0; j < seg.countTokens; j++) {
 					const sToken& tok = tokens[seg.firstToken + j];
-					if (tok.text[0] == '[') {
-						continue;
-					}
-					if (tok.text[0] == ' ' && (
-						tok.text[1] == '[' ||
-						tok.text[1] == '(')) {
-						if (tok.text[strlen(tok.text) - 1] == ']') {
+					std::string_view tok_str(tok.text);
+					if (tok_str.starts_with("[") ||
+						tok_str.starts_with(" [") ||
+						tok_str.starts_with(" (")) {
+						if (tok_str.ends_with("]") ||
+							tok_str.ends_with(")")) {
 							continue;
 						}
 						is_metadata = true;
 						continue;
 					}
-					if (is_metadata && (
-						tok.text[strlen(tok.text) - 1] == ']' ||
-						tok.text[strlen(tok.text) - 1] == ')')) {
-						is_metadata = false;
+					if (is_metadata) {
+						if (tok_str.ends_with("]") ||
+							tok_str.ends_with(")")) {
+							is_metadata = false;
+						}
+						continue;
+					}
+					if (tok_str.ends_with("BLANK_AUDIO")) {
 						continue;
 					}
 					Log(out, "{}", tok.text);
@@ -379,9 +337,10 @@ void WhisperCPP::Start(const AppConfig& c) {
 		wparams.new_segment_callback_user_data = out_;
 
 		sCaptureCallbacks callbacks{};
+
 		callbacks.shouldCancel = [](void* pv) noexcept -> HRESULT __stdcall {
 			WhisperCPP* app = static_cast<WhisperCPP*>(pv);
-			if (app->proc_->TestDestroy() || !app->run_) {
+			if (!app->run_) {
 				Log(app->out_, "Exit transcription loop\n");
 				return S_FALSE;
 			}
@@ -391,7 +350,6 @@ void WhisperCPP::Start(const AppConfig& c) {
 			if (++i % 20 == 0) {
 				Log(app->out_, "Spin {}\n", i);
 			}
-			wxThread::Sleep(10);
 			return S_OK;
 		};
 		callbacks.pv = this;
@@ -402,11 +360,18 @@ void WhisperCPP::Start(const AppConfig& c) {
 			Log(out_, "Capture failed: {}\n", hresultToString(err));
 			return;
 		}
+#else
+		while (run_) {
+			static int i = 0;
+			if (++i % 100 == 0) {
+				Log(out_, "Spin {}\n", i);
+			}
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		}
+#endif
 
 		Log(out_, "Exit transcription engine\n");
-	}, this);
-
-	proc_->Run();
+	});
 
 	Log(out_, "Success!\n");
 	return;
@@ -415,6 +380,8 @@ void WhisperCPP::Start(const AppConfig& c) {
 void WhisperCPP::Stop() {
 	Log(out_, "Stopping transcription engine...\n");
 	run_ = false;
+	proc_.wait();
+	Log(out_, "Done!\n");
 }
 
 bool WhisperCPP::GetMicsImpl(std::vector<sCaptureDevice>& mics) {

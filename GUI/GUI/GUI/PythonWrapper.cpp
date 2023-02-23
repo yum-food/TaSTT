@@ -1,10 +1,12 @@
 #include "Logging.h"
 #include "PythonWrapper.h"
+#include "ScopeGuard.h"
 #include "Util.h"
 
 #include "Config.h"
 
 #include <stdio.h>
+#include <Windows.h>
 
 #include <filesystem>
 #include <fstream>
@@ -60,58 +62,95 @@ bool PythonWrapper::InvokeCommandWithArgs(
 		cmd_oss << " " << arg;
 	}
 
-	wxString path;
-	if (!wxGetEnv("PATH", &path)) {
-		*py_stderr = "Failed to get PATH";
-		return false;
-	}
-	if (!wxSetEnv("PATH", path + ";Resources/PortableGit/bin")) {
-		*py_stderr = "Failed to append to PATH";
-		return false;
-	}
-
-	wxArrayString cmd_stdout;
-	wxArrayString cmd_stderr;
-	long result = wxExecute(cmd_oss.str(), cmd_stdout, cmd_stderr, /*flags=*/0);
-	std::ostringstream cmd_stdout_oss;
-	for (const auto& line : cmd_stdout) {
-		if (!cmd_stdout_oss.str().empty()) {
-			cmd_stdout_oss << std::endl;
-		}
-		cmd_stdout_oss << line;
-	}
-	std::ostringstream cmd_stderr_oss;
-	for (const auto& line : cmd_stderr) {
-		if (!cmd_stderr_oss.str().empty()) {
-			cmd_stderr_oss << std::endl;
-		}
-		cmd_stderr_oss << line;
-	}
-	if (result == -1) {
-		std::ostringstream err_oss;
-		err_oss << "Error while executing python command \"" << cmd_oss.str() << "\": Failed to launch process" << std::endl;
-		err_oss << cmd_stdout_oss.str() << std::endl;
-		err_oss << cmd_stderr_oss.str() << std::endl;
-		if (py_stderr) {
-			*py_stderr = err_oss.str();
-		}
-		return false;
-	} else if (result) {
+	HANDLE stdout_read{};
+	HANDLE stdout_write{};
+	SECURITY_ATTRIBUTES sec_attr{};
+	sec_attr.nLength = sizeof(sec_attr);
+	sec_attr.bInheritHandle = TRUE;
+	if (!CreatePipe(&stdout_read, &stdout_write, &sec_attr, 0)) {
 		if (py_stderr) {
 			std::ostringstream err_oss;
-			err_oss << "Error while executing python command \"" << cmd_oss.str() <<
-				"\"" << std::endl <<
-				"Process returned " << result << ": " << std::endl <<
-				cmd_stdout_oss.str() << std::endl <<
-				cmd_stderr_oss.str() << std::endl;
+			err_oss << "Error while executing python command \"" << cmd_oss.str()
+				<< "\": Failed to create stdout pipe" << std::endl;
 			*py_stderr = err_oss.str();
 		}
 		return false;
 	}
+	ScopeGuard stdout_cleanup([&]() {
+		CloseHandle(stdout_read);
+		CloseHandle(stdout_write);
+		});
 
-	*py_stdout = cmd_stdout_oss.str();
+	HANDLE stderr_read{};
+	HANDLE stderr_write{};
+	if (!CreatePipe(&stderr_read, &stderr_write, &sec_attr, 0)) {
+		if (py_stderr) {
+			std::ostringstream err_oss;
+			err_oss << "Error while executing python command \"" << cmd_oss.str()
+				<< "\": Failed to create stderr pipe" << std::endl;
+			*py_stderr = err_oss.str();
+		}
+		return false;
+	}
+	ScopeGuard stderr_cleanup([&]() {
+		CloseHandle(stderr_read);
+		CloseHandle(stderr_write);
+		});
+
+	STARTUPINFOA si{};
+	si.cb = sizeof(si);
+	si.hStdOutput = stdout_write;
+	si.hStdError = stderr_write;
+	PROCESS_INFORMATION pi{};
+	std::string path = "Resources/PortableGit/bin";
+	std::string env = "PATH=" + path;
+	//std::string env;
+
+	//std::string tmp_cmd = "Get-ChildItem";
+
+	std::string cmd_str = cmd_oss.str();
+	if (!CreateProcessA(NULL,  // application name
+		cmd_str.data(),
+		//tmp_cmd.data(),
+		NULL,  // process attributes
+		NULL,  // thread attributes
+		FALSE,  // whether to inherit parent's handles
+		0,  // creation flags
+		env.data(),
+		NULL,  // current directory (use parent's)
+		&si,
+		&pi)) {
+		if (py_stderr) {
+			std::ostringstream err_oss;
+			err_oss << "Error while executing python command \"" << cmd_oss.str()
+				<< "\": Failed to launch process" << std::endl;
+			*py_stderr = err_oss.str();
+		}
+		return false;
+	}
+	ScopeGuard pi_cleanup([&] {
+		CloseHandle(pi.hProcess);
+		CloseHandle(pi.hThread);
+		});
+
+	std::ostringstream stdout_oss, stderr_oss;
+	std::vector<char> buf(4096, 0);
+	DWORD bytes_read = 0;
+	while (ReadFile(si.hStdOutput, buf.data(), buf.size(), &bytes_read, NULL) && bytes_read > 0) {
+		stdout_oss << std::string(buf.data(), bytes_read);
+	}
+	bytes_read = 0;
+	while (ReadFile(si.hStdError, buf.data(), buf.size(), &bytes_read, NULL) && bytes_read > 0) {
+		stderr_oss << std::string(buf.data(), bytes_read);
+	}
+
+	WaitForSingleObject(pi.hProcess, INFINITE);
+
+	// TODO(yum) retrieve exit code
+
+	*py_stdout = stdout_oss.str();
 	if (py_stderr) {
-		*py_stderr = cmd_stderr_oss.str();
+		*py_stderr = stderr_oss.str();
 	}
 	return true;
 }
@@ -165,7 +204,7 @@ std::string PythonWrapper::DumpMics() {
 	return py_stdout;
 }
 
-bool PythonWrapper::InstallPip(std::string* out) {
+bool PythonWrapper::InstallPip(std::string* out, std::string* err) {
 	std::string result;
 
 	std::filesystem::path pip_flag = "Resources/Python/.pip_installed";
@@ -174,7 +213,7 @@ bool PythonWrapper::InstallPip(std::string* out) {
 	}
 
 	std::string pip_path = "Resources/Python/get-pip.py";
-	if (!InvokeWithArgs({ pip_path }, out)) {
+	if (!InvokeWithArgs({ pip_path }, out, err)) {
 		return false;
 	}
 

@@ -1991,6 +1991,7 @@ void Frame::OnWhisperStop(wxCommandEvent& event) {
 void Frame::OnAppDrain(wxTimerEvent& event) {
 	DrainAsyncOutput(py_app_, transcribe_out_);
 	DrainAsyncOutput(env_proc_, transcribe_out_);
+    Logging::kThreadLogger.Drain();
 }
 
 void Frame::LoadAndSetIcons() {

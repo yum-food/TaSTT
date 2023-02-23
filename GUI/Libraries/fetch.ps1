@@ -12,6 +12,15 @@ $WHISPER_1_7_0_URL = "https://github.com/Const-me/Whisper/releases/download/1.7.
 $WHISPER_URL = $WHISPER_1_7_0_URL
 $WHISPER_FILE = $(Split-Path -Path $WHISPER_URL -Leaf)
 
+$OATPP_1_3_0_URL = "https://github.com/oatpp/oatpp/archive/refs/tags/1.3.0.zip"
+$OATPP_URL = $OATPP_1_3_0_URL
+$OATPP_FILE = $(Split-Path -Path $OATPP_URL -Leaf)
+$OATPP_VER = $OATPP_FILE -replace '\.[a-z\.]*$'
+$OATPP_DIR = "oatpp-$OATPP_VER"
+
+$NPROC = $(Get-CimInstance Win32_Processor).NumberOfCores
+echo "nproc: $NPROC"
+
 pushd $PSScriptRoot
 
 # WX
@@ -58,6 +67,28 @@ if (-Not (Test-Path whisper)) {
   cp Include/*.h ../../GUI/GUI/whisper/
   cp Linker/*.lib ../../GUI/GUI/whisper/Whisper.lib
   cp Binary/*.dll ../../GUI/GUI/whisper/Whisper.dll
+  popd > $null
+}
+
+if ((Test-Path oatpp) -And ($overwrite)) {
+  rm -Recurse oatpp
+}
+
+if (-Not (Test-Path oatpp)) {
+  mkdir oatpp
+  pushd oatpp > $null
+  Invoke-WebRequest $OATPP_URL -OutFile $OATPP_FILE
+  Expand-Archive $OATPP_FILE -DestinationPath .
+  if (Test-Path ../../GUI/GUI/oatpp/) {
+    rm -Recurse ../../GUI/GUI/oatpp/
+  }
+  mkdir ../../GUI/GUI/oatpp/
+  pushd $OATPP_DIR > $null
+  mkdir build
+  pushd build > $null
+  cmake.exe .. -DCMAKE_BUILD_TYPE=Release -DOATPP_BUILD_TESTS=OFF
+  cmake.exe --build . -j $NPROC --config Release
+  popd > $null
   popd > $null
 }
 

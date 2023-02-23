@@ -1,6 +1,6 @@
 ## Build instructions
 
-0. Install build dependencies: git, python3, Visual Studio 2022
+0. Install build dependencies: cmake, git, python3, Visual Studio 2022
 1. Open Powershell.
 2. Make sure you've downloaded submodules:
 ```

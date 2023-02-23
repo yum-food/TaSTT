@@ -78,7 +78,7 @@ AppConfig::AppConfig()
 	use_cpu(false),
 	use_builtin(false),
 
-	chars_per_sync(20),
+	chars_per_sync(8),
 	bytes_per_char(1),
 	rows(4),
 	cols(48),

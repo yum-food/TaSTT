@@ -16,30 +16,23 @@
 #include <string_view>
 
 namespace Logging {
-
-#if 0
-	class Log {
-	public:
-		static Log& Get() {
-			static Log l;
-			return l;
-		}
-
-		bool Write(const std::string& text);
-
-	private:
-		Log() {}
-
-		bool Open(const std::string& path);
-
-		int fd_;
-	};
-#endif
-
 	// Remove personally identifying information (PII) from str.
 	//
 	// For example, this translates "C:/Users/foo/Desktop" to "C:/Users/*****/Desktop".
 	std::string HidePII(const std::string&& str, const std::string& replacement = "*****");
+
+	class ThreadLogger {
+	public:
+		ThreadLogger();
+
+		void Append(wxTextCtrl* frame, const std::string&& message);
+		void Drain();
+	private:
+		std::mutex mu_;
+		std::unordered_map<wxTextCtrl*, std::list<std::string>> messages_;
+	};
+
+	extern ThreadLogger kThreadLogger;
 
 	// Provides a simple Python format()-like interface to wxTextCtrl.
 	// Ex: Log(my_textctrl_, "{}\n", "Hello, world!");
@@ -47,28 +40,10 @@ namespace Logging {
 	void Log(wxTextCtrl* frame, std::string_view format, Args&&... args) {
 		const std::string raw = std::vformat(format, std::make_format_args(args...));
 		const std::string masked = HidePII(std::move(raw));
-		frame->AppendText(masked);
-		// Limit log to 10 MB to avoid runaway memory usage.
-		const int max_frame_len_bytes = 10 * 1000 * 1000;
-		if (frame->GetLastPosition() > max_frame_len_bytes) {
-			frame->Remove(0, frame->GetLastPosition() - max_frame_len_bytes);
-		}
+
+		kThreadLogger.Append(frame, std::move(masked));
 	}
 
-	inline void DrainAsyncOutput(wxProcess* proc, wxTextCtrl* frame) {
-		if (!proc) {
-			return;
-		}
-
-		while (proc->IsInputAvailable()) {
-			wxTextInputStream iss(*(proc->GetInputStream()));
-			Log(frame, "  {}\n", iss.ReadLine());
-		}
-
-		while (proc->IsErrorAvailable()) {
-			wxTextInputStream iss(*(proc->GetErrorStream()));
-			Log(frame, "  {}\n", iss.ReadLine());
-		}
-	}
+	void DrainAsyncOutput(wxProcess* proc, wxTextCtrl* frame);
 }
 
