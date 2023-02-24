@@ -1,6 +1,10 @@
 param(
-  [switch]$skip_zip = $false
+  [switch]$skip_zip = $false,
+  [string]$release = "Release"
 )
+
+echo "Skip zip: $skip_zip"
+echo "Release: $release"
 
 $install_dir = "TaSTT"
 
@@ -80,7 +84,7 @@ cp -Recurse ../Scripts TaSTT/Resources/Scripts
 cp -Recurse ../Shaders TaSTT/Resources/Shaders
 cp -Recurse ../Sounds TaSTT/Resources/Sounds
 cp -Recurse ../UnityAssets TaSTT/Resources/UnityAssets
-cp GUI/x64/Release/GUI.exe TaSTT/TaSTT.exe
+cp GUI/x64/$release/GUI.exe TaSTT/TaSTT.exe
 cp GUI/GUI/Whisper/Whisper.dll TaSTT/Whisper.dll
 mkdir TaSTT/Resources/Models
 #cp $WHISPER_CHECKPOINT_FILE TaSTT/Resources/Models/

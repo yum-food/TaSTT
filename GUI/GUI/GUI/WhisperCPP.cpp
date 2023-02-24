@@ -27,8 +27,11 @@ using ::Logging::Log;
 namespace {
 	std::string wcharToAsciiString(const wchar_t* wc_str) {
 		int len = wcslen(wc_str);
-		std::string result(len, 0);
+		if (len == 0) {
+			return "";
+		}
 
+		std::string result(len, 0);
 		size_t len_out;
 		wcstombs_s(&len_out, result.data(), len, wc_str, _TRUNCATE);
 
@@ -234,6 +237,8 @@ bool WhisperCPP::CreateContext(Whisper::iModel* model, Whisper::iContext*& conte
 }
 
 void WhisperCPP::Start(const AppConfig& c) {
+    Init();
+
 	if (!transcription_thd_.valid()) {
 		Log(out_, "Transcription engine already running\n");
 		return;
@@ -312,6 +317,11 @@ void WhisperCPP::Start(const AppConfig& c) {
 				return S_OK;
 			}
 
+			static const std::vector<std::string> banned_words{
+				" [BLANK_AUDIO]",
+				" [SOUND]",
+			};
+
 			const sSegment* const segments = results->getSegments();
 			const sToken* const tokens = results->getTokens();
 			const int s0 = length.countSegments - n_new;
@@ -321,6 +331,19 @@ void WhisperCPP::Start(const AppConfig& c) {
 				for (int j = 0; j < seg.countTokens; j++) {
 					const sToken& tok = tokens[seg.firstToken + j];
 					std::string_view tok_str(tok.text);
+					if (tok_str.starts_with("[") ||
+						tok_str.starts_with(" [")) {
+						if (tok_str.ends_with("]")) {
+							continue;
+						}
+					}
+					std::vector<std::string>::const_iterator word_iter =
+						std::find(banned_words.cbegin(), banned_words.cend(),
+							tok_str);
+					if (word_iter != banned_words.end()) {
+						continue;
+					}
+#if 0
 					if (tok_str.starts_with("[") ||
 						tok_str.starts_with(" [") ||
 						tok_str.starts_with(" (")) {
@@ -341,6 +364,7 @@ void WhisperCPP::Start(const AppConfig& c) {
 					if (tok_str.ends_with("BLANK_AUDIO")) {
 						continue;
 					}
+#endif
 					Log(out, "{}", tok.text);
 				}
 			}

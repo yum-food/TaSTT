@@ -34,7 +34,7 @@ class AppDto : public oatpp::DTO
 class AppController : public oatpp::web::server::api::ApiController
 {
 public:
-    AppController(OATPP_COMPONENT(std::shared_ptr<ObjectMapper>, objectMapper))
+    AppController(std::shared_ptr<ObjectMapper> objectMapper)
         : oatpp::web::server::api::ApiController(objectMapper)
     {}
 public:
@@ -48,36 +48,6 @@ public:
 };
 
 #include OATPP_CODEGEN_END(ApiController)
-
-class AppComponent
-{
-public:
-    AppComponent(uint16_t port) : port_(port) {}
-
-    // TODO(yum) make port configurable. oatpp examples show how to use a port
-    // that's available at boot time. Plumbing this with port_ or port causes
-    // oatpp to use a different port every time, which I think is caused by port_
-    // being uninitialized.
-	OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, serverConnectionProvider)([] {
-        return oatpp::network::tcp::server::ConnectionProvider::createShared({ "0.0.0.0", 9517, oatpp::network::Address::IP_4 });
-        }());
-
-    OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, httpRouter)([] {
-        return oatpp::web::server::HttpRouter::createShared();
-        }());
-
-    OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, serverConnectionHandler)([] {
-        OATPP_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, router); // get Router component
-    return oatpp::web::server::HttpConnectionHandler::createShared(router);
-        }());
-
-    OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, apiObjectMapper)([] {
-        return oatpp::parser::json::mapping::ObjectMapper::createShared();
-        }());
-
-private:
-    const uint16_t port_;
-};
 
 class BrowserSource
 {

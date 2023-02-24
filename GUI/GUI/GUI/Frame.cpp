@@ -952,12 +952,10 @@ Frame::Frame()
                         "but are far more accurate.");
                     whisper_window_duration_ = whisper_window_duration;
 
-                    // TODO(yum) make this mutable once we figure out how to
-                    // get oatpp to accept a runtime src port.
                     auto* whisper_browser_src_port = new wxTextCtrl(
                         whisper_config_panel_pairs, ID_WHISPER_BROWSER_SRC_PORT,
                         std::to_string(app_c_.browser_src_port), wxDefaultPosition,
-                        wxDefaultSize, wxTE_READONLY);
+                        wxDefaultSize, /*style=*/0);
                     whisper_browser_src_port->SetToolTip(
                         "This is the port that the browser source is hosted "
                         "on. If you aren't using TaSTT to stream, you can "
@@ -1340,15 +1338,16 @@ void Frame::ApplyConfigToInputFields()
 
 void Frame::PopulateDynamicInputFields()
 {
-    whisper_->Init();
-    std::vector<std::string> mics;
-    if (whisper_->GetMics(mics)) {
-		std::vector<wxString> contents(mics.size());
-        auto* whisper_mic = static_cast<wxChoice*>(FindWindowById(ID_WHISPER_MIC));
-        for (int i = 0; i < std::min(mics.size(), kNumWhisperMicChoices); i++) {
-            contents[i] = mics[i];
+    if (whisper_->Init()) {
+        std::vector<std::string> mics;
+        if (whisper_->GetMics(mics)) {
+            std::vector<wxString> contents(mics.size());
+            auto* whisper_mic = static_cast<wxChoice*>(FindWindowById(ID_WHISPER_MIC));
+            for (int i = 0; i < std::min(mics.size(), kNumWhisperMicChoices); i++) {
+                contents[i] = mics[i];
+            }
+            whisper_mic->Set(contents);
         }
-        whisper_mic->Set(contents);
     }
 }
 
@@ -1362,6 +1361,7 @@ void Frame::OnNavbarTranscribe(wxCommandEvent& event)
 {
     // Initialize input fields using AppConfig.
     ApplyConfigToInputFields();
+    PopulateDynamicInputFields();
 
     transcribe_panel_->Hide();
     unity_panel_->Hide();
@@ -1377,6 +1377,7 @@ void Frame::OnNavbarUnity(wxCommandEvent& event)
 {
     // Initialize input fields using AppConfig.
     ApplyConfigToInputFields();
+    PopulateDynamicInputFields();
 
     transcribe_panel_->Hide();
     unity_panel_->Hide();
@@ -1392,6 +1393,7 @@ void Frame::OnNavbarDebug(wxCommandEvent& event)
 {
     // Initialize input fields using AppConfig.
     ApplyConfigToInputFields();
+    PopulateDynamicInputFields();
 
     transcribe_panel_->Hide();
     unity_panel_->Hide();
@@ -1407,6 +1409,7 @@ void Frame::OnNavbarWhisper(wxCommandEvent& event)
 {
     // Initialize input fields using AppConfig.
     ApplyConfigToInputFields();
+    PopulateDynamicInputFields();
 
     transcribe_panel_->Hide();
     unity_panel_->Hide();
@@ -1415,8 +1418,6 @@ void Frame::OnNavbarWhisper(wxCommandEvent& event)
     Resize();
 
     whisper_panel_->Show();
-
-    whisper_->Init();
 
     Resize();
 }
