@@ -157,6 +157,7 @@
     <ClCompile Include="Logging.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PythonWrapper.cpp" />
+    <ClCompile Include="Transcript.cpp" />
     <ClCompile Include="WhisperCPP.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -169,6 +170,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="ryml.h" />
     <ClInclude Include="ScopeGuard.h" />
+    <ClInclude Include="Transcript.h" />
     <ClInclude Include="Util.h" />
     <ClInclude Include="WhisperCPP.h" />
   </ItemGroup>

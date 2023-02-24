@@ -3,10 +3,22 @@
   <head>
     <title>TaSTT</title>
     <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Noto+Sans+Mono&display=swap">
   </head>
+  <style>
+    body {
+      font-family: 'Noto Sans Mono', monospace;
+      font-size: 48px;
+      font-weight: 700;
+    }
+  </style>
   <body>
     <div id="transcript"></div>
     <script>
+      function scrollToBottom() {
+                  window.scrollTo(0,document.body.scrollHeight);
+                }
       function getTranscript() {
         $.ajax({
                 // TODO(yum) parameterize the port
@@ -21,6 +33,7 @@
                         console.error('Error getting transcript: ', textStatus, errorThrown);
                 }
         });
+        scrollToBottom();
       }
       setInterval(getTranscript, /*interval_ms=*/100);
     </script>

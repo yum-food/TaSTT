@@ -238,6 +238,7 @@ bool WhisperCPP::CreateContext(Whisper::iModel* model, Whisper::iContext*& conte
 
 void WhisperCPP::Start(const AppConfig& c) {
     Init();
+	transcript_.Clear();
 
 	if (!transcription_thd_.valid()) {
 		Log(out_, "Transcription engine already running\n");
@@ -301,11 +302,11 @@ void WhisperCPP::Start(const AppConfig& c) {
 		wparams.n_max_text_ctx = 100;
 
 		wparams.new_segment_callback = [](iContext* context, uint32_t n_new, void* user_data) noexcept -> HRESULT {
-			wxTextCtrl* out = static_cast<wxTextCtrl*>(user_data);
+			WhisperCPP* app = static_cast<WhisperCPP*>(user_data);
 			iTranscribeResult* results = nullptr;
 			HRESULT err = context->getResults(eResultFlags::Timestamps | eResultFlags::Tokens, &results);
 			if (FAILED(err)) {
-				Log(out, "Failed to get transcription: {}\n", hresultToString(err));
+				Log(app->out_, "Failed to get transcription: {}\n", hresultToString(err));
 				return S_OK;
 			}
 			ScopeGuard results_cleanup([results]() { results->Release(); });
@@ -313,7 +314,7 @@ void WhisperCPP::Start(const AppConfig& c) {
 			sTranscribeLength length;
 			err = results->getSize(length);
 			if (FAILED(err)) {
-				Log(out, "Failed to get transcription size: {}\n", hresultToString(err));
+				Log(app->out_, "Failed to get transcription size: {}\n", hresultToString(err));
 				return S_OK;
 			}
 
@@ -366,16 +367,17 @@ void WhisperCPP::Start(const AppConfig& c) {
 						continue;
 					}
 #endif
-					Log(out, "{}", tok.text);
+					Log(app->out_, "{}", tok.text);
+					app->transcript_.Append(tok.text);
 				}
 			}
 			if (n_new) {
-				Log(out, "\n");
+				Log(app->out_, "\n");
 			}
 
 			return S_OK;
 		};
-		wparams.new_segment_callback_user_data = out_;
+		wparams.new_segment_callback_user_data = this;
 
 		sCaptureCallbacks callbacks{};
 
@@ -418,7 +420,7 @@ void WhisperCPP::StartBrowserSource(const AppConfig& c) {
 
 	browser_src_thd_ = std::async(std::launch::async, [&]() -> void {
 		run_browser_src_ = true;
-		BrowserSource src(c.browser_src_port, out_);
+		BrowserSource src(c.browser_src_port, out_, &transcript_);
 		src.Run(&run_browser_src_);
 		Log(out_, "Browser source thread exit\n");
 	});

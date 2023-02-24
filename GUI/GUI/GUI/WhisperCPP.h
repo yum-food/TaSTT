@@ -13,6 +13,7 @@
 #include "whisper/whisperWindows.h"
 
 #include "Config.h"
+#include "Transcript.h"
 
 #include <filesystem>
 #include <functional>
@@ -52,4 +53,6 @@ private:
 
 	std::future<void> browser_src_thd_;
 	volatile bool run_browser_src_;
+
+	Transcript transcript_;
 };

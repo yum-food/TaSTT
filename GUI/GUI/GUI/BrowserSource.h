@@ -15,6 +15,8 @@
 #include "oatpp/web/server/HttpConnectionHandler.hpp"
 #include "oatpp/web/protocol/http/incoming/Request.hpp"
 
+#include "Transcript.h"
+
 #include <stdint.h>
 
 #include <filesystem>
@@ -37,15 +39,20 @@ class AppDto : public oatpp::DTO
 class AppController : public oatpp::web::server::api::ApiController
 {
 public:
-    AppController(std::shared_ptr<ObjectMapper> objectMapper)
-        : oatpp::web::server::api::ApiController(objectMapper)
+    AppController(std::shared_ptr<ObjectMapper> objectMapper, Transcript* transcript)
+        : oatpp::web::server::api::ApiController(objectMapper), transcript_(transcript)
     {}
-public:
 
     ENDPOINT("GET", "/api/transcript", transcription) {
         auto dto = AppDto::createShared();
         dto->statusCode = 200;
-        dto->transcript = "Hello World!";
+
+        std::ostringstream oss;
+        std::vector<std::string> segments = transcript_->Get();
+        for (const auto& seg : segments) {
+            oss << seg;
+        }
+        dto->transcript = oss.str();
 
         return createDtoResponse(Status::CODE_200, dto);
     }
@@ -57,6 +64,9 @@ public:
         html_ifs.read(resp.data(), resp.size());
         return createResponse(Status::CODE_200, resp.data());
     }
+
+private:
+    Transcript* const transcript_;
 };
 
 #include OATPP_CODEGEN_END(ApiController)
@@ -64,12 +74,13 @@ public:
 class BrowserSource
 {
 public:
-	BrowserSource(uint16_t port, wxTextCtrl *out);
+	BrowserSource(uint16_t port, wxTextCtrl *out, Transcript *transcript);
 
     void Run(volatile bool* run);
 
 private:
 	const uint16_t port_;
     wxTextCtrl* const out_;
+    Transcript* const transcript_;
 };
 

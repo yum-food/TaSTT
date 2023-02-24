@@ -6,8 +6,8 @@
 
 using ::Logging::Log;
 
-BrowserSource::BrowserSource(uint16_t port, wxTextCtrl *out)
-	: port_(port), out_(out)
+BrowserSource::BrowserSource(uint16_t port, wxTextCtrl *out, Transcript *transcript)
+	: port_(port), out_(out), transcript_(transcript)
 {}
 
 void BrowserSource::Run(volatile bool* run)
@@ -37,7 +37,7 @@ void BrowserSource::Run(volatile bool* run)
     OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, httpRouter)([] {
         return oatpp::web::server::HttpRouter::createShared();
 	}());
-	httpRouter.getObject()->addController(std::make_shared<AppController>(apiObjectMapper.getObject()));
+	httpRouter.getObject()->addController(std::make_shared<AppController>(apiObjectMapper.getObject(), transcript_));
 
     OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, serverConnectionHandler)([&] {
 		return oatpp::web::server::HttpConnectionHandler::createShared(httpRouter.getObject());
