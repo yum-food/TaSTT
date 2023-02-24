@@ -17,6 +17,9 @@
 
 #include <stdint.h>
 
+#include <filesystem>
+#include <fstream>
+
 #include OATPP_CODEGEN_BEGIN(DTO)
 
 class AppDto : public oatpp::DTO
@@ -24,7 +27,7 @@ class AppDto : public oatpp::DTO
     DTO_INIT(AppDto, DTO)
 
 	DTO_FIELD(Int32, statusCode);
-    DTO_FIELD(String, message);
+    DTO_FIELD(String, transcript);
 };
 
 #include OATPP_CODEGEN_END(DTO)
@@ -39,11 +42,20 @@ public:
     {}
 public:
 
-    ENDPOINT("GET", "/", root) {
+    ENDPOINT("GET", "/api/transcript", transcription) {
         auto dto = AppDto::createShared();
         dto->statusCode = 200;
-        dto->message = "Hello World!";
+        dto->transcript = "Hello World!";
+
         return createDtoResponse(Status::CODE_200, dto);
+    }
+
+    ENDPOINT("GET", "/", root) {
+        auto html_path = std::filesystem::path("Resources/BrowserSource/index.html");
+        std::ifstream html_ifs(html_path);
+        std::vector<char> resp(4096 * 16, 0);
+        html_ifs.read(resp.data(), resp.size());
+        return createResponse(Status::CODE_200, resp.data());
     }
 };
 
@@ -60,3 +72,4 @@ private:
 	const uint16_t port_;
     wxTextCtrl* const out_;
 };
+

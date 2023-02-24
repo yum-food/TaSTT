@@ -320,6 +320,7 @@ void WhisperCPP::Start(const AppConfig& c) {
 			static const std::vector<std::string> banned_words{
 				" [BLANK_AUDIO]",
 				" [SOUND]",
+				" [ Silence ]",
 			};
 
 			const sSegment* const segments = results->getSegments();

@@ -84,6 +84,7 @@ cp -Recurse ../Scripts TaSTT/Resources/Scripts
 cp -Recurse ../Shaders TaSTT/Resources/Shaders
 cp -Recurse ../Sounds TaSTT/Resources/Sounds
 cp -Recurse ../UnityAssets TaSTT/Resources/UnityAssets
+cp -Recurse ../BrowserSource TaSTT/Resources/BrowserSource
 cp GUI/x64/$release/GUI.exe TaSTT/TaSTT.exe
 cp GUI/GUI/Whisper/Whisper.dll TaSTT/Whisper.dll
 mkdir TaSTT/Resources/Models
