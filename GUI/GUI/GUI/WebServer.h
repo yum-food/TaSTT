@@ -9,8 +9,11 @@
 #include <stdint.h>
 
 #include <functional>
+#include <future>
 #include <map>
+#include <mutex>
 #include <string>
+#include <vector>
 
 #include "Logging.h"
 #include "WebCommon.h"
@@ -45,6 +48,8 @@ namespace WebServer {
 
 		wxTextCtrl* const out_;
 		const uint16_t port_;
+
+		std::vector<std::future<void>> connections_;
 	};
 }
 

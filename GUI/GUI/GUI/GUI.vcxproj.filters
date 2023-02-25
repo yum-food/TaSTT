@@ -51,6 +51,9 @@
     <ClCompile Include="HTTPMapper.cpp">
       <Filter>WebServer</Filter>
     </ClCompile>
+    <ClCompile Include="HTTPParser.cpp">
+      <Filter>WebServer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PythonWrapper.h">
@@ -96,6 +99,9 @@
       <Filter>WebServer</Filter>
     </ClInclude>
     <ClInclude Include="HTTPMapper.h">
+      <Filter>WebServer</Filter>
+    </ClInclude>
+    <ClInclude Include="HTTPParser.h">
       <Filter>WebServer</Filter>
     </ClInclude>
   </ItemGroup>
