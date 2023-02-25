@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="WebServer">
+      <UniqueIdentifier>{a0953f26-cbc5-43b7-86c6-2d4b1030b13f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -41,6 +44,12 @@
     </ClCompile>
     <ClCompile Include="Transcript.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WebServer.cpp">
+      <Filter>WebServer</Filter>
+    </ClCompile>
+    <ClCompile Include="HTTPMapper.cpp">
+      <Filter>WebServer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -79,6 +88,15 @@
     </ClInclude>
     <ClInclude Include="Transcript.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WebCommon.h">
+      <Filter>WebServer</Filter>
+    </ClInclude>
+    <ClInclude Include="WebServer.h">
+      <Filter>WebServer</Filter>
+    </ClInclude>
+    <ClInclude Include="HTTPMapper.h">
+      <Filter>WebServer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -89,7 +89,7 @@ AppConfig::AppConfig()
 	menu_path(),
 	clear_osc(false),
 
-	whisper_model("ggml-base.en.bin"),
+	whisper_model("ggml-medium.bin"),
 	whisper_mic(0),
 
 	browser_src_port(9517),

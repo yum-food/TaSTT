@@ -127,7 +127,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;comdlg32.lib;winspool.lib;shell32.lib;shlwapi.lib;ole32.lib;oleaut32.lib;uuid.lib;advapi32.lib;version.lib;comctl32.lib;rpcrt4.lib;ws2_32.lib;wininet.lib;winmm.lib;Whisper.lib;oatpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;comdlg32.lib;winspool.lib;shell32.lib;shlwapi.lib;ole32.lib;oleaut32.lib;uuid.lib;advapi32.lib;version.lib;comctl32.lib;rpcrt4.lib;ws2_32.lib;wininet.lib;winmm.lib;Whisper.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -146,7 +146,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;comdlg32.lib;winspool.lib;shell32.lib;shlwapi.lib;ole32.lib;oleaut32.lib;uuid.lib;advapi32.lib;version.lib;comctl32.lib;rpcrt4.lib;ws2_32.lib;wininet.lib;winmm.lib;Whisper.lib;oatpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;comdlg32.lib;winspool.lib;shell32.lib;shlwapi.lib;ole32.lib;oleaut32.lib;uuid.lib;advapi32.lib;version.lib;comctl32.lib;rpcrt4.lib;ws2_32.lib;wininet.lib;winmm.lib;Whisper.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -154,10 +154,12 @@
     <ClCompile Include="BrowserSource.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="Frame.cpp" />
+    <ClCompile Include="HTTPMapper.cpp" />
     <ClCompile Include="Logging.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PythonWrapper.cpp" />
     <ClCompile Include="Transcript.cpp" />
+    <ClCompile Include="WebServer.cpp" />
     <ClCompile Include="WhisperCPP.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -165,6 +167,7 @@
     <ClInclude Include="BrowserSource.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="Frame.h" />
+    <ClInclude Include="HTTPMapper.h" />
     <ClInclude Include="Logging.h" />
     <ClInclude Include="PythonWrapper.h" />
     <ClInclude Include="resource.h" />
@@ -172,6 +175,8 @@
     <ClInclude Include="ScopeGuard.h" />
     <ClInclude Include="Transcript.h" />
     <ClInclude Include="Util.h" />
+    <ClInclude Include="WebCommon.h" />
+    <ClInclude Include="WebServer.h" />
     <ClInclude Include="WhisperCPP.h" />
   </ItemGroup>
   <ItemGroup>

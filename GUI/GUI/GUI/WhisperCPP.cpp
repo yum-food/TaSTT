@@ -31,7 +31,7 @@ namespace {
 			return "";
 		}
 
-		std::string result(len, 0);
+		std::string result(len + 1, 0);
 		size_t len_out;
 		wcstombs_s(&len_out, result.data(), len, wc_str, _TRUNCATE);
 
@@ -296,7 +296,7 @@ void WhisperCPP::Start(const AppConfig& c) {
 		ScopeGuard context_cleanup([context]() { context->Release(); });
 
 		Whisper::sFullParams wparams{};
-		context->fullDefaultParams(eSamplingStrategy::BeamSearch, &wparams);
+		context->fullDefaultParams(eSamplingStrategy::Greedy, &wparams);
 		wparams.language = Whisper::makeLanguageKey("en");  // TODO(yum) use config
 		// This must be set to keep memory usage from growing without bound.
 		wparams.n_max_text_ctx = 100;
@@ -318,10 +318,10 @@ void WhisperCPP::Start(const AppConfig& c) {
 				return S_OK;
 			}
 
+			// Scanning a vector is faster than using a hashtable up to ~1k
+			// entries (source: I heard it from someone once).
 			static const std::vector<std::string> banned_words{
-				" [BLANK_AUDIO]",
-				" [SOUND]",
-				" [ Silence ]",
+				" -",
 			};
 
 			const sSegment* const segments = results->getSegments();
@@ -335,26 +335,7 @@ void WhisperCPP::Start(const AppConfig& c) {
 					std::string_view tok_str(tok.text);
 					if (tok_str.starts_with("[") ||
 						tok_str.starts_with(" [")) {
-						if (tok_str.ends_with("]")) {
-							continue;
-						}
-					}
-					std::vector<std::string>::const_iterator word_iter =
-						std::find(banned_words.cbegin(), banned_words.cend(),
-							tok_str);
-					if (word_iter != banned_words.end()) {
-						continue;
-					}
-#if 0
-					if (tok_str.starts_with("[") ||
-						tok_str.starts_with(" [") ||
-						tok_str.starts_with(" (")) {
-						if (tok_str.ends_with("]") ||
-							tok_str.ends_with(")")) {
-							continue;
-						}
 						is_metadata = true;
-						continue;
 					}
 					if (is_metadata) {
 						if (tok_str.ends_with("]") ||
@@ -363,10 +344,12 @@ void WhisperCPP::Start(const AppConfig& c) {
 						}
 						continue;
 					}
-					if (tok_str.ends_with("BLANK_AUDIO")) {
+					std::vector<std::string>::const_iterator word_iter =
+						std::find(banned_words.cbegin(), banned_words.cend(),
+							tok_str);
+					if (word_iter != banned_words.end()) {
 						continue;
 					}
-#endif
 					Log(app->out_, "{}", tok.text);
 					app->transcript_.Append(tok.text);
 				}

@@ -256,11 +256,10 @@ namespace {
         "ggml-medium.bin",
         "ggml-medium.en.bin",
         "ggml-large.bin",
-        "ggml-large.en.bin",
     };
     const size_t kNumWhisperModelChoices = sizeof(kWhisperModelChoices) /
         sizeof(kWhisperModelChoices[0]);
-    constexpr int kWhisperModelDefault = 3;  // base.en
+    constexpr int kWhisperModelDefault = 6;  // medium.bin
 
     const wxString kCharsPerSync[] = {
         "5",
@@ -1346,7 +1345,11 @@ void Frame::PopulateDynamicInputFields()
             for (int i = 0; i < std::min(mics.size(), kNumWhisperMicChoices); i++) {
                 contents[i] = mics[i];
             }
+            int mic_idx = whisper_mic->GetSelection();
             whisper_mic->Set(contents);
+            if (mic_idx < contents.size()) {
+                whisper_mic->SetSelection(mic_idx);
+            }
         }
     }
 }
@@ -1359,15 +1362,14 @@ void Frame::OnExit(wxCloseEvent& event)
 
 void Frame::OnNavbarTranscribe(wxCommandEvent& event)
 {
-    // Initialize input fields using AppConfig.
-    ApplyConfigToInputFields();
-    PopulateDynamicInputFields();
-
     transcribe_panel_->Hide();
     unity_panel_->Hide();
     debug_panel_->Hide();
     whisper_panel_->Hide();
-    Resize();
+
+    // Initialize input fields using AppConfig.
+    ApplyConfigToInputFields();
+    PopulateDynamicInputFields();
 
     transcribe_panel_->Show();
     Resize();
@@ -1375,15 +1377,14 @@ void Frame::OnNavbarTranscribe(wxCommandEvent& event)
 
 void Frame::OnNavbarUnity(wxCommandEvent& event)
 {
-    // Initialize input fields using AppConfig.
-    ApplyConfigToInputFields();
-    PopulateDynamicInputFields();
-
     transcribe_panel_->Hide();
     unity_panel_->Hide();
     debug_panel_->Hide();
     whisper_panel_->Hide();
-    Resize();
+
+    // Initialize input fields using AppConfig.
+    ApplyConfigToInputFields();
+    PopulateDynamicInputFields();
 
     unity_panel_->Show();
     Resize();
@@ -1391,15 +1392,14 @@ void Frame::OnNavbarUnity(wxCommandEvent& event)
 
 void Frame::OnNavbarDebug(wxCommandEvent& event)
 {
-    // Initialize input fields using AppConfig.
-    ApplyConfigToInputFields();
-    PopulateDynamicInputFields();
-
     transcribe_panel_->Hide();
     unity_panel_->Hide();
     debug_panel_->Hide();
     whisper_panel_->Hide();
-    Resize();
+
+    // Initialize input fields using AppConfig.
+    ApplyConfigToInputFields();
+    PopulateDynamicInputFields();
 
     debug_panel_->Show();
     Resize();
@@ -1407,18 +1407,16 @@ void Frame::OnNavbarDebug(wxCommandEvent& event)
 
 void Frame::OnNavbarWhisper(wxCommandEvent& event)
 {
-    // Initialize input fields using AppConfig.
-    ApplyConfigToInputFields();
-    PopulateDynamicInputFields();
-
     transcribe_panel_->Hide();
     unity_panel_->Hide();
     debug_panel_->Hide();
     whisper_panel_->Hide();
-    Resize();
+
+    // Initialize input fields using AppConfig.
+    ApplyConfigToInputFields();
+    PopulateDynamicInputFields();
 
     whisper_panel_->Show();
-
     Resize();
 }
 
@@ -2082,10 +2080,10 @@ void Frame::Resize()
 	auto frame_sz = GetBestSize();
 	auto panel_sz = main_panel_->GetBestSize();
 
-	auto ideal_sz = panel_sz;
-	ideal_sz.x += frame_sz.x;
-	ideal_sz.y += frame_sz.y;
+	//auto ideal_sz = panel_sz;
+	//ideal_sz.x += frame_sz.x;
+	//ideal_sz.y += frame_sz.y;
 
-	this->SetSize(ideal_sz);
+	this->SetSize(panel_sz);
 }
 
