@@ -94,7 +94,9 @@ std::string DrainWin32Pipe(const HANDLE pipe) {
 
 bool PythonWrapper::InvokeCommandWithArgs(const std::string& cmd,
 	std::vector<std::string>&& args,
-	const std::function<void(const std::string& out, const std::string& err)>&& out_cb) {
+	const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
+		const std::function<void(std::string& in)>&& in_cb,
+		const std::function<bool()>&& run_cb) {
 	std::ostringstream cmd_oss;
 	cmd_oss << cmd;
 	for (const auto& arg : args) {
@@ -146,10 +148,34 @@ bool PythonWrapper::InvokeCommandWithArgs(const std::string& cmd,
 		});
 	SetHandleInformation(stderr_read, HANDLE_FLAG_INHERIT, 0);
 
+	HANDLE stdin_read{};
+	HANDLE stdin_write{};
+	SECURITY_ATTRIBUTES stdin_sec_attr{};
+	stdin_sec_attr.nLength = sizeof(stdin_sec_attr);
+	stdin_sec_attr.bInheritHandle = TRUE;
+
+	if (!CreatePipe(&stdin_read, &stdin_write, &stdin_sec_attr, 0)) {
+		std::ostringstream err_oss;
+		err_oss << "Error while executing python command \"" << cmd_oss.str()
+			<< "\": Failed to create stdin pipe: " << GetWin32ErrMsg() << std::endl;
+		out_cb("", err_oss.str());
+		return false;
+	}
+	ScopeGuard stdin_cleanup([&]() {
+		if (stdin_read) {
+			CloseHandle(stdin_read);
+		}
+		if (stdin_write) {
+			CloseHandle(stdin_write);
+		}
+		});
+	SetHandleInformation(stdin_write, HANDLE_FLAG_INHERIT, 0);
+
 	STARTUPINFOA si{};
 	si.cb = sizeof(si);
 	si.hStdOutput = stdout_write;
 	si.hStdError = stderr_write;
+	si.hStdInput = stdin_read;
 	si.dwFlags |= STARTF_USESTDHANDLES;
 	si.dwFlags |= STARTF_USESHOWWINDOW;
 	si.wShowWindow = SW_HIDE;
@@ -195,10 +221,10 @@ bool PythonWrapper::InvokeCommandWithArgs(const std::string& cmd,
 		CloseHandle(pi.hThread);
 		});
 
-	// While the process is running, drain output every 10 ms.
+	// While the process is running, drain output and send input every 10 ms.
 	DWORD timeout_ms = 10;
 	DWORD ret = WAIT_TIMEOUT;
-	while (ret == WAIT_TIMEOUT) {
+	while (run_cb() && ret == WAIT_TIMEOUT) {
 		DWORD ret = WaitForSingleObject(pi.hProcess, timeout_ms);
 		if (ret != WAIT_TIMEOUT) {
 			break;
@@ -207,9 +233,25 @@ bool PythonWrapper::InvokeCommandWithArgs(const std::string& cmd,
 		stdout_oss << DrainWin32Pipe(stdout_read);
 		stderr_oss << DrainWin32Pipe(stderr_read);
 		out_cb(stdout_oss.str(), stderr_oss.str());
-	}
-	std::ostringstream stdout_oss, stderr_oss;
 
+		std::string input;
+		in_cb(input);
+		if (input.size()) {
+			DWORD cur_bytes_write = 0;
+			DWORD sum_bytes_write = 0;
+			std::vector<char> buf(4096, 0);
+			while (sum_bytes_write < input.size() &&
+				WriteFile(stdin_write, input.data() + sum_bytes_write,
+					input.size() - sum_bytes_write, &cur_bytes_write, NULL)) {
+				sum_bytes_write += cur_bytes_write;
+			}
+		}
+	}
+	if (!run_cb()) {
+		return true;
+	}
+
+	std::ostringstream stdout_oss, stderr_oss;
 	DWORD exit_code;
 	if (!GetExitCodeProcess(pi.hProcess, &exit_code)) {
 		stderr_oss << "Failed to get exit code: " << GetWin32ErrMsg();
@@ -280,9 +322,11 @@ bool PythonWrapper::InvokeWithArgs(std::vector<std::string>&& args,
 }
 
 bool PythonWrapper::InvokeWithArgs(std::vector<std::string>&& args,
-	const std::function<void(const std::string& out, const std::string& err)>&& out_cb) {
+	const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
+	const std::function<void(std::string& in)>&& in_cb,
+	const std::function<bool()>&& run_cb) {
 	return InvokeCommandWithArgs("Resources/Python/python.exe",
-		std::move(args), std::move(out_cb));
+		std::move(args), std::move(out_cb), std::move(in_cb), std::move(run_cb));
 }
 
 

@@ -41,6 +41,9 @@ public:
 	void StartBrowserSource(const AppConfig& c);
 	void StopBrowserSource();
 
+	void StartCustomChatbox(const AppConfig& c);
+	void StopCustomChatbox();
+
 private:
 	bool GetMicsImpl(std::vector<Whisper::sCaptureDevice>& mics);
 
@@ -53,6 +56,9 @@ private:
 
 	std::future<void> browser_src_thd_;
 	volatile bool run_browser_src_;
+
+	std::future<void> custom_chatbox_thd_;
+	volatile bool run_custom_chatbox_;
 
 	Transcript transcript_;
 };

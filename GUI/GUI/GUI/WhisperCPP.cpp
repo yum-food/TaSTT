@@ -79,6 +79,11 @@ WhisperCPP::WhisperCPP(wxTextCtrl* out)
 		browser_src_thd_ = p.get_future();
 		p.set_value();
 	}
+	{
+		auto p = std::promise<void>();
+		custom_chatbox_thd_ = p.get_future();
+		p.set_value();
+	}
 }
 
 WhisperCPP::~WhisperCPP() {
@@ -415,6 +420,101 @@ void WhisperCPP::StopBrowserSource() {
 	Log(out_, "Stopping browser source...\n");
 	run_browser_src_ = false;
 	browser_src_thd_.wait();
+	Log(out_, "Done!\n");
+}
+
+// TODO(yum) we should have a thread which simply tells us when to
+// start/stop transcription.
+void WhisperCPP::StartCustomChatbox(const AppConfig& c) {
+	if (!custom_chatbox_thd_.valid()) {
+		Log(out_, "Custom chatbox already running\n");
+		return;
+	}
+
+	custom_chatbox_thd_ = std::async(std::launch::async, [&]() -> void {
+		run_custom_chatbox_ = true;
+		Log(out_, "Launching custom chatbox OSC layer\n");
+
+		while (run_custom_chatbox_) {
+			bool send_transcript = false;
+			auto out_cb = [&](const std::string& out, const std::string& err) {
+				std::string delim = "\r\n";
+				size_t begin = 0;
+				size_t end = out.size();
+				while (begin < out.size()) {
+					end = out.find(delim, begin);
+					if (end == std::string::npos) {
+						end = out.size();
+					}
+					ScopeGuard advance_begin([&]() { begin = end + delim.size(); });
+					std::string line = out.substr(begin, end - begin);
+					if (line == "1") {
+						Log(out_, "Control message get: send transcript\n");
+						transcript_.Clear();
+						send_transcript = true;
+					}
+					else if (line == "0") {
+						// TODO pause transcription loop?
+						Log(out_, "Control message get: stop transcript\n");
+						send_transcript = false;
+					}
+					else {
+						Log(out_, "  custom chatbox: Unrecognized control sequence: {}\n", line);
+					}
+				}
+
+				begin = 0;
+				end = err.size();
+				while (begin < err.size()) {
+					end = err.find(delim, begin);
+					if (end == std::string::npos) {
+						end = err.size();
+					}
+					ScopeGuard advance_begin([&]() { begin = end + delim.size(); });
+					std::string line = err.substr(begin, end - begin);
+					Log(out_, "  {}\n", line);
+				}
+			};
+			auto in_cb = [&](std::string& in) {
+				if (!send_transcript) {
+					return;
+				}
+				// TODO(yum) use a streaming interface for this. As written, we
+				// have to copy a ton of redundant text every time.
+				const std::vector<std::string> segments = transcript_.Get();
+				std::ostringstream oss;
+				for (const auto& segment : segments) {
+					oss << segment;
+				}
+				oss << std::endl;
+				in = oss.str();
+			};
+			auto run_cb = [&]() {
+				return run_custom_chatbox_;
+			};
+			if (!PythonWrapper::InvokeWithArgs({
+				"Resources/Scripts/cpp_transcribe.py",
+				"--bytes_per_char", std::to_string(c.bytes_per_char),
+				"--chars_per_sync", std::to_string(c.chars_per_sync),
+				"--rows", std::to_string(c.rows),
+				"--cols", std::to_string(c.cols),
+				"--button", Quote(c.button),
+				"--enable_local_beep", c.enable_local_beep ? "1" : "0",
+				"--use_builtin", "0",
+				}, out_cb, in_cb, run_cb)) {
+				Log(out_, "Failed to launch custom chatbox OSC layer!\n");
+				break;
+			}
+		}
+
+		Log(out_, "Custom chatbox thread exit\n");
+	});
+}
+
+void WhisperCPP::StopCustomChatbox() {
+	Log(out_, "Stopping custom chatbox...\n");
+	run_custom_chatbox_ = false;
+	custom_chatbox_thd_.wait();
 	Log(out_, "Done!\n");
 }
 

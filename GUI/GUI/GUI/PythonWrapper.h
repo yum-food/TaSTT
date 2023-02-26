@@ -36,7 +36,9 @@ namespace PythonWrapper
 	// On error, sets `out` to an error message and returns false.
 	bool InvokeCommandWithArgs(const std::string& cmd,
 		std::vector<std::string>&& args,
-		const std::function<void(const std::string& out, const std::string& err)>&& out_cb);
+		const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
+		const std::function<void(std::string& in)>&& in_cb = [](std::string&) {},
+		const std::function<bool()>&& run_cb = []() { return true; });
 
 	// Invoke the interpreter with arguments.
 	// On error, sets `out` to an error message and returns false.
@@ -47,7 +49,9 @@ namespace PythonWrapper
 		const std::string&& err_msg, wxTextCtrl* out);
 
 	bool InvokeWithArgs(std::vector<std::string>&& args,
-		const std::function<void(const std::string& out, const std::string& err)>&& out_cb);
+		const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
+		const std::function<void(std::string& in)>&& in_cb = [](std::string&) {},
+		const std::function<bool()>&& run_cb = []() { return true; });
 
 	// Execute python --version.
 	std::string GetVersion();

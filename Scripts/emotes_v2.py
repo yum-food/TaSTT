@@ -47,11 +47,6 @@ def split_resized_image(img, wd: int, ht: int) -> List[Any]:
 
     return split_images
 
-print(i_to_pos(0, 5, 10, 10, 20))
-print(i_to_pos(1, 5, 10, 10, 20))
-print(i_to_pos(2, 5, 10, 10, 20))
-print(i_to_pos(3, 5, 10, 10, 20))
-
 def resize_image_with_aspect_ratio(img: Image, aspect_ratio: float) -> Image:
     original_width, original_height = img.size
     new_width = int(original_height * aspect_ratio)

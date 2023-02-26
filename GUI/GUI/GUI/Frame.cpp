@@ -965,6 +965,8 @@ Frame::Frame()
                     sizer->Add(whisper_model, /*proportion=*/0,
                         /*flags=*/wxEXPAND);
 
+#if 0
+                    // Not implemented.
                     sizer->Add(new wxStaticText(whisper_config_panel_pairs,
                         wxID_ANY, /*label=*/"Characters per sync:"));
                     sizer->Add(whisper_chars_per_sync, /*proportion=*/0,
@@ -989,6 +991,13 @@ Frame::Frame()
                         wxID_ANY, /*label=*/"Text box columns:"));
                     sizer->Add(whisper_cols, /*proportion=*/0,
                         /*flags=*/wxEXPAND);
+#else
+                    whisper_chars_per_sync->Hide();
+                    whisper_bytes_per_char->Hide();
+                    whisper_button->Hide();
+                    whisper_rows->Hide();
+                    whisper_cols->Hide();
+#endif
 
                     sizer->Add(new wxStaticText(whisper_config_panel_pairs,
                         wxID_ANY, /*label=*/"Browser source port:"));
@@ -1052,14 +1061,22 @@ Frame::Frame()
                 whisper_config_panel->SetSizer(sizer);
                 sizer->Add(whisper_config_panel_pairs, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
+#if 0
                 sizer->Add(whisper_enable_local_beep, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
+                // Not yet implemented.
                 sizer->Add(whisper_use_cpu, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
                 sizer->Add(whisper_enable_builtin, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
                 sizer->Add(whisper_enable_custom, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
+#else
+                whisper_enable_local_beep->Hide();
+                whisper_use_cpu->Hide();
+                whisper_enable_builtin->Hide();
+                whisper_enable_custom->Hide();
+#endif
                 sizer->Add(whisper_enable_browser_src, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
                 sizer->Add(whisper_start_button, /*proportion=*/0,
@@ -1182,7 +1199,6 @@ Frame::Frame()
 
     // Now that transcribe_out_ has been created, we can deserialize.
     app_c_ = std::make_unique<AppConfig>(transcribe_out_);
-    Log(transcribe_out_, "Deserializing config\n");
     app_c_->Deserialize(AppConfig::kConfigPath);
 
 	Bind(wxEVT_CLOSE_WINDOW, &Frame::OnExit, this, wxID_EXIT);
@@ -2032,8 +2048,10 @@ void Frame::OnWhisperStart(wxCommandEvent& event) {
 
     whisper_->Start(*app_c_);
     if (whisper_enable_browser_src_->GetValue()) {
-        Log(whisper_out_, "Frame launching browser src\n");
         whisper_->StartBrowserSource(*app_c_);
+    }
+    if (whisper_enable_custom_->GetValue()) {
+        whisper_->StartCustomChatbox(*app_c_);
     }
 }
 
@@ -2041,6 +2059,9 @@ void Frame::OnWhisperStop() {
     whisper_->Stop();
     if (whisper_enable_browser_src_->GetValue()) {
         whisper_->StopBrowserSource();
+    }
+    if (whisper_enable_custom_->GetValue()) {
+        whisper_->StopCustomChatbox();
     }
 }
 
