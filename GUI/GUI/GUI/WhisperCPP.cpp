@@ -327,6 +327,7 @@ void WhisperCPP::Start(const AppConfig& c) {
 			const sSegment* const segments = results->getSegments();
 			const sToken* const tokens = results->getTokens();
 			const int s0 = length.countSegments - n_new;
+			int n_tok = 0;
 			for (int i = s0; i < length.countSegments; i++) {
 				const sSegment& seg = segments[i];
 				bool is_metadata = false;
@@ -350,11 +351,12 @@ void WhisperCPP::Start(const AppConfig& c) {
 					if (word_iter != banned_words.end()) {
 						continue;
 					}
+					++n_tok;
 					Log(app->out_, "{}", tok.text);
 					app->transcript_.Append(tok.text);
 				}
 			}
-			if (n_new) {
+			if (n_tok) {
 				Log(app->out_, "\n");
 			}
 

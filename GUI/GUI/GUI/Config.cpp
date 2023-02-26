@@ -4,45 +4,49 @@
 #include <wx/wx.h>
 #endif
 
-#define RYML_SINGLE_HDR_DEFINE_NOW
-#include "ryml.h"
-
 #include "Config.h"
+#include "ConfigMarshal.h"
+#include "Logging.h"
 
 #include <fstream>
 #include <memory>
 #include <string>
 
+using ::Logging::Log;
+
 bool Config::Serialize(const std::filesystem::path& path,
-	const ryml::Tree* const t) {
-
-	// Write the config to a tmp file. If we crash in the middle of this, it
-	// doesn't matter, since the next process will just overwrite it.
-	std::filesystem::path tmp_path = path;
-	tmp_path += ".tmp";
-	FILE* fp = fopen(tmp_path.string().c_str(), "wb");
-	if (!fp) {
-		wxLogError("Failed to open %s: %s", path.string().c_str(), strerror(errno));
-		return false;
-	}
-	ryml::emit_yaml(t, fp);  // For now we assume this didn't fail.
-	fclose(fp);
-	fp = nullptr;
-
+	const ConfigMarshal& cm) {
 	// If there's an old config, delete it.
 	struct stat tmpstat;
 	if (stat(path.string().c_str(), &tmpstat) == 0) {
 		if (::_unlink(path.string().c_str())) {
-			wxLogError("Failed to delete old config at %s: %s", path.string().c_str(),
-				strerror(errno));
+			Log(out_, "Failed to delete old config at {}: {}\n",
+				path.string().c_str(), strerror(errno));
 			return false;
 		}
+	}
+
+	// Write the config to a tmp file. If we crash in the middle of this, it
+	// doesn't matter, since the next process will just overwrite it.
+	std::filesystem::path tmp_path = path;
+
+	if (stat(tmp_path.string().c_str(), &tmpstat) == 0) {
+		if (::_unlink(tmp_path.string().c_str())) {
+			Log(out_, "Failed to delete old tmp config at {}: {}\n",
+				tmp_path.string().c_str(), strerror(errno));
+			return false;
+		}
+	}
+
+	if (!cm.Save(tmp_path)) {
+		Log(out_, "Failed to save config to {}\n", tmp_path.string());
+		return false;
 	}
 
 	// File renames within the same filesystem are atomic, so there's no risk
 	// of leaving a corrupt file on disk.
 	if (rename(tmp_path.string().c_str(), path.string().c_str()) != 0) {
-		wxLogError("Failed to save config to %s: %s", path.string().c_str(),
+		Log(out_, "Failed to save config to {}: {}\n", path.string().c_str(),
 			strerror(errno));
 		return false;
 	}
@@ -51,24 +55,14 @@ bool Config::Serialize(const std::filesystem::path& path,
 }
 
 bool Config::Deserialize(const std::filesystem::path& path,
-	ryml::Tree* t) {
-	std::ifstream file(path, std::ios::binary | std::ios::ate);
-	if (!file.is_open()) {
-		return false;
-	}
-	std::streamsize size = file.tellg();
-	file.seekg(0, std::ios::beg);
-	std::vector<char> yaml_buf(size);
-	if (!file.read(yaml_buf.data(), size)) {
-		return false;
-	}
-
-	*t = ryml::parse_in_place(ryml::to_substr(yaml_buf.data()));
-	return true;
+	ConfigMarshal& cm) {
+	return cm.Load(path);
 }
 
-AppConfig::AppConfig()
-	: microphone("index"),
+AppConfig::AppConfig(wxTextCtrl *out)
+	: Config(out),
+
+	microphone("index"),
 	language("english"),
 	model("base.en"),
 	button("left joystick"),
@@ -99,84 +93,83 @@ AppConfig::AppConfig()
 {}
 
 bool AppConfig::Serialize(const std::filesystem::path& path) {
-	ryml::Tree t;
-	ryml::NodeRef root = t.rootref();
-	root |= ryml::MAP;
-	root["microphone"] << ryml::to_substr(microphone);
-	root["language"] << ryml::to_substr(language);
-	root["model"] << ryml::to_substr(model);
-	root["button"] << ryml::to_substr(button);
-	root["window_duration"] << ryml::to_substr(window_duration);
+	ConfigMarshal cm(out_);
 
-	root["enable_local_beep"] << enable_local_beep;
-	root["use_cpu"] << use_cpu;
-	root["use_builtin"] << use_builtin;
+	cm.Set("microphone", microphone);
+	cm.Set("language", language);
+	cm.Set("model", model);
+	cm.Set("button", button);
+	cm.Set("window_duration", window_duration);
 
-	root["chars_per_sync"] << chars_per_sync;
-	root["bytes_per_char"] << bytes_per_char;
-	root["rows"] << rows;
-	root["cols"] << cols;
+	cm.Set("enable_local_beep", enable_local_beep);
+	cm.Set("use_cpu", use_cpu);
+	cm.Set("use_builtin", use_builtin);
 
-	root["assets_path"] << ryml::to_substr(assets_path);
-	root["fx_path"] << ryml::to_substr(fx_path);
-	root["params_path"] << ryml::to_substr(params_path);
-	root["menu_path"] << ryml::to_substr(menu_path);
-	root["clear_osc"] << clear_osc;
+	cm.Set("chars_per_sync", chars_per_sync);
+	cm.Set("bytes_per_char", bytes_per_char);
+	cm.Set("rows", rows);
+	cm.Set("cols", cols);
 
-	root["whisper_model"] << whisper_model;
-	root["whisper_mic"] << whisper_mic;
+	cm.Set("assets_path", assets_path);
+	cm.Set("fx_path", fx_path);
+	cm.Set("params_path", params_path);
+	cm.Set("menu_path", menu_path);
+	cm.Set("clear_osc", clear_osc);
 
-	root["browser_src_port"] << browser_src_port;
-	root["whisper_enable_builtin"] << whisper_enable_builtin;
-	root["whisper_enable_custom"] << whisper_enable_custom;
-	root["whisper_enable_browser_src"] << whisper_enable_browser_src;
+	cm.Set("whisper_model", whisper_model);
+	cm.Set("whisper_mic", whisper_mic);
 
-  return Config::Serialize(path, &t);
+	cm.Set("browser_src_port", browser_src_port);
+	cm.Set("whisper_enable_builtin", whisper_enable_builtin);
+	cm.Set("whisper_enable_custom", whisper_enable_custom);
+	cm.Set("whisper_enable_browser_src", whisper_enable_browser_src);
+
+	return Config::Serialize(path, cm);
 }
 
 bool AppConfig::Deserialize(const std::filesystem::path& path) {
 	std::error_code err;
 	if (!std::filesystem::exists(path, err)) {
-		*this = AppConfig();
+		*this = AppConfig(out_);
+		Log(out_, "Cannot deserialize config at path {}: Does not exist!\n", path.string());
 		return true;
 	}
 
-	ryml::Tree t{};
-	if (!Config::Deserialize(path, &t)) {
-		wxLogError("Deserialization failed at %s", path.string());
+	ConfigMarshal cm(out_);
+	if (!Config::Deserialize(path, cm)) {
+		Log(out_, "Deserialization failed at {}\n", path.string());
 		return false;
 	}
 
-	ryml::ConstNodeRef root = t.rootref();
-	AppConfig c;
-	root.get_if("microphone", &c.microphone);
-	root.get_if("language", &c.language);
-	root.get_if("model", &c.model);
-	root.get_if("button", &c.button);
-	root.get_if("window_duration", &c.window_duration);
+	AppConfig c(out_);
+	cm.Get("microphone", c.microphone);
+	cm.Get("language", c.language);
+	cm.Get("model", c.model);
+	cm.Get("button", c.button);
+	cm.Get("window_duration", c.window_duration);
 
-	root.get_if("enable_local_beep", &c.enable_local_beep);
-	root.get_if("use_cpu", &c.use_cpu);
-	root.get_if("use_builtin", &c.use_builtin);
+	cm.Get("enable_local_beep", c.enable_local_beep);
+	cm.Get("use_cpu", c.use_cpu);
+	cm.Get("use_builtin", c.use_builtin);
 
-	root.get_if("chars_per_sync", &c.chars_per_sync);
-	root.get_if("bytes_per_char", &c.bytes_per_char);
-	root.get_if("rows", &c.rows);
-	root.get_if("cols", &c.cols);
+	cm.Get("chars_per_sync", c.chars_per_sync);
+	cm.Get("bytes_per_char", c.bytes_per_char);
+	cm.Get("rows", c.rows);
+	cm.Get("cols", c.cols);
 
-	root.get_if("assets_path", &c.assets_path);
-	root.get_if("fx_path", &c.fx_path);
-	root.get_if("params_path", &c.params_path);
-	root.get_if("menu_path", &c.menu_path);
-	root.get_if("clear_osc", &c.clear_osc);
+	cm.Get("assets_path", c.assets_path);
+	cm.Get("fx_path", c.fx_path);
+	cm.Get("params_path", c.params_path);
+	cm.Get("menu_path", c.menu_path);
+	cm.Get("clear_osc", c.clear_osc);
 
-	root.get_if("whisper_model", &c.whisper_model);
-	root.get_if("whisper_mic", &c.whisper_mic);
+	cm.Get("whisper_model", c.whisper_model);
+	cm.Get("whisper_mic", c.whisper_mic);
 
-	root.get_if("browser_src_port", &c.browser_src_port);
-	root.get_if("whisper_enable_builtin", &c.whisper_enable_builtin);
-	root.get_if("whisper_enable_custom", &c.whisper_enable_custom);
-	root.get_if("whisper_enable_browser_src", &c.whisper_enable_browser_src);
+	cm.Get("browser_src_port", c.browser_src_port);
+	cm.Get("whisper_enable_builtin", c.whisper_enable_builtin);
+	cm.Get("whisper_enable_custom", c.whisper_enable_custom);
+	cm.Get("whisper_enable_browser_src", c.whisper_enable_browser_src);
 
 	*this = std::move(c);
 	return true;

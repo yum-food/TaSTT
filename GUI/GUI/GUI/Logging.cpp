@@ -35,7 +35,12 @@ void Logging::ThreadLogger::Drain()
 	std::ofstream log_ofs("Resources/log.txt", std::ios_base::app);
 	for (const auto& [frame, messages] : messages_) {
 		for (const auto& message : messages) {
-			frame->AppendText(message);
+			if (frame) {
+				frame->AppendText(message);
+			}
+			else {
+				wxLogError("%s", message);
+			}
 			log_ofs << message;
 		}
 	}

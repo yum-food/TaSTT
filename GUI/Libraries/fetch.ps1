@@ -31,22 +31,6 @@ if (-Not (Test-Path wx)) {
   popd > $null
 }
 
-# RAPIDYAML
-if ((Test-Path rapidyaml) -And ($overwrite)) {
-  rm -Recurse rapidyaml
-}
-
-if (-Not (Test-Path rapidyaml)) {
-  git clone https://github.com/biojppm/rapidyaml
-  pushd rapidyaml > $null
-  git checkout v0.5.0
-  git submodule update --init --recursive
-
-  python3 tools/amalgamate.py ryml.h
-  cp ryml.h ../../GUI/GUI/ryml.h
-  popd
-}
-
 if ((Test-Path whisper) -And ($overwrite)) {
   rm -Recurse whisper
 }

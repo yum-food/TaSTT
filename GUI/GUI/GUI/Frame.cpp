@@ -82,7 +82,6 @@ namespace {
 		ID_WHISPER_BUTTON,
 		ID_WHISPER_ROWS,
 		ID_WHISPER_COLS,
-		ID_WHISPER_WINDOW_DURATION,
 		ID_WHISPER_BROWSER_SRC_PORT,
 		ID_WHISPER_ENABLE_LOCAL_BEEP,
 		ID_WHISPER_USE_CPU,
@@ -331,7 +330,7 @@ Frame::Frame()
     env_proc_(nullptr),
     py_app_drain_(this, ID_PY_APP_DRAIN)
 {
-    app_c_.Deserialize(AppConfig::kConfigPath);
+    app_c_ = std::make_unique<AppConfig>(nullptr);
 
     auto* main_panel = new wxPanel(this, ID_MAIN_PANEL);
 	main_panel_ = main_panel;
@@ -340,12 +339,12 @@ Frame::Frame()
         {
 			auto* navbar_button_transcribe = new wxButton(navbar,
                 ID_NAVBAR_BUTTON_TRANSCRIBE, "Transcription (PY)");
+			auto* navbar_button_whisper = new wxButton(navbar,
+                ID_NAVBAR_BUTTON_WHISPER, "Transcription (CPP)");
 			auto* navbar_button_unity = new wxButton(navbar,
                 ID_NAVBAR_BUTTON_UNITY, "Unity");
 			auto* navbar_button_debug = new wxButton(navbar,
                 ID_NAVBAR_BUTTON_DEBUG, "Debug");
-			auto* navbar_button_whisper = new wxButton(navbar,
-                ID_NAVBAR_BUTTON_WHISPER, "Transcription (CPP)");
 
 			auto* sizer = new wxBoxSizer(wxVERTICAL);
 			navbar->SetSizer(sizer);
@@ -455,14 +454,14 @@ Frame::Frame()
                     py_app_button_ = py_app_button;
 
                     auto* py_app_rows = new wxTextCtrl(py_app_config_panel_pairs,
-                        ID_PY_APP_ROWS, std::to_string(app_c_.rows),
+                        ID_PY_APP_ROWS, std::to_string(app_c_->rows),
                         wxDefaultPosition, wxDefaultSize, /*style=*/0);
                     py_app_rows->SetToolTip(
                         "The number of rows on the text box.");
                     py_app_rows_ = py_app_rows;
 
                     auto* py_app_cols = new wxTextCtrl(py_app_config_panel_pairs,
-                        ID_PY_APP_COLS, std::to_string(app_c_.cols),
+                        ID_PY_APP_COLS, std::to_string(app_c_->cols),
                         wxDefaultPosition, wxDefaultSize, /*style=*/0);
                     py_app_cols->SetToolTip(
                         "The number of columns on the text box.");
@@ -470,7 +469,7 @@ Frame::Frame()
 
                     auto* py_app_window_duration = new wxTextCtrl(
                         py_app_config_panel_pairs, ID_PY_APP_WINDOW_DURATION,
-                        app_c_.window_duration, wxDefaultPosition,
+                        app_c_->window_duration, wxDefaultPosition,
                         wxDefaultSize, /*style=*/0);
                     py_app_window_duration->SetToolTip(
                         "This controls how long the slice of audio that "
@@ -532,7 +531,7 @@ Frame::Frame()
 
                 auto* py_app_enable_local_beep = new wxCheckBox(py_config_panel,
                     ID_PY_APP_ENABLE_LOCAL_BEEP, "Enable local beep");
-                py_app_enable_local_beep->SetValue(app_c_.enable_local_beep);
+                py_app_enable_local_beep->SetValue(app_c_->enable_local_beep);
                 py_app_enable_local_beep->SetToolTip(
                     "By default, TaSTT will play a sound (audible only to "
                     "you) when it begins transcription and when it stops. "
@@ -542,7 +541,7 @@ Frame::Frame()
 
                 auto* py_app_use_cpu = new wxCheckBox(py_config_panel,
                     ID_PY_APP_USE_CPU, "Use CPU");
-                py_app_use_cpu->SetValue(app_c_.use_cpu);
+                py_app_use_cpu->SetValue(app_c_->use_cpu);
                 py_app_use_cpu->SetToolTip(
                     "If checked, the transcription engine will run on your "
                     "CPU instead of your GPU. This is typically much slower "
@@ -553,7 +552,7 @@ Frame::Frame()
 
                 auto* py_app_use_builtin = new wxCheckBox(py_config_panel,
                     ID_PY_APP_USE_BUILTIN, "Use built-in chatbox");
-                py_app_use_builtin->SetValue(app_c_.use_builtin);
+                py_app_use_builtin->SetValue(app_c_->use_builtin);
                 py_app_use_builtin->SetToolTip(
                     "If checked, text will be sent to the built-in text box "
                     "instead of one attached to the current avatar."
@@ -613,7 +612,7 @@ Frame::Frame()
                     auto* unity_assets_file_picker = new wxDirPickerCtrl(
                         unity_config_panel_pairs,
                         ID_UNITY_ASSETS_FILE_PICKER,
-                        /*path=*/app_c_.assets_path,
+                        /*path=*/app_c_->assets_path,
                         /*message=*/"Unity Assets folder"
                         );
                     unity_assets_file_picker->SetToolTip(
@@ -625,7 +624,7 @@ Frame::Frame()
                     auto* unity_animator_file_picker = new wxFilePickerCtrl(
                         unity_config_panel_pairs,
                         ID_UNITY_ANIMATOR_FILE_PICKER,
-                        /*path=*/app_c_.fx_path,
+                        /*path=*/app_c_->fx_path,
                         /*message=*/"FX controller path",
                         /*wildcard=*/wxFileSelectorDefaultWildcardStr,
                         /*pos=*/wxDefaultPosition,
@@ -640,7 +639,7 @@ Frame::Frame()
                     auto* unity_parameters_file_picker = new wxFilePickerCtrl(
                         unity_config_panel_pairs,
                         ID_UNITY_PARAMETERS_FILE_PICKER,
-                        /*path=*/app_c_.params_path,
+                        /*path=*/app_c_->params_path,
                         /*message=*/"Avatar parameters path",
                         /*wildcard=*/wxFileSelectorDefaultWildcardStr,
                         /*pos=*/wxDefaultPosition,
@@ -656,7 +655,7 @@ Frame::Frame()
                     auto* unity_menu_file_picker = new wxFilePickerCtrl(
                         unity_config_panel_pairs,
                         ID_UNITY_MENU_FILE_PICKER,
-                        /*path=*/app_c_.menu_path,
+                        /*path=*/app_c_->menu_path,
                         /*message=*/"Avatar menu path",
                         /*wildcard=*/wxFileSelectorDefaultWildcardStr,
                         /*pos=*/wxDefaultPosition,
@@ -745,14 +744,14 @@ Frame::Frame()
                     unity_bytes_per_char_ = unity_bytes_per_char;
 
                     auto* unity_rows = new wxTextCtrl(unity_config_panel_pairs,
-                        ID_UNITY_ROWS, std::to_string(app_c_.rows),
+                        ID_UNITY_ROWS, std::to_string(app_c_->rows),
                         wxDefaultPosition, wxDefaultSize, /*style=*/0);
                     unity_rows->SetToolTip(
                         "The number of rows on the text box.");
                     unity_rows_ = unity_rows;
 
                     auto* unity_cols = new wxTextCtrl(unity_config_panel_pairs,
-                        ID_UNITY_COLS, std::to_string(app_c_.cols),
+                        ID_UNITY_COLS, std::to_string(app_c_->cols),
                         wxDefaultPosition, wxDefaultSize, /*style=*/0);
                     unity_cols->SetToolTip(
                         "The number of columns on the text box.");
@@ -816,7 +815,7 @@ Frame::Frame()
 
 				auto* clear_osc = new wxCheckBox(unity_config_panel,
 					ID_UNITY_CLEAR_OSC, "Clear OSC configs");
-				clear_osc->SetValue(app_c_.clear_osc);
+				clear_osc->SetValue(app_c_->clear_osc);
 				clear_osc->SetToolTip(
 					"If checked, VRChat's OSC configs will be cleared. "
 					"VRC SDK has a bug where parameters added to an "
@@ -925,35 +924,22 @@ Frame::Frame()
                     whisper_button_ = whisper_button;
 
                     auto* whisper_rows = new wxTextCtrl(whisper_config_panel_pairs,
-                        ID_WHISPER_ROWS, std::to_string(app_c_.rows),
+                        ID_WHISPER_ROWS, std::to_string(app_c_->rows),
                         wxDefaultPosition, wxDefaultSize, /*style=*/0);
                     whisper_rows->SetToolTip(
                         "The number of rows on the text box.");
                     whisper_rows_ = whisper_rows;
 
                     auto* whisper_cols = new wxTextCtrl(whisper_config_panel_pairs,
-                        ID_WHISPER_COLS, std::to_string(app_c_.cols),
+                        ID_WHISPER_COLS, std::to_string(app_c_->cols),
                         wxDefaultPosition, wxDefaultSize, /*style=*/0);
                     whisper_cols->SetToolTip(
                         "The number of columns on the text box.");
                     whisper_cols_ = whisper_cols;
 
-                    auto* whisper_window_duration = new wxTextCtrl(
-                        whisper_config_panel_pairs, ID_WHISPER_WINDOW_DURATION,
-                        app_c_.window_duration, wxDefaultPosition,
-                        wxDefaultSize, /*style=*/0);
-                    whisper_window_duration->SetToolTip(
-                        "This controls how long the slice of audio that "
-                        "we feed the transcription algorithm is, in seconds. "
-                        "Shorter values (as low as 10 seconds) can be whisperd "
-                        "more quickly, but are less accurate. Longer values "
-                        "(as high as 28 seconds) take longer to whisper, "
-                        "but are far more accurate.");
-                    whisper_window_duration_ = whisper_window_duration;
-
                     auto* whisper_browser_src_port = new wxTextCtrl(
                         whisper_config_panel_pairs, ID_WHISPER_BROWSER_SRC_PORT,
-                        std::to_string(app_c_.browser_src_port), wxDefaultPosition,
+                        std::to_string(app_c_->browser_src_port), wxDefaultPosition,
                         wxDefaultSize, /*style=*/0);
                     whisper_browser_src_port->SetToolTip(
                         "This is the port that the browser source is hosted "
@@ -1005,11 +991,6 @@ Frame::Frame()
                         /*flags=*/wxEXPAND);
 
                     sizer->Add(new wxStaticText(whisper_config_panel_pairs,
-                        wxID_ANY, /*label=*/"Window duration (s):"));
-                    sizer->Add(whisper_window_duration, /*proportion=*/0,
-                        /*flags=*/wxEXPAND);
-
-                    sizer->Add(new wxStaticText(whisper_config_panel_pairs,
                         wxID_ANY, /*label=*/"Browser source port:"));
                     sizer->Add(whisper_browser_src_port, /*proportion=*/0,
                         /*flags=*/wxEXPAND);
@@ -1017,7 +998,7 @@ Frame::Frame()
 
                 auto* whisper_enable_local_beep = new wxCheckBox(whisper_config_panel,
                     ID_WHISPER_ENABLE_LOCAL_BEEP, "Enable local beep");
-                whisper_enable_local_beep->SetValue(app_c_.enable_local_beep);
+                whisper_enable_local_beep->SetValue(app_c_->enable_local_beep);
                 whisper_enable_local_beep->SetToolTip(
                     "By default, TaSTT will play a sound (audible only to "
                     "you) when it begins transcription and when it stops. "
@@ -1027,7 +1008,7 @@ Frame::Frame()
 
                 auto* whisper_use_cpu = new wxCheckBox(whisper_config_panel,
                     ID_WHISPER_USE_CPU, "Use CPU");
-                whisper_use_cpu->SetValue(app_c_.use_cpu);
+                whisper_use_cpu->SetValue(app_c_->use_cpu);
                 whisper_use_cpu->SetToolTip(
                     "If checked, the transcription engine will run on your "
                     "CPU instead of your GPU. This is typically much slower "
@@ -1038,7 +1019,7 @@ Frame::Frame()
 
                 auto* whisper_enable_builtin = new wxCheckBox(whisper_config_panel,
                     ID_WHISPER_ENABLE_BUILTIN, "Send to built-in chatbox");
-                whisper_enable_builtin->SetValue(app_c_.whisper_enable_builtin);
+                whisper_enable_builtin->SetValue(app_c_->whisper_enable_builtin);
                 whisper_enable_builtin->SetToolTip(
                     "If checked, text will be sent to the built-in text box."
                 );
@@ -1046,7 +1027,7 @@ Frame::Frame()
 
                 auto* whisper_enable_custom = new wxCheckBox(whisper_config_panel,
                     ID_WHISPER_ENABLE_CUSTOM, "Send to custom chatbox");
-                whisper_enable_custom->SetValue(app_c_.whisper_enable_custom);
+                whisper_enable_custom->SetValue(app_c_->whisper_enable_custom);
                 whisper_enable_custom->SetToolTip(
                     "If checked, text will be sent to the custom text box."
                 );
@@ -1054,7 +1035,7 @@ Frame::Frame()
 
                 auto* whisper_enable_browser_src = new wxCheckBox(whisper_config_panel,
                     ID_WHISPER_ENABLE_BROWSER_SRC, "Send to browser source");
-                whisper_enable_browser_src->SetValue(app_c_.whisper_enable_browser_src);
+                whisper_enable_browser_src->SetValue(app_c_->whisper_enable_browser_src);
                 whisper_enable_browser_src->SetToolTip(
                     "If checked, text will be sent to a browser source. If "
                     "you're not using TaSTT to stream, you can ignore this option.");
@@ -1199,6 +1180,11 @@ Frame::Frame()
 		sizer->Add(whisper_panel, /*proportion=*/1, /*flags=*/wxEXPAND);
     }
 
+    // Now that transcribe_out_ has been created, we can deserialize.
+    app_c_ = std::make_unique<AppConfig>(transcribe_out_);
+    Log(transcribe_out_, "Deserializing config\n");
+    app_c_->Deserialize(AppConfig::kConfigPath);
+
 	Bind(wxEVT_CLOSE_WINDOW, &Frame::OnExit, this, wxID_EXIT);
 	Bind(wxEVT_BUTTON, &Frame::OnNavbarTranscribe, this,
         ID_NAVBAR_BUTTON_TRANSCRIBE);
@@ -1251,47 +1237,47 @@ void Frame::ApplyConfigToInputFields()
     // Transcription panel
     auto* py_app_mic = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_MIC));
 	int mic_idx = GetDropdownChoiceIndex(kMicChoices,
-		kNumMicChoices, app_c_.microphone, kMicDefault);
+		kNumMicChoices, app_c_->microphone, kMicDefault);
 	py_app_mic->SetSelection(mic_idx);
 
     auto* py_app_lang = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_LANG));
 	int lang_idx = GetDropdownChoiceIndex(kLangChoices,
-		kNumLangChoices, app_c_.language, kLangDefault);
+		kNumLangChoices, app_c_->language, kLangDefault);
 	py_app_lang->SetSelection(lang_idx);
 
     auto* py_app_model = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_MODEL));
 	int model_idx = GetDropdownChoiceIndex(kModelChoices,
-		kNumModelChoices, app_c_.model, kModelDefault);
+		kNumModelChoices, app_c_->model, kModelDefault);
 	py_app_model->SetSelection(model_idx);
 
     auto* py_app_button = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_BUTTON));
 	int button_idx = GetDropdownChoiceIndex(kButton,
-		kNumButtons, app_c_.button, kButtonDefault);
+		kNumButtons, app_c_->button, kButtonDefault);
 	py_app_button->SetSelection(button_idx);
 
     auto* py_app_chars_per_sync = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_CHARS_PER_SYNC));
 	int chars_idx = GetDropdownChoiceIndex(kCharsPerSync,
-		kNumCharsPerSync, std::to_string(app_c_.chars_per_sync),
+		kNumCharsPerSync, std::to_string(app_c_->chars_per_sync),
 		kCharsDefault);
 	py_app_chars_per_sync->SetSelection(chars_idx);
 
     auto* py_app_bytes_per_char = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_BYTES_PER_CHAR));
 	int bytes_idx = GetDropdownChoiceIndex(kBytesPerChar,
-		kNumBytesPerChar, std::to_string(app_c_.bytes_per_char),
+		kNumBytesPerChar, std::to_string(app_c_->bytes_per_char),
 		kBytesDefault);
 	py_app_bytes_per_char->SetSelection(bytes_idx);
 
     auto* py_app_rows = static_cast<wxTextCtrl*>(FindWindowById(ID_PY_APP_ROWS));
     py_app_rows->Clear();
-    py_app_rows->AppendText(std::to_string(app_c_.rows));
+    py_app_rows->AppendText(std::to_string(app_c_->rows));
 
     auto* py_app_cols = static_cast<wxTextCtrl*>(FindWindowById(ID_PY_APP_COLS));
     py_app_cols->Clear();
-    py_app_cols->AppendText(std::to_string(app_c_.cols));
+    py_app_cols->AppendText(std::to_string(app_c_->cols));
 
     // Whisper panel
     auto* whisper_mic = static_cast<wxChoice*>(FindWindowById(ID_WHISPER_MIC));
-    int whisper_mic_idx = app_c_.whisper_mic;
+    int whisper_mic_idx = app_c_->whisper_mic;
 	whisper_mic->SetSelection(whisper_mic_idx);
 
     auto* whisper_lang = static_cast<wxChoice*>(FindWindowById(ID_WHISPER_LANG));
@@ -1299,7 +1285,7 @@ void Frame::ApplyConfigToInputFields()
 
     auto* whisper_model = static_cast<wxChoice*>(FindWindowById(ID_WHISPER_MODEL));
 	int whisper_model_idx = GetDropdownChoiceIndex(kWhisperModelChoices,
-		kNumWhisperModelChoices, app_c_.whisper_model, kWhisperModelDefault);
+		kNumWhisperModelChoices, app_c_->whisper_model, kWhisperModelDefault);
 	whisper_model->SetSelection(whisper_model_idx);
 
     auto* whisper_button = static_cast<wxChoice*>(FindWindowById(ID_WHISPER_BUTTON));
@@ -1313,11 +1299,30 @@ void Frame::ApplyConfigToInputFields()
 
     auto* whisper_rows = static_cast<wxTextCtrl*>(FindWindowById(ID_WHISPER_ROWS));
     whisper_rows->Clear();
-    whisper_rows->AppendText(std::to_string(app_c_.rows));
+    whisper_rows->AppendText(std::to_string(app_c_->rows));
 
     auto* whisper_cols = static_cast<wxTextCtrl*>(FindWindowById(ID_WHISPER_COLS));
     whisper_cols->Clear();
-    whisper_cols->AppendText(std::to_string(app_c_.cols));
+    whisper_cols->AppendText(std::to_string(app_c_->cols));
+
+    auto* whisper_browser_src_port = static_cast<wxTextCtrl*>(FindWindowById(ID_WHISPER_BROWSER_SRC_PORT));
+    whisper_browser_src_port->Clear();
+    whisper_browser_src_port->AppendText(std::to_string(app_c_->browser_src_port));
+
+	auto* whisper_enable_local_beep = static_cast<wxCheckBox*>(FindWindowById(ID_WHISPER_ENABLE_LOCAL_BEEP));
+    whisper_enable_local_beep->SetValue(app_c_->enable_local_beep);
+
+	auto* whisper_use_cpu = static_cast<wxCheckBox*>(FindWindowById(ID_WHISPER_USE_CPU));
+    whisper_use_cpu->SetValue(app_c_->use_cpu);
+
+    auto* whisper_enable_builtin = static_cast<wxCheckBox*>(FindWindowById(ID_WHISPER_ENABLE_BUILTIN));
+    whisper_enable_builtin->SetValue(app_c_->whisper_enable_builtin);
+
+    auto* whisper_enable_custom = static_cast<wxCheckBox*>(FindWindowById(ID_WHISPER_ENABLE_CUSTOM));
+    whisper_enable_custom->SetValue(app_c_->whisper_enable_custom);
+
+    auto* whisper_enable_browser_src = static_cast<wxCheckBox*>(FindWindowById(ID_WHISPER_ENABLE_BROWSER_SRC));
+    whisper_enable_browser_src->SetValue(app_c_->whisper_enable_browser_src);
 
     // Unity panel
     auto* unity_chars_per_sync = static_cast<wxChoice*>(FindWindowById(ID_UNITY_CHARS_PER_SYNC));
@@ -1328,11 +1333,11 @@ void Frame::ApplyConfigToInputFields()
 
     auto* unity_rows = static_cast<wxTextCtrl*>(FindWindowById(ID_UNITY_ROWS));
     unity_rows->Clear();
-    unity_rows->AppendText(std::to_string(app_c_.rows));
+    unity_rows->AppendText(std::to_string(app_c_->rows));
 
     auto* unity_cols = static_cast<wxTextCtrl*>(FindWindowById(ID_UNITY_COLS));
     unity_cols->Clear();
-    unity_cols->AppendText(std::to_string(app_c_.cols));
+    unity_cols->AppendText(std::to_string(app_c_->cols));
 }
 
 void Frame::PopulateDynamicInputFields()
@@ -1555,20 +1560,20 @@ void Frame::OnGenerateFX(wxCommandEvent& event)
         return;
     }
 
-    app_c_.assets_path = unity_assets_path.string();
-    app_c_.fx_path = unity_animator_path.string();
-    app_c_.params_path = unity_parameters_path.string();
-    app_c_.menu_path = unity_menu_path.string();
-    app_c_.bytes_per_char = bytes_per_char;
-    app_c_.chars_per_sync = chars_per_sync;
-    app_c_.rows = rows;
-    app_c_.cols = cols;
-    app_c_.clear_osc = unity_clear_osc_->GetValue();
-    app_c_.Serialize(AppConfig::kConfigPath);
+    app_c_->assets_path = unity_assets_path.string();
+    app_c_->fx_path = unity_animator_path.string();
+    app_c_->params_path = unity_parameters_path.string();
+    app_c_->menu_path = unity_menu_path.string();
+    app_c_->bytes_per_char = bytes_per_char;
+    app_c_->chars_per_sync = chars_per_sync;
+    app_c_->rows = rows;
+    app_c_->cols = cols;
+    app_c_->clear_osc = unity_clear_osc_->GetValue();
+    app_c_->Serialize(AppConfig::kConfigPath);
 
     std::string out;
     if (!PythonWrapper::GenerateAnimator(
-        app_c_,
+        *app_c_,
         unity_animator_generated_dir,
         unity_animator_generated_name,
         unity_parameters_generated_name,
@@ -1860,26 +1865,26 @@ void Frame::OnAppStart(wxCommandEvent& event) {
         return;
     }
 
-    app_c_.microphone = kMicChoices[which_mic].ToStdString();
-    app_c_.language = kLangChoices[which_lang].ToStdString();
-    app_c_.model = kModelChoices[which_model].ToStdString();
-    app_c_.chars_per_sync = chars_per_sync;
-    app_c_.bytes_per_char = bytes_per_char;
-    app_c_.button = kButton[button_idx].ToStdString();
-    app_c_.rows = rows;
-    app_c_.cols = cols;
-    app_c_.window_duration = std::to_string(window_duration);
-    app_c_.enable_local_beep = enable_local_beep;
-    app_c_.use_cpu = use_cpu;
-    app_c_.use_builtin = use_builtin;
-    app_c_.Serialize(AppConfig::kConfigPath);
+    app_c_->microphone = kMicChoices[which_mic].ToStdString();
+    app_c_->language = kLangChoices[which_lang].ToStdString();
+    app_c_->model = kModelChoices[which_model].ToStdString();
+    app_c_->chars_per_sync = chars_per_sync;
+    app_c_->bytes_per_char = bytes_per_char;
+    app_c_->button = kButton[button_idx].ToStdString();
+    app_c_->rows = rows;
+    app_c_->cols = cols;
+    app_c_->window_duration = std::to_string(window_duration);
+    app_c_->enable_local_beep = enable_local_beep;
+    app_c_->use_cpu = use_cpu;
+    app_c_->use_builtin = use_builtin;
+    app_c_->Serialize(AppConfig::kConfigPath);
 
     auto cb = [&](wxProcess* proc, int ret) -> void {
         Log(transcribe_out_, "Transcription engine exited with code {}\n", ret);
         DrainAsyncOutput(proc, transcribe_out_);
 		return;
     };
-    wxProcess* p = PythonWrapper::StartApp(std::move(cb), app_c_);
+    wxProcess* p = PythonWrapper::StartApp(std::move(cb), *app_c_);
     if (!p) {
         Log(transcribe_out_, "Failed to launch transcription engine\n");
         return;
@@ -1967,46 +1972,37 @@ void Frame::OnWhisperStart(wxCommandEvent& event) {
         kCharsPerSync[chars_per_sync_idx].ToStdString();
     std::string bytes_per_char_str =
         kBytesPerChar[bytes_per_char_idx].ToStdString();
-    std::string window_duration_str =
-        whisper_window_duration_->GetValue().ToStdString();
     std::string browser_src_port_str =
         whisper_browser_src_port_->GetValue().ToStdString();
-    int rows, cols, chars_per_sync, bytes_per_char, window_duration, browser_src_port;
+    int rows, cols, chars_per_sync, bytes_per_char, browser_src_port;
     try {
         rows = std::stoi(rows_str);
         cols = std::stoi(cols_str);
         chars_per_sync = std::stoi(chars_per_sync_str);
         bytes_per_char = std::stoi(bytes_per_char_str);
-        window_duration = std::stoi(window_duration_str);
         browser_src_port = std::stoi(browser_src_port_str);
     }
     catch (const std::invalid_argument&) {
 		Log(whisper_out_, "Could not parse rows \"{}\", cols \"{}\", chars "
-            "per sync \"{}\", bytes per char \"{}\" or window duration \"{}\" "
+            "per sync \"{}\", or bytes per char \"{}\" "
             "as an integer\n", rows_str, cols_str, chars_per_sync_str,
-            bytes_per_char_str, window_duration_str);
+            bytes_per_char_str);
         return;
     }
     catch (const std::out_of_range&) {
 		Log(whisper_out_, "Rows \"{}\", cols \"{}\", chars per sync "
-            "\"{}\", bytes per char \"{}\" or window duration \"{}\" are out "
+            "\"{}\", or bytes per char \"{}\" are out "
             "of range\n", rows_str, cols_str, chars_per_sync_str,
-            bytes_per_char_str, window_duration_str);
+            bytes_per_char_str);
         return;
     }
     const int max_rows = 10;
     const int max_cols = 240;
-    const int min_window_duration_s = 10;
-    const int max_window_duration_s = 28;
     if (rows < 0 || rows > max_rows ||
-        cols < 0 || cols > max_cols ||
-        window_duration < min_window_duration_s ||
-        window_duration > max_window_duration_s) {
-        Log(whisper_out_, "Rows not on [{},{}] or cols not on [{},{}] or "
-            "window_duration not on [{},{}]\n",
+        cols < 0 || cols > max_cols) {
+        Log(whisper_out_, "Rows not on [{},{}] or cols not on [{},{}]\n",
             0, max_rows,
-            0, max_cols,
-            min_window_duration_s, max_window_duration_s);
+            0, max_cols);
         return;
     }
 
@@ -2018,27 +2014,26 @@ void Frame::OnWhisperStart(wxCommandEvent& event) {
         return;
     }
 
-    app_c_.whisper_mic = which_mic;
-    app_c_.language = kLangChoices[which_lang].ToStdString();
-    app_c_.whisper_model = kWhisperModelChoices[which_model].ToStdString();
-    app_c_.chars_per_sync = chars_per_sync;
-    app_c_.bytes_per_char = bytes_per_char;
-    app_c_.button = kButton[button_idx].ToStdString();
-    app_c_.rows = rows;
-    app_c_.cols = cols;
-    app_c_.window_duration = std::to_string(window_duration);
-    app_c_.enable_local_beep = enable_local_beep;
-    app_c_.use_cpu = use_cpu;
-    app_c_.browser_src_port = browser_src_port;
-    app_c_.whisper_enable_browser_src = whisper_enable_browser_src_->GetValue();
-    app_c_.whisper_enable_builtin = whisper_enable_builtin_->GetValue();
-    app_c_.whisper_enable_custom = whisper_enable_custom_->GetValue();
-    app_c_.Serialize(AppConfig::kConfigPath);
+    app_c_->whisper_mic = which_mic;
+    app_c_->language = kLangChoices[which_lang].ToStdString();
+    app_c_->whisper_model = kWhisperModelChoices[which_model].ToStdString();
+    app_c_->chars_per_sync = chars_per_sync;
+    app_c_->bytes_per_char = bytes_per_char;
+    app_c_->button = kButton[button_idx].ToStdString();
+    app_c_->rows = rows;
+    app_c_->cols = cols;
+    app_c_->enable_local_beep = enable_local_beep;
+    app_c_->use_cpu = use_cpu;
+    app_c_->browser_src_port = browser_src_port;
+    app_c_->whisper_enable_browser_src = whisper_enable_browser_src_->GetValue();
+    app_c_->whisper_enable_builtin = whisper_enable_builtin_->GetValue();
+    app_c_->whisper_enable_custom = whisper_enable_custom_->GetValue();
+    app_c_->Serialize(AppConfig::kConfigPath);
 
-    whisper_->Start(app_c_);
+    whisper_->Start(*app_c_);
     if (whisper_enable_browser_src_->GetValue()) {
         Log(whisper_out_, "Frame launching browser src\n");
-        whisper_->StartBrowserSource(app_c_);
+        whisper_->StartBrowserSource(*app_c_);
     }
 }
 

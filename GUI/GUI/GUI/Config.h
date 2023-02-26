@@ -1,6 +1,12 @@
 #pragma once
 
-#include "ryml.h"
+#include <wx/wxprec.h>
+
+#ifndef WX_PRECOMP
+#include <wx/wx.h>
+#endif
+
+#include "ConfigMarshal.h"
 
 #include <filesystem>
 
@@ -8,6 +14,8 @@
 // (Serialize) and restore from disk (Deserialize).
 class Config {
 public:
+	Config(wxTextCtrl* out) : out_(out) {}
+
 	virtual ~Config() {}
 
 	virtual bool Serialize(const std::filesystem::path& path) = 0;
@@ -16,10 +24,12 @@ public:
 
 protected:
 	virtual bool Serialize(const std::filesystem::path& path,
-		const ryml::Tree* t);
+		const ConfigMarshal& cm);
 
 	virtual bool Deserialize(const std::filesystem::path& path,
-		ryml::Tree* t);
+		ConfigMarshal& cm);
+
+	wxTextCtrl* out_;
 };
 
 // Represents the configurable fields for the GUI. Used by both the
@@ -28,7 +38,7 @@ class AppConfig : public Config {
 public:
 	virtual ~AppConfig() {}
 
-	AppConfig();
+	AppConfig(wxTextCtrl* out);
 
 	bool Serialize(const std::filesystem::path& path) override;
 

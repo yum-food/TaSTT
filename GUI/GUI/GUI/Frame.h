@@ -43,7 +43,6 @@ private:
     wxTextCtrl* unity_cols_;
     wxTextCtrl* whisper_rows_;
     wxTextCtrl* whisper_cols_;
-    wxTextCtrl* whisper_window_duration_;
     wxTextCtrl* whisper_browser_src_port_;
 
     wxDirPickerCtrl* unity_assets_file_picker_;
@@ -84,7 +83,7 @@ private:
     wxProcess* whisper_app_;
     wxTimer whisper_app_drain_;
 
-    AppConfig app_c_;
+    std::unique_ptr<AppConfig> app_c_;
 
     std::unique_ptr<WhisperCPP> whisper_;
 

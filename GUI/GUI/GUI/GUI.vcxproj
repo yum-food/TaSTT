@@ -167,13 +167,13 @@
     <ClInclude Include="App.h" />
     <ClInclude Include="BrowserSource.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="ConfigMarshal.h" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="HTTPMapper.h" />
     <ClInclude Include="HTTPParser.h" />
     <ClInclude Include="Logging.h" />
     <ClInclude Include="PythonWrapper.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="ryml.h" />
     <ClInclude Include="ScopeGuard.h" />
     <ClInclude Include="Transcript.h" />
     <ClInclude Include="Util.h" />
