@@ -24,13 +24,13 @@ namespace WebServer {
 		WebServer(wxTextCtrl *out, std::uint16_t port);
 
 		typedef std::function<void(
-			const std::string& method,
-			const std::string& path,
+			int& status_code,
 			std::string& payload,
 			ContentType& type)> handler_t;
 
 		bool RegisterPathHandler(const std::string& method,
 			const std::string& path, handler_t&& handler);
+		void RegisterDefaultHandler(handler_t&& handler);
 
 		bool Run(volatile bool* run);
 
@@ -45,6 +45,7 @@ namespace WebServer {
 
 		typedef std::map<dispatch_key_t, handler_t> dispatch_map_t;
 		dispatch_map_t dispatch_map_;
+		handler_t default_handler_;
 
 		wxTextCtrl* const out_;
 		const uint16_t port_;

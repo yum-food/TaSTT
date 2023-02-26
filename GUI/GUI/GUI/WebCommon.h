@@ -2,7 +2,7 @@
 
 namespace WebServer {
 	enum ContentType {
-		HTTP,
+		HTML,
 		JSON,
 	};
 };

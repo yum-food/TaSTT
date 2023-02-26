@@ -21,8 +21,7 @@
                 }
       function getTranscript() {
         $.ajax({
-                // TODO(yum) parameterize the port
-                url: 'http://localhost:9517/api/transcript',
+                url: 'http://localhost:%PORT%/api/transcript',
                 method: 'GET',
                 dataType: 'json',
                 success: function(data) {
