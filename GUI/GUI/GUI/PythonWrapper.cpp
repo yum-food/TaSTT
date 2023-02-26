@@ -183,7 +183,7 @@ bool PythonWrapper::InvokeCommandWithArgs(const std::string& cmd,
 	std::string env;
 
 	{
-		std::vector<char> buf(4096, 0);
+		std::vector<char> buf(4096 * 8, 0);
 		DWORD len = GetEnvironmentVariableA("PATH", buf.data(), buf.size() - 1);
 		if (len > 0) {
 			env = std::string("PATH=") + buf.data();
@@ -195,7 +195,23 @@ bool PythonWrapper::InvokeCommandWithArgs(const std::string& cmd,
 			out_cb("", err_oss.str());
 			return false;
 		}
-		// TODO(yum) add git to PATH
+
+		// Add git to PATH
+		std::filesystem::path git_path =
+			(std::filesystem::current_path() /
+				"Resources/PortableGit/bin").lexically_normal();
+		if (env.find(git_path.string()) == std::string::npos) {
+			env += ";" + git_path.string();
+
+			// Add updated PATH to current process's environment
+			if (!SetEnvironmentVariableA("PATH", env.c_str())) {
+				std::ostringstream err_oss;
+				err_oss << "Error while executing python command \"" << cmd_oss.str()
+					<< "\": Failed to add git to PATH: " << GetWin32ErrMsg() << std::endl;
+				out_cb("", err_oss.str());
+				return false;
+			}
+		}
 	}
 
 	std::string cmd_str = cmd_oss.str();
@@ -206,7 +222,7 @@ bool PythonWrapper::InvokeCommandWithArgs(const std::string& cmd,
 		TRUE,  // whether to inherit parent's handles
 		0,  // creation flags
 		//env.data(),
-		nullptr,  // env
+		nullptr,  // environment variables
 		std::filesystem::current_path().string().c_str(),  // current directory
 		&si,
 		&pi)) {

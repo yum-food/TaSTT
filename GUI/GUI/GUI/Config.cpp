@@ -131,7 +131,6 @@ bool AppConfig::Deserialize(const std::filesystem::path& path) {
 	std::error_code err;
 	if (!std::filesystem::exists(path, err)) {
 		*this = AppConfig(out_);
-		Log(out_, "Cannot deserialize config at path {}: Does not exist!\n", path.string());
 		return true;
 	}
 
