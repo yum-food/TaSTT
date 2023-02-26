@@ -273,8 +273,8 @@ bool PythonWrapper::InvokeWithArgs(std::vector<std::string>&& args,
 		return true;
 	}
 	else {
-		wxLogError("%s: %s", err_msg, py_stderr.c_str());
 		Log(out, "failed!\n");
+		Log(out, "Error: {}: {}\n", err_msg, py_stderr);
 		return false;
 	}
 }
@@ -457,8 +457,9 @@ bool PythonWrapper::GenerateAnimator(
 			}
 		}
 		else {
-			wxLogError("Failed to generate emotes: %s", py_stderr.c_str());
 			Log(out, "failed!\n");
+			Log(out, "stdout: {}\n", py_stdout.c_str());
+			Log(out, "stderr: {}\n", py_stderr.c_str());
 			return false;
 		}
 	}
@@ -474,8 +475,8 @@ bool PythonWrapper::GenerateAnimator(
 		std::error_code error;
 		std::filesystem::copy("Resources/Animations", tastt_animations_path, opts, error);
 		if (error.value()) {
-			wxLogError("Failed to copy animations: %s (%d)", error.message(), error.value());
 			Log(out, "failed!\n");
+			Log(out, "Error: {} ({})\n", error.message(), error.value());
 			return false;
 		}
 		Log(out, "success!\n");
@@ -488,8 +489,8 @@ bool PythonWrapper::GenerateAnimator(
 		std::error_code error;
 		std::filesystem::copy("Resources/UnityAssets", tastt_assets_path, opts, error);
 		if (error.value()) {
-			wxLogError("Failed to copy animations: %s (%d)", error.message(), error.value());
 			Log(out, "failed!\n");
+			Log(out, "Error: {} ({})\n", error.message(), error.value());
 			return false;
 		}
 		Log(out, "success!\n");
@@ -502,8 +503,8 @@ bool PythonWrapper::GenerateAnimator(
 		std::error_code error;
 		std::filesystem::copy("Resources/Shaders", tastt_shaders_path, opts, error);
 		if (error.value()) {
-			wxLogError("Failed to copy animations: %s (%d)", error.message(), error.value());
 			Log(out, "failed!\n");
+			Log(out, "Error: {} ({})\n", error.message(), error.value());
 			return false;
 		}
 		Log(out, "success!\n");
@@ -516,8 +517,8 @@ bool PythonWrapper::GenerateAnimator(
 		std::error_code error;
 		std::filesystem::copy("Resources/Fonts", tastt_fonts_path, opts, error);
 		if (error.value()) {
-			wxLogError("Failed to copy animations: %s (%d)", error.message(), error.value());
 			Log(out, "failed!\n");
+			Log(out, "Error: {} ({})\n", error.message(), error.value());
 			return false;
 		}
 		Log(out, "success!\n");
@@ -624,8 +625,8 @@ bool PythonWrapper::GenerateAnimator(
 				Log(out, "success!\n");
 			}
 			else {
-				wxLogError("Failed to delete OSC configs: %s", err.message());
 				Log(out, "failed!\n");
+				Log(out, "Error: {} ({})\n", err.message(), err.value());
 			}
 		}
 		else {
