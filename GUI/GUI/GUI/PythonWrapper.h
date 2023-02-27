@@ -60,7 +60,10 @@ namespace PythonWrapper
 	std::string DumpMics();
 
 	// Execute get-pip.py.
-	bool InstallPip(const std::function<void(const std::string& out, const std::string& err)>&& out_cb);
+	bool InstallPip(
+		const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
+		const std::function<void(std::string& in)>&& in_cb = [](std::string&) {},
+		const std::function<bool()>&& run_cb = []() { return true; });
 	bool InstallPip(std::string* out, std::string* err = nullptr);
 
 	// TODO(yum) both StartApp and GenerateAnimator should be

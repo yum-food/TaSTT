@@ -264,7 +264,7 @@ bool PythonWrapper::InvokeCommandWithArgs(const std::string& cmd,
 		}
 	}
 	if (!run_cb()) {
-		return true;
+		return false;
 	}
 
 	std::ostringstream stdout_oss, stderr_oss;
@@ -379,14 +379,18 @@ bool PythonWrapper::InstallPip(std::string* out, std::string* err) {
 	return ret;
 }
 
-bool PythonWrapper::InstallPip(const std::function<void(const std::string& out, const std::string& err)>&& out_cb) {
+bool PythonWrapper::InstallPip(
+	const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
+	const std::function<void(std::string& in)>&& in_cb,
+	const std::function<bool()>&& run_cb) {
 	std::filesystem::path pip_flag = "Resources/Python/.pip_installed";
 	if (std::filesystem::exists(pip_flag)) {
 		return true;
 	}
 
 	std::string pip_path = "Resources/Python/get-pip.py";
-	if (!InvokeWithArgs({ pip_path }, std::move(out_cb))) {
+	if (!InvokeWithArgs({ pip_path }, std::move(out_cb), std::move(in_cb),
+		std::move(run_cb))) {
 		return false;
 	}
 

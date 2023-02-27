@@ -18,6 +18,7 @@
 #include <filesystem>
 #include <functional>
 #include <future>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -45,7 +46,8 @@ public:
 	void StopCustomChatbox();
 
 private:
-	bool GetMicsImpl(std::vector<Whisper::sCaptureDevice>& mics);
+	bool GetMicsImpl(
+		std::vector<std::unique_ptr<Whisper::sCaptureDevice>>& mics);
 
 	wxTextCtrl* out_;
 	Whisper::iMediaFoundation* f_;
