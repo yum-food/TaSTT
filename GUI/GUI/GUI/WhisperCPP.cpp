@@ -143,6 +143,11 @@ bool WhisperCPP::OpenMic(const int idx, Whisper::iAudioCapture*& stream) {
 	}
 
 	Whisper::sCaptureParams params{};
+	params.dropStartSilence = 1.0;
+	params.pauseDuration = 1.0;
+	params.minDuration = 2.0;
+	params.maxDuration = 3.0;
+	params.retainDuration = 1.5;
 	stream = nullptr;
 	HRESULT err = f_->openCaptureDevice(mics_raw[idx]->endpoint, params,
 		&stream);
@@ -340,6 +345,7 @@ void WhisperCPP::Start(const AppConfig& c) {
 			static const std::vector<std::string> banned_words{
 				" -",
 				" (static)",
+				" *no audio*",
 			};
 
 			const sSegment* const segments = results->getSegments();
@@ -404,7 +410,6 @@ void WhisperCPP::Start(const AppConfig& c) {
 		Log(out_, "Exit transcription engine\n");
 	});
 
-	Log(out_, "Success!\n");
 	return;
 }
 

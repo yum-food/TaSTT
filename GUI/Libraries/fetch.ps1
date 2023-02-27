@@ -12,10 +12,6 @@ $WX_3_2_1_URL = "https://github.com/wxWidgets/wxWidgets/releases/download/v3.2.1
 $WX_URL = $WX_3_2_1_URL
 $WX_FILE = $(Split-Path -Path $WX_URL -Leaf)
 
-$WHISPER_1_7_0_URL = "https://github.com/Const-me/Whisper/releases/download/1.7.0/Library.zip"
-$WHISPER_URL = $WHISPER_1_7_0_URL
-$WHISPER_FILE = $(Split-Path -Path $WHISPER_URL -Leaf)
-
 pushd $PSScriptRoot
 
 # WX
@@ -31,24 +27,14 @@ if (-Not (Test-Path wx)) {
   popd > $null
 }
 
-if ((Test-Path whisper) -And ($overwrite)) {
-  rm -Recurse whisper
+
+if (Test-Path ../GUI/GUI/whisper/) {
+  rm -Recurse ../GUI/GUI/whisper/
 }
 
-if (-Not (Test-Path whisper)) {
-  mkdir whisper
-  pushd whisper > $null
-  Invoke-WebRequest $WHISPER_URL -OutFile $WHISPER_FILE
-  Expand-Archive $WHISPER_FILE -DestinationPath .
-  if (Test-Path ../../GUI/GUI/whisper/) {
-    rm -Recurse ../../GUI/GUI/whisper/
-  }
-  mkdir ../../GUI/GUI/whisper/
-  cp Include/*.h ../../GUI/GUI/whisper/
-  cp Linker/*.lib ../../GUI/GUI/whisper/Whisper.lib
-  cp Binary/*.dll ../../GUI/GUI/whisper/Whisper.dll
-  popd > $null
-}
+mkdir ../GUI/GUI/whisper/
+cp ../../TaSTT-Whisper/Whisper/API/*.h ../GUI/GUI/whisper/
+cp ../../TaSTT-Whisper/x64/Release/Whisper.lib ../GUI/GUI/whisper/
 
 popd > $null  # $PSScriptRoot
 

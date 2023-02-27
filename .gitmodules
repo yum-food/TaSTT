@@ -1,3 +1,6 @@
 [submodule "World-Constraint"]
 	path = UnityAssets/World-Constraint
 	url = https://github.com/VRLabs/World-Constraint
+[submodule "TaSTT-Whisper"]
+	path = TaSTT-Whisper
+	url = https://github.com/yum-food/TaSTT-Whisper

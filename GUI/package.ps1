@@ -65,12 +65,6 @@ if (-Not (Test-Path $git_dir)) {
   Read-Host -Prompt "Press enter once PortableGit is installed at $pwd\PortableGit"
 }
 
-#$WHISPER_CHECKPOINT_URL = "https://huggingface.co/datasets/ggerganov/whisper.cpp/resolve/main/ggml-base.bin"
-#$WHISPER_CHECKPOINT_FILE = $(Split-Path -Path $WHISPER_CHECKPOINT_URL -Leaf)
-#if (-Not (Test-Path $WHISPER_CHECKPOINT_FILE)) {
-#  Invoke-WebRequest $WHISPER_CHECKPOINT_URL -OutFile $WHISPER_CHECKPOINT_FILE
-#}
-
 mkdir $install_dir > $null
 mkdir $install_dir/Resources > $null
 cp -Recurse ../Animations TaSTT/Resources/Animations
@@ -86,7 +80,7 @@ cp -Recurse ../Sounds TaSTT/Resources/Sounds
 cp -Recurse ../UnityAssets TaSTT/Resources/UnityAssets
 cp -Recurse ../BrowserSource TaSTT/Resources/BrowserSource
 cp GUI/x64/$release/GUI.exe TaSTT/TaSTT.exe
-cp GUI/GUI/Whisper/Whisper.dll TaSTT/Whisper.dll
+cp ../"TaSTT-Whisper"/x64/Release/Whisper.dll TaSTT/Whisper.dll
 mkdir TaSTT/Resources/Models
 #cp $WHISPER_CHECKPOINT_FILE TaSTT/Resources/Models/
 
