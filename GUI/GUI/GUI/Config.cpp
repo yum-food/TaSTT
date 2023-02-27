@@ -88,8 +88,8 @@ AppConfig::AppConfig(wxTextCtrl *out)
 
 	browser_src_port(9517),
 	whisper_enable_builtin(false),
-	whisper_enable_custom(true),
-	whisper_enable_browser_src(false)
+	whisper_enable_custom(false),
+	whisper_enable_browser_src(true)
 {}
 
 bool AppConfig::Serialize(const std::filesystem::path& path) {
