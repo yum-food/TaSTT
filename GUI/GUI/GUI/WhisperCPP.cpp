@@ -344,7 +344,7 @@ void WhisperCPP::Start(const AppConfig& c) {
 			// entries (source: I heard it from someone once).
 			static const std::vector<std::string> banned_words{
 				" -",
-				" (static)",
+				" *fades out*",
 				" *no audio*",
 			};
 
@@ -359,7 +359,9 @@ void WhisperCPP::Start(const AppConfig& c) {
 					const sToken& tok = tokens[seg.firstToken + j];
 					std::string_view tok_str(tok.text);
 					if (tok_str.starts_with("[") ||
-						tok_str.starts_with(" [")) {
+					    tok_str.starts_with("(") ||
+						tok_str.starts_with(" [") ||
+						tok_str.starts_with(" (")) {
 						is_metadata = true;
 					}
 					if (is_metadata) {
