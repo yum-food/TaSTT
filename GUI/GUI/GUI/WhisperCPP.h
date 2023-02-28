@@ -46,8 +46,16 @@ public:
 	void StopCustomChatbox();
 
 private:
+	struct MicInfo {
+		MicInfo(const wchar_t* n, const wchar_t* e)
+			: name(n), endpoint(e)
+		{}
+
+		std::wstring name;
+		std::wstring endpoint;
+	};
 	bool GetMicsImpl(
-		std::vector<std::unique_ptr<Whisper::sCaptureDevice>>& mics);
+		std::vector<std::unique_ptr<MicInfo>>& mics);
 
 	wxTextCtrl* out_;
 	Whisper::iMediaFoundation* f_;

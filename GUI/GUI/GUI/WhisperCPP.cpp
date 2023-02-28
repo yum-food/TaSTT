@@ -113,14 +113,14 @@ bool WhisperCPP::GetMics(std::vector<std::string>& mics) {
 		return false;
 	}
 
-	std::vector<std::unique_ptr<sCaptureDevice>> mics_raw;
+	std::vector<std::unique_ptr<MicInfo>> mics_raw;
 	if (!GetMicsImpl(mics_raw)) {
 		return false;
 	}
 
 	mics.clear();
 	for (const auto& raw_mic : mics_raw) {
-		mics.push_back(wcharToAsciiString(raw_mic->displayName));
+		mics.push_back(wcharToAsciiString(raw_mic->name.c_str()));
 	}
 
 	return true;
@@ -132,7 +132,7 @@ bool WhisperCPP::OpenMic(const int idx, Whisper::iAudioCapture*& stream) {
 		return false;
 	}
 
-	std::vector<std::unique_ptr<sCaptureDevice>> mics_raw;
+	std::vector<std::unique_ptr<MicInfo>> mics_raw;
 	if (!GetMicsImpl(mics_raw)) {
 		return false;
 	}
@@ -149,11 +149,11 @@ bool WhisperCPP::OpenMic(const int idx, Whisper::iAudioCapture*& stream) {
 	params.maxDuration = 3.0;
 	params.retainDuration = 1.5;
 	stream = nullptr;
-	HRESULT err = f_->openCaptureDevice(mics_raw[idx]->endpoint, params,
-		&stream);
+	HRESULT err = f_->openCaptureDevice(mics_raw[idx]->endpoint.c_str(),
+		params, &stream);
 	if (FAILED(err)) {
 		Log(out_, "Failed to open mic with idx {} ({}): {}\n", idx,
-			wcharToAsciiString(mics_raw[idx]->displayName),
+			wcharToAsciiString(mics_raw[idx]->name.c_str()),
 			hresultToString(err));
 		return false;
 	}
@@ -318,7 +318,9 @@ void WhisperCPP::Start(const AppConfig& c) {
 		ScopeGuard context_cleanup([context]() { context->Release(); });
 
 		Whisper::sFullParams wparams{};
-		context->fullDefaultParams(eSamplingStrategy::Greedy, &wparams);
+		context->fullDefaultParams(eSamplingStrategy::BeamSearch, &wparams);
+		wparams.beam_search.beam_width = 5;
+		wparams.beam_search.n_best = 5;
 		wparams.language = Whisper::makeLanguageKey("en");  // TODO(yum) use config
 		// This must be set to keep memory usage from growing without bound.
 		wparams.n_max_text_ctx = 100;
@@ -538,11 +540,11 @@ void WhisperCPP::StopCustomChatbox() {
 	Log(out_, "Done!\n");
 }
 
-bool WhisperCPP::GetMicsImpl(std::vector<std::unique_ptr<sCaptureDevice>>& mics) {
+bool WhisperCPP::GetMicsImpl(std::vector<std::unique_ptr<MicInfo>>& mics) {
 	pfnFoundCaptureDevices dev_cb = [](int len, const sCaptureDevice* buf, void* pv)->HRESULT __stdcall {
-		auto mics = static_cast<std::vector<std::unique_ptr<sCaptureDevice>>*>(pv);
+		auto mics = static_cast<std::vector<std::unique_ptr<MicInfo>>*>(pv);
 		for (int i = 0; i < len; i++) {
-			mics->push_back(std::make_unique<sCaptureDevice>(buf[i]));
+			mics->push_back(std::make_unique<MicInfo>(buf[i].displayName, buf[i].endpoint));
 		}
 		return S_OK;
 	};
