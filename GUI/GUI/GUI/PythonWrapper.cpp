@@ -1,8 +1,14 @@
+// Import rand_s() WIN32 API.
+#define _CRT_RAND_S
+// Silence security warnings caused by importing stdlib.h before wx.
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <stdlib.h>
+
 #include "Logging.h"
 #include "PythonWrapper.h"
 #include "ScopeGuard.h"
 #include "Util.h"
-
 #include "Config.h"
 
 #include <stdio.h>
@@ -92,11 +98,66 @@ std::string DrainWin32Pipe(const HANDLE pipe) {
 	return oss.str();
 }
 
+bool SetAffinityMask(
+	HANDLE hProcess,
+	const std::function<void(const std::string& out, const std::string& err)> out_cb)
+{
+	// Set process affinity mask. This is an simple optimization pointed out by
+	// a user. Constraining any of the processes used by the STT to a reduced
+	// number of processors does not affect user-visible performance.
+	{
+		// Query processor information.
+		SYSTEM_INFO sysinfo{};
+		GetSystemInfo(&sysinfo);
+		//sysinfo.dwNumberOfProcessors
+
+		// Pick a random processor.
+		unsigned int rand_num;
+		auto err = rand_s(&rand_num);
+		if (err) {
+			std::ostringstream err_oss;
+			err_oss << "Failed to get random number: " << err << std::endl;
+			out_cb("", err_oss.str());
+			return false;
+		}
+		// Constrain the processor ID to [1, num_processors).
+		// We don't want to run on processor 0 since it receives system interrupts
+		int processor_id = rand_num;
+		switch (sysinfo.dwNumberOfProcessors) {
+			// case 0 can never happen.
+		case 1:
+			processor_id = 0;
+		case 2:
+			processor_id = rand_num % 2;
+		default:
+			processor_id = (processor_id % (sysinfo.dwNumberOfProcessors - 1)) + 1;
+		}
+		DWORD_PTR affinity_mask = 0;
+		processor_id = std::min(processor_id,
+			static_cast<int>(sizeof(affinity_mask)));
+		affinity_mask = 1LL << processor_id;
+
+		if (!SetProcessAffinityMask(hProcess, affinity_mask)) {
+			std::ostringstream err_oss;
+			err_oss << "Failed to set affinity mask: " << GetWin32ErrMsg();
+			out_cb("", err_oss.str());
+			return false;
+		}
+
+		{
+			std::ostringstream oss;
+			oss << "Set affinity mask to " << affinity_mask <<
+				", i.e. processor " << processor_id << std::endl;
+			out_cb(oss.str(), "");
+		}
+	}
+}
+
 bool PythonWrapper::InvokeCommandWithArgs(const std::string& cmd,
 	std::vector<std::string>&& args,
 	const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
-		const std::function<void(std::string& in)>&& in_cb,
-		const std::function<bool()>&& run_cb) {
+	const std::function<void(std::string& in)>&& in_cb,
+	const std::function<bool()>&& run_cb) {
 	std::ostringstream cmd_oss;
 	cmd_oss << cmd;
 	for (const auto& arg : args) {
@@ -236,6 +297,9 @@ bool PythonWrapper::InvokeCommandWithArgs(const std::string& cmd,
 		CloseHandle(pi.hProcess);
 		CloseHandle(pi.hThread);
 		});
+
+	// Set affinity mask (best effort)
+	SetAffinityMask(pi.hProcess, out_cb);
 
 	// While the process is running, drain output and send input every 10 ms.
 	DWORD timeout_ms = 10;
@@ -401,27 +465,37 @@ bool PythonWrapper::InstallPip(
 	return true;
 }
 
-wxProcess* PythonWrapper::StartApp(
-	std::function<void(wxProcess* proc, int ret)>&& exit_callback,
-	const AppConfig& config) {
-	return InvokeAsyncWithArgs({
-		"-u",  // Unbuffered output
-		"Resources/Scripts/transcribe.py",
-		"--mic", config.microphone,
-		"--lang", config.language,
-		"--model", config.model,
-		"--chars_per_sync", std::to_string(config.chars_per_sync),
-		"--bytes_per_char", std::to_string(config.bytes_per_char),
-		"--button", Quote(config.button),
-		"--enable_local_beep", config.enable_local_beep ? "1" : "0",
-		"--rows", std::to_string(config.rows),
-		"--cols", std::to_string(config.cols),
-		"--window_duration_s", config.window_duration,
-		"--cpu", config.use_cpu ? "1" : "0",
-		"--use_builtin", config.use_builtin ? "1" : "0",
-		"--emotes_pickle", kEmotesPickle,
-		},
-		std::move(exit_callback));
+std::future<bool> PythonWrapper::StartApp(
+		const AppConfig& config,
+		const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
+		const std::function<void(std::string& in)>&& in_cb,
+		const std::function<bool()>&& run_cb) {
+	return std::move(std::async(std::launch::async,
+		[&](
+			const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
+			const std::function<void(std::string& in)>&& in_cb,
+			const std::function<bool()>&& run_cb) -> bool {
+				return InvokeWithArgs({
+					"-u",  // Unbuffered output
+					"Resources/Scripts/transcribe.py",
+					"--mic", config.microphone,
+					"--lang", config.language,
+					"--model", config.model,
+					"--chars_per_sync", std::to_string(config.chars_per_sync),
+					"--bytes_per_char", std::to_string(config.bytes_per_char),
+					"--button", Quote(config.button),
+					"--enable_local_beep", config.enable_local_beep ? "1" : "0",
+					"--rows", std::to_string(config.rows),
+					"--cols", std::to_string(config.cols),
+					"--window_duration_s", config.window_duration,
+					"--cpu", config.use_cpu ? "1" : "0",
+					"--use_builtin", config.use_builtin ? "1" : "0",
+					"--emotes_pickle", kEmotesPickle,
+					},
+					std::move(out_cb),
+					std::move(in_cb),
+					std::move(run_cb));
+		}, std::move(out_cb), std::move(in_cb), std::move(run_cb)));
 }
 
 bool PythonWrapper::GenerateAnimator(

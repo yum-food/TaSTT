@@ -10,6 +10,7 @@
 #include "Config.h"
 #include "WhisperCPP.h"
 
+#include <future>
 #include <memory>
 
 class Frame : public wxFrame
@@ -76,7 +77,9 @@ private:
     wxCheckBox* whisper_enable_custom_;
     wxCheckBox* whisper_enable_browser_src_;
 
-    wxProcess* py_app_;
+    std::future<bool> py_app_;
+    bool run_py_app_;
+
     wxProcess* env_proc_;
     wxTimer py_app_drain_;
 

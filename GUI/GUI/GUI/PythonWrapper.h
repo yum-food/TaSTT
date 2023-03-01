@@ -11,6 +11,7 @@
 #include "Config.h"
 
 #include <filesystem>
+#include <future>
 #include <string>
 #include <vector>
 
@@ -70,9 +71,11 @@ namespace PythonWrapper
 	// parameterized with config files instead of these ever-growing lists of
 	// parameters. We could persist those files so settings would persist across
 	// app restarts.
-	wxProcess* StartApp(
-		std::function<void(wxProcess* proc, int ret)>&& exit_callback,
-		const AppConfig& config);
+	std::future<bool> StartApp(
+		const AppConfig& config,
+		const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
+		const std::function<void(std::string& in)>&& in_cb = [](std::string&) {},
+		const std::function<bool()>&& run_cb = []() { return true; });
 
 	bool GenerateAnimator(
 		const AppConfig& config,

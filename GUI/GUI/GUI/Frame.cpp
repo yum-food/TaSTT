@@ -326,11 +326,19 @@ using ::Logging::Log;
 
 Frame::Frame()
     : wxFrame(nullptr, wxID_ANY, "TaSTT"),
-    py_app_(nullptr),
+    run_py_app_(false),
     env_proc_(nullptr),
     py_app_drain_(this, ID_PY_APP_DRAIN)
 {
     app_c_ = std::make_unique<AppConfig>(nullptr);
+
+	// Initialize futures so that valid() returns true. We use this as a proxy
+	// to tell whether they're still executing.
+	{
+		auto p = std::promise<bool>();
+		py_app_ = p.get_future();
+		p.set_value(true);
+	}
 
     auto* main_panel = new wxPanel(this, ID_MAIN_PANEL);
 	main_panel_ = main_panel;
@@ -1797,14 +1805,11 @@ void Frame::OnUnityParamChange(wxCommandEvent& event) {
 }
 
 void Frame::OnAppStart(wxCommandEvent& event) {
-    if (py_app_) {
-        if (wxProcess::Exists(py_app_->GetPid())) {
-            Log(transcribe_out_, "Transcription engine already running\n");
-            return;
-        }
-        delete py_app_;
-        py_app_ = nullptr;
-    }
+    auto status = py_app_.wait_for(std::chrono::seconds(0));
+    if (status != std::future_status::ready) {
+		Log(transcribe_out_, "Transcription engine already running\n");
+		return;
+	}
 
 	Log(transcribe_out_, "Launching transcription engine\n");
 
@@ -1895,58 +1900,28 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     app_c_->use_builtin = use_builtin;
     app_c_->Serialize(AppConfig::kConfigPath);
 
-    auto cb = [&](wxProcess* proc, int ret) -> void {
-        Log(transcribe_out_, "Transcription engine exited with code {}\n", ret);
-        DrainAsyncOutput(proc, transcribe_out_);
-		return;
+    auto out_cb = [&](const std::string& out, const std::string& err) {
+        Log(transcribe_out_, out);
+        Log(transcribe_out_, err);
     };
-    wxProcess* p = PythonWrapper::StartApp(std::move(cb), *app_c_);
-    if (!p) {
-        Log(transcribe_out_, "Failed to launch transcription engine\n");
-        return;
-    }
-
-    py_app_ = p;
+    auto in_cb = [&](std::string& in) {};
+    auto run_cb = [&]() {
+        return run_py_app_;
+    };
+    run_py_app_ = true;
+    py_app_ = std::move(PythonWrapper::StartApp(*app_c_, std::move(out_cb), std::move(in_cb), std::move(run_cb)));
+    Log(transcribe_out_, "py app valid: {}\n", py_app_.valid());
 }
 
 void Frame::OnAppStop() {
-    if (py_app_) {
-        const long pid = py_app_->GetPid();
-
-        Log(transcribe_out_, "Stopping transcription engine...\n");
-
-        // Closing stdout causes the app to exit. It takes it quite a while
-        // to exit gracefully; be patient.
-        py_app_->CloseOutput();
-
-        int timeout_s = 10;
-        for (int i = 0; i < 100 * timeout_s; i++) {
-			if (!wxProcess::Exists(pid)) {
-				break;
-			}
-            wxMilliSleep(10);
-        }
-
-		DrainAsyncOutput(py_app_, transcribe_out_);
-
-        // Now shut it down.
-		bool first = true;
-        int loop_cnt = 0;
-		while (wxProcess::Exists(pid)) {
-			wxProcess::Kill(pid, wxSIGKILL);
-			if (++loop_cnt % 100 == 0) {
-                Log(transcribe_out_, "Waiting for transcription engine to exit\n");
-			}
-			wxMilliSleep(10);
-        }
-
-        // Since we don't process the termination event, py_app_ deletes itself!
-        py_app_ = nullptr;
-        Log(transcribe_out_, "Stopped transcription engine\n");
+    auto status = py_app_.wait_for(std::chrono::seconds(0));
+    if (status == std::future_status::ready) {
+		Log(transcribe_out_, "Transcription engine already stopped\n");
+        return;
     }
-    else {
-        Log(transcribe_out_, "Transcription engine already stopped\n");
-    }
+    run_py_app_ = false;
+    py_app_.wait();
+	Log(transcribe_out_, "Stopped transcription engine\n");
 }
 
 void Frame::OnAppStop(wxCommandEvent& event) {
@@ -2070,7 +2045,6 @@ void Frame::OnWhisperStop(wxCommandEvent& event) {
 }
 
 void Frame::OnAppDrain(wxTimerEvent& event) {
-	DrainAsyncOutput(py_app_, transcribe_out_);
 	DrainAsyncOutput(env_proc_, transcribe_out_);
     Logging::kThreadLogger.Drain();
 }
