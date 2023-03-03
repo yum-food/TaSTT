@@ -96,9 +96,9 @@ reliable as possible.
 There are existing tools which help here, but they are all imperfect for one
 reason or another:
 
-1. RabidCrab's STT costs money and relies on cloud-based transcription. I have
-   struggled with latency, quality, and reliability issues. It's also
-   closed-source.
+1. RabidCrab's STT costs money and relies on cloud-based transcription.
+   Because of the reliance on cloud-based transcription services, it's
+   typically slower and less reliable than local transcription.
 2. The in-game text box is not visible in streamer mode, and limits you to one
    update every ~2 seconds, making it a poor choice for latency-sensitive
    communication.
@@ -109,6 +109,18 @@ reason or another:
    KillFrenzy's AvatarText and Whisper kiss. It's the closest spiritual cousin
    to this repository. There are two crucial differences: it's GPL not MIT, and
    it doesn't abstract away the command line.
+5. [VRCWizard's TTS-Voice-Wizard](https://github.com/VRCWizard/TTS-Voice-Wizard)
+   also uses Whisper, but they rely on the C# interface to Const-Me's
+   CUDA-enabled Whisper implementation. This implementation does not support
+   beam search decoding and waits for pauses to segment your voice. Thus it's
+   less accurate and higher latency than this project's Python-based
+   transcription engine, but it's more performant. It supports more feature
+   (like cloud-based TTS), so you might want to check it out.
+
+Why should you pick this project over the alternatives? This project has
+the lowest latency (measured <500ms end-to-end on mid-range hardware), most
+reliable transcriptions of any STT in VRChat, period. There is no network hop
+to worry about and no subscription to manage. Just download and go.
 
 ## Design overview
 
@@ -228,6 +240,8 @@ Ping the discord if you need help getting set up.
       The other encoding scheme is thus ~2.5 times more efficient. This could
       be used to significantly speed up sync times. (Thanks, Noppers for the
       idea!)
+   6. Use Const-Me/Whisper for transcription.
+   7. Implement beam search in Const-Me/Whisper.
 5. Bugfixes
    1. ~~The whisper STT says "Thank you." when there's no audio?~~ DONE
    2. JP and CN transcription does not work in the GUI due to encoding issues.
