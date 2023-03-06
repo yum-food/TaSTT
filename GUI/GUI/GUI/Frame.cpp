@@ -339,6 +339,16 @@ Frame::Frame()
 		py_app_ = p.get_future();
 		p.set_value(true);
 	}
+	{
+		auto p = std::promise<bool>();
+		unity_app_ = p.get_future();
+		p.set_value(true);
+	}
+	{
+		auto p = std::promise<bool>();
+		dump_mics_ = p.get_future();
+		p.set_value(true);
+	}
 
     auto* main_panel = new wxPanel(this, ID_MAIN_PANEL);
 	main_panel_ = main_panel;
@@ -1498,17 +1508,27 @@ void Frame::OnSetupPython(wxCommandEvent& event)
 
 void Frame::OnDumpMics(wxCommandEvent& event)
 {
-    Log(transcribe_out_, "{}\n", PythonWrapper::DumpMics());
+    auto status = dump_mics_.wait_for(std::chrono::seconds(0));
+    if (status != std::future_status::ready) {
+		Log(transcribe_out_, "Mic dump already running\n");
+		return;
+	}
+    dump_mics_ = std::move(std::async(std::launch::async, [&]() {
+        Log(transcribe_out_, "Getting mics...\n");
+        Log(transcribe_out_, "{}\n", PythonWrapper::DumpMics());
+		return true;
+	}));
 }
 
-bool GetUserPath(const std::string& raw, std::filesystem::path& clean,
+bool GetUserPath(wxTextCtrl* out,
+    const std::string& raw, std::filesystem::path& clean,
     const std::string& err_prefix = "", bool must_exist = true) {
     clean = raw;
     if (must_exist && !std::filesystem::exists(clean)) {
         std::ostringstream oss;
         oss << err_prefix << ": User-provided path does not exist at "
             << clean << std::endl;
-        wxLogError(oss.str().c_str());
+        Log(out, oss.str().c_str());
         return false;
     }
     return true;
@@ -1516,95 +1536,109 @@ bool GetUserPath(const std::string& raw, std::filesystem::path& clean,
 
 void Frame::OnGenerateFX(wxCommandEvent& event)
 {
-    std::filesystem::path unity_assets_path;
-    if (!GetUserPath(unity_assets_file_picker_->GetPath().ToStdString(),
-        unity_assets_path,
-        "Cannot generate FX layer: Failed to validate assets directory")) {
-        return;
-    }
-    std::filesystem::path unity_animator_path;
-    if (!GetUserPath(unity_animator_file_picker_->GetPath().ToStdString(),
-        unity_animator_path,
-        "Cannot generate FX layer: Failed to validate animator directory")) {
-        return;
-    }
-    std::filesystem::path unity_parameters_path;
-    if (!GetUserPath(unity_parameters_file_picker_->GetPath().ToStdString(),
-        unity_parameters_path,
-        "Cannot generate FX layer: Failed to validate parameters directory")) {
-        return;
-    }
-    std::filesystem::path unity_menu_path;
-    if (!GetUserPath(unity_menu_file_picker_->GetPath().ToStdString(),
-        unity_menu_path,
-        "Cannot generate FX layer: Failed to validate menu directory")) {
-        return;
-    }
+    auto status = unity_app_.wait_for(std::chrono::seconds(0));
+    if (status != std::future_status::ready) {
+		Log(unity_out_, "Unity process already running\n");
+		return;
+	}
 
-    std::string unity_animator_generated_dir =
-        unity_animator_generated_dir_->GetLineText(0).ToStdString();
-    std::string unity_animator_generated_name =
-        unity_animator_generated_name_->GetLineText(0).ToStdString();
-    std::string unity_parameters_generated_name =
-        unity_parameters_generated_name_->GetLineText(0).ToStdString();
-    std::string unity_menu_generated_name =
-        unity_menu_generated_name_->GetLineText(0).ToStdString();
+	unity_app_ = std::move(std::async(std::launch::async, [&]() {
+		Log(unity_out_, "Generating animator\n");
 
-    int chars_per_sync_idx = unity_chars_per_sync_->GetSelection();
-    if (chars_per_sync_idx == wxNOT_FOUND) {
-        chars_per_sync_idx = kCharsDefault;
-    }
-    std::string chars_per_sync_str =
-        kCharsPerSync[chars_per_sync_idx].ToStdString();
-    int bytes_per_char_idx = unity_bytes_per_char_->GetSelection();
-    if (bytes_per_char_idx == wxNOT_FOUND) {
-        bytes_per_char_idx = kBytesDefault;
-    }
-    std::string bytes_per_char_str =
-        kBytesPerChar[bytes_per_char_idx].ToStdString();
+		std::filesystem::path unity_assets_path;
+		if (!GetUserPath(unity_out_,
+            unity_assets_file_picker_->GetPath().ToStdString(),
+			unity_assets_path,
+			"Cannot generate FX layer: Failed to validate assets directory")) {
+			return false;
+		}
+		std::filesystem::path unity_animator_path;
+		if (!GetUserPath(unity_out_,
+            unity_animator_file_picker_->GetPath().ToStdString(),
+			unity_animator_path,
+			"Cannot generate FX layer: Failed to validate animator directory")) {
+			return false;
+		}
+		std::filesystem::path unity_parameters_path;
+		if (!GetUserPath(unity_out_,
+            unity_parameters_file_picker_->GetPath().ToStdString(),
+			unity_parameters_path,
+			"Cannot generate FX layer: Failed to validate parameters directory")) {
+			return false;
+		}
+		std::filesystem::path unity_menu_path;
+		if (!GetUserPath(unity_out_, unity_menu_file_picker_->GetPath().ToStdString(),
+			unity_menu_path,
+			"Cannot generate FX layer: Failed to validate menu directory")) {
+			return false;
+		}
 
-    std::string rows_str = unity_rows_->GetValue().ToStdString();
-    std::string cols_str = unity_cols_->GetValue().ToStdString();
-    int rows, cols, bytes_per_char, chars_per_sync;
-    try {
-        rows = std::stoi(rows_str);
-        cols = std::stoi(cols_str);
-        bytes_per_char = std::stoi(bytes_per_char_str);
-        chars_per_sync = std::stoi(chars_per_sync_str);
-    }
-    catch (const std::invalid_argument&) {
-		Log(unity_out_, "Could not parse rows \"{}\", cols \"{}\", bytes per "
-            "char \"{}\", or chars per sync \"{}\" as an integer\n",
-            rows_str, cols_str, bytes_per_char_str, chars_per_sync_str);
-        return;
-    }
-    catch (const std::out_of_range&) {
-		Log(unity_out_, "Rows \"{}\" or cols \"{}\" are out of range\n",
-            rows_str, cols_str);
-        return;
-    }
+		std::string unity_animator_generated_dir =
+			unity_animator_generated_dir_->GetLineText(0).ToStdString();
+		std::string unity_animator_generated_name =
+			unity_animator_generated_name_->GetLineText(0).ToStdString();
+		std::string unity_parameters_generated_name =
+			unity_parameters_generated_name_->GetLineText(0).ToStdString();
+		std::string unity_menu_generated_name =
+			unity_menu_generated_name_->GetLineText(0).ToStdString();
 
-    app_c_->assets_path = unity_assets_path.string();
-    app_c_->fx_path = unity_animator_path.string();
-    app_c_->params_path = unity_parameters_path.string();
-    app_c_->menu_path = unity_menu_path.string();
-    app_c_->bytes_per_char = bytes_per_char;
-    app_c_->chars_per_sync = chars_per_sync;
-    app_c_->rows = rows;
-    app_c_->cols = cols;
-    app_c_->clear_osc = unity_clear_osc_->GetValue();
-    app_c_->Serialize(AppConfig::kConfigPath);
+		int chars_per_sync_idx = unity_chars_per_sync_->GetSelection();
+		if (chars_per_sync_idx == wxNOT_FOUND) {
+			chars_per_sync_idx = kCharsDefault;
+		}
+		std::string chars_per_sync_str =
+			kCharsPerSync[chars_per_sync_idx].ToStdString();
+		int bytes_per_char_idx = unity_bytes_per_char_->GetSelection();
+		if (bytes_per_char_idx == wxNOT_FOUND) {
+			bytes_per_char_idx = kBytesDefault;
+		}
+		std::string bytes_per_char_str =
+			kBytesPerChar[bytes_per_char_idx].ToStdString();
 
-    std::string out;
-    if (!PythonWrapper::GenerateAnimator(
-        *app_c_,
-        unity_animator_generated_dir,
-        unity_animator_generated_name,
-        unity_parameters_generated_name,
-        unity_menu_generated_name,
-        unity_out_)) {
-        wxLogError("Failed to generate animator:\n%s\n", out.c_str());
-    }
+		std::string rows_str = unity_rows_->GetValue().ToStdString();
+		std::string cols_str = unity_cols_->GetValue().ToStdString();
+		int rows, cols, bytes_per_char, chars_per_sync;
+		try {
+			rows = std::stoi(rows_str);
+			cols = std::stoi(cols_str);
+			bytes_per_char = std::stoi(bytes_per_char_str);
+			chars_per_sync = std::stoi(chars_per_sync_str);
+		}
+		catch (const std::invalid_argument&) {
+			Log(unity_out_, "Could not parse rows \"{}\", cols \"{}\", bytes per "
+				"char \"{}\", or chars per sync \"{}\" as an integer\n",
+				rows_str, cols_str, bytes_per_char_str, chars_per_sync_str);
+			return false;
+		}
+		catch (const std::out_of_range&) {
+			Log(unity_out_, "Rows \"{}\" or cols \"{}\" are out of range\n",
+				rows_str, cols_str);
+			return false;
+		}
+
+		app_c_->assets_path = unity_assets_path.string();
+		app_c_->fx_path = unity_animator_path.string();
+		app_c_->params_path = unity_parameters_path.string();
+		app_c_->menu_path = unity_menu_path.string();
+		app_c_->bytes_per_char = bytes_per_char;
+		app_c_->chars_per_sync = chars_per_sync;
+		app_c_->rows = rows;
+		app_c_->cols = cols;
+		app_c_->clear_osc = unity_clear_osc_->GetValue();
+		app_c_->Serialize(AppConfig::kConfigPath);
+
+		std::string out;
+		if (!PythonWrapper::GenerateAnimator(
+			*app_c_,
+			unity_animator_generated_dir,
+			unity_animator_generated_name,
+			unity_parameters_generated_name,
+			unity_menu_generated_name,
+			unity_out_)) {
+			Log(unity_out_, "Failed to generate animator:\n%s\n", out.c_str());
+		}
+		return true;
+	}));
 }
 
 void Frame::OnListPip(wxCommandEvent& event)

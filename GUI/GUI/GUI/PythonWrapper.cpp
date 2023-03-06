@@ -151,6 +151,7 @@ bool SetAffinityMask(
 			out_cb(oss.str(), "");
 		}
 	}
+	return true;
 }
 
 bool PythonWrapper::InvokeCommandWithArgs(const std::string& cmd,

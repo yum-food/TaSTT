@@ -79,12 +79,11 @@ private:
 
     std::future<bool> py_app_;
     bool run_py_app_;
+    std::future<bool> unity_app_;
+    std::future<bool> dump_mics_;
 
     wxProcess* env_proc_;
     wxTimer py_app_drain_;
-
-    wxProcess* whisper_app_;
-    wxTimer whisper_app_drain_;
 
     std::unique_ptr<AppConfig> app_c_;
 
