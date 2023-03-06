@@ -1498,6 +1498,7 @@ void Frame::OnSetupPython(wxCommandEvent& event)
 		"-m pip",
 		"install",
 		"-r Resources/Scripts/requirements.txt",
+		"--no-warn-script-location",
 		}, std::move(cb));
 	if (!p) {
 		Log(transcribe_out_, "Failed to launch environment setup thread!\n");
