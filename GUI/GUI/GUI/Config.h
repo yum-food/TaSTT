@@ -74,6 +74,15 @@ public:
 	// WhisperCPP-specific settings.
 	std::string whisper_model;
 	int whisper_mic;
+	std::string whisper_decode_method;
+	int whisper_max_ctxt;
+	int whisper_beam_width;
+	int whisper_beam_n_best;
+	float whisper_vad_min_duration;
+	float whisper_vad_max_duration;
+	float whisper_vad_drop_start_silence;
+	float whisper_vad_pause_duration;
+	float whisper_vad_retain_duration;
 
 	// Browser source-specific settings.
 	int browser_src_port;

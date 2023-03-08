@@ -1,6 +1,7 @@
 #include "Frame.h"
 #include "Logging.h"
 #include "PythonWrapper.h"
+#include "ScopeGuard.h"
 #include "Util.h"
 
 #include <filesystem>
@@ -85,6 +86,15 @@ namespace {
 		ID_WHISPER_BROWSER_SRC_PORT,
 		ID_WHISPER_ENABLE_LOCAL_BEEP,
 		ID_WHISPER_USE_CPU,
+		ID_WHISPER_DECODE_METHOD,
+		ID_WHISPER_MAX_CTXT,
+		ID_WHISPER_BEAM_WIDTH,
+		ID_WHISPER_BEAM_N_BEST,
+		ID_WHISPER_VAD_MIN_DURATION,
+		ID_WHISPER_VAD_MAX_DURATION,
+		ID_WHISPER_VAD_DROP_START_SILENCE,
+		ID_WHISPER_VAD_PAUSE_DURATION,
+		ID_WHISPER_VAD_RETAIN_DURATION,
 		ID_WHISPER_ENABLE_BUILTIN,
 		ID_WHISPER_ENABLE_CUSTOM,
 		ID_WHISPER_ENABLE_BROWSER_SRC,
@@ -305,6 +315,13 @@ namespace {
     };
     const size_t kNumButtons = sizeof(kButton) / sizeof(kButton[0]);
     constexpr int kButtonDefault = 0;
+
+    const wxString kDecodeMethods[] = {
+        "greedy",
+        "beam",
+    };
+    const size_t kNumDecodeMethods = sizeof(kDecodeMethods) / sizeof(kDecodeMethods[0]);
+    constexpr int kDecodeMethodDefault = 0;
 
     // Given the string value of a dropdown menu's entry, find its index. If no
     // entry matches, return `default_index`.
@@ -965,6 +982,74 @@ Frame::Frame()
                         "ignore this option.");
                     whisper_browser_src_port_ = whisper_browser_src_port;
 
+					auto* whisper_decode_method = new wxChoice(
+                        whisper_config_panel_pairs,
+						ID_WHISPER_DECODE_METHOD, wxDefaultPosition,
+						wxDefaultSize, kNumDecodeMethods, kDecodeMethods);
+					whisper_decode_method->SetToolTip(
+						"Decoding method to use with whisper. Greedy is faster "
+						"and slightly less accurate.");
+					whisper_decode_method_ = whisper_decode_method;
+
+					auto* whisper_max_ctxt = new wxTextCtrl(
+						whisper_config_panel_pairs, ID_WHISPER_MAX_CTXT,
+						std::to_string(app_c_->whisper_max_ctxt),
+                        wxDefaultPosition, wxDefaultSize, /*style=*/0);
+					whisper_max_ctxt->SetToolTip("TODO");
+					whisper_max_ctxt_ = whisper_max_ctxt;
+
+					auto* whisper_beam_width = new wxTextCtrl(
+						whisper_config_panel_pairs, ID_WHISPER_BEAM_WIDTH,
+						std::to_string(app_c_->whisper_beam_width),
+                        wxDefaultPosition, wxDefaultSize, /*style=*/0);
+					whisper_beam_width->SetToolTip("TODO");
+					whisper_beam_width_ = whisper_beam_width;
+
+					auto* whisper_beam_n_best = new wxTextCtrl(
+						whisper_config_panel_pairs, ID_WHISPER_BEAM_N_BEST,
+						std::to_string(app_c_->whisper_beam_n_best),
+                        wxDefaultPosition, wxDefaultSize, /*style=*/0);
+					whisper_beam_n_best->SetToolTip("TODO");
+					whisper_beam_n_best_ = whisper_beam_n_best;
+
+					auto* whisper_vad_min_duration = new wxTextCtrl(
+						whisper_config_panel_pairs, ID_WHISPER_VAD_MIN_DURATION,
+						std::to_string(app_c_->whisper_vad_min_duration),
+                        wxDefaultPosition, wxDefaultSize, /*style=*/0);
+					whisper_vad_min_duration->SetToolTip("TODO");
+					whisper_vad_min_duration_ = whisper_vad_min_duration;
+
+					auto* whisper_vad_max_duration = new wxTextCtrl(
+						whisper_config_panel_pairs, ID_WHISPER_VAD_MAX_DURATION,
+						std::to_string(app_c_->whisper_vad_max_duration),
+                        wxDefaultPosition, wxDefaultSize, /*style=*/0);
+					whisper_vad_max_duration->SetToolTip("TODO");
+					whisper_vad_max_duration_ = whisper_vad_max_duration;
+
+					auto* whisper_vad_drop_start_silence = new wxTextCtrl(
+						whisper_config_panel_pairs,
+                        ID_WHISPER_VAD_DROP_START_SILENCE,
+						std::to_string(app_c_->whisper_vad_drop_start_silence),
+                        wxDefaultPosition, wxDefaultSize, /*style=*/0);
+					whisper_vad_drop_start_silence->SetToolTip("TODO");
+					whisper_vad_drop_start_silence_ = whisper_vad_drop_start_silence;
+
+					auto* whisper_vad_pause_duration = new wxTextCtrl(
+						whisper_config_panel_pairs,
+                        ID_WHISPER_VAD_PAUSE_DURATION,
+						std::to_string(app_c_->whisper_vad_pause_duration),
+                        wxDefaultPosition, wxDefaultSize, /*style=*/0);
+					whisper_vad_pause_duration->SetToolTip("TODO");
+					whisper_vad_pause_duration_ = whisper_vad_pause_duration;
+
+					auto* whisper_vad_retain_duration = new wxTextCtrl(
+						whisper_config_panel_pairs,
+                        ID_WHISPER_VAD_RETAIN_DURATION,
+						std::to_string(app_c_->whisper_vad_retain_duration),
+                        wxDefaultPosition, wxDefaultSize, /*style=*/0);
+					whisper_vad_retain_duration->SetToolTip("TODO");
+					whisper_vad_retain_duration_ = whisper_vad_retain_duration;
+
                     auto* sizer = new wxFlexGridSizer(/*cols=*/2);
                     whisper_config_panel_pairs->SetSizer(sizer);
 
@@ -981,6 +1066,51 @@ Frame::Frame()
                     sizer->Add(new wxStaticText(whisper_config_panel_pairs,
                         wxID_ANY, /*label=*/"Model:"));
                     sizer->Add(whisper_model, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(whisper_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Decode method:"));
+                    sizer->Add(whisper_decode_method, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(whisper_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Max audio contexts:"));
+                    sizer->Add(whisper_max_ctxt, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(whisper_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Beam width:"));
+                    sizer->Add(whisper_beam_width, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(whisper_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Beam n best:"));
+                    sizer->Add(whisper_beam_n_best, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(whisper_config_panel_pairs,
+                        wxID_ANY, /*label=*/"VAD min duration:"));
+                    sizer->Add(whisper_vad_min_duration, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(whisper_config_panel_pairs,
+                        wxID_ANY, /*label=*/"VAD max duration:"));
+                    sizer->Add(whisper_vad_max_duration, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(whisper_config_panel_pairs,
+                        wxID_ANY, /*label=*/"VAD drop start silence:"));
+                    sizer->Add(whisper_vad_drop_start_silence, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(whisper_config_panel_pairs,
+                        wxID_ANY, /*label=*/"VAD pause duration:"));
+                    sizer->Add(whisper_vad_pause_duration, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(whisper_config_panel_pairs,
+                        wxID_ANY, /*label=*/"VAD retain duration:"));
+                    sizer->Add(whisper_vad_retain_duration, /*proportion=*/0,
                         /*flags=*/wxEXPAND);
 
 #if 0
@@ -1325,6 +1455,7 @@ void Frame::ApplyConfigToInputFields()
     auto* whisper_button = static_cast<wxChoice*>(FindWindowById(ID_WHISPER_BUTTON));
 	whisper_button->SetSelection(button_idx);
 
+#if 0
     auto* whisper_chars_per_sync = static_cast<wxChoice*>(FindWindowById(ID_WHISPER_CHARS_PER_SYNC));
 	whisper_chars_per_sync->SetSelection(chars_idx);
 
@@ -1338,6 +1469,7 @@ void Frame::ApplyConfigToInputFields()
     auto* whisper_cols = static_cast<wxTextCtrl*>(FindWindowById(ID_WHISPER_COLS));
     whisper_cols->Clear();
     whisper_cols->AppendText(std::to_string(app_c_->cols));
+#endif
 
     auto* whisper_browser_src_port = static_cast<wxTextCtrl*>(FindWindowById(ID_WHISPER_BROWSER_SRC_PORT));
     whisper_browser_src_port->Clear();
@@ -1358,6 +1490,35 @@ void Frame::ApplyConfigToInputFields()
     auto* whisper_enable_browser_src = static_cast<wxCheckBox*>(FindWindowById(ID_WHISPER_ENABLE_BROWSER_SRC));
     whisper_enable_browser_src->SetValue(app_c_->whisper_enable_browser_src);
 
+    auto* whisper_decode_method = static_cast<wxChoice*>(FindWindowById(ID_WHISPER_DECODE_METHOD));
+    int whisper_decode_method_idx = GetDropdownChoiceIndex(kDecodeMethods,
+        kNumDecodeMethods, app_c_->whisper_decode_method, kDecodeMethodDefault);
+    whisper_decode_method->SetSelection(whisper_decode_method_idx);
+
+    auto* whisper_max_ctxt = static_cast<wxTextCtrl*>(FindWindowById(ID_WHISPER_MAX_CTXT));
+    whisper_max_ctxt->SetValue(std::to_string(app_c_->whisper_max_ctxt));
+
+    auto* whisper_beam_width = static_cast<wxTextCtrl*>(FindWindowById(ID_WHISPER_BEAM_WIDTH));
+    whisper_beam_width->SetValue(std::to_string(app_c_->whisper_beam_width));
+
+    auto* whisper_beam_n_best = static_cast<wxTextCtrl*>(FindWindowById(ID_WHISPER_BEAM_N_BEST));
+    whisper_beam_n_best->SetValue(std::to_string(app_c_->whisper_beam_n_best));
+
+    auto* whisper_vad_min_duration = static_cast<wxTextCtrl*>(FindWindowById(ID_WHISPER_VAD_MIN_DURATION));
+    whisper_vad_min_duration->SetValue(std::to_string(app_c_->whisper_vad_min_duration));
+
+    auto* whisper_vad_max_duration = static_cast<wxTextCtrl*>(FindWindowById(ID_WHISPER_VAD_MAX_DURATION));
+    whisper_vad_max_duration->SetValue(std::to_string(app_c_->whisper_vad_max_duration));
+
+    auto* whisper_vad_drop_start_silence = static_cast<wxTextCtrl*>(FindWindowById(ID_WHISPER_VAD_DROP_START_SILENCE));
+    whisper_vad_drop_start_silence->SetValue(std::to_string(app_c_->whisper_vad_drop_start_silence));
+
+    auto* whisper_vad_pause_duration = static_cast<wxTextCtrl*>(FindWindowById(ID_WHISPER_VAD_PAUSE_DURATION));
+    whisper_vad_pause_duration->SetValue(std::to_string(app_c_->whisper_vad_pause_duration));
+
+    auto* whisper_vad_retain_duration = static_cast<wxTextCtrl*>(FindWindowById(ID_WHISPER_VAD_RETAIN_DURATION));
+    whisper_vad_retain_duration->SetValue(std::to_string(app_c_->whisper_vad_retain_duration));
+
     // Unity panel
     auto* unity_chars_per_sync = static_cast<wxChoice*>(FindWindowById(ID_UNITY_CHARS_PER_SYNC));
 	unity_chars_per_sync->SetSelection(chars_idx);
@@ -1376,21 +1537,25 @@ void Frame::ApplyConfigToInputFields()
 
 void Frame::PopulateDynamicInputFields()
 {
-    if (whisper_->Init()) {
-        std::vector<std::string> mics;
-        if (whisper_->GetMics(mics)) {
-            std::vector<wxString> contents(mics.size());
-            auto* whisper_mic = static_cast<wxChoice*>(FindWindowById(ID_WHISPER_MIC));
-            for (int i = 0; i < std::min(mics.size(), kNumWhisperMicChoices); i++) {
-                contents[i] = mics[i];
-            }
-            int mic_idx = whisper_mic->GetSelection();
-            whisper_mic->Set(contents);
-            if (mic_idx < contents.size()) {
-                whisper_mic->SetSelection(mic_idx);
-            }
-        }
-    }
+	Whisper::iMediaFoundation* f = nullptr;
+	if (!whisper_->GetMediaFoundation(f)) {
+		return;
+	}
+    ScopeGuard f_cleanup([f]() { f->Release(); });
+
+	std::vector<std::string> mics;
+	if (whisper_->GetMics(f, mics)) {
+		std::vector<wxString> contents(mics.size());
+		auto* whisper_mic = static_cast<wxChoice*>(FindWindowById(ID_WHISPER_MIC));
+		for (int i = 0; i < std::min(mics.size(), kNumWhisperMicChoices); i++) {
+			contents[i] = mics[i];
+		}
+		int mic_idx = whisper_mic->GetSelection();
+		whisper_mic->Set(contents);
+		if (mic_idx < contents.size()) {
+			whisper_mic->SetSelection(mic_idx);
+		}
+	}
 }
 
 void Frame::OnExit(wxCloseEvent& event)
@@ -1990,6 +2155,10 @@ void Frame::OnWhisperStart(wxCommandEvent& event) {
     if (button_idx == wxNOT_FOUND) {
         button_idx = kBytesDefault;
     }
+    int decode_method_idx = whisper_decode_method_->GetSelection();
+    if (decode_method_idx == wxNOT_FOUND) {
+        decode_method_idx = kDecodeMethodDefault;
+    }
     const bool enable_local_beep = whisper_enable_local_beep_->GetValue();
     const bool use_cpu = whisper_use_cpu_->GetValue();
     std::string rows_str = whisper_rows_->GetValue().ToStdString();
@@ -2032,6 +2201,55 @@ void Frame::OnWhisperStart(wxCommandEvent& event) {
         return;
     }
 
+    std::string max_ctxt_str = whisper_max_ctxt_->GetValue().ToStdString();
+    std::string beam_sz_str = whisper_beam_width_->GetValue().ToStdString();
+    std::string beam_wd_str = whisper_beam_n_best_->GetValue().ToStdString();
+    int max_ctxt, beam_sz, beam_wd;
+    Log(whisper_out_, "here {}\n", __LINE__);
+    try {
+        Log(whisper_out_, "whisper max ctxt str: {}\n", max_ctxt_str);
+        max_ctxt = std::stoi(max_ctxt_str);
+        Log(whisper_out_, "whisper max ctxt: {}\n", max_ctxt);
+        beam_sz = std::stoi(beam_sz_str);
+        beam_wd = std::stoi(beam_wd_str);
+    }
+    catch (const std::invalid_argument&) {
+        Log(whisper_out_, "Could not parse max_ctxt '{}' beam_sz '{}' or beam_wd '{}' as an integer",
+            max_ctxt_str, beam_sz_str, beam_wd_str);
+        return;
+    }
+    catch (const std::out_of_range&) {
+        Log(whisper_out_, "Could not parse max_ctxt '{}', beam_sz '{}' or beam_wd '{}' as an integer: out of range",
+            max_ctxt_str, beam_sz_str, beam_wd_str);
+        return;
+    }
+
+    std::string vad_min_dur_str = whisper_vad_min_duration_->GetValue().ToStdString();
+    std::string vad_max_dur_str = whisper_vad_max_duration_->GetValue().ToStdString();
+    std::string vad_drop_si_dur_str = whisper_vad_drop_start_silence_->GetValue().ToStdString();
+    std::string vad_pause_dur_str = whisper_vad_pause_duration_->GetValue().ToStdString();
+    std::string vad_ret_dur_str = whisper_vad_retain_duration_->GetValue().ToStdString();
+    float vad_min_dur, vad_max_dur, vad_drop_silence_dur, vad_pause_dur, vad_retain_dur;
+    try {
+        vad_min_dur = std::stof(vad_min_dur_str);
+        vad_max_dur = std::stof(vad_max_dur_str);
+        vad_drop_silence_dur = std::stof(vad_drop_si_dur_str);
+        vad_pause_dur = std::stof(vad_pause_dur_str);
+        vad_retain_dur = std::stof(vad_ret_dur_str);
+    }
+    catch (const std::invalid_argument&) {
+        // TODO update error msg
+        Log(whisper_out_, "Could not parse beam_sz '{}' or beam_wd '{}' as an integer",
+            beam_sz, beam_wd);
+        return;
+    }
+    catch (const std::out_of_range&) {
+        // TODO update error msg
+        Log(whisper_out_, "Could not parse beam_sz '{}' or beam_wd '{}' as an integer: out of range",
+            beam_sz, beam_wd);
+        return;
+    }
+
     const int min_port = 1024;
     const int max_port = 65535;
     if (browser_src_port < min_port || browser_src_port > max_port) {
@@ -2054,6 +2272,15 @@ void Frame::OnWhisperStart(wxCommandEvent& event) {
     app_c_->whisper_enable_browser_src = whisper_enable_browser_src_->GetValue();
     app_c_->whisper_enable_builtin = whisper_enable_builtin_->GetValue();
     app_c_->whisper_enable_custom = whisper_enable_custom_->GetValue();
+    app_c_->whisper_decode_method = kDecodeMethods[decode_method_idx].ToStdString();
+    app_c_->whisper_max_ctxt = max_ctxt;
+    app_c_->whisper_beam_width = beam_sz;
+    app_c_->whisper_beam_n_best = beam_wd;
+    app_c_->whisper_vad_min_duration = vad_min_dur;
+    app_c_->whisper_vad_max_duration = vad_max_dur;
+    app_c_->whisper_vad_drop_start_silence = vad_drop_silence_dur;
+    app_c_->whisper_vad_pause_duration = vad_pause_dur;
+    app_c_->whisper_vad_retain_duration = vad_retain_dur;
     app_c_->Serialize(AppConfig::kConfigPath);
 
     whisper_->Start(*app_c_);

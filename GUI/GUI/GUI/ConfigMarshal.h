@@ -30,6 +30,9 @@ public:
 		for (const auto& [k, v] : kv_int_) {
 			oss << k << ": " << std::to_string(v) << std::endl;
 		}
+		for (const auto& [k, v] : kv_float_) {
+			oss << k << ": " << std::to_string(v) << std::endl;
+		}
 
 		std::ofstream ofs(path.string());
 		ofs << oss.str();
@@ -66,6 +69,19 @@ public:
 			catch (const std::invalid_argument&) {}
 			catch (const std::out_of_range&) {}
 
+			try {
+				size_t pos;
+				float val_f = std::stof(val, &pos);
+				if (pos == val.length()) {
+					// The entire value is a float -> interpret as a float. Corollary: users
+					// can't store floats as strings!
+					kv_float_[key] = val_f;
+					continue;
+				}
+			}
+			catch (const std::invalid_argument&) {}
+			catch (const std::out_of_range&) {}
+
 			kv_str_[key] = val;
 		}
 		return true;
@@ -79,6 +95,10 @@ public:
 		}
 		if constexpr (std::is_same_v<T, int> || std::is_same_v<T, bool>) {
 			kv_int_[key] = static_cast<int>(value);
+			return true;
+		}
+		if constexpr (std::is_same_v<T, float>) {
+			kv_float_[key] = value;
 			return true;
 		}
 		Logging::Log(out_, "ConfigMarshal unsupported type: {}\n", typeid(T).name());
@@ -99,6 +119,15 @@ public:
 				}
 				value = std::to_string(iter->second);
 				return true;
+			}
+			value = iter->second;
+			return true;
+		}
+		if constexpr (std::is_same_v<T, float>) {
+			auto iter = kv_float_.find(key);
+			if (iter == kv_float_.end()) {
+				Logging::Log(out_, "Config contains no field named `{}`\n", key);
+				return false;
 			}
 			value = iter->second;
 			return true;
@@ -128,4 +157,5 @@ private:
 
 	std::map<std::string, std::string> kv_str_;
 	std::map<std::string, int> kv_int_;
+	std::map<std::string, float> kv_float_;
 };

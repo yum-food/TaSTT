@@ -59,7 +59,7 @@ bool Config::Deserialize(const std::filesystem::path& path,
 	return cm.Load(path);
 }
 
-AppConfig::AppConfig(wxTextCtrl *out)
+AppConfig::AppConfig(wxTextCtrl* out)
 	: Config(out),
 
 	microphone("index"),
@@ -85,6 +85,15 @@ AppConfig::AppConfig(wxTextCtrl *out)
 
 	whisper_model("ggml-medium.bin"),
 	whisper_mic(0),
+	whisper_decode_method("greedy"),
+	whisper_max_ctxt(100),
+	whisper_beam_width(5),
+	whisper_beam_n_best(5),
+	whisper_vad_min_duration(0.5),
+	whisper_vad_max_duration(5.0),
+	whisper_vad_drop_start_silence(0.5),
+	whisper_vad_pause_duration(0.2),
+	whisper_vad_retain_duration(0.2),
 
 	browser_src_port(9517),
 	whisper_enable_builtin(false),
@@ -118,6 +127,15 @@ bool AppConfig::Serialize(const std::filesystem::path& path) {
 
 	cm.Set("whisper_model", whisper_model);
 	cm.Set("whisper_mic", whisper_mic);
+	cm.Set("whisper_decode_method", whisper_decode_method);
+	cm.Set("whisper_max_ctxt", whisper_max_ctxt);
+	cm.Set("whisper_beam_width", whisper_beam_width);
+	cm.Set("whisper_beam_n_best", whisper_beam_n_best);
+	cm.Set("whisper_vad_min_duration", whisper_vad_min_duration);
+	cm.Set("whisper_vad_max_duration", whisper_vad_max_duration);
+	cm.Set("whisper_vad_drop_start_silence", whisper_vad_drop_start_silence);
+	cm.Set("whisper_vad_pause_duration", whisper_vad_pause_duration);
+	cm.Set("whisper_vad_retain_duration", whisper_vad_retain_duration);
 
 	cm.Set("browser_src_port", browser_src_port);
 	cm.Set("whisper_enable_builtin", whisper_enable_builtin);
@@ -164,6 +182,15 @@ bool AppConfig::Deserialize(const std::filesystem::path& path) {
 
 	cm.Get("whisper_model", c.whisper_model);
 	cm.Get("whisper_mic", c.whisper_mic);
+	cm.Get("whisper_decode_method", c.whisper_decode_method);
+	cm.Get("whisper_max_ctxt", c.whisper_max_ctxt);
+	cm.Get("whisper_beam_width", c.whisper_beam_width);
+	cm.Get("whisper_beam_n_best", c.whisper_beam_n_best);
+	cm.Get("whisper_vad_min_duration", c.whisper_vad_min_duration);
+	cm.Get("whisper_vad_max_duration", c.whisper_vad_max_duration);
+	cm.Get("whisper_vad_drop_start_silence", c.whisper_vad_drop_start_silence);
+	cm.Get("whisper_vad_pause_duration", c.whisper_vad_pause_duration);
+	cm.Get("whisper_vad_retain_duration", c.whisper_vad_retain_duration);
 
 	cm.Get("browser_src_port", c.browser_src_port);
 	cm.Get("whisper_enable_builtin", c.whisper_enable_builtin);

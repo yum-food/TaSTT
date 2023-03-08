@@ -27,9 +27,9 @@ public:
 	WhisperCPP(wxTextCtrl* out);
 	~WhisperCPP();
 
-	bool Init();
-	bool GetMics(std::vector<std::string>& mics);
-	bool OpenMic(const int idx, Whisper::iAudioCapture*& stream);
+	bool GetMediaFoundation(Whisper::iMediaFoundation*& f);
+	bool GetMics(Whisper::iMediaFoundation* f, std::vector<std::string>& mics);
+	bool OpenMic(Whisper::iMediaFoundation* f, const AppConfig& c, const int idx, Whisper::iAudioCapture*& stream);
 	bool InstallDependencies();
 	bool DownloadModel(const std::string& model_name,
 		const std::filesystem::path& fs_path);
@@ -55,11 +55,10 @@ private:
 		std::wstring endpoint;
 	};
 	bool GetMicsImpl(
+		Whisper::iMediaFoundation* f,
 		std::vector<std::unique_ptr<MicInfo>>& mics);
 
 	wxTextCtrl* out_;
-	Whisper::iMediaFoundation* f_;
-	bool did_init_;
 
 	std::future<void> transcription_thd_;
 	volatile bool run_transcription_;

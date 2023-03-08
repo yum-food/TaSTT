@@ -65,7 +65,7 @@ namespace {
 };
 
 WhisperCPP::WhisperCPP(wxTextCtrl* out)
-	: out_(out), f_(nullptr), did_init_(false), run_transcription_(false), run_browser_src_(false)
+	: out_(out), run_transcription_(false), run_browser_src_(false)
 {
 	// Initialize futures so that valid() returns true. We use this as a proxy
 	// to tell whether they're still executing.
@@ -86,35 +86,23 @@ WhisperCPP::WhisperCPP(wxTextCtrl* out)
 	}
 }
 
-WhisperCPP::~WhisperCPP() {
-	f_->Release();
-}
+WhisperCPP::~WhisperCPP() {}
 
-bool WhisperCPP::Init() {
-	if (did_init_) {
-		return true;
-	}
-
+bool WhisperCPP::GetMediaFoundation(Whisper::iMediaFoundation*& f) {
 	iMediaFoundation* tmp_f = nullptr;
 	HRESULT err = initMediaFoundation(&tmp_f);
 	if (FAILED(err)) {
 		Log(out_, "Failed to initialize media layer: {}", err);
 		return false;
 	}
-	f_ = tmp_f;
 
-	did_init_ = true;
-	Log(out_, "Initialized successfully\n");
+	f = tmp_f;
 	return true;
 }
 
-bool WhisperCPP::GetMics(std::vector<std::string>& mics) {
-	if (!did_init_) {
-		return false;
-	}
-
+bool WhisperCPP::GetMics(Whisper::iMediaFoundation* f, std::vector<std::string>& mics) {
 	std::vector<std::unique_ptr<MicInfo>> mics_raw;
-	if (!GetMicsImpl(mics_raw)) {
+	if (!GetMicsImpl(f, mics_raw)) {
 		return false;
 	}
 
@@ -126,14 +114,9 @@ bool WhisperCPP::GetMics(std::vector<std::string>& mics) {
 	return true;
 }
 
-bool WhisperCPP::OpenMic(const int idx, Whisper::iAudioCapture*& stream) {
-	if (!did_init_) {
-		Log(out_, "Whisper not initialized\n");
-		return false;
-	}
-
+bool WhisperCPP::OpenMic(Whisper::iMediaFoundation* f, const AppConfig& c, const int idx, Whisper::iAudioCapture*& stream) {
 	std::vector<std::unique_ptr<MicInfo>> mics_raw;
-	if (!GetMicsImpl(mics_raw)) {
+	if (!GetMicsImpl(f, mics_raw)) {
 		return false;
 	}
 
@@ -143,13 +126,13 @@ bool WhisperCPP::OpenMic(const int idx, Whisper::iAudioCapture*& stream) {
 	}
 
 	Whisper::sCaptureParams params{};
-	params.dropStartSilence = 1.0;
-	params.pauseDuration = 1.0;
-	params.minDuration = 2.0;
-	params.maxDuration = 3.0;
-	params.retainDuration = 1.5;
+	params.dropStartSilence = c.whisper_vad_drop_start_silence;
+	params.pauseDuration = c.whisper_vad_pause_duration;
+	params.minDuration = c.whisper_vad_min_duration;
+	params.maxDuration = c.whisper_vad_max_duration;
+	params.retainDuration = c.whisper_vad_retain_duration;
 	stream = nullptr;
-	HRESULT err = f_->openCaptureDevice(mics_raw[idx]->endpoint.c_str(),
+	HRESULT err = f->openCaptureDevice(mics_raw[idx]->endpoint.c_str(),
 		params, &stream);
 	if (FAILED(err)) {
 		Log(out_, "Failed to open mic with idx {} ({}): {}\n", idx,
@@ -255,7 +238,6 @@ bool WhisperCPP::CreateContext(Whisper::iModel* model, Whisper::iContext*& conte
 }
 
 void WhisperCPP::Start(const AppConfig& c) {
-    Init();
 	transcript_.Clear();
 
 	if (!transcription_thd_.valid()) {
@@ -266,8 +248,15 @@ void WhisperCPP::Start(const AppConfig& c) {
 	transcription_thd_ = std::async(std::launch::async, [&]() -> void {
 		run_transcription_ = true;
 
+		iMediaFoundation* f = nullptr;
+		if (!GetMediaFoundation(f)) {
+			return;
+		}
+		ScopeGuard f_cleanup([f]() { f->Release(); });
+
+
 		Whisper::iAudioCapture* mic_stream;
-		if (!OpenMic(c.whisper_mic, mic_stream)) {
+		if (!OpenMic(f, c, c.whisper_mic, mic_stream)) {
 			return;
 		}
 		ScopeGuard mic_stream_cleanup([mic_stream]() { mic_stream->Release(); });
@@ -318,12 +307,22 @@ void WhisperCPP::Start(const AppConfig& c) {
 		ScopeGuard context_cleanup([context]() { context->Release(); });
 
 		Whisper::sFullParams wparams{};
-		context->fullDefaultParams(eSamplingStrategy::BeamSearch, &wparams);
-		wparams.beam_search.beam_width = 5;
-		wparams.beam_search.n_best = 5;
+		if (c.whisper_decode_method == "greedy") {
+			Log(out_, "Using greedy decoding\n");
+			context->fullDefaultParams(eSamplingStrategy::Greedy, &wparams);
+		}
+		else if (c.whisper_decode_method == "beam") {
+			Log(out_, "Using beam search decoding\n");
+			context->fullDefaultParams(eSamplingStrategy::BeamSearch, &wparams);
+			wparams.beam_search.beam_width = c.whisper_beam_width;
+			wparams.beam_search.n_best = c.whisper_beam_n_best;
+		} else {
+			Log(out_, "Invalid decoding method: {}\n", c.whisper_decode_method);
+			return;
+		}
 		wparams.language = Whisper::makeLanguageKey("en");  // TODO(yum) use config
 		// This must be set to keep memory usage from growing without bound.
-		wparams.n_max_text_ctx = 100;
+		wparams.n_max_text_ctx = c.whisper_max_ctxt;
 
 		wparams.new_segment_callback = [](iContext* context, uint32_t n_new, void* user_data) noexcept -> HRESULT {
 			WhisperCPP* app = static_cast<WhisperCPP*>(user_data);
@@ -540,7 +539,7 @@ void WhisperCPP::StopCustomChatbox() {
 	Log(out_, "Done!\n");
 }
 
-bool WhisperCPP::GetMicsImpl(std::vector<std::unique_ptr<MicInfo>>& mics) {
+bool WhisperCPP::GetMicsImpl(Whisper::iMediaFoundation* f, std::vector<std::unique_ptr<MicInfo>>& mics) {
 	pfnFoundCaptureDevices dev_cb = [](int len, const sCaptureDevice* buf, void* pv)->HRESULT __stdcall {
 		auto mics = static_cast<std::vector<std::unique_ptr<MicInfo>>*>(pv);
 		for (int i = 0; i < len; i++) {
@@ -549,7 +548,7 @@ bool WhisperCPP::GetMicsImpl(std::vector<std::unique_ptr<MicInfo>>& mics) {
 		return S_OK;
 	};
 	mics.clear();
-	HRESULT err = f_->listCaptureDevices(dev_cb, &mics);
+	HRESULT err = f->listCaptureDevices(dev_cb, &mics);
 	if (FAILED(err)) {
 		Log(out_, "Failed to get microphones: {}\n", err);
 		return false;
