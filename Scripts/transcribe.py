@@ -167,8 +167,10 @@ def getMicStream(which_mic):
     # Bind audio_state to onAudioFramesAvailable
     callback = partial(onAudioFramesAvailable, audio_state, input_rate)
 
-    audio_state.stream = audio_state.p.open(format=audio_state.FORMAT,
-            channels=audio_state.CHANNELS, rate=input_rate,
+    audio_state.stream = audio_state.p.open(
+            rate=input_rate,
+            channels=audio_state.CHANNELS,
+            format=audio_state.FORMAT,
             input=True, frames_per_buffer=audio_state.CHUNK,
             input_device_index=device_index,
             stream_callback=callback)

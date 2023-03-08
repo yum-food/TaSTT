@@ -268,25 +268,49 @@ bool PythonWrapper::InvokeCommandWithArgs(const std::string& cmd,
 			// Add updated PATH to current process's environment
 			if (!SetEnvironmentVariableA("PATH", env.c_str())) {
 				std::ostringstream err_oss;
-				err_oss << "Error while executing python command \"" << cmd_oss.str()
-					<< "\": Failed to add git to PATH: " << GetWin32ErrMsg() << std::endl;
+				err_oss << "Error while executing python command \""
+					<< cmd_oss.str()
+					<< "\": Failed to add git to PATH: " << GetWin32ErrMsg()
+					<< std::endl;
 				out_cb("", err_oss.str());
 				return false;
 			}
 		}
+
+		// Add python scripts to PATH
 		std::filesystem::path py_bin = (std::filesystem::current_path() /
-			"Resources\Python\Scripts").lexically_normal();
+			"Resources/Python/Scripts").lexically_normal();
 		if (env.find(py_bin.string()) == std::string::npos) {
 			env += ";" + py_bin.string();
 
 			// Add updated PATH to current process's environment
 			if (!SetEnvironmentVariableA("PATH", env.c_str())) {
 				std::ostringstream err_oss;
-				err_oss << "Error while executing python command \"" << cmd_oss.str()
-					<< "\": Failed to add git to PATH: " << GetWin32ErrMsg() << std::endl;
+				err_oss << "Error while executing python command \""
+					<< cmd_oss.str()
+					<< "\": Failed to add python scripts to PATH: "
+					<< GetWin32ErrMsg() << std::endl;
 				out_cb("", err_oss.str());
 				return false;
 			}
+		}
+
+		// Set up PYTHONPATH
+		std::filesystem::path py_lib = (std::filesystem::current_path() /
+			"Resources/Python/Lib").lexically_normal();
+		std::filesystem::path py_site_pkgs = (std::filesystem::current_path() /
+			"Resources/Python/Lib/site-packages").lexically_normal();
+		std::ostringstream pypath_oss;
+		pypath_oss << py_lib.string();
+		pypath_oss << ';' << py_site_pkgs.string();
+		// Add updated PATH to current process's environment
+		if (!SetEnvironmentVariableA("PYTHONPATH", pypath_oss.str().c_str())) {
+			std::ostringstream err_oss;
+			err_oss << "Error while executing python command \"" << cmd_oss.str()
+				<< "\": Failed to add site-packages to PYTHONPATH: "
+				<< GetWin32ErrMsg() << std::endl;
+			out_cb("", err_oss.str());
+			return false;
 		}
 	}
 
