@@ -153,8 +153,8 @@ bool WhisperCPP::InstallDependencies() {
 	}
 
 	auto out_cb = [&](const std::string& out, const std::string& err) -> void {
-		Log(out_, out);
-		Log(out_, err);
+		Log(out_, "{}", out);
+		Log(out_, "{}", err);
 	};
 	auto in_cb = [&](std::string& in) {};
 	auto run_cb = [&]() -> bool {
@@ -186,8 +186,8 @@ bool WhisperCPP::DownloadModel(const std::string& model_name,
 	url_oss << model_name;
 	Log(out_, "Model will be saved to {}\n", fs_path.lexically_normal().string());
 	auto out_cb = [&](const std::string& out, const std::string& err) {
-		Log(out_, out);
-		Log(out_, err);
+		Log(out_, "{}", out);
+		Log(out_, "{}", err);
 	};
 	auto in_cb = [&](std::string& in) {};
 	auto run_cb = [&]() -> bool {
@@ -263,8 +263,8 @@ void WhisperCPP::Start(const AppConfig& c) {
 
 		{
 			auto out_cb = [&](const std::string& out, const std::string& err) -> void {
-				Log(out_, out);
-				Log(out_, err);
+				Log(out_, "{}", out);
+				Log(out_, "{}", err);
 			};
 			auto in_cb = [&](std::string& in) {};
 			auto run_cb = [&]() -> bool {
