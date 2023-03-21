@@ -294,37 +294,6 @@ bool PythonWrapper::InvokeCommandWithArgs(const std::string& cmd,
 				return false;
 			}
 		}
-
-		// Set up PYTHONPATH
-		std::filesystem::path py_path = (std::filesystem::current_path() /
-			"Resources/Python").lexically_normal();
-		std::filesystem::path py_lib = (std::filesystem::current_path() /
-			"Resources/Python/Lib").lexically_normal();
-		std::filesystem::path py_site_pkgs = (std::filesystem::current_path() /
-			"Resources/Python/Lib/site-packages").lexically_normal();
-		std::ostringstream pypath_oss;
-		pypath_oss << py_path.string();
-		pypath_oss << ';' << py_lib.string();
-		pypath_oss << ';' << py_site_pkgs.string();
-		out_cb("PYTHONPATH=" + pypath_oss.str() + "\n", "");
-		if (!SetEnvironmentVariableA("PYTHONPATH", pypath_oss.str().c_str())) {
-			std::ostringstream err_oss;
-			err_oss << "Error while executing python command \"" << cmd_oss.str()
-				<< "\": Failed to add site-packages to PYTHONPATH: "
-				<< GetWin32ErrMsg() << std::endl;
-			out_cb("", err_oss.str());
-			return false;
-		}
-		// Set up PYTHONHOME
-		out_cb("PYTHONHOME=" + py_path.string() + "\n", "");
-		if (!SetEnvironmentVariableA("PYTHONHOME", py_path.string().c_str())) {
-			std::ostringstream err_oss;
-			err_oss << "Error while executing python command \"" << cmd_oss.str()
-				<< "\": Failed to set PYTHONHOME: "
-				<< GetWin32ErrMsg() << std::endl;
-			out_cb("", err_oss.str());
-			return false;
-		}
 	}
 
 	std::string cmd_str = cmd_oss.str();

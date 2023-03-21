@@ -6,6 +6,8 @@ param(
 echo "Skip zip: $skip_zip"
 echo "Release: $release"
 
+$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
+
 $install_dir = "TaSTT"
 
 if (Test-Path $install_dir) {
@@ -28,7 +30,8 @@ if (-Not (Test-Path $py_dir)) {
   mkdir Python
   Expand-Archive $PYTHON_FILE -DestinationPath Python
 
-  rm Python/python310._pth
+  echo "../Scripts" >> Python/python310._pth
+  echo "import site" >> Python/python310._pth
 }
 
 $pip_path = "$py_dir/get-pip.py"

@@ -1654,20 +1654,6 @@ void Frame::OnSetupPython(wxCommandEvent& event)
 			}
 		}
 
-		{
-			Log(transcribe_out_, "  DEBUG: check sys.path\n");
-			auto out_cb = [&](const std::string& out, const std::string& err) {
-				Log(transcribe_out_, "{}", out);
-				Log(transcribe_out_, "{}", err);
-			};
-			if (!PythonWrapper::InvokeWithArgs({
-				"Resources/Scripts/tst.py",
-				}, std::move(out_cb))) {
-				Log(transcribe_out_, "Failed to check sys.path!\n");
-				return false;
-			}
-		}
-
 		Log(transcribe_out_, "  Installing dependencies\n");
 		auto out_cb = [&](const std::string& out, const std::string& err) {
 			Log(transcribe_out_, "{}", out);
