@@ -37,12 +37,15 @@ def generateCgParams(nbytes: int, nrows: int, ncols: int, prefix: str = "") -> s
 #   uniform int BYTES_PER_CHAR = $nbytes;
 #   uniform int NROWS = $nrows;
 #   uniform int NCOLS = $ncols;
-def generateCgConstants(nbytes: int, nrows: int, ncols: int, prefix: str = "") -> str:
+def generateCgConstants(nbytes: int, board_nrows: int, board_ncols: int,
+        texture_nrows: int, texture_ncols: int, prefix: str = "") -> str:
     lines = []
     lines.append(prefix + "// BEGIN GENERATED CODE BLOCK")
     lines.append(prefix + "#define BYTES_PER_CHAR {}".format(nbytes))
-    lines.append(prefix + "#define NROWS {}".format(nrows))
-    lines.append(prefix + "#define NCOLS {}".format(ncols))
+    lines.append(prefix + "#define BOARD_NROWS {}".format(board_nrows))
+    lines.append(prefix + "#define BOARD_NCOLS {}".format(board_ncols))
+    lines.append(prefix + "#define TEXTURE_NROWS {}".format(texture_nrows))
+    lines.append(prefix + "#define TEXTURE_NCOLS {}".format(texture_ncols))
     lines.append(prefix + "// END GENERATED CODE BLOCK")
     return '\n'.join(lines)
 
@@ -117,37 +120,44 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--bytes_per_char", type=str, help="The number of bytes to use to represent each character")
-    parser.add_argument("--rows", type=str, help="The number of rows on the board")
-    parser.add_argument("--cols", type=str, help="The number of columns on the board")
+    parser.add_argument("--board_rows", type=str, help="The number of rows on the board")
+    parser.add_argument("--board_cols", type=str, help="The number of columns on the board")
+    parser.add_argument("--texture_rows", type=str, help="The number of rows on the font textures")
+    parser.add_argument("--texture_cols", type=str, help="The number of columns on the font textures")
     parser.add_argument("--shader_template", type=str, help="The path to the shader template")
     parser.add_argument("--shader_path", type=str, help="The path where the generated shader will be written")
     args = parser.parse_args()
 
-    if not args.bytes_per_char or not args.rows or not args.cols \
+    if not args.bytes_per_char or not args.board_rows or not args.board_cols \
+            or not args.texture_rows or not args.texture_cols \
             or not args.shader_template or not args.shader_path:
-        print("--bytes_per_char, --rows, --cols, --shader_template, --shader_path required", file=sys.stderr)
+        print(("--bytes_per_char, --board_rows, --board_cols, --texture_rows, "
+                "--texture_cols, --shader_template, --shader_path required"), file=sys.stderr)
         sys.exit(1)
 
     nbytes = int(args.bytes_per_char)
-    nrows = int(args.rows)
-    ncols = int(args.cols)
+    board_nrows = int(args.board_rows)
+    board_ncols = int(args.board_cols)
+    texture_nrows = int(args.texture_rows)
+    texture_ncols = int(args.texture_cols)
 
-    replacement = generateUnityParams(nbytes, nrows, ncols, prefix = "")
+    replacement = generateUnityParams(nbytes, board_nrows, board_ncols, prefix = "")
     #print(replacement)
     macro = "// %TEMPLATE__UNITY_ROW_COL_PARAMS%"
     applyLineMacro(args.shader_template, args.shader_path, macro, replacement)
 
-    replacement = generateCgParams(nbytes, nrows, ncols, prefix = "  ")
+    replacement = generateCgParams(nbytes, board_nrows, board_ncols, prefix = "  ")
     #print(replacement)
     macro = "// %TEMPLATE__CG_ROW_COL_PARAMS%"
     applyLineMacro(args.shader_path, args.shader_path, macro, replacement)
 
-    replacement = generateCgConstants(nbytes, nrows, ncols, prefix = "  ")
+    replacement = generateCgConstants(nbytes, board_nrows, board_ncols,
+            texture_nrows, texture_ncols, prefix = "  ")
     #print(replacement)
     macro = "// %TEMPLATE__CG_ROW_COL_CONSTANTS%"
     applyLineMacro(args.shader_path, args.shader_path, macro, replacement)
 
-    replacement = generateLetterAccessor(nbytes, nrows, ncols, prefix = "      ")
+    replacement = generateLetterAccessor(nbytes, board_nrows, board_ncols, prefix = "      ")
     #print(replacement)
     macro = "// %TEMPLATE__CG_LETTER_ACCESSOR%"
     applyLineMacro(args.shader_path, args.shader_path, macro, replacement)

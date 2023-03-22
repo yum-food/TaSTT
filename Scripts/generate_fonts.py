@@ -114,36 +114,71 @@ def in_range(x, range_pair) -> bool:
 max_char = max(allowlist)
 print("max char: {}".format(max_char))
 print("num chars: {}".format(len(allowlist)))
-total_rows = math.ceil(max_char / n_cols)
-print("total rows {}".format(total_rows))
-total_textures = math.ceil(total_rows / n_rows)
-print("total textures {}".format(total_textures))
 
-for nth_texture in range(0, total_textures):
-    # Create an 8K grayscale ("L") or black and white ("1") image
-    image = Image.new(mode="1", size=(8192,8192), color=0)
+def genUnicode():
+    total_rows = math.ceil(max_char / n_cols)
+    print("total rows {}".format(total_rows))
+    total_textures = math.ceil(total_rows / n_rows)
+    print("total textures {}".format(total_textures))
+
+    for nth_texture in range(0, total_textures):
+        # Create an 8K grayscale ("L") or black and white ("1") image
+        # Unity will re-encode b&w to grayscale, so using b&w just helps keep
+        # the package size low (we vendor these, we don't generate them
+        # client-side).
+        image = Image.new(mode="1", size=(8192,8192), color=0)
+        draw = ImageDraw.Draw(image)
+
+        row_begin = nth_texture * n_rows
+
+        for row in range(row_begin, row_begin + n_rows):
+            line = ""
+            for col in range(0, n_cols):
+                # Generate the unicode character for this spot.
+                n = row * n_cols + col
+                char = None
+                font_info = None
+                if n in allowlist.keys():
+                    char = chr(n)
+                    font_info = allowlist[n]
+                else:
+                    char = " "
+                    font_info = FontInfo(unifont, 0)
+                # Hack: Chinese, Japanese, and Korean characters are all double
+                # width and are all on textures [1,6]. To fit them in the same
+                # grid, we use a half-size font.
+                draw.text((col * font_pixels / 2, (row - row_begin) * font_pixels +
+                    font_info.dy), char, font=font_info.font, fill=255)
+
+        image.save("Fonts/Bitmaps/font-%01d.png" % nth_texture)
+
+def genASCII():
+    # Create an 8k grayscale image. 16 glyphs wide, 8 glyphs tall.
+    # Only characters on the range [0, 128).
+    image = Image.new(mode="L", size=(8192,8192), color=0)
     draw = ImageDraw.Draw(image)
+    n_rows = 8
+    n_cols = 16
 
-    row_begin = nth_texture * n_rows
+    font = ImageFont.truetype(
+            "Fonts/Noto_Sans_Mono/static/NotoSansMono/NotoSansMono-Bold.ttf",
+            int((8192 / 8) * 0.75), index=0, layout_engine=layout_engine)
 
-    for row in range(row_begin, row_begin + n_rows):
-        line = ""
+    for row in range(0, n_rows):
         for col in range(0, n_cols):
-            # Generate the unicode character for this spot.
             n = row * n_cols + col
             char = None
             font_info = None
             if n in allowlist.keys():
                 char = chr(n)
-                font_info = allowlist[n]
             else:
                 char = " "
-                font_info = FontInfo(unifont, 0)
-            # Hack: Chinese, Japanese, and Korean characters are all double
-            # width and are all on textures [1,6]. To fit them in the same
-            # grid, we use a half-size font.
-            draw.text((col * font_pixels / 2, (row - row_begin) * font_pixels +
-                font_info.dy), char, font=font_info.font, fill=255)
+            draw.text((col * font_pixels * 8 / 2, row * font_pixels * 8 - 20),
+                    char, font=font, fill=255)
+    image.save("Fonts/Bitmaps/font-ascii.png")
 
-    image.save("Fonts/Bitmaps/font-%01d.png" % nth_texture)
-
+if __name__ == "__main__":
+    print("Generating unicode fonts")
+    genUnicode()
+    print("Generating ASCII fonts")
+    genASCII()

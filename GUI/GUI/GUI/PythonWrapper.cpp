@@ -567,12 +567,16 @@ bool PythonWrapper::GenerateAnimator(
 	std::filesystem::path tastt_animator_path =
 		tastt_generated_dir_path / unity_animator_generated_name;
 
+	const int texture_rows = (config.bytes_per_char == 1 ? 8 : 64);
+	const int texture_cols = (config.bytes_per_char == 1 ? 16 : 128);
 	{
 		Log(out, "Generating shader for {}x{} board (pass 0)...", config.rows, config.cols);
 		if (!InvokeWithArgs({ generate_shader_path,
 			"--bytes_per_char", std::to_string(config.bytes_per_char),
-			"--rows", std::to_string(config.rows),
-			"--cols", std::to_string(config.cols),
+			"--board_rows", std::to_string(config.rows),
+			"--board_cols", std::to_string(config.cols),
+			"--texture_rows", std::to_string(texture_rows),
+			"--texture_cols", std::to_string(texture_cols),
 			"--shader_template", shader_template_path,
 			"--shader_path", shader_path },
 			"Failed to generate shader", out)) {
@@ -585,14 +589,17 @@ bool PythonWrapper::GenerateAnimator(
 		std::string py_stdout, py_stderr;
 		if (!InvokeWithArgs({ generate_shader_path,
 			"--bytes_per_char", std::to_string(config.bytes_per_char),
-			"--rows", std::to_string(config.rows),
-			"--cols", std::to_string(config.cols),
+			"--board_rows", std::to_string(config.rows),
+			"--board_cols", std::to_string(config.cols),
+			"--texture_rows", std::to_string(texture_rows),
+			"--texture_cols", std::to_string(texture_cols),
 			"--shader_template", shader_lighting_template_path,
 			"--shader_path", shader_lighting_path },
 			"Failed to generate shader", out)) {
 			return false;
 		}
 	}
+#if 0
 	{
 		Log(out, "Generating emotes... ");
 
@@ -622,6 +629,7 @@ bool PythonWrapper::GenerateAnimator(
 			return false;
 		}
 	}
+#endif
 	{
 		Log(out, "Creating {}\n", tastt_generated_dir_path.string());
 		std::filesystem::create_directories(tastt_generated_dir_path);
@@ -678,6 +686,42 @@ bool PythonWrapper::GenerateAnimator(
 		if (error.value()) {
 			Log(out, "failed!\n");
 			Log(out, "Error: {} ({})\n", error.message(), error.value());
+			return false;
+		}
+		Log(out, "success!\n");
+	}
+	if (config.bytes_per_char == 1) {
+		Log(out, "Applying texture memory optimization for English speakers... ");
+		std::error_code err;
+		for (int i = 0; i < 8; i++) {
+			std::filesystem::remove(tastt_fonts_path / ("Bitmaps/font-" + std::to_string(i) + ".png"), err);
+			if (err.value()) {
+				Log(out, "failed!\n");
+				Log(out, "Error removing unicode texture: {} ({})\n", err.message(), err.value());
+				return false;
+			}
+			if (i != 0) {
+				std::filesystem::remove(tastt_fonts_path / ("Bitmaps/font-" + std::to_string(i) + ".png.meta"), err);
+				if (err.value()) {
+					Log(out, "failed!\n");
+					Log(out, "Error removing unicode texture metadata: {} ({})\n", err.message(), err.value());
+					return false;
+				}
+			}
+		}
+		std::filesystem::remove(tastt_fonts_path / "Bitmaps/emotes.png", err);
+		if (err.value()) {
+			Log(out, "failed!\n");
+			Log(out, "Error removing emotes texture: {} ({})\n", err.message(), err.value());
+			return false;
+		}
+
+		Log(out, "success!\n");
+	} else {
+		std::error_code err;
+		if (!std::filesystem::remove(tastt_fonts_path / "Bitmaps/font-ascii.png.meta", err)) {
+			Log(out, "failed!\n");
+			Log(out, "Error: {} ({})\n", err.message(), err.value());
 			return false;
 		}
 		Log(out, "success!\n");

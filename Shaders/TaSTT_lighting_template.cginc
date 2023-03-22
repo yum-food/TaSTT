@@ -275,8 +275,8 @@ float2 GetLetter(float2 uv, int nth_letter,
 // Get the value of the parameter for the cell we're in.
 uint GetLetterParameter(float2 uv)
 {
-  float CHAR_COL = floor(uv.x * NCOLS);
-  float CHAR_ROW = floor(uv.y * NROWS);
+  float CHAR_COL = floor(uv.x * BOARD_NCOLS);
+  float CHAR_ROW = floor(uv.y * BOARD_NROWS);
   int res = 0;
 
   // %TEMPLATE__CG_LETTER_ACCESSOR%
@@ -582,15 +582,13 @@ fixed4 frag(v2f i) : SV_Target
   float2 letter_uv;
   bool is_emote = false;
   if (letter < 0xE000) {
-    texture_cols = 128.0;
-    texture_rows = 64.0;
-    letter_uv = GetLetter(uv_with_margin, letter % 0x2000, texture_cols, texture_rows, NCOLS, NROWS, /*margin=*/0.02);
+    letter_uv = GetLetter(uv_with_margin, letter % 0x2000, TEXTURE_NCOLS, TEXTURE_NROWS, BOARD_NCOLS, BOARD_NROWS, /*margin=*/0.02);
   } else {
     is_emote = true;
     texture_cols = 16.0;
     texture_rows = 8.0;
     // This will need to be updated if we create multiple emote textures.
-    letter_uv = GetLetter(uv_with_margin, letter % 0x2000, texture_cols, texture_rows, NCOLS, NROWS, /*margin=*/0);
+    letter_uv = GetLetter(uv_with_margin, letter % 0x2000, texture_cols, texture_rows, BOARD_NCOLS, BOARD_NROWS, /*margin=*/0);
   }
 
   if (letter_uv.x == -1 && letter_uv.y == -1) {
