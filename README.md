@@ -16,7 +16,8 @@ Contents:
 3. [Motivation](#motivation)
 4. [Design overview](#design-overview)
 5. [Contributing](#contributing)
-6. [Backlog](#backlog)
+6. [Roadmap](#Roadmap)
+7. [Backlog](#backlog)
 
 Made with love by yum\_food.
 
@@ -43,6 +44,8 @@ Basic controls:
     CPU-bound. Performance impact when not speaking is negligible.
 * Multi-language support.
   * Japanese, Korean, and Chinese glyphs included, among many other languages.
+    * Full list of Unicode blocks is defined in
+      [generate_fonts.py](https://github.com/yum-food/TaSTT/blob/master/Scripts/generate_fonts.py#L43-L109).
   * Whisper natively supports transcription in [100 languages](
     https://github.com/openai/whisper/blob/main/whisper/tokenizer.py#L10).
 * Customizable:
@@ -68,6 +71,8 @@ Basic controls:
 
 ## Requirements
 
+System requirements:
+
 * ~8GB disk space
   * I apologize that this is so big. The libraries used to perform
     GPU-accelerated transcription (pytorch and whisper) are really,
@@ -86,6 +91,14 @@ Basic controls:
 
 For the last 3 bullets: please let me know in the Discord if these are
 deal breakers. I'd be happy to fix them!
+
+Avatar resources used:
+
+* Tris: 4
+* Material slots: 1
+* Texture memory: 340 KB (English), 130 MB (international)
+* Parameters: 65-217 (configurable; more bits == faster paging)
+* Menu slots: 1
 
 ## Motivation
 
@@ -155,10 +168,10 @@ The FX controller (AKA animator) is pretty simple. There is one layer for each
 sync parameter (i.e. each character byte). The layer has to work out which
 region it's in, then write a byte to the correct shader parameter.
 
-![One FX layer with 16 cells](Images/tastt_anim.png)
+![One FX layer with 16 regions](Images/tastt_anim.png)
 
 From top down, we first check if updating the board is enabled. If no, we stay
-in the first state. Then we check which cell we're in. Finally, we drive a
+in the first state. Then we check which region we're in. Finally, we drive a
 shader parameter to one of 256 possible values using a blendtree.
 
 ![An 8-bit blendtree](Images/tastt_blend.png)
@@ -172,7 +185,7 @@ character set:
 (total animations) =
     (2 animations per byte) *
     (N bytes per character) *
-    (M chars per cell)
+    (M characters per region)
 ```
 
 ## Contributing
@@ -182,6 +195,77 @@ Contributions welcome. Send a pull request to this repository.
 See GUI/README.md for instructions on building the GUI.
 
 Ping the discord if you need help getting set up.
+
+## Roadmap
+
+### Milestone 1: STT Personally usable
+
+Status: COMPLETE.
+
+Scope: The speech-to-text may be used by one developer intimately familiar with
+its inner workings. Environment is not encapsulated.
+
+Completed at commit 8326dee0bf01956.
+
+### Milestone 2: STT Generally usable
+
+Status: COMPLETE.
+
+Scope: The speech-to-text is used by at least one user not familiar with its
+inner workings. Dependency management is mostly handled mechanically. The app
+can be controlled using a GUI.
+
+Completed at commit 1f15133dd985442, AKA release 0.10.0.
+
+### Milestone 3: STT Generally performant
+
+Status: IN PROGRESS.
+
+Scope: The speech-to-text may be used on resource constrained systems.
+
+I'm looking at Const-Me/Whisper as the transcription
+backend. I have measured terrible accuracy when using the VAD-segmented
+transcription path vs. using the file-based non-VAD-segmented transcription
+path (~15x higher edit distance on the same recording of the Bill of Rights).
+Beam search has not measurably improved the file-based transcription path.
+It remains to be seen if VAD segmentation is the failure source, or if
+it's caused by the inference layer being unable to "second guess" itself
+(previous transcriptions cannot be edited in the current architecture),
+or something else.
+
+### Milestone 4: Enable non-VRChat use cases
+
+Status: IN PROGRESS.
+
+Scope: The speech-to-text may be used as a tool for usecases outside of VRChat.
+
+Streamers could use the STT as an OBS browser source. VR players could use it
+to type into arbitrary text fields (voice-driven keyboard device). MMO players
+could also use the voice-driven keyboard (speak -> preview -> rapid commit?)
+while raiding.
+
+### Milestone 5: Integration into other tools
+
+Status: NOT STARTED.
+
+Scope: Integrate performant client-side transcription into other STT tools.
+
+Once performant client-side transcription is implemented, there is no reason
+to keep it locked away inside one project. Other projects making different
+tradeoffs (such as relying on cloud services for TTS) could benefit from this
+functionality, driving down costs and latency for users. In particular, I think
+that there is value in integrating with TTS-Voice-Wizard.
+
+TaSTT is about providing performant, commoditized, user-owned STT services. I
+have no interest in using cloud services to provide any functionality.
+Instead of extending this project to do that, the best way to spread the love
+is to partner with (contribute to) projects that do.
+
+### Completion
+
+This project will probably reach a stable state and then go into maintenance.
+The efforts described above are the major milestones I plan to implement. Small
+features and bugfixes will likely continue in the "completed" state.
 
 ## Backlog
 

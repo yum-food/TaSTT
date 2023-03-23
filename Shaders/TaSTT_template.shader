@@ -55,9 +55,11 @@
         "LightMode" = "ForwardBase"
       }
       Blend SrcAlpha OneMinusSrcAlpha
+      ZWrite On
+      ZTest LEqual
 
       CGPROGRAM
-      #pragma target 3.0
+      #pragma target 5.0
 
       #pragma multi_compile _ VERTEXLIGHT_ON
 
@@ -76,10 +78,11 @@
         "Queue"="AlphaTest+499"
       }
       Blend One One
-      ZWrite Off
+      ZWrite On
+      ZTest LEqual
 
       CGPROGRAM
-      #pragma target 3.0
+      #pragma target 5.0
 
       #pragma multi_compile_fwdadd
 

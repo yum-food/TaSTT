@@ -524,9 +524,10 @@ float prng(float2 v)
   return res * res;
 }
 
-fixed4 frag(v2f i) : SV_Target
+fixed4 frag(v2f i, out float depth : SV_DepthLessEqual) : SV_Target
 {
   float2 uv = i.uv.zw;
+  depth = 1.0;
 
   // Fix text orientation
   uv.y = 0.5 - uv.y;
@@ -546,6 +547,7 @@ fixed4 frag(v2f i) : SV_Target
         return light(i, margin_effect(i));
       }
       if (InMarginRounding(uv, uv_margin, Margin_Rounding_Scale, /*interior=*/false)) {
+        depth = 0.0;
         return fixed4(0, 0, 0, 0);
       }
     }
