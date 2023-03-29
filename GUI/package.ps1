@@ -16,6 +16,7 @@ if (Test-Path $install_dir) {
 
 $py_dir = "Python"
 
+rm -Recurse $py_dir
 if (-Not (Test-Path $py_dir)) {
   echo "Fetching python"
 
@@ -32,12 +33,6 @@ if (-Not (Test-Path $py_dir)) {
 
   echo "../Scripts" >> Python/python310._pth
   echo "import site" >> Python/python310._pth
-
-  ./Python/python.exe Python/get-pip.py
-
-  echo "Installing future"
-  echo "Assuming host has python 3.10.9 installed" # TODO test for this
-  python -m pip install future==0.18.2 --target Python/Lib/site-packages
 }
 
 $pip_path = "$py_dir/get-pip.py"
@@ -53,6 +48,14 @@ if (-Not (Test-Path $pip_path)) {
   }
 
   mv $PIP_FILE $pip_path
+}
+
+if ($true) {
+  ./Python/python.exe Python/get-pip.py
+
+  echo "Installing future"
+  echo "Assuming host has python 3.10.9 installed" # TODO test for this
+  python -m pip install future==0.18.2 --target Python/Lib/site-packages
 }
 
 $git_dir = "PortableGit"
