@@ -91,6 +91,7 @@ private:
     std::future<bool> unity_app_;
     std::future<bool> dump_mics_;
     std::future<bool> env_proc_;
+    std::future<void> reset_venv_proc_;
 
     wxTimer py_app_drain_;
 

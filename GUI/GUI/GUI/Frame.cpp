@@ -370,6 +370,11 @@ Frame::Frame()
 		env_proc_ = p.get_future();
 		p.set_value(true);
 	}
+	{
+		auto p = std::promise<void>();
+		reset_venv_proc_ = p.get_future();
+		p.set_value();
+	}
 
     auto* main_panel = new wxPanel(this, ID_MAIN_PANEL);
 	main_panel_ = main_panel;
@@ -1836,24 +1841,68 @@ void Frame::OnClearPip(wxCommandEvent& event)
 
 void Frame::OnResetVenv(wxCommandEvent& event)
 {
-	Log(debug_out_, "Resetting virtual environment... ");
-
-	const std::string py_dir = "Resources/Python/Lib/site-packages";
-
-    if (!std::filesystem::is_directory(py_dir)) {
-		Log(debug_out_, "Python package directory not exist at {}, assuming "
-            "already deleted!\n", py_dir);
-        return;
-    }
-
-	std::error_code err;
-	if (std::filesystem::remove_all(py_dir, err)) {
-		Log(debug_out_, "success!\n");
+    auto status = reset_venv_proc_.wait_for(std::chrono::seconds(0));
+    if (status != std::future_status::ready) {
+		Log(debug_out_, "Virtual environment reset already running\n");
+		return;
 	}
-	else {
-		wxLogError("Failed to reset virtual environment: %s", err.message());
-		Log(debug_out_, "failed!\n");
-	}
+
+    /*
+    Equivalent shell:
+    python -m pip freeze > venv_pkgs.txt
+    python -m pip uninstall -r venv_pkgs.txt
+    rm venv_pkgs.txt
+    */
+
+    reset_venv_proc_ = std::move(std::async(std::launch::async, [&]() {
+		Log(debug_out_, "Resetting virtual environment...\n");
+
+        {
+            std::stringstream pkg_list_ss;
+            auto out_cb = [&](const std::string& out, const std::string& err) {
+                Log(debug_out_, "{}", out);
+                Log(debug_out_, "{}", err);
+                pkg_list_ss << out;
+            };
+            auto in_cb = [&](std::string& in) {};
+            Log(debug_out_, "Freezing packages...\n");
+            if (!PythonWrapper::InvokeWithArgs({ "-m pip freeze" }, out_cb, in_cb)) {
+                Log(debug_out_, "failed!\n");
+                return;
+            }
+
+            std::stringstream pkg_list_ss2;
+            std::string pkg_line;
+            while (std::getline(pkg_list_ss, pkg_line)) {
+                if (pkg_line.find("future") != std::string::npos) {
+                    continue;
+                }
+                pkg_list_ss2 << pkg_line << std::endl;
+            }
+
+            std::ofstream pkgs_ofs("venv_pkgs.txt");
+            pkgs_ofs << pkg_list_ss2.str();
+            pkgs_ofs.close();
+        }
+
+        // For now, leave venv_pkgs.txt on disk for better debuggability.
+		//ScopeGuard venv_pkgs_cleanup([]() { std::filesystem::remove("venv_pkgs.txt"); });
+
+		{
+			auto out_cb = [&](const std::string& out, const std::string& err) {
+				Log(debug_out_, "{}", out);
+				Log(debug_out_, "{}", err);
+			};
+			auto in_cb = [&](std::string& in) {};
+			Log(debug_out_, "Uninstalling packages...\n");
+			if (!PythonWrapper::InvokeWithArgs({ "-m pip uninstall -y -r venv_pkgs.txt" }, out_cb, in_cb)) {
+				Log(debug_out_, "failed!\n");
+				return;
+			}
+		}
+
+		Log(debug_out_, "Virtual environment reset done!\n");
+	}));
 }
 
 void Frame::OnClearOSC(wxCommandEvent& event)

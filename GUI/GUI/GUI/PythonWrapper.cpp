@@ -144,12 +144,14 @@ bool SetAffinityMask(
 			return false;
 		}
 
+#if 0
 		{
 			std::ostringstream oss;
 			oss << "Set affinity mask to " << affinity_mask <<
 				", i.e. processor " << processor_id << std::endl;
 			out_cb(oss.str(), "");
 		}
+#endif
 	}
 	return true;
 }
@@ -470,6 +472,7 @@ bool PythonWrapper::InstallPip(
 	const std::function<bool()>&& run_cb) {
 	std::filesystem::path pip_flag = "Resources/Python/.pip_installed";
 	if (std::filesystem::exists(pip_flag)) {
+		out_cb("Pip flag exists, already installed\n", "");
 		return true;
 	}
 
