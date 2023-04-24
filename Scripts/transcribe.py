@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from emotes_v2 import EmotesState
+from faster_whisper import WhisperModel
 from functools import partial
 from playsound import playsound
 
@@ -18,7 +19,6 @@ import sys
 import threading
 import time
 import wave
-import whisper
 
 class Config:
     def __init__(self):
@@ -72,7 +72,7 @@ class AudioState:
 
         # The language the user is speaking in. Default is English but user may set
         # this to whatever they want.
-        self.language = whisper.tokenizer.TO_LANGUAGE_CODE["english"]
+        self.language = "en"
 
         self.audio_paused = False
 
@@ -210,38 +210,19 @@ def transcribe(audio_state, model, frames, use_cpu: bool):
     frames = np.asarray(audio_state.frames)
     audio = np.frombuffer(frames, np.int16).flatten().astype(np.float32) / 32768.0
 
-    audio = whisper.pad_or_trim(audio, length = audio_state.RATE *
-            audio_state.MAX_LENGTH_S_WHISPER)
+    segments, info = model.transcribe(audio, beam_size=5,
+            language=audio_state.language)
 
-    mel = whisper.log_mel_spectrogram(audio).to(model.device)
+    result = ""
+    for s in segments:
+        print(f"  s: {s}")
+        print(f"  s.text: {s.text}")
+        if (len(result) == 0):
+            result = str(s.text)
+        else:
+            result += " " + str(s.text)
 
-    result = None
-    #for temp in (0.00, 0.05, 0.10, 0.15, 0.20):
-    #for temp in (0.00, 0.05):
-    for temp in (0.00,):
-        use_gpu = not use_cpu
-        options = whisper.DecodingOptions(language = audio_state.language,
-                beam_size = 5, temperature = temp, without_timestamps = True,
-                fp16 = use_gpu)
-        result = whisper.decode(model, mel, options)
-
-        if result.avg_logprob < -1.0:
-            print("avg logprob: {}".format(result.avg_logprob))
-            result = None
-            continue
-
-        if result.compression_ratio > 2.4:
-            print("compression ratio: {}".format(result.compression_ratio))
-            result = None
-            continue
-
-        if result.no_speech_prob > 0.60:
-            print("no speech prob: {}".format(result.no_speech_prob))
-            result = None
-            continue
-
-        result = result.text
-        break
+    print(f"Result: {result}")
 
     return result
 
@@ -391,7 +372,7 @@ def transcribeLoop(mic: str, language: str, model: str,
         enable_local_beep: bool, use_cpu: bool, use_builtin: bool,
         button: str, estate: EmotesState):
     audio_state = getMicStream(mic)
-    audio_state.language = whisper.tokenizer.TO_LANGUAGE_CODE[language]
+    audio_state.language = language
 
     print("Safe to start talking")
 
@@ -400,7 +381,7 @@ def transcribeLoop(mic: str, language: str, model: str,
     model_root = os.path.join(dname, "Models")
 
     print("Model {} will be saved to {}".format(model, model_root))
-    model = whisper.load_model(model, download_root=model_root)
+    model = WhisperModel("large-v2", device="cuda", compute_type="float16")
 
     transcribe_audio_thd = threading.Thread(target = transcribeAudio, args = [audio_state, model, use_cpu])
     transcribe_audio_thd.daemon = True
@@ -442,7 +423,7 @@ if __name__ == "__main__":
     dname = os.path.dirname(abspath)
     dname = os.path.dirname(dname)
     dname = os.path.dirname(dname)
-    os.chdir(dname)
+    #os.chdir(dname)
     print(f"Set cwd to {os.getcwd()}")
 
     parser = argparse.ArgumentParser()
@@ -468,7 +449,7 @@ if __name__ == "__main__":
         args.language = "english"
 
     if not args.model:
-        args.language = "base"
+        args.model = "base"
 
     if not args.bytes_per_char or not args.chars_per_sync:
         print("--bytes_per_char and --chars_per_sync required", file=sys.stderr)

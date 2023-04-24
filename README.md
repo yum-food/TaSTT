@@ -120,8 +120,8 @@ reason or another:
    who want to sell closed-source software.
 4. [I5UCC's VRCTextboxSTT](https://github.com/I5UCC/VRCTextboxSTT) makes
    KillFrenzy's AvatarText and Whisper kiss. It's the closest spiritual cousin
-   to this repository. There are two crucial differences: it's GPL not MIT, and
-   it doesn't abstract away the command line.
+   to this repository. The author has made incredible sustained progress on
+   the problem. Definitely take a look!
 5. [VRCWizard's TTS-Voice-Wizard](https://github.com/VRCWizard/TTS-Voice-Wizard)
    also uses Whisper, but they rely on the C# interface to Const-Me's
    CUDA-enabled Whisper implementation. This implementation does not support
