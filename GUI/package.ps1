@@ -132,7 +132,6 @@ cp ../"TaSTT-Whisper"/x64/Release/Whisper.dll TaSTT/Whisper.dll
 mkdir TaSTT/Resources/Models
 
 if (-Not $skip_zip) {
-  # Compress-Archive shits the bed if the input is larger than 2GB.
-  & "C:\Program Files\7-Zip\7z.exe" a -tzip "$install_dir.zip" "$install_dir" -mx=9
+  Compress-Archive -Path "$install_dir" -DestinationPath "$install_dir.zip" -Force
 }
 

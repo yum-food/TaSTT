@@ -435,6 +435,12 @@ void initNormal(inout v2f i)
   i.normal = normalize(i.normal);
 }
 
+float getWorldSpaceDepth(in v2f i)
+{
+  float4 clip_pos = mul(UNITY_MATRIX_VP, float4(i.worldPos, 1.0));
+  return clip_pos.z / clip_pos.w;
+}
+
 fixed4 light(v2f i,
     sampler2D albedo_map,
     sampler2D normal_map,
@@ -443,9 +449,12 @@ fixed4 light(v2f i,
     sampler2D smoothness_map,
     float invert_smoothness,
     sampler2D emission_mask,
-    float3 emission_color)
+    float3 emission_color,
+    out float depth)
 {
   initNormal(i);
+
+  depth = getWorldSpaceDepth(i);
 
   float2 iddx = ddx(i.uv.x);
   float2 iddy = ddy(i.uv.y);
@@ -485,8 +494,10 @@ fixed4 light(v2f i,
   return fixed4(pbr, albedo.a);
 }
 
-fixed4 light(v2f i, fixed4 unlit)
+fixed4 light(v2f i, fixed4 unlit, out float depth)
 {
+  depth = getWorldSpaceDepth(i);
+
   // Get color in spherical harmonics
   fixed3 albedo = unlit.rgb;
 
@@ -527,7 +538,7 @@ float prng(float2 v)
 fixed4 frag(v2f i, out float depth : SV_DepthLessEqual) : SV_Target
 {
   float2 uv = i.uv.zw;
-  depth = 1.0;
+  depth = -1000.0;
 
   // Fix text orientation
   uv.y = 0.5 - uv.y;
@@ -544,10 +555,9 @@ fixed4 frag(v2f i, out float depth : SV_DepthLessEqual) : SV_Target
   if (Render_Margin) {
     if (Margin_Rounding_Scale > 0.0) {
       if (InMarginRounding(uv, uv_margin, Margin_Rounding_Scale, /*interior=*/true)) {
-        return light(i, margin_effect(i));
+        return light(i, margin_effect(i), depth);
       }
       if (InMarginRounding(uv, uv_margin, Margin_Rounding_Scale, /*interior=*/false)) {
-        depth = 0.0;
         return fixed4(0, 0, 0, 0);
       }
     }
@@ -555,18 +565,18 @@ fixed4 frag(v2f i, out float depth : SV_DepthLessEqual) : SV_Target
       if (InSpeechIndicator(uv, uv_margin)) {
         if (floor(_TaSTT_Indicator_0) == 1.0) {
           // Actively speaking
-          return light(i, float3tofixed4(TaSTT_Indicator_Color_2, 1.0));
+          return light(i, float3tofixed4(TaSTT_Indicator_Color_2, 1.0), depth);
         } else if (floor(_TaSTT_Indicator_1) == 1.0) {
           // Done speaking, waiting for paging.
-          return light(i, float3tofixed4(TaSTT_Indicator_Color_1, 1.0));
+          return light(i, float3tofixed4(TaSTT_Indicator_Color_1, 1.0), depth);
         } else {
           // Neither speaking nor paging.
-          return light(i, float3tofixed4(TaSTT_Indicator_Color_0, 1.0));
+          return light(i, float3tofixed4(TaSTT_Indicator_Color_0, 1.0), depth);
         }
       }
 
       if (Render_Margin) {
-        return light(i, margin_effect(i));
+        return light(i, margin_effect(i), depth);
       }
     }
   }
@@ -665,6 +675,7 @@ fixed4 frag(v2f i, out float depth : SV_DepthLessEqual) : SV_Target
         break;
       default:
         // Return some distinctive pattern that will look like a bug.
+        depth = getWorldSpaceDepth(i);
         return fixed4(1, 0, _SinTime[0], 1);
     }
   }
@@ -684,20 +695,21 @@ fixed4 frag(v2f i, out float depth : SV_DepthLessEqual) : SV_Target
         BG_Smoothness,
         BG_Smoothness_Invert,
         BG_Emission_Mask,
-        BG_Emission_Color);
+        BG_Emission_Color,
+        depth);
     } else {
-      bg = light(i, Background_Color);
+      bg = light(i, Background_Color, depth);
     }
     // Hack: If alpha (text.w) is less than 0.5, don't render it. This
     // eliminates outlines around simple emotes with transparent backgrounds.
     if (is_emote && text.w > 0.5) {
       // Use emote alpha to mix emote color with background color (compositing).
       text.rgb = lerp(bg.rgb, text.rgb, text.w);
-      bg = light(i, fixed4(text.rgb, 1.0));
+      bg = light(i, fixed4(text.rgb, 1.0), depth);
     }
     return bg;
   } else {
-    return light(i, Text_Color);
+    return light(i, Text_Color, depth);
   }
 }
 
