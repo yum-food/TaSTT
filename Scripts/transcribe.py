@@ -15,6 +15,7 @@ import langcodes
 import pyaudio
 import numpy as np
 import steamvr
+import string_matcher
 import sys
 import threading
 import time
@@ -249,8 +250,9 @@ def transcribeAudio(audio_state, model, use_cpu: bool):
             last_transcribe_time = time.time()
             continue
 
-        old_text = copy.copy(audio_state.text)
-        audio_state.text = text
+        old_text = audio_state.text
+        audio_state.text = string_matcher.matchStrings(audio_state.text,
+                text, window_size = 25);
 
         now = time.time()
         print("Transcription ({} seconds): {}".format(

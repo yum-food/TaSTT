@@ -98,64 +98,6 @@ std::string DrainWin32Pipe(const HANDLE pipe) {
 	return oss.str();
 }
 
-bool SetAffinityMask(
-	HANDLE hProcess,
-	const std::function<void(const std::string& out, const std::string& err)> out_cb)
-{
-	// Set process affinity mask. This is an simple optimization pointed out by
-	// a user. Constraining any of the processes used by the STT to a reduced
-	// number of processors does not affect user-visible performance.
-	{
-		// Query processor information.
-		SYSTEM_INFO sysinfo{};
-		GetSystemInfo(&sysinfo);
-		//sysinfo.dwNumberOfProcessors
-
-		// Pick a random processor.
-		unsigned int rand_num;
-		auto err = rand_s(&rand_num);
-		if (err) {
-			std::ostringstream err_oss;
-			err_oss << "Failed to get random number: " << err << std::endl;
-			out_cb("", err_oss.str());
-			return false;
-		}
-		// Constrain the processor ID to [1, num_processors).
-		// We don't want to run on processor 0 since it receives system interrupts
-		int processor_id = rand_num;
-		switch (sysinfo.dwNumberOfProcessors) {
-			// case 0 can never happen.
-		case 1:
-			processor_id = 0;
-		case 2:
-			processor_id = rand_num % 2;
-		default:
-			processor_id = (processor_id % (sysinfo.dwNumberOfProcessors - 1)) + 1;
-		}
-		DWORD_PTR affinity_mask = 0;
-		processor_id = std::min(processor_id,
-			static_cast<int>(sizeof(affinity_mask)));
-		affinity_mask = 1LL << processor_id;
-
-		if (!SetProcessAffinityMask(hProcess, affinity_mask)) {
-			std::ostringstream err_oss;
-			err_oss << "Failed to set affinity mask: " << GetWin32ErrMsg();
-			out_cb("", err_oss.str());
-			return false;
-		}
-
-#if 0
-		{
-			std::ostringstream oss;
-			oss << "Set affinity mask to " << affinity_mask <<
-				", i.e. processor " << processor_id << std::endl;
-			out_cb(oss.str(), "");
-		}
-#endif
-	}
-	return true;
-}
-
 bool PythonWrapper::InvokeCommandWithArgs(const std::string& cmd,
 	std::vector<std::string>&& args,
 	const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
@@ -338,9 +280,6 @@ bool PythonWrapper::InvokeCommandWithArgs(const std::string& cmd,
 		CloseHandle(pi.hProcess);
 		CloseHandle(pi.hThread);
 		});
-
-	// Set affinity mask (best effort)
-	SetAffinityMask(pi.hProcess, out_cb);
 
 	// While the process is running, drain output and send input every 10 ms.
 	DWORD timeout_ms = 10;
