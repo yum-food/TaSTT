@@ -37,6 +37,7 @@ Basic controls:
 
 ## Features
 
+* Works with the built-in chatbox (usable with public avatars!)
 * Customizable board resolution, [up to ridiculous sizes](https://www.youtube.com/watch?v=u5h-ivkwS0M).
 * Lighweight design:
   * Custom textbox requires as few as 65 parameter bits
@@ -55,7 +56,6 @@ Basic controls:
     metallic, roughness, and emission are all implemented.
   * Border width and rounding are customizable.
   * Shader supports physically based shading: smoothness, metallic, and emissive.
-* Works with the built-in chatbox (usable with public avatars!)
 * Many optional quality-of-life features:
   * Audio feedback: hear distinct beeps when transcription starts and stops.
   * May also enable in-game noise indicator, to grab others' attention.

@@ -1,10 +1,12 @@
 param(
   [switch]$skip_zip = $false,
-  [string]$release = "Release"
+  [string]$release = "Release",
+  [string]$install_pip = $true
 )
 
 echo "Skip zip: $skip_zip"
 echo "Release: $release"
+echo "Install pip: $install_pip"
 
 $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 
@@ -50,7 +52,7 @@ if (-Not (Test-Path $pip_path)) {
   mv $PIP_FILE $pip_path
 }
 
-if ($true) {
+if ($install_pip) {
   ./Python/python.exe Python/get-pip.py
 
   echo "Installing future"
@@ -77,6 +79,39 @@ if (-Not (Test-Path $git_dir)) {
   Read-Host -Prompt "Press enter once PortableGit is installed at $pwd\PortableGit"
 }
 
+$nvidia_dir = "nvidia_dll"
+
+if (-Not (Test-Path $nvidia_dir)) {
+  echo "Fetching CUDNN dependencies"
+
+  mkdir $nvidia_dir
+  pushd $nvidia_dir > $null
+
+  $ZLIB_URL = "https://drive.google.com/uc?export=download&id=1NpWU83JVOWG0tJtFK7ObygTbOasGWZpI"
+  Invoke-WebRequest $ZLIB_URL -OutFile "zlibwapi.dll"
+
+  # NVIDIA locks these files behind a fucking login making it a massive
+  # pain in the dick for end users to download, so I rehosted them.
+  # TODO check hashes.
+  echo "Fetching NVIDIA dll 1/4 (600MB)"
+  $CUDNN_CNN_INFER_URL = "https://drive.google.com/uc?export=download&confirm=yes&id=1Px7SGEOM8uAJNxxMGBSwo4sEE8H7GzkB"
+  Invoke-WebRequest $CUDNN_CNN_INFER_URL -OutFile "cudnn_cnn_infer64_8.dll"
+
+  echo "Fetching NVIDIA dll 2/4 (80MB)"
+  $CUDNN_OPS_INFER_URL = "https://drive.google.com/uc?export=download&confirm=yes&id=1mw6Ds1x-4G_GtSzM-GM8y27E9vpQRi_P"
+  Invoke-WebRequest $CUDNN_OPS_INFER_URL -OutFile "cudnn_ops_infer64_8.dll"
+
+  echo "Fetching NVIDIA dll 3/4 (80MB)"
+  $CUBLAS_64_DLL = "https://drive.google.com/uc?export=download&confirm=yes&id=1bflxDt83inYM0N2N0ebD1tw0Jh9la33R"
+  Invoke-WebRequest $CUBLAS_64_DLL -OutFile "cublas64_11.dll"
+
+  echo "Fetching NVIDIA dll 4/4 (150MB)"
+  $CUBLAS_LT64_DLL = "https://drive.google.com/uc?export=download&confirm=yes&id=1fQuVgpkbI8tNPTwueEeiLCSDzqSSGldI"
+  Invoke-WebRequest $CUBLAS_Lt64_DLL -OutFile "cublasLt64_11.dll"
+
+  popd > $null
+}
+
 mkdir $install_dir > $null
 mkdir $install_dir/Resources > $null
 cp -Recurse ../Animations TaSTT/Resources/Animations
@@ -87,6 +122,7 @@ cp -Recurse ../Images TaSTT/Resources/Images
 cp -Recurse Python TaSTT/Resources/Python
 cp -Recurse PortableGit TaSTT/Resources/PortableGit
 cp -Recurse ../Scripts TaSTT/Resources/Scripts
+cp $nvidia_dir/*.dll TaSTT/Resources/Scripts/
 cp -Recurse ../Shaders TaSTT/Resources/Shaders
 cp -Recurse ../Sounds TaSTT/Resources/Sounds
 cp -Recurse ../UnityAssets TaSTT/Resources/UnityAssets
@@ -94,9 +130,9 @@ cp -Recurse ../BrowserSource TaSTT/Resources/BrowserSource
 cp GUI/x64/$release/GUI.exe TaSTT/TaSTT.exe
 cp ../"TaSTT-Whisper"/x64/Release/Whisper.dll TaSTT/Whisper.dll
 mkdir TaSTT/Resources/Models
-#cp $WHISPER_CHECKPOINT_FILE TaSTT/Resources/Models/
 
 if (-Not $skip_zip) {
-  Compress-Archive -Path "$install_dir" -DestinationPath "$install_dir.zip" -Force
+  # Compress-Archive shits the bed if the input is larger than 2GB.
+  & "C:\Program Files\7-Zip\7z.exe" a -tzip "$install_dir.zip" "$install_dir" -mx=9
 }
 

@@ -1,5 +1,7 @@
 editdistance
 future==0.18.2
+langcodes
+language-data
 openvr
 pillow
 pyaudio
@@ -9,4 +11,5 @@ pyyaml
 
 --extra-index-url https://download.pytorch.org/whl/cu116
 torch==1.13.1+cu116
-faster-whisper
+
+faster-whisper@https://github.com/guillaumekln/faster-whisper/archive/358d373691c95205021bd4bbf28cde7ce4d10030.tar.gz

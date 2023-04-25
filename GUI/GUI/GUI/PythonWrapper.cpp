@@ -296,6 +296,24 @@ bool PythonWrapper::InvokeCommandWithArgs(const std::string& cmd,
 				return false;
 			}
 		}
+
+		// Add scripts to PATH
+		std::filesystem::path dll_bin = (std::filesystem::current_path() /
+			"Resources/Scripts").lexically_normal();
+		if (env.find(dll_bin.string()) == std::string::npos) {
+			env += ";" + dll_bin.string();
+
+			// Add updated PATH to current process's environment
+			if (!SetEnvironmentVariableA("PATH", env.c_str())) {
+				std::ostringstream err_oss;
+				err_oss << "Error while executing python command \""
+					<< cmd_oss.str()
+					<< "\": Failed to add python scripts to PATH: "
+					<< GetWin32ErrMsg() << std::endl;
+				out_cb("", err_oss.str());
+				return false;
+			}
+		}
 	}
 
 	std::string cmd_str = cmd_oss.str();

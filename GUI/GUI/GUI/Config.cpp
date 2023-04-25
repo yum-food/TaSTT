@@ -66,7 +66,7 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	language("english"),
 	model("base.en"),
 	button("left joystick"),
-	window_duration("15"),
+	window_duration("120"),
 
 	enable_local_beep(true),
 	use_cpu(false),

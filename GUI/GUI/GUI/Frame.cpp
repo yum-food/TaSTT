@@ -250,6 +250,8 @@ namespace {
         "small",
         "medium.en",
         "medium",
+        "large-v1",
+        "large-v2",
     };
     const size_t kNumModelChoices = sizeof(kModelChoices) / sizeof(kModelChoices[0]);
     constexpr int kModelDefault = 2;  // base.en
@@ -2123,7 +2125,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     const int max_rows = 10;
     const int max_cols = 240;
     const int min_window_duration_s = 10;
-    const int max_window_duration_s = 28;
+    const int max_window_duration_s = 300;
     if (rows < 0 || rows > max_rows ||
         cols < 0 || cols > max_cols ||
         window_duration < min_window_duration_s ||

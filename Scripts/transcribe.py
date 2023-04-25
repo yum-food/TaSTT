@@ -11,21 +11,14 @@ import copy
 import os
 import osc_ctrl
 import generate_utils
+import langcodes
 import pyaudio
 import numpy as np
 import steamvr
-import string_matcher
 import sys
 import threading
 import time
 import wave
-
-class Config:
-    def __init__(self):
-        # The maximum length that recordAudio() will put into frames before it
-        # starts dropping from the start.
-        self.MAX_LENGTH_S = 10
-config = Config()
 
 class AudioState:
     def __init__(self):
@@ -37,7 +30,7 @@ class AudioState:
 
         # The maximum length that recordAudio() will put into frames before it
         # starts dropping from the start.
-        self.MAX_LENGTH_S_WHISPER = 30
+        self.MAX_LENGTH_S = 30
         # The minimum length that recordAudio() will wait for before saving audio.
         self.MIN_LENGTH_S = 1
 
@@ -120,9 +113,11 @@ def onAudioFramesAvailable(
 
     audio_state.frames.append(decimated)
 
-    max_frames = int(input_rate * config.MAX_LENGTH_S / audio_state.CHUNK)
+    max_frames = int(input_rate * audio_state.MAX_LENGTH_S /
+            audio_state.CHUNK)
     if len(audio_state.frames) > max_frames:
-        audio_state.frames = audio_state.frames[-1 * max_frames :]
+        audio_state.frames = audio_state.frames[-1 * max_frames:]
+
 
     return (frames, pyaudio.paContinue)
 
@@ -210,21 +205,14 @@ def transcribe(audio_state, model, frames, use_cpu: bool):
     frames = np.asarray(audio_state.frames)
     audio = np.frombuffer(frames, np.int16).flatten().astype(np.float32) / 32768.0
 
-    segments, info = model.transcribe(audio, beam_size=5,
-            language=audio_state.language)
+    segments, info = model.transcribe(
+            audio,
+            beam_size = 5,
+            language = audio_state.language,
+            vad_filter = True,
+            without_timestamps = True)
 
-    result = ""
-    for s in segments:
-        print(f"  s: {s}")
-        print(f"  s.text: {s.text}")
-        if (len(result) == 0):
-            result = str(s.text)
-        else:
-            result += " " + str(s.text)
-
-    print(f"Result: {result}")
-
-    return result
+    return "".join(s.text for s in segments)
 
 def transcribeAudio(audio_state, model, use_cpu: bool):
     last_transcribe_time = time.time()
@@ -261,12 +249,8 @@ def transcribeAudio(audio_state, model, use_cpu: bool):
             last_transcribe_time = time.time()
             continue
 
-        words = ''.join(c for c in text.lower() if (c.isalpha() or c == " ")).split()
-
-        old_text = audio_state.text
-
-        audio_state.text = string_matcher.matchStrings(audio_state.text,
-                text, window_size = 25)
+        old_text = copy.copy(audio_state.text)
+        audio_state.text = text
 
         now = time.time()
         print("Transcription ({} seconds): {}".format(
@@ -370,18 +354,32 @@ def readControllerInput(audio_state, enable_local_beep: bool,
 # whisper/__init__.py. Examples: tiny, base, small, medium.
 def transcribeLoop(mic: str, language: str, model: str,
         enable_local_beep: bool, use_cpu: bool, use_builtin: bool,
-        button: str, estate: EmotesState):
+        button: str, estate: EmotesState,
+        window_duration_s: int):
     audio_state = getMicStream(mic)
-    audio_state.language = language
+    audio_state.language = langcodes.find(language).language
+    audio_state.MAX_LENGTH_S = window_duration_s
 
     print("Safe to start talking")
 
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)
-    model_root = os.path.join(dname, "Models")
+    model_root = os.path.join(dname, "Models", model)
 
     print("Model {} will be saved to {}".format(model, model_root))
-    model = WhisperModel("large-v2", device="cuda", compute_type="float16")
+
+    model_device = "cuda"
+    if use_cpu:
+        model_device = "cpu"
+
+    download_it = os.path.exists(model_root)
+    if download_it:
+        model = model_root
+    model = WhisperModel(model,
+            device=model_device,
+            compute_type="int8",
+            download_root=model_root,
+            local_files_only=download_it)
 
     transcribe_audio_thd = threading.Thread(target = transcribeAudio, args = [audio_state, model, use_cpu])
     transcribe_audio_thd.daemon = True
@@ -429,7 +427,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--mic", type=str, help="Which mic to use. Options: index, focusrite. Default: index")
     parser.add_argument("--language", type=str, help="Which language to use. Ex: english, japanese, chinese, french, german.")
-    parser.add_argument("--model", type=str, help="Which AI model to use. Ex: tiny, base, small, medium")
+    parser.add_argument("--model", type=str, help="Which AI model to use. \
+            Options: tiny, tiny.en, base, base.en, small, small.en, \
+            medium, medium.en, large-v1, large-v2")
     parser.add_argument("--bytes_per_char", type=str, help="The number of bytes to use to represent each character")
     parser.add_argument("--chars_per_sync", type=str, help="The number of characters to send on each sync event")
     parser.add_argument("--enable_local_beep", type=int, help="Whether to play a local auditory indicator when transcription starts/stops.")
@@ -467,8 +467,9 @@ if __name__ == "__main__":
         print("--emotes_pickle required", file=sys.stderr)
         sys.exit(1)
 
+    window_duration_s = 120
     if args.window_duration_s:
-        config.MAX_LENGTH_S = int(args.window_duration_s)
+        window_duration_s = int(args.window_duration_s)
 
     if args.cpu == 1:
         args.cpu = True
@@ -488,6 +489,8 @@ if __name__ == "__main__":
     generate_utils.config.BOARD_ROWS = int(args.rows)
     generate_utils.config.BOARD_COLS = int(args.cols)
 
+    print(f"PATH: {os.environ['PATH']}")
+
     transcribeLoop(args.mic, args.language, args.model, args.enable_local_beep,
-            args.cpu, args.use_builtin, args.button, estate)
+            args.cpu, args.use_builtin, args.button, estate, window_duration_s)
 
