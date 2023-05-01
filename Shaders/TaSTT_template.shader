@@ -55,6 +55,7 @@
         "LightMode" = "ForwardBase"
       }
       Blend SrcAlpha OneMinusSrcAlpha
+      Cull Back
       ZWrite On
       ZTest LEqual
 
@@ -78,6 +79,7 @@
         "Queue"="AlphaTest+499"
       }
       Blend One One
+      Cull Back
       ZWrite On
       ZTest LEqual
 

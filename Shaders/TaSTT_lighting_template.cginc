@@ -23,12 +23,14 @@ struct v2f
   #endif
 };
 
+SamplerState linear_clamp_sampler;
+
 float BG_Enable;
-sampler2D BG_BaseColor;
-sampler2D BG_NormalMap;
-sampler2D BG_Metallic;
-sampler2D BG_Smoothness;
-sampler2D BG_Emission_Mask;
+Texture2D BG_BaseColor;
+Texture2D BG_NormalMap;
+Texture2D BG_Metallic;
+Texture2D BG_Smoothness;
+Texture2D BG_Emission_Mask;
 float BG_Smoothness_Invert;
 float BG_NormalStrength;
 float3 BG_Emission_Color;
@@ -41,21 +43,21 @@ float4 BG_Emission_Mask_ST;
 float Enable_Dithering;
 float AA_Amount;
 
-sampler2D _Font_0x0000_0x1FFF;
+Texture2D _Font_0x0000_0x1FFF;
 float4 _Font_0x0000_0x1FFF_TexelSize;
-sampler2D _Font_0x2000_0x3FFF;
+Texture2D _Font_0x2000_0x3FFF;
 float4 _Font_0x2000_0x3FFF_TexelSize;
-sampler2D _Font_0x4000_0x5FFF;
+Texture2D _Font_0x4000_0x5FFF;
 float4 _Font_0x4000_0x5FFF_TexelSize;
-sampler2D _Font_0x6000_0x7FFF;
+Texture2D _Font_0x6000_0x7FFF;
 float4 _Font_0x6000_0x7FFF_TexelSize;
-sampler2D _Font_0x8000_0x9FFF;
+Texture2D _Font_0x8000_0x9FFF;
 float4 _Font_0x8000_0x9FFF_TexelSize;
-sampler2D _Font_0xA000_0xBFFF;
+Texture2D _Font_0xA000_0xBFFF;
 float4 _Font_0xA000_0xBFFF_TexelSize;
-sampler2D _Font_0xC000_0xDFFF;
+Texture2D _Font_0xC000_0xDFFF;
 float4 _Font_0xC000_0xDFFF_TexelSize;
-sampler2D _Img_0xE000_0xE03F;
+Texture2D _Img_0xE000_0xE03F;
 float4 _Img_0xE000_0xE03F_TexelSize;
 
 fixed4 Text_Color;
@@ -427,7 +429,7 @@ void initNormal(inout v2f i)
 {
   if (BG_Enable) {
     i.normal = UnpackScaleNormal(
-        tex2Dgrad(BG_NormalMap, i.uv.xy, ddx(i.uv.x), ddy(i.uv.y)),
+        BG_NormalMap.Sample(linear_clamp_sampler, i.uv.xy),
         BG_NormalStrength);
     // Swap Y and Z
     i.normal = i.normal.xzy;
@@ -442,13 +444,13 @@ float getWorldSpaceDepth(in v2f i)
 }
 
 fixed4 light(v2f i,
-    sampler2D albedo_map,
-    sampler2D normal_map,
+    Texture2D albedo_map,
+    Texture2D normal_map,
     float normal_str,
-    sampler2D metallic_map,
-    sampler2D smoothness_map,
+    Texture2D metallic_map,
+    Texture2D smoothness_map,
     float invert_smoothness,
-    sampler2D emission_mask,
+    Texture2D emission_mask,
     float3 emission_color,
     out float depth)
 {
@@ -458,17 +460,17 @@ fixed4 light(v2f i,
 
   float2 iddx = ddx(i.uv.x);
   float2 iddy = ddy(i.uv.y);
-  fixed4 albedo = tex2Dgrad(albedo_map, i.uv, iddx, iddy);
+  fixed4 albedo = albedo_map.Sample(linear_clamp_sampler, i.uv.xy);
 
   fixed3 normal = UnpackScaleNormal(
-        tex2Dgrad(normal_map, i.uv.xy, iddx, iddy),
+        normal_map.Sample(linear_clamp_sampler, i.uv.xy),
         normal_str);
   // Swap Y and Z
   normal = normal.xzy;
 
   float3 view_dir = normalize(_WorldSpaceCameraPos - i.worldPos);
 
-  float metallic = tex2Dgrad(metallic_map, i.uv.xy, iddx, iddy);
+  float metallic = metallic_map.Sample(linear_clamp_sampler, i.uv.xy);
 
   float3 specular_tint;
   float one_minus_reflectivity;
@@ -479,12 +481,12 @@ fixed4 light(v2f i,
   indirect_light.diffuse = 0;
   indirect_light.specular = 0;
 
-  float smoothness = tex2Dgrad(smoothness_map, i.uv.xy, iddx, iddy);
+  float smoothness = smoothness_map.Sample(linear_clamp_sampler, i.uv.xy);
   if (invert_smoothness) {
     smoothness = 1 - smoothness;
   }
 
-  fixed3 emission = tex2Dgrad(emission_mask, i.uv.xy, iddx, iddy) * emission_color;
+  fixed3 emission = emission_mask.Sample(linear_clamp_sampler, i.uv.xy);
 
   fixed3 pbr = UNITY_BRDF_PBS(albedo, specular_tint,
       one_minus_reflectivity, smoothness,
@@ -650,28 +652,28 @@ fixed4 frag(v2f i, out float depth : SV_DepthLessEqual) : SV_Target
     [forcecase] switch (which_texture)
     {
       case 0:
-        text += tex2Dgrad(_Font_0x0000_0x1FFF, cur_letter_uv, iddx, iddy);
+        text += _Font_0x0000_0x1FFF.Sample(linear_clamp_sampler, cur_letter_uv);
         break;
       case 1:
-        text += tex2Dgrad(_Font_0x2000_0x3FFF, cur_letter_uv, iddx, iddy);
+        text += _Font_0x2000_0x3FFF.Sample(linear_clamp_sampler, cur_letter_uv);
         break;
       case 2:
-        text += tex2Dgrad(_Font_0x4000_0x5FFF, cur_letter_uv, iddx, iddy);
+        text += _Font_0x4000_0x5FFF.Sample(linear_clamp_sampler, cur_letter_uv);
         break;
       case 3:
-        text += tex2Dgrad(_Font_0x6000_0x7FFF, cur_letter_uv, iddx, iddy);
+        text += _Font_0x6000_0x7FFF.Sample(linear_clamp_sampler, cur_letter_uv);
         break;
       case 4:
-        text += tex2Dgrad(_Font_0x8000_0x9FFF, cur_letter_uv, iddx, iddy);
+        text += _Font_0x8000_0x9FFF.Sample(linear_clamp_sampler, cur_letter_uv);
         break;
       case 5:
-        text += tex2Dgrad(_Font_0xA000_0xBFFF, cur_letter_uv, iddx, iddy);
+        text += _Font_0xA000_0xBFFF.Sample(linear_clamp_sampler, cur_letter_uv);
         break;
       case 6:
-        text += tex2Dgrad(_Font_0xC000_0xDFFF, cur_letter_uv, iddx, iddy);
+        text += _Font_0xC000_0xDFFF.Sample(linear_clamp_sampler, cur_letter_uv);
         break;
       case 7:
-        text += tex2Dgrad(_Img_0xE000_0xE03F, cur_letter_uv, iddx, iddy);
+        text += _Img_0xE000_0xE03F.Sample(linear_clamp_sampler, cur_letter_uv);
         break;
       default:
         // Return some distinctive pattern that will look like a bug.
