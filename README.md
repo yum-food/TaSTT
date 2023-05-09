@@ -35,6 +35,17 @@ Basic controls:
 * Long click to hide the text box.
 * Scale it up/down in the radial menu.
 
+## Design philosophy
+
+* All language services are performed on the client. No network hops in the
+  critical path.
+* Priorities (descending order): reliability, latency, accuracy, performance,
+  aesthetics.
+* No telemetry of any kind in the app. github and discord are the only means I
+  have to estimate usage and triage bugs.
+* Permissive licensing. Users should be legally entitled to hack, extend,
+  relicense, and profit from this codebase.
+
 ## Features
 
 * Works with the built-in chatbox (usable with public avatars!)
@@ -73,24 +84,13 @@ Basic controls:
 
 System requirements:
 
-* ~8GB disk space
-  * I apologize that this is so big. The libraries used to perform
-    GPU-accelerated transcription (pytorch and whisper) are really,
-    really big. There is no performant implementation of Whisper or a
-    any other comparable algorithm available in a systems programming
-    language, so for now we're stuck with this. You only need to
-    download this stuff once!
+* ~2GB disk space
 * NVIDIA GPU with at least 2GB of spare VRAM.
   * You *can* run it in CPU mode, but it's really slow and lags you a
     lot more, so I wouldn't recommend it.
-  * I've tested on a 1080 Ti and a 3090 and saw comparable performance.
+  * I've tested on a 1080 Ti and a 3090 and saw comparable latency.
 * SteamVR.
-  * No Oculus support, yet.
-* Left joystick click must not be bound to anything else.
 * No write defaults on your avatar if you're using the custom text box.
-
-For the last 3 bullets: please let me know in the Discord if these are
-deal breakers. I'd be happy to fix them!
 
 Avatar resources used:
 

@@ -962,17 +962,32 @@ class UnityAnimator():
             motion = node.mapping['AnimatorState'].mapping['m_Motion']
             replace = False
 
+            name = node.mapping['AnimatorState'].mapping['m_Name']
+            anchor = node.anchor
+
+            # As of 8 May 2023, idle states look like this:
+            #   m_Motion: {fileID: 7400000, guid: e5881c5b0c09be854b0fd6fd8144333f, type: 2}
+            # Before that, they looked like this:
+            #   m_Motion: {fileID: 0}
+            # The first predicate looks for the new pattern.
+            # The second predicate looks for the second pattern.
             if "fileID" in motion.mapping.keys() and \
-                    motion.mapping["fileID"] != "0":
-                continue
-
-            if "guid" in motion.mapping.keys() and \
-                    motion.mapping["guid"] in guid_map:
-                continue
-
-            motion.mapping["fileID"] = "7400000"
-            motion.mapping["guid"] = noop_anim_meta.guid
-            motion.mapping["type"] = "2"
+                    "guid" in motion.mapping.keys() and \
+                    not motion.mapping["guid"] in guid_map:
+                motion.mapping["fileID"] = "7400000"
+                print(f"Set noop animation to guid {noop_anim_meta.guid} in state {node.anchor}")
+                motion.mapping["guid"] = noop_anim_meta.guid
+                motion.mapping["type"] = "2"
+            elif not ("fileID" in motion.mapping.keys() and
+                    motion.mapping["fileID"] != "0") and not ("guid" in
+                            motion.mapping.keys() and motion.mapping["guid"] in
+                            guid_map):
+                motion.mapping["fileID"] = "7400000"
+                print(f"Set noop animation to guid {noop_anim_meta.guid} in state {node.anchor}")
+                motion.mapping["guid"] = noop_anim_meta.guid
+                motion.mapping["type"] = "2"
+            else:
+                print(f"Skipping state {anchor} / {name}")
 
 def unityYamlToString(nodes):
     lines = []
