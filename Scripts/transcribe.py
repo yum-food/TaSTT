@@ -11,6 +11,7 @@ import copy
 import os
 import osc_ctrl
 import generate_utils
+import keybind_event_machine
 import langcodes
 import pyaudio
 import numpy as np
@@ -280,6 +281,75 @@ def sendAudio(audio_state, use_builtin: bool, estate: EmotesState):
             # Pace this out
             time.sleep(0.01)
 
+def readKeyboardInput(audio_state, enable_local_beep: bool,
+        use_builtin: bool, keybind: str):
+    machine = keybind_event_machine.KeybindEventMachine(keybind)
+    last_press_time = 0
+
+    # double pressing the keybind
+    double_press_timeout = 0.25
+
+    RECORD_STATE = 0
+    PAUSE_STATE = 1
+    state = PAUSE_STATE
+
+    while audio_state.run_app == True:
+        time.sleep(0.05)
+
+        cur_press_time = machine.getNextPressTime()
+        if cur_press_time == 0:
+            continue
+
+        EVENT_SINGLE_PRESS = 0
+        EVENT_DOUBLE_PRESS = 1
+        if last_press_time == 0:
+            event = EVENT_SINGLE_PRESS
+        elif cur_press_time - last_press_time < double_press_timeout:
+            event = EVENT_DOUBLE_PRESS
+        else:
+            event = EVENT_SINGLE_PRESS
+        last_press_time = cur_press_time
+
+        if event == EVENT_DOUBLE_PRESS:
+            state = PAUSE_STATE
+            if not use_builtin:
+                osc_ctrl.indicateSpeech(audio_state.osc_state.client, False)
+                osc_ctrl.toggleBoard(audio_state.osc_state.client, False)
+            #playsound(os.path.abspath("../Sounds/Noise_Off_Quiet.wav"))
+
+            resetAudioLocked(audio_state)
+            resetDisplayLocked(audio_state)
+            audio_state.drop_transcription = True
+            audio_state.audio_paused = True
+            continue
+
+        # Short hold
+        if state == RECORD_STATE:
+            state = PAUSE_STATE
+            if not use_builtin:
+                osc_ctrl.indicateSpeech(audio_state.osc_state.client, False)
+                osc_ctrl.lockWorld(audio_state.osc_state.client, True)
+            audio_state.transcribe_sleep_duration = audio_state.transcribe_sleep_duration_min_s
+
+            audio_state.audio_paused = True
+
+            if enable_local_beep == 1:
+                playsound(os.path.abspath("Resources/Sounds/Noise_Off_Quiet.wav"))
+        elif state == PAUSE_STATE:
+            state = RECORD_STATE
+            if not use_builtin:
+                osc_ctrl.indicateSpeech(audio_state.osc_state.client, True)
+                osc_ctrl.toggleBoard(audio_state.osc_state.client, True)
+                osc_ctrl.lockWorld(audio_state.osc_state.client, False)
+            resetAudioLocked(audio_state)
+            resetDisplayLocked(audio_state)
+
+            audio_state.drop_transcription = True
+            audio_state.audio_paused = False
+
+            if enable_local_beep == 1:
+                playsound(os.path.abspath("Resources/Sounds/Noise_On_Quiet.wav"))
+
 def readControllerInput(audio_state, enable_local_beep: bool,
         use_builtin: bool, button: str):
     session = None
@@ -357,7 +427,8 @@ def readControllerInput(audio_state, enable_local_beep: bool,
 def transcribeLoop(mic: str, language: str, model: str,
         enable_local_beep: bool, use_cpu: bool, use_builtin: bool,
         button: str, estate: EmotesState,
-        window_duration_s: int, gpu_idx: int):
+        window_duration_s: int, gpu_idx: int,
+        keyboard_hotkey: str):
     audio_state = getMicStream(mic)
     audio_state.language = langcodes.find(language).language
     audio_state.MAX_LENGTH_S = window_duration_s
@@ -391,9 +462,15 @@ def transcribeLoop(mic: str, language: str, model: str,
     send_audio_thd.daemon = True
     send_audio_thd.start()
 
-    controller_input_thd = threading.Thread(target = readControllerInput, args = [audio_state, enable_local_beep, use_builtin, button])
+    controller_input_thd = threading.Thread(target = readControllerInput, args
+            = [audio_state, enable_local_beep, use_builtin, button])
     controller_input_thd.daemon = True
     controller_input_thd.start()
+
+    keyboard_input_thd = threading.Thread(target = readKeyboardInput, args
+            = [audio_state, enable_local_beep, use_builtin, keyboard_hotkey])
+    keyboard_input_thd.daemon = True
+    keyboard_input_thd.start()
 
     print("Press enter to start a new message.")
     for line in sys.stdin:
@@ -412,6 +489,7 @@ def transcribeLoop(mic: str, language: str, model: str,
     audio_state.run_app = False
     transcribe_audio_thd.join()
     controller_input_thd.join()
+    keyboard_input_thd.join()
 
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
@@ -443,6 +521,7 @@ if __name__ == "__main__":
     parser.add_argument("--button", type=str, help="The controller button used to start/stop transcription. E.g. \"left joystick\"")
     parser.add_argument("--emotes_pickle", type=str, help="The path to emotes pickle. See emotes_v2.py for details.")
     parser.add_argument("--gpu_idx", type=str, help="The index of the GPU device to use. On single GPU systems, use 0.")
+    parser.add_argument("--keybind", type=str, help="The keyboard hotkey to use to toggle transcription. For example, ctrl+shift+s")
     args = parser.parse_args()
 
     if not args.mic:
@@ -501,5 +580,5 @@ if __name__ == "__main__":
 
     transcribeLoop(args.mic, args.language, args.model, args.enable_local_beep,
             args.cpu, args.use_builtin, args.button, estate, window_duration_s,
-            args.gpu_idx)
+            args.gpu_idx, args.keybind)
 

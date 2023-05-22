@@ -43,6 +43,7 @@ namespace {
         ID_PY_APP_COLS,
         ID_PY_APP_WINDOW_DURATION,
         ID_PY_APP_GPU_IDX,
+        ID_PY_APP_KEYBIND,
         ID_UNITY_PANEL,
         ID_UNITY_CONFIG_PANEL,
         ID_UNITY_OUT,
@@ -537,6 +538,16 @@ Frame::Frame()
 						"discrete GPU.");
 					py_app_gpu_idx_ = py_app_gpu_idx;
 
+					auto* py_app_keybind = new wxTextCtrl(
+						py_app_config_panel_pairs, ID_PY_APP_KEYBIND,
+						app_c_->keybind, wxDefaultPosition,
+						wxDefaultSize, /*style=*/0);
+					py_app_keybind->SetToolTip(
+						"The keybind to use to toggle the STT when in desktop "
+						"mode. To dismiss the STT, double press the keybind "
+						"quickly.");
+					py_app_keybind_ = py_app_keybind;
+
                     auto* sizer = new wxFlexGridSizer(/*cols=*/2);
                     py_app_config_panel_pairs->SetSizer(sizer);
 
@@ -568,6 +579,11 @@ Frame::Frame()
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs,
                         wxID_ANY, /*label=*/"Button:"));
                     sizer->Add(py_app_button, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Desktop keybind:"));
+                    sizer->Add(py_app_keybind, /*proportion=*/0,
                         /*flags=*/wxEXPAND);
 
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs,
@@ -2118,6 +2134,8 @@ void Frame::OnAppStart(wxCommandEvent& event) {
         py_app_window_duration_->GetValue().ToStdString();
     std::string gpu_idx_str =
         py_app_gpu_idx_->GetValue().ToStdString();
+    std::string keybind =
+        py_app_keybind_->GetValue().ToStdString();
     int rows, cols, chars_per_sync, bytes_per_char, window_duration, gpu_idx;
     try {
         rows = std::stoi(rows_str);
@@ -2175,6 +2193,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     app_c_->use_cpu = use_cpu;
     app_c_->use_builtin = use_builtin;
     app_c_->gpu_idx = gpu_idx;
+    app_c_->keybind = keybind;
     app_c_->Serialize(AppConfig::kConfigPath);
 
     auto out_cb = [&](const std::string& out, const std::string& err) {

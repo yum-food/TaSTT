@@ -72,6 +72,7 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	use_cpu(false),
 	use_builtin(false),
 	gpu_idx(0),
+	keybind("ctrl+x"),
 
 	chars_per_sync(8),
 	bytes_per_char(1),
@@ -115,6 +116,7 @@ bool AppConfig::Serialize(const std::filesystem::path& path) {
 	cm.Set("use_cpu", use_cpu);
 	cm.Set("use_builtin", use_builtin);
 	cm.Set("gpu_idx", gpu_idx);
+	cm.Set("keybind", keybind);
 
 	cm.Set("chars_per_sync", chars_per_sync);
 	cm.Set("bytes_per_char", bytes_per_char);
@@ -171,6 +173,7 @@ bool AppConfig::Deserialize(const std::filesystem::path& path) {
 	cm.Get("use_cpu", c.use_cpu);
 	cm.Get("use_builtin", c.use_builtin);
 	cm.Get("gpu_idx", c.gpu_idx);
+	cm.Get("keybind", c.keybind);
 
 	cm.Get("chars_per_sync", c.chars_per_sync);
 	cm.Get("bytes_per_char", c.bytes_per_char);

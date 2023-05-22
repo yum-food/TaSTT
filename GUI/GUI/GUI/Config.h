@@ -58,6 +58,7 @@ public:
 	bool use_cpu;
 	bool use_builtin;
 	int gpu_idx;
+	std::string keybind;
 
 	// Unity and transcription shared settings.
 	int chars_per_sync;
