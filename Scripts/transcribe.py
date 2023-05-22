@@ -380,9 +380,25 @@ def readControllerInput(audio_state, enable_local_beep: bool,
 
         if event == steamvr.EVENT_RISING_EDGE:
             last_rising = time.time()
+
+            if state == PAUSE_STATE:
+                resetAudioLocked(audio_state)
+                resetDisplayLocked(audio_state)
+                audio_state.drop_transcription = True
+                audio_state.audio_paused = False
+
         elif event == steamvr.EVENT_FALLING_EDGE:
             now = time.time()
-            if now - last_rising > 0.5:
+            if now - last_rising > 1.5:
+                # Very long hold: treat as the end of transcription.
+                state = PAUSE_STATE
+                if not use_builtin:
+                    osc_ctrl.indicateSpeech(audio_state.osc_state.client, False)
+                    osc_ctrl.lockWorld(audio_state.osc_state.client, True)
+                audio_state.transcribe_sleep_duration = audio_state.transcribe_sleep_duration_min_s
+                audio_state.audio_paused = True
+
+            elif now - last_rising > 0.5:
                 # Long hold
                 state = PAUSE_STATE
                 if not use_builtin:
@@ -413,11 +429,6 @@ def readControllerInput(audio_state, enable_local_beep: bool,
                         osc_ctrl.indicateSpeech(audio_state.osc_state.client, True)
                         osc_ctrl.toggleBoard(audio_state.osc_state.client, True)
                         osc_ctrl.lockWorld(audio_state.osc_state.client, False)
-                    resetAudioLocked(audio_state)
-                    resetDisplayLocked(audio_state)
-
-                    audio_state.drop_transcription = True
-                    audio_state.audio_paused = False
 
                     if enable_local_beep == 1:
                         playsound(os.path.abspath("Resources/Sounds/Noise_On_Quiet.wav"))
@@ -449,10 +460,10 @@ def transcribeLoop(mic: str, language: str, model: str,
     if download_it:
         model = model_root
     model = WhisperModel(model,
-            device=model_device,
-            compute_type="int8",
-            download_root=model_root,
-            local_files_only=download_it)
+            device = model_device,
+            compute_type = "int8",
+            download_root = model_root,
+            local_files_only = download_it)
 
     transcribe_audio_thd = threading.Thread(target = transcribeAudio, args = [audio_state, model, use_cpu])
     transcribe_audio_thd.daemon = True
