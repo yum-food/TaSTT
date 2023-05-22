@@ -57,6 +57,7 @@ public:
 	bool enable_local_beep;
 	bool use_cpu;
 	bool use_builtin;
+	int gpu_idx;
 
 	// Unity and transcription shared settings.
 	int chars_per_sync;

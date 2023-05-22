@@ -42,6 +42,7 @@ namespace {
         ID_PY_APP_ROWS,
         ID_PY_APP_COLS,
         ID_PY_APP_WINDOW_DURATION,
+        ID_PY_APP_GPU_IDX,
         ID_UNITY_PANEL,
         ID_UNITY_CONFIG_PANEL,
         ID_UNITY_OUT,
@@ -526,6 +527,16 @@ Frame::Frame()
                         "but are far more accurate.");
                     py_app_window_duration_ = py_app_window_duration;
 
+					auto* py_app_gpu_idx = new wxTextCtrl(
+                        py_app_config_panel_pairs, ID_PY_APP_GPU_IDX,
+                        std::to_string(app_c_->gpu_idx), wxDefaultPosition,
+						wxDefaultSize, /*style=*/0);
+					py_app_gpu_idx->SetToolTip(
+						"The index of the GPU to use. 0 is usually your CPU's "
+						"onboard GPU (if you have one), 1 is usually your "
+						"discrete GPU.");
+					py_app_gpu_idx_ = py_app_gpu_idx;
+
                     auto* sizer = new wxFlexGridSizer(/*cols=*/2);
                     py_app_config_panel_pairs->SetSizer(sizer);
 
@@ -572,6 +583,11 @@ Frame::Frame()
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs,
                         wxID_ANY, /*label=*/"Window duration (s):"));
                     sizer->Add(py_app_window_duration, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs,
+                        wxID_ANY, /*label=*/"GPU index:"));
+                    sizer->Add(py_app_gpu_idx, /*proportion=*/0,
                         /*flags=*/wxEXPAND);
                 }
 
@@ -2100,19 +2116,23 @@ void Frame::OnAppStart(wxCommandEvent& event) {
         kBytesPerChar[bytes_per_char_idx].ToStdString();
     std::string window_duration_str =
         py_app_window_duration_->GetValue().ToStdString();
-    int rows, cols, chars_per_sync, bytes_per_char, window_duration;
+    std::string gpu_idx_str =
+        py_app_gpu_idx_->GetValue().ToStdString();
+    int rows, cols, chars_per_sync, bytes_per_char, window_duration, gpu_idx;
     try {
         rows = std::stoi(rows_str);
         cols = std::stoi(cols_str);
         chars_per_sync = std::stoi(chars_per_sync_str);
         bytes_per_char = std::stoi(bytes_per_char_str);
         window_duration = std::stoi(window_duration_str);
+        gpu_idx = std::stoi(gpu_idx_str);
     }
     catch (const std::invalid_argument&) {
 		Log(transcribe_out_, "Could not parse rows \"{}\", cols \"{}\", chars "
-            "per sync \"{}\", bytes per char \"{}\" or window duration \"{}\" "
+            "per sync \"{}\", bytes per char \"{}\" window duration \"{}\" "
+            "or gpu_idx \"{}\""
             "as an integer\n", rows_str, cols_str, chars_per_sync_str,
-            bytes_per_char_str, window_duration_str);
+            bytes_per_char_str, window_duration_str, gpu_idx_str);
         return;
     }
     catch (const std::out_of_range&) {
@@ -2126,15 +2146,19 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     const int max_cols = 240;
     const int min_window_duration_s = 10;
     const int max_window_duration_s = 300;
+    const int min_gpu_idx = 0;
+    const int max_gpu_idx = 10;
     if (rows < 0 || rows > max_rows ||
         cols < 0 || cols > max_cols ||
         window_duration < min_window_duration_s ||
-        window_duration > max_window_duration_s) {
+        window_duration > max_window_duration_s ||
+        gpu_idx < min_gpu_idx || gpu_idx > max_gpu_idx) {
         Log(transcribe_out_, "Rows not on [{},{}] or cols not on [{},{}] or "
-            "window_duration not on [{},{}]\n",
+            "window_duration not on [{},{}] or gpu_idx not on [{}, {}]\n",
             0, max_rows,
             0, max_cols,
-            min_window_duration_s, max_window_duration_s);
+            min_window_duration_s, max_window_duration_s,
+            min_gpu_idx, max_gpu_idx);
         return;
     }
 
@@ -2150,6 +2174,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     app_c_->enable_local_beep = enable_local_beep;
     app_c_->use_cpu = use_cpu;
     app_c_->use_builtin = use_builtin;
+    app_c_->gpu_idx = gpu_idx;
     app_c_->Serialize(AppConfig::kConfigPath);
 
     auto out_cb = [&](const std::string& out, const std::string& err) {

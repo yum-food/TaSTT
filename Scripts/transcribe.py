@@ -357,7 +357,7 @@ def readControllerInput(audio_state, enable_local_beep: bool,
 def transcribeLoop(mic: str, language: str, model: str,
         enable_local_beep: bool, use_cpu: bool, use_builtin: bool,
         button: str, estate: EmotesState,
-        window_duration_s: int):
+        window_duration_s: int, gpu_idx: int):
     audio_state = getMicStream(mic)
     audio_state.language = langcodes.find(language).language
     audio_state.MAX_LENGTH_S = window_duration_s
@@ -442,6 +442,7 @@ if __name__ == "__main__":
     parser.add_argument("--use_builtin", type=int, help="If set to 1, use the text box built into the game.")
     parser.add_argument("--button", type=str, help="The controller button used to start/stop transcription. E.g. \"left joystick\"")
     parser.add_argument("--emotes_pickle", type=str, help="The path to emotes pickle. See emotes_v2.py for details.")
+    parser.add_argument("--gpu_idx", type=str, help="The index of the GPU device to use. On single GPU systems, use 0.")
     args = parser.parse_args()
 
     if not args.mic:
@@ -469,6 +470,11 @@ if __name__ == "__main__":
         print("--emotes_pickle required", file=sys.stderr)
         sys.exit(1)
 
+    if not args.gpu_idx:
+        print("--gpu_idx required", file=sys.stderr)
+        sys.exit(1)
+    args.gpu_idx = int(args.gpu_idx)
+
     window_duration_s = 120
     if args.window_duration_s:
         window_duration_s = int(args.window_duration_s)
@@ -494,5 +500,6 @@ if __name__ == "__main__":
     print(f"PATH: {os.environ['PATH']}")
 
     transcribeLoop(args.mic, args.language, args.model, args.enable_local_beep,
-            args.cpu, args.use_builtin, args.button, estate, window_duration_s)
+            args.cpu, args.use_builtin, args.button, estate, window_duration_s,
+            args.gpu_idx)
 

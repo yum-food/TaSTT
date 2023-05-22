@@ -69,11 +69,11 @@ void Logging::DrainAsyncOutput(wxProcess* proc, wxTextCtrl* frame) {
 
 	while (proc->IsInputAvailable()) {
 		wxTextInputStream iss(*(proc->GetInputStream()));
-		Log(frame, "  {}\n", iss.ReadLine());
+		Log(frame, "  {}\n", iss.ReadLine().ToStdString());
 	}
 
 	while (proc->IsErrorAvailable()) {
 		wxTextInputStream iss(*(proc->GetErrorStream()));
-		Log(frame, "  {}\n", iss.ReadLine());
+		Log(frame, "  {}\n", iss.ReadLine().ToStdString());
 	}
 }

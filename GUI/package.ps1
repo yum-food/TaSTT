@@ -18,7 +18,9 @@ if (Test-Path $install_dir) {
 
 $py_dir = "Python"
 
-rm -Recurse $py_dir
+if (Test-Path $py_dir) {
+  rm -Recurse $py_dir
+}
 if (-Not (Test-Path $py_dir)) {
   echo "Fetching python"
 
@@ -38,6 +40,10 @@ if (-Not (Test-Path $py_dir)) {
 }
 
 $pip_path = "$py_dir/get-pip.py"
+
+if (Test-Path $pip_path) {
+  rm -Force $pip_path
+}
 
 if (-Not (Test-Path $pip_path)) {
   echo "Fetching pip"

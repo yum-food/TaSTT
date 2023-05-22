@@ -71,6 +71,7 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	enable_local_beep(true),
 	use_cpu(false),
 	use_builtin(false),
+	gpu_idx(0),
 
 	chars_per_sync(8),
 	bytes_per_char(1),
@@ -113,6 +114,7 @@ bool AppConfig::Serialize(const std::filesystem::path& path) {
 	cm.Set("enable_local_beep", enable_local_beep);
 	cm.Set("use_cpu", use_cpu);
 	cm.Set("use_builtin", use_builtin);
+	cm.Set("gpu_idx", gpu_idx);
 
 	cm.Set("chars_per_sync", chars_per_sync);
 	cm.Set("bytes_per_char", bytes_per_char);
@@ -168,6 +170,7 @@ bool AppConfig::Deserialize(const std::filesystem::path& path) {
 	cm.Get("enable_local_beep", c.enable_local_beep);
 	cm.Get("use_cpu", c.use_cpu);
 	cm.Get("use_builtin", c.use_builtin);
+	cm.Get("gpu_idx", c.gpu_idx);
 
 	cm.Get("chars_per_sync", c.chars_per_sync);
 	cm.Get("bytes_per_char", c.bytes_per_char);

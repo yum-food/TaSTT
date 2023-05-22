@@ -472,6 +472,7 @@ std::future<bool> PythonWrapper::StartApp(
 					"--cpu", config.use_cpu ? "1" : "0",
 					"--use_builtin", config.use_builtin ? "1" : "0",
 					"--emotes_pickle", kEmotesPickle,
+					"--gpu_idx", std::to_string(config.gpu_idx),
 					},
 					std::move(out_cb),
 					std::move(in_cb),

@@ -1,25 +1,50 @@
 ## Build instructions
 
-0. Install build dependencies: cmake, git, python3, Visual Studio 2022
+0. Install build dependencies: cmake, git, python3, Visual Studio Community
+   2022
+  0.0. When installing Visual Studio, make sure `Desktop development with C++`
+       is selected.
+  0.1. Make sure Windows is using Python 3.10.9. From Powershell, the command
+       `python.exe --version` should show that it's using 3.10.9. Direct link:
+       https://www.python.org/ftp/python/3.10.9/python-3.10.9-amd64.exe
 1. Open Powershell.
 2. Make sure you've downloaded submodules:
 ```
 $ git submodule init
 $ git submodule update
 ```
-3. Execute Libraries/fetch.ps1.
+3. Execute Libraries/fetch.ps1. This will take 10-20 minutes.
+  3.0. If you can't run the script, run `Set-ExecutionPolicyPolicy
+      Unrestricted` in an admin instance of powershell. Heed the warning,
+      this is a security risk! Never run code from someone you don't trust
+      unless you've carefully audited it.
+  3.1. If you haven't built TaSTT-Whisper before, you'll see an error. Ignore
+      it.
 4. Open `Libraries/wx/build/msw/wx_vc17.sln` with Visual Studio 2022.
 5. Select every project in the Solution Explorer except for `_custom_build`.
 6. Right click, select Properties, go to C/C++, Code Generation, and set
    Runtime Library to Multi-threaded (/MT). Make sure this applies to the
-   configuration x64/Release.
+   configuration x64/Release. Click Apply.
 7. Build x64/Release.
   1. The build configuration is in the top. By default it's probably Debug/x64.
   2. To build: ctrl+shift+B
-8. Follow TaSTT-Whisper README and build it as x64/Release.
+  3. If you saw an error in 3.1, rerun Libraries/fetch.ps1.
+8. Follow `Build instructions` section of TaSTT-Whisper/Readme.md and build it
+   as x64/Release.
+  8.0. If you see a message like `Based on your solution... you might need to
+      install additional components`, do it.
 9. Open GUI/GUI.sln with Visual Studio 2022.
 10. Build x64/Release.
 11. Run package.ps1 from powershell.
+  11.0. If you're not creating a redistributable release, use this command
+        instead (it's way faster): `package.ps1 -skip_zip`.
+  11.1. When PortableGit creates a window, wait for it to complete, then press
+        then press enter in Powershell.
+  11.2. The first time you run this it'll take a long time since it has to
+        fetch a few large packages. Subsequent invocations will be much faster
+        since it won't reacquire anything already downloaded. On my connection,
+        it took 90 minutes to finish downloading, mostly because Google Drive
+        downloads are slower than dirt.
 
 ## High level design
 
