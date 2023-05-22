@@ -24,6 +24,7 @@ struct v2f
 };
 
 SamplerState linear_clamp_sampler;
+SamplerState linear_repeat_sampler;
 
 float BG_Enable;
 Texture2D BG_BaseColor;
@@ -203,6 +204,11 @@ bool InMarginRounding(float2 uv, float2 margin, float rounding, bool interior)
   if (!interior) {
     rounding += margin.x;
     margin = float2(0, 0);
+    float err_margin = 0.001;
+    if (uv.x < err_margin || uv.x > 1.0 - err_margin ||
+        uv.y < err_margin || uv.y > 1.0 - err_margin) {
+      return true;
+    }
   }
 
   // This is the center of a circle whose perimeter touches the
@@ -429,7 +435,7 @@ void initNormal(inout v2f i)
 {
   if (BG_Enable) {
     i.normal = UnpackScaleNormal(
-        BG_NormalMap.SampleGrad(linear_clamp_sampler, i.uv.xy,
+        BG_NormalMap.SampleGrad(linear_repeat_sampler, i.uv.xy,
             ddx(i.uv.x), ddy(i.uv.y)),
         BG_NormalStrength);
     // Swap Y and Z
@@ -461,11 +467,11 @@ fixed4 light(v2f i,
 
   float2 iddx = ddx(i.uv.x);
   float2 iddy = ddy(i.uv.y);
-  fixed4 albedo = albedo_map.SampleGrad(linear_clamp_sampler, i.uv.xy,
+  fixed4 albedo = albedo_map.SampleGrad(linear_repeat_sampler, i.uv.xy,
       iddx, iddy);
 
   fixed3 normal = UnpackScaleNormal(
-        normal_map.SampleGrad(linear_clamp_sampler, i.uv.xy,
+        normal_map.SampleGrad(linear_repeat_sampler, i.uv.xy,
             iddx, iddy),
         normal_str);
   // Swap Y and Z
@@ -473,7 +479,7 @@ fixed4 light(v2f i,
 
   float3 view_dir = normalize(_WorldSpaceCameraPos - i.worldPos);
 
-  float metallic = metallic_map.SampleGrad(linear_clamp_sampler, i.uv.xy,
+  float metallic = metallic_map.SampleGrad(linear_repeat_sampler, i.uv.xy,
       iddx, iddy);
 
   float3 specular_tint;
@@ -485,13 +491,13 @@ fixed4 light(v2f i,
   indirect_light.diffuse = 0;
   indirect_light.specular = 0;
 
-  float smoothness = smoothness_map.SampleGrad(linear_clamp_sampler, i.uv.xy,
+  float smoothness = smoothness_map.SampleGrad(linear_repeat_sampler, i.uv.xy,
       iddx, iddy);
   if (invert_smoothness) {
     smoothness = 1 - smoothness;
   }
 
-  fixed3 emission = emission_mask.SampleGrad(linear_clamp_sampler, i.uv.xy,
+  fixed3 emission = emission_mask.SampleGrad(linear_repeat_sampler, i.uv.xy,
       iddx, iddy);
 
   fixed3 pbr = UNITY_BRDF_PBS(albedo, specular_tint,
@@ -536,11 +542,10 @@ bool f3ltf3(fixed3 a, fixed3 b)
     a[2] < b[2];
 }
 
-float prng(float2 v)
+// Generate a random number on [0, 1].
+float prng(float2 p)
 {
-  float2 res2 = float2(cos(v.x * _Time[2]), sin(v.y * _Time[2]));
-  float res = dot(res2, res2) / 2;
-  return res * res;
+  return frac(sin(dot(p, float2(561.0, 885.0))) * 776.2) / 2.0;
 }
 
 fixed4 frag(v2f i, out float depth : SV_DepthLessEqual) : SV_Target
@@ -626,80 +631,57 @@ fixed4 frag(v2f i, out float depth : SV_DepthLessEqual) : SV_Target
     // Add noise to UV.
     // Here, iddx and iddy tell us how big the current UV cell is with respect to
     // screen space (i.e. how many pixels wide it is).
-    float noise = prng(letter_uv);
-    letter_uv.x += noise * iddx / 4.0;
-    letter_uv.y += noise * iddy / 4.0;
+    float noise = frac(prng(letter_uv) + _Time[0]);
+    letter_uv.x += (noise - 0.5) * iddx / 4.0;
+    letter_uv.y += (noise - 0.5) * iddy / 4.0;
   }
 
-  // Loop-independent anti-aliasing variables.
-  // See `aa_sample_algorithm.py` for simpler code demonstrating this concept.
-  // Basically we're taking evenly spaced samples inside a region as large as
-  // the current pixel.
-  const float iddx_convex = max(iddx, 1.0 / iddx);
-  const float iddy_convex = max(iddy, 1.0 / iddy);
-  const int aa_amount = AA_Amount;
-  const float aa_region = iddx_convex * iddy_convex;
-  const float aa_stride = aa_region / aa_amount;
-
-  [unroll(5)]
-  for (int aa_i = 0; aa_i < aa_amount; aa_i++)
+  int which_texture = (int) floor(letter / (uint) (64 * 128));
+  [forcecase] switch (which_texture)
   {
-    float aa_region_i = aa_stride * aa_i + aa_stride / 2;
-    float aa_region_x = aa_region_i / iddy_convex;
-    float aa_region_y = fmod(aa_region_i, iddy_convex);
-
-    aa_region_x = lerp(0, iddx, aa_region_x / iddx_convex);
-    aa_region_y = lerp(0, iddy, aa_region_y / iddy_convex);
-
-    //float2 cur_letter_uv = letter_uv + float2(aa_region_x, aa_region_y);
-    float2 cur_letter_uv = letter_uv;
-
-    int which_texture = (int) floor(letter / (uint) (64 * 128));
-    [forcecase] switch (which_texture)
-    {
-      case 0:
-        text += _Font_0x0000_0x1FFF.SampleGrad(linear_clamp_sampler,
-            cur_letter_uv, iddx, iddy);
-        break;
-      case 1:
-        text += _Font_0x2000_0x3FFF.SampleGrad(linear_clamp_sampler,
-            cur_letter_uv, iddx, iddy);
-        break;
-      case 2:
-        text += _Font_0x4000_0x5FFF.SampleGrad(linear_clamp_sampler,
-            cur_letter_uv, iddx, iddy);
-        break;
-      case 3:
-        text += _Font_0x6000_0x7FFF.SampleGrad(linear_clamp_sampler,
-            cur_letter_uv, iddx, iddy);
-        break;
-      case 4:
-        text += _Font_0x8000_0x9FFF.SampleGrad(linear_clamp_sampler,
-            cur_letter_uv, iddx, iddy);
-        break;
-      case 5:
-        text += _Font_0xA000_0xBFFF.SampleGrad(linear_clamp_sampler,
-            cur_letter_uv, iddx, iddy);
-        break;
-      case 6:
-        text += _Font_0xC000_0xDFFF.SampleGrad(linear_clamp_sampler,
-            cur_letter_uv, iddx, iddy);
-        break;
-      case 7:
-        text += _Img_0xE000_0xE03F.SampleGrad(linear_clamp_sampler,
-            cur_letter_uv, iddx, iddy);
-        break;
-      default:
-        // Return some distinctive pattern that will look like a bug.
-        depth = getWorldSpaceDepth(i);
-        return fixed4(1, 0, _SinTime[0], 1);
-    }
+    case 0:
+      // Divide iddx, iddy by 2.0 to remain on a higher-detail mip level for
+      // longer.
+      text += _Font_0x0000_0x1FFF.SampleGrad(linear_clamp_sampler,
+          letter_uv, iddx / 2.0, iddy / 2.0);
+      break;
+    case 1:
+      text += _Font_0x2000_0x3FFF.SampleGrad(linear_clamp_sampler,
+          letter_uv, iddx / 2.0, iddy / 2.0);
+      break;
+    case 2:
+      text += _Font_0x4000_0x5FFF.SampleGrad(linear_clamp_sampler,
+          letter_uv, iddx / 2.0, iddy / 2.0);
+      break;
+    case 3:
+      text += _Font_0x6000_0x7FFF.SampleGrad(linear_clamp_sampler,
+          letter_uv, iddx / 2.0, iddy / 2.0);
+      break;
+    case 4:
+      text += _Font_0x8000_0x9FFF.SampleGrad(linear_clamp_sampler,
+          letter_uv, iddx / 2.0, iddy / 2.0);
+      break;
+    case 5:
+      text += _Font_0xA000_0xBFFF.SampleGrad(linear_clamp_sampler,
+          letter_uv, iddx / 2.0, iddy / 2.0);
+      break;
+    case 6:
+      text += _Font_0xC000_0xDFFF.SampleGrad(linear_clamp_sampler,
+          letter_uv, iddx / 2.0, iddy / 2.0);
+      break;
+    case 7:
+      text += _Img_0xE000_0xE03F.SampleGrad(linear_clamp_sampler,
+          letter_uv, iddx / 2.0, iddy / 2.0);
+      break;
+    default:
+      // Return some distinctive pattern that will look like a bug.
+      depth = getWorldSpaceDepth(i);
+      return fixed4(1, 0, _SinTime[0], 1);
   }
-  text /= aa_amount;
 
   // The edges of each letter cell can be slightly grey due to mip maps.
   // Detect this and shade it as the background.
-  fixed3 grey = fixed3(.4,.4,.4);
+  fixed3 grey = 0.5;
   if (f3ltf3(text.rgb, grey) || discard_text || is_emote) {
     fixed4 bg;
     if (BG_Enable) {

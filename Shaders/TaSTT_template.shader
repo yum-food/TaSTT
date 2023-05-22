@@ -18,7 +18,6 @@
         "Enable margin effect: Squares", float) = 0
 
     [MaterialToggle] Enable_Dithering("Enable dithering", float) = 1
-    AA_Amount("Amount of anti-aliasing", Range(1, 5)) = 5
 
     [MaterialToggle] BG_Enable("Enable custom background", float) = 0
     BG_BaseColor("Background base color", 2D) = "black" {}
