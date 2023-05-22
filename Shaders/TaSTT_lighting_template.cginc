@@ -429,7 +429,8 @@ void initNormal(inout v2f i)
 {
   if (BG_Enable) {
     i.normal = UnpackScaleNormal(
-        BG_NormalMap.Sample(linear_clamp_sampler, i.uv.xy),
+        BG_NormalMap.SampleGrad(linear_clamp_sampler, i.uv.xy,
+            ddx(i.uv.x), ddy(i.uv.y)),
         BG_NormalStrength);
     // Swap Y and Z
     i.normal = i.normal.xzy;
@@ -460,17 +461,20 @@ fixed4 light(v2f i,
 
   float2 iddx = ddx(i.uv.x);
   float2 iddy = ddy(i.uv.y);
-  fixed4 albedo = albedo_map.Sample(linear_clamp_sampler, i.uv.xy);
+  fixed4 albedo = albedo_map.SampleGrad(linear_clamp_sampler, i.uv.xy,
+      iddx, iddy);
 
   fixed3 normal = UnpackScaleNormal(
-        normal_map.Sample(linear_clamp_sampler, i.uv.xy),
+        normal_map.SampleGrad(linear_clamp_sampler, i.uv.xy,
+            iddx, iddy),
         normal_str);
   // Swap Y and Z
   normal = normal.xzy;
 
   float3 view_dir = normalize(_WorldSpaceCameraPos - i.worldPos);
 
-  float metallic = metallic_map.Sample(linear_clamp_sampler, i.uv.xy);
+  float metallic = metallic_map.SampleGrad(linear_clamp_sampler, i.uv.xy,
+      iddx, iddy);
 
   float3 specular_tint;
   float one_minus_reflectivity;
@@ -481,12 +485,14 @@ fixed4 light(v2f i,
   indirect_light.diffuse = 0;
   indirect_light.specular = 0;
 
-  float smoothness = smoothness_map.Sample(linear_clamp_sampler, i.uv.xy);
+  float smoothness = smoothness_map.SampleGrad(linear_clamp_sampler, i.uv.xy,
+      iddx, iddy);
   if (invert_smoothness) {
     smoothness = 1 - smoothness;
   }
 
-  fixed3 emission = emission_mask.Sample(linear_clamp_sampler, i.uv.xy);
+  fixed3 emission = emission_mask.SampleGrad(linear_clamp_sampler, i.uv.xy,
+      iddx, iddy);
 
   fixed3 pbr = UNITY_BRDF_PBS(albedo, specular_tint,
       one_minus_reflectivity, smoothness,
@@ -652,28 +658,36 @@ fixed4 frag(v2f i, out float depth : SV_DepthLessEqual) : SV_Target
     [forcecase] switch (which_texture)
     {
       case 0:
-        text += _Font_0x0000_0x1FFF.Sample(linear_clamp_sampler, cur_letter_uv);
+        text += _Font_0x0000_0x1FFF.SampleGrad(linear_clamp_sampler,
+            cur_letter_uv, iddx, iddy);
         break;
       case 1:
-        text += _Font_0x2000_0x3FFF.Sample(linear_clamp_sampler, cur_letter_uv);
+        text += _Font_0x2000_0x3FFF.SampleGrad(linear_clamp_sampler,
+            cur_letter_uv, iddx, iddy);
         break;
       case 2:
-        text += _Font_0x4000_0x5FFF.Sample(linear_clamp_sampler, cur_letter_uv);
+        text += _Font_0x4000_0x5FFF.SampleGrad(linear_clamp_sampler,
+            cur_letter_uv, iddx, iddy);
         break;
       case 3:
-        text += _Font_0x6000_0x7FFF.Sample(linear_clamp_sampler, cur_letter_uv);
+        text += _Font_0x6000_0x7FFF.SampleGrad(linear_clamp_sampler,
+            cur_letter_uv, iddx, iddy);
         break;
       case 4:
-        text += _Font_0x8000_0x9FFF.Sample(linear_clamp_sampler, cur_letter_uv);
+        text += _Font_0x8000_0x9FFF.SampleGrad(linear_clamp_sampler,
+            cur_letter_uv, iddx, iddy);
         break;
       case 5:
-        text += _Font_0xA000_0xBFFF.Sample(linear_clamp_sampler, cur_letter_uv);
+        text += _Font_0xA000_0xBFFF.SampleGrad(linear_clamp_sampler,
+            cur_letter_uv, iddx, iddy);
         break;
       case 6:
-        text += _Font_0xC000_0xDFFF.Sample(linear_clamp_sampler, cur_letter_uv);
+        text += _Font_0xC000_0xDFFF.SampleGrad(linear_clamp_sampler,
+            cur_letter_uv, iddx, iddy);
         break;
       case 7:
-        text += _Img_0xE000_0xE03F.Sample(linear_clamp_sampler, cur_letter_uv);
+        text += _Img_0xE000_0xE03F.SampleGrad(linear_clamp_sampler,
+            cur_letter_uv, iddx, iddy);
         break;
       default:
         // Return some distinctive pattern that will look like a bug.
