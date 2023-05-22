@@ -252,7 +252,7 @@ def transcribeAudio(audio_state, model, use_cpu: bool):
 
         old_text = audio_state.text
         audio_state.text = string_matcher.matchStrings(audio_state.text,
-                text, window_size = 25);
+                text, window_size = 25)
 
         now = time.time()
         print("Transcription ({} seconds): {}".format(
