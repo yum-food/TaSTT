@@ -83,7 +83,7 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	fx_path(),
 	params_path(),
 	menu_path(),
-	clear_osc(false),
+	clear_osc(true),
 
 	whisper_model("ggml-medium.bin"),
 	whisper_mic(0),

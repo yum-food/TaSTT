@@ -8,7 +8,6 @@
 #endif
 
 #include "Config.h"
-#include "WhisperCPP.h"
 
 #include <future>
 #include <memory>
@@ -99,26 +98,19 @@ private:
 
     std::unique_ptr<AppConfig> app_c_;
 
-    std::unique_ptr<WhisperCPP> whisper_;
-
     // Initialize GUI input fields using `app_c_`.
     void ApplyConfigToInputFields();
-    // Populate dynamically-generated input fields, such as microphone lists.
-    void PopulateDynamicInputFields();
+    // Ensure that virtual env is set up.
+    void EnsureVirtualEnv(bool block);
 
     void OnExit(wxCloseEvent& event);
     void OnNavbarTranscribe(wxCommandEvent& event);
     void OnNavbarUnity(wxCommandEvent& event);
     void OnNavbarDebug(wxCommandEvent& event);
-    void OnNavbarWhisper(wxCommandEvent& event);
-    void OnSetupPython(wxCommandEvent& event);
     void OnDumpMics(wxCommandEvent& event);
     void OnAppStart(wxCommandEvent& event);
     void OnAppStop();
     void OnAppStop(wxCommandEvent& event);
-    void OnWhisperStart(wxCommandEvent& event);
-    void OnWhisperStop();
-    void OnWhisperStop(wxCommandEvent& event);
     void OnAppDrain(wxTimerEvent& event);
     void OnGenerateFX(wxCommandEvent& event);
     void OnUnityParamChangeImpl();

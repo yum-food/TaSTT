@@ -75,7 +75,8 @@ namespace PythonWrapper
 		const AppConfig& config,
 		const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
 		const std::function<void(std::string& in)>&& in_cb = [](std::string&) {},
-		const std::function<bool()>&& run_cb = []() { return true; });
+		const std::function<bool()>&& run_cb = []() { return true; },
+		const std::function<void()>&& prestart_cb = []() {});
 
 	bool GenerateAnimator(
 		const AppConfig& config,
