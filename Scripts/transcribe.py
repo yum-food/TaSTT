@@ -8,13 +8,14 @@ from playsound import playsound
 
 import argparse
 import copy
-import os
-import osc_ctrl
 import generate_utils
 import keybind_event_machine
+import keyboard
 import langcodes
-import pyaudio
 import numpy as np
+import os
+import osc_ctrl
+import pyaudio
 import steamvr
 import string_matcher
 import sys
@@ -334,7 +335,8 @@ def readKeyboardInput(audio_state, enable_local_beep: bool,
             audio_state.audio_paused = True
 
             if enable_local_beep == 1:
-                playsound(os.path.abspath("Resources/Sounds/Noise_Off_Quiet.wav"))
+                playsound(os.path.abspath("Resources/Sounds/Noise_Off_Quiet.wav"),
+                    block=False)
         elif state == PAUSE_STATE:
             state = RECORD_STATE
             if not use_builtin:
@@ -348,7 +350,8 @@ def readKeyboardInput(audio_state, enable_local_beep: bool,
             audio_state.audio_paused = False
 
             if enable_local_beep == 1:
-                playsound(os.path.abspath("Resources/Sounds/Noise_On_Quiet.wav"))
+                playsound(os.path.abspath("Resources/Sounds/Noise_On_Quiet.wav"),
+                    block=False)
 
 def readControllerInput(audio_state, enable_local_beep: bool,
         use_builtin: bool, button: str):
@@ -371,7 +374,14 @@ def readControllerInput(audio_state, enable_local_beep: bool,
     hand_id = steamvr.hands[button.split()[0]]
     button_id = steamvr.buttons[button.split()[1]]
 
+    # Rough description of state machine:
+    #   Single short press: toggle transcription
+    #   Medium press: dismiss custom chatbox
+    #   Long press: update chatbox in place
+    #   Medium press + long press: type transcription
+
     last_rising = time.time()
+    last_medium_press_end = 0
     while audio_state.run_app == True:
         time.sleep(0.05)
 
@@ -390,7 +400,7 @@ def readControllerInput(audio_state, enable_local_beep: bool,
         elif event == steamvr.EVENT_FALLING_EDGE:
             now = time.time()
             if now - last_rising > 1.5:
-                # Very long hold: treat as the end of transcription.
+                # Long press: treat as the end of transcription.
                 state = PAUSE_STATE
                 if not use_builtin:
                     osc_ctrl.indicateSpeech(audio_state.osc_state.client, False)
@@ -398,13 +408,29 @@ def readControllerInput(audio_state, enable_local_beep: bool,
                 audio_state.transcribe_sleep_duration = audio_state.transcribe_sleep_duration_min_s
                 audio_state.audio_paused = True
 
+                if last_rising - last_medium_press_end < 1.0:
+                    # Type transcription
+                    if enable_local_beep == 1:
+                        playsound(os.path.abspath("Resources/Sounds/KB_Noise_Off_Quiet.wav"),
+                            block=False)
+                    keyboard.write(audio_state.text)
+                else:
+                    if enable_local_beep == 1:
+                        playsound(os.path.abspath("Resources/Sounds/Noise_Off_Quiet.wav"),
+                            block=False)
+
             elif now - last_rising > 0.5:
-                # Long hold
+                # Medium press
+                last_medium_press_end = now
                 state = PAUSE_STATE
+
+                if enable_local_beep == 1:
+                    playsound(os.path.abspath("Resources/Sounds/Dismiss_Noise_Quiet.wav"),
+                        block=False)
+
                 if not use_builtin:
                     osc_ctrl.indicateSpeech(audio_state.osc_state.client, False)
                     osc_ctrl.toggleBoard(audio_state.osc_state.client, False)
-                #playsound(os.path.abspath("../Sounds/Noise_Off_Quiet.wav"))
 
                 resetAudioLocked(audio_state)
                 resetDisplayLocked(audio_state)
@@ -422,16 +448,19 @@ def readControllerInput(audio_state, enable_local_beep: bool,
                     audio_state.audio_paused = True
 
                     if enable_local_beep == 1:
-                        playsound(os.path.abspath("Resources/Sounds/Noise_Off_Quiet.wav"))
+                        playsound(os.path.abspath("Resources/Sounds/Noise_Off_Quiet.wav"),
+                            block=False)
                 elif state == PAUSE_STATE:
                     state = RECORD_STATE
+
+                    if enable_local_beep == 1:
+                        playsound(os.path.abspath("Resources/Sounds/Noise_On_Quiet.wav"),
+                            block=False)
+
                     if not use_builtin:
                         osc_ctrl.indicateSpeech(audio_state.osc_state.client, True)
                         osc_ctrl.toggleBoard(audio_state.osc_state.client, True)
                         osc_ctrl.lockWorld(audio_state.osc_state.client, False)
-
-                    if enable_local_beep == 1:
-                        playsound(os.path.abspath("Resources/Sounds/Noise_On_Quiet.wav"))
 
 # model should correspond to one of the Whisper models defined in
 # whisper/__init__.py. Examples: tiny, base, small, medium.

@@ -32,8 +32,10 @@ To build your own package from source, see GUI/README.md.
 
 Basic controls:
 * Short click to toggle transcription.
-* Long click to hide the text box.
-* Scale it up/down in the radial menu.
+* Medium click to hide the text box.
+* Hold to update text box without unlocking from worldspace.
+* Medium click + hold to type using STT.
+* Scale up/down in the radial menu.
 
 ## Design philosophy
 
