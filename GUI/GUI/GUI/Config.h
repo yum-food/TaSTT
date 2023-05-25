@@ -58,6 +58,9 @@ public:
 	bool use_cpu;
 	bool use_builtin;
 	bool enable_uwu_filter;
+	bool remove_trailing_period;
+	bool enable_uppercase_filter;
+	bool enable_lowercase_filter;
 	int gpu_idx;
 	std::string keybind;
 

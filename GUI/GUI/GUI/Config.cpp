@@ -72,6 +72,9 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	use_cpu(false),
 	use_builtin(false),
 	enable_uwu_filter(false),
+	remove_trailing_period(false),
+	enable_uppercase_filter(false),
+	enable_lowercase_filter(false),
 	gpu_idx(0),
 	keybind("ctrl+x"),
 
@@ -117,6 +120,9 @@ bool AppConfig::Serialize(const std::filesystem::path& path) {
 	cm.Set("use_cpu", use_cpu);
 	cm.Set("use_builtin", use_builtin);
 	cm.Set("enable_uwu_filter", enable_uwu_filter);
+	cm.Set("remove_trailing_period", remove_trailing_period);
+	cm.Set("enable_uppercase_filter", enable_uppercase_filter);
+	cm.Set("enable_lowercase_filter", enable_lowercase_filter);
 	cm.Set("gpu_idx", gpu_idx);
 	cm.Set("keybind", keybind);
 
@@ -175,6 +181,9 @@ bool AppConfig::Deserialize(const std::filesystem::path& path) {
 	cm.Get("use_cpu", c.use_cpu);
 	cm.Get("use_builtin", c.use_builtin);
 	cm.Get("enable_uwu_filter", c.enable_uwu_filter);
+	cm.Get("remove_trailing_period", c.remove_trailing_period);
+	cm.Get("enable_uppercase_filter", c.enable_uppercase_filter);
+	cm.Get("enable_lowercase_filter", c.enable_lowercase_filter);
 	cm.Get("gpu_idx", c.gpu_idx);
 	cm.Get("keybind", c.keybind);
 

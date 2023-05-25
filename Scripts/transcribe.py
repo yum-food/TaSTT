@@ -217,7 +217,14 @@ def transcribe(audio_state, model, frames, use_cpu: bool):
 
     return "".join(s.text for s in segments)
 
-def transcribeAudio(audio_state, model, use_cpu: bool, enable_uwu_filter: bool):
+def transcribeAudio(audio_state,
+        model,
+        use_cpu: bool,
+        enable_uwu_filter: bool,
+        remove_trailing_period: bool,
+        enable_uppercase_filter: bool,
+        enable_lowercase_filter: bool,
+        ):
     last_transcribe_time = time.time()
     while audio_state.run_app == True:
         # Pace this out
@@ -267,6 +274,13 @@ def transcribeAudio(audio_state, model, use_cpu: bool, enable_uwu_filter: bool):
             uwu_text = uwu_text.replace("\n", "")
             uwu_text = uwu_text.replace("\r", "")
             filtered_text = uwu_text
+        if remove_trailing_period:
+            if len(filtered_text) > 0 and filtered_text[-1] == '.':
+                filtered_text = filtered_text[0:len(filtered_text)-1]
+        if enable_uppercase_filter:
+            filtered_text = filtered_text.upper()
+        if enable_lowercase_filter:
+            filtered_text = filtered_text.lower()
         audio_state.filtered_text = filtered_text
 
         now = time.time()
@@ -484,6 +498,9 @@ def transcribeLoop(mic: str,
         use_cpu: bool,
         use_builtin: bool,
         enable_uwu_filter: bool,
+        remove_trailing_period: bool,
+        enable_uppercase_filter: bool,
+        enable_lowercase_filter: bool,
         button: str,
         estate: EmotesState,
         window_duration_s: int,
@@ -516,7 +533,9 @@ def transcribeLoop(mic: str,
 
     transcribe_audio_thd = threading.Thread(
             target = transcribeAudio,
-            args = [audio_state, model, use_cpu, enable_uwu_filter])
+            args = [audio_state, model, use_cpu, enable_uwu_filter,
+                remove_trailing_period, enable_uppercase_filter,
+                enable_lowercase_filter])
     transcribe_audio_thd.daemon = True
     transcribe_audio_thd.start()
 
@@ -581,6 +600,9 @@ if __name__ == "__main__":
     parser.add_argument("--cpu", type=int, help="If set to 1, use CPU instead of GPU")
     parser.add_argument("--use_builtin", type=int, help="If set to 1, use the text box built into the game.")
     parser.add_argument("--enable_uwu_filter", type=int, help="If set to 1, transcribed text will be passed through an uwu filter :3.")
+    parser.add_argument("--remove_trailing_period", type=int, help="If set to 1, trailing period will be removed.")
+    parser.add_argument("--enable_uppercase_filter", type=int, help="If set to 1, transcriptions will be converted to UPPERCASE.")
+    parser.add_argument("--enable_lowercase_filter", type=int, help="If set to 1, transcriptions will be converted to lowercase.")
     parser.add_argument("--button", type=str, help="The controller button used to start/stop transcription. E.g. \"left joystick\"")
     parser.add_argument("--emotes_pickle", type=str, help="The path to emotes pickle. See emotes_v2.py for details.")
     parser.add_argument("--gpu_idx", type=str, help="The index of the GPU device to use. On single GPU systems, use 0.")
@@ -636,6 +658,21 @@ if __name__ == "__main__":
     else:
         args.enable_uwu_filter = False
 
+    if args.remove_trailing_period == 1:
+        args.remove_trailing_period = True
+    else:
+        args.remove_trailing_period = False
+
+    if args.enable_uppercase_filter == 1:
+        args.enable_uppercase_filter = True
+    else:
+        args.enable_uppercase_filter = False
+
+    if args.enable_lowercase_filter == 1:
+        args.enable_lowercase_filter = True
+    else:
+        args.enable_lowercase_filter = False
+
     estate = EmotesState()
     estate.load(args.emotes_pickle)
 
@@ -646,8 +683,16 @@ if __name__ == "__main__":
 
     print(f"PATH: {os.environ['PATH']}")
 
-    transcribeLoop(args.mic, args.language, args.model, args.enable_local_beep,
-            args.cpu, args.use_builtin, args.enable_uwu_filter, args.button,
+    transcribeLoop(args.mic,
+            args.language,
+            args.model,
+            args.enable_local_beep,
+            args.cpu, args.use_builtin,
+            args.enable_uwu_filter,
+            args.remove_trailing_period,
+            args.enable_uppercase_filter,
+            args.enable_lowercase_filter,
+            args.button,
             estate, window_duration_s,
             args.gpu_idx, args.keybind)
 
