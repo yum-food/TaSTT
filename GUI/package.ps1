@@ -118,6 +118,21 @@ if (-Not (Test-Path $nvidia_dir)) {
   popd > $null
 }
 
+if (-Not (Test-Path UwwwuPP)) {
+  git clone https://github.com/Leonetienne/UwwwuPP
+  pushd UwwwuPP > $null
+  git submodule update --init --recursive
+
+  mkdir build
+  pushd build > $null
+
+  cmake.exe ..
+  cmake.exe --build .
+
+  popd > $null
+  popd > $null
+}
+
 mkdir $install_dir > $null
 mkdir $install_dir/Resources > $null
 cp -Recurse ../Animations TaSTT/Resources/Animations
@@ -136,6 +151,9 @@ cp -Recurse ../BrowserSource TaSTT/Resources/BrowserSource
 cp GUI/x64/$release/GUI.exe TaSTT/TaSTT.exe
 cp ../"TaSTT-Whisper"/x64/Release/Whisper.dll TaSTT/Whisper.dll
 mkdir TaSTT/Resources/Models
+mkdir TaSTT/Resources/Uwu
+cp UwwwuPP/build/Src/Debug/Uwwwu.exe TaSTT/Resources/Uwu/
+cp UwwwuPP/LICENSE TaSTT/Resources/Uwu/
 
 if (-Not $skip_zip) {
   Compress-Archive -Path "$install_dir" -DestinationPath "$install_dir.zip" -Force

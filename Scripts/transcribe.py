@@ -18,6 +18,7 @@ import osc_ctrl
 import pyaudio
 import steamvr
 import string_matcher
+import subprocess
 import sys
 import threading
 import time
@@ -44,7 +45,7 @@ class AudioState:
         self.stream = None
 
         self.text = ""
-        self.committed_text = ""
+        self.filtered_text = ""
         self.frames = []
 
         # Locks access to `text`.
@@ -183,7 +184,6 @@ def resetAudioLocked(audio_state):
     audio_state.transcribe_sleep_duration = \
             audio_state.transcribe_sleep_duration_min_s
 
-    audio_state.committed_text = ""
     audio_state.text = ""
 
 def resetDisplayLocked(audio_state):
@@ -256,6 +256,17 @@ def transcribeAudio(audio_state, model, use_cpu: bool):
         audio_state.text = string_matcher.matchStrings(audio_state.text,
                 text, window_size = 25)
 
+        # Apply filters to transcription
+        uwu_proc = subprocess.Popen(["Resources/Uwu/Uwwwu.exe", audio_state.text],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+        uwu_stdout, uwu_stderr = uwu_proc.communicate()
+        uwu_text = uwu_stdout.decode("utf-8")
+        uwu_text = uwu_text.replace("\n", "")
+        uwu_text = uwu_text.replace("\r", "")
+
+        audio_state.filtered_text = uwu_text
+
         now = time.time()
         print("Transcription ({} seconds): {}".format(
             now - last_transcribe_time,
@@ -270,7 +281,7 @@ def transcribeAudio(audio_state, model, use_cpu: bool):
 
 def sendAudio(audio_state, use_builtin: bool, estate: EmotesState):
     while audio_state.run_app == True:
-        text = audio_state.committed_text + " " + audio_state.text
+        text = audio_state.filtered_text
         if use_builtin:
             ret = osc_ctrl.pageMessageBuiltin(audio_state.osc_state, text)
             time.sleep(1.5)
@@ -288,7 +299,7 @@ def readKeyboardInput(audio_state, enable_local_beep: bool,
     last_press_time = 0
 
     # double pressing the keybind
-    double_press_timeout = 0.25
+    double_press_timeout = 0.5
 
     RECORD_STATE = 0
     PAUSE_STATE = 1
@@ -413,7 +424,7 @@ def readControllerInput(audio_state, enable_local_beep: bool,
                     if enable_local_beep == 1:
                         playsound(os.path.abspath("Resources/Sounds/KB_Noise_Off_Quiet.wav"),
                             block=False)
-                    keyboard.write(audio_state.text)
+                    keyboard.write(audio_state.filtered_text)
                 else:
                     if enable_local_beep == 1:
                         playsound(os.path.abspath("Resources/Sounds/Noise_Off_Quiet.wav"),
