@@ -1056,11 +1056,6 @@ void Frame::ApplyConfigToInputFields()
 		kNumModelChoices, app_c_->model, kModelDefault);
 	py_app_model->SetSelection(model_idx);
 
-    auto* py_app_button = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_BUTTON));
-	int button_idx = GetDropdownChoiceIndex(kButton,
-		kNumButtons, app_c_->button, kButtonDefault);
-	py_app_button->SetSelection(button_idx);
-
     auto* py_app_chars_per_sync = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_CHARS_PER_SYNC));
 	int chars_idx = GetDropdownChoiceIndex(kCharsPerSync,
 		kNumCharsPerSync, std::to_string(app_c_->chars_per_sync),
@@ -1073,6 +1068,15 @@ void Frame::ApplyConfigToInputFields()
 		kBytesDefault);
 	py_app_bytes_per_char->SetSelection(bytes_idx);
 
+    auto* py_app_button = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_BUTTON));
+	int button_idx = GetDropdownChoiceIndex(kButton,
+		kNumButtons, app_c_->button, kButtonDefault);
+	py_app_button->SetSelection(button_idx);
+
+    auto* py_app_desktop_keybind = static_cast<wxTextCtrl*>(FindWindowById(ID_PY_APP_KEYBIND));
+    py_app_desktop_keybind->Clear();
+    py_app_desktop_keybind->AppendText(app_c_->keybind);
+
     auto* py_app_rows = static_cast<wxTextCtrl*>(FindWindowById(ID_PY_APP_ROWS));
     py_app_rows->Clear();
     py_app_rows->AppendText(std::to_string(app_c_->rows));
@@ -1080,6 +1084,22 @@ void Frame::ApplyConfigToInputFields()
     auto* py_app_cols = static_cast<wxTextCtrl*>(FindWindowById(ID_PY_APP_COLS));
     py_app_cols->Clear();
     py_app_cols->AppendText(std::to_string(app_c_->cols));
+
+    auto* py_app_gpu_idx = static_cast<wxTextCtrl*>(FindWindowById(ID_PY_APP_GPU_IDX));
+    py_app_gpu_idx->Clear();
+    py_app_gpu_idx->AppendText(std::to_string(app_c_->gpu_idx));
+
+    auto* py_app_enable_local_beep = static_cast<wxCheckBox*>(FindWindowById(ID_PY_APP_ENABLE_LOCAL_BEEP));
+    py_app_enable_local_beep->SetValue(app_c_->enable_local_beep);
+
+    auto* py_app_use_cpu = static_cast<wxCheckBox*>(FindWindowById(ID_PY_APP_USE_CPU));
+    py_app_use_cpu->SetValue(app_c_->use_cpu);
+
+    auto* py_app_use_builtin = static_cast<wxCheckBox*>(FindWindowById(ID_PY_APP_USE_BUILTIN));
+    py_app_use_builtin->SetValue(app_c_->use_builtin);
+
+    auto* py_app_enable_uwu_filter = static_cast<wxCheckBox*>(FindWindowById(ID_PY_APP_ENABLE_UWU_FILTER));
+    py_app_enable_uwu_filter->SetValue(app_c_->enable_uwu_filter);
 
     // Unity panel
     auto* unity_chars_per_sync = static_cast<wxChoice*>(FindWindowById(ID_UNITY_CHARS_PER_SYNC));
