@@ -39,6 +39,7 @@ namespace {
         ID_PY_APP_ENABLE_LOCAL_BEEP,
         ID_PY_APP_USE_CPU,
         ID_PY_APP_USE_BUILTIN,
+        ID_PY_APP_ENABLE_UWU_FILTER,
         ID_PY_APP_ROWS,
         ID_PY_APP_COLS,
         ID_PY_APP_WINDOW_DURATION,
@@ -593,6 +594,15 @@ Frame::Frame()
                 );
                 py_app_use_builtin_ = py_app_use_builtin;
 
+                auto* py_app_enable_uwu_filter = new wxCheckBox(py_config_panel,
+                    ID_PY_APP_ENABLE_UWU_FILTER, "Enable uwu filter :3");
+                py_app_enable_uwu_filter->SetValue(app_c_->enable_uwu_filter);
+                py_app_enable_uwu_filter->SetToolTip(
+                    "If checked, transcribed text will be passed through an "
+                    "uwu filter."
+                );
+                py_app_enable_uwu_filter_ = py_app_enable_uwu_filter;
+
                 // Hack: Add newlines before and after the button text to make
                 // the buttons bigger, and easier to click from inside VR.
                 auto* py_app_start_button = new wxButton(py_config_panel,
@@ -611,6 +621,8 @@ Frame::Frame()
                 sizer->Add(py_app_use_cpu, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
                 sizer->Add(py_app_use_builtin, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+                sizer->Add(py_app_enable_uwu_filter, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
                 sizer->Add(py_app_start_button, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
@@ -1638,6 +1650,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     const bool enable_local_beep = py_app_enable_local_beep_->GetValue();
     const bool use_cpu = py_app_use_cpu_->GetValue();
     const bool use_builtin = py_app_use_builtin_->GetValue();
+    const bool enable_uwu_filter = py_app_enable_uwu_filter_->GetValue();
     std::string rows_str = py_app_rows_->GetValue().ToStdString();
     std::string cols_str = py_app_cols_->GetValue().ToStdString();
     std::string chars_per_sync_str =
@@ -1706,6 +1719,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     app_c_->enable_local_beep = enable_local_beep;
     app_c_->use_cpu = use_cpu;
     app_c_->use_builtin = use_builtin;
+    app_c_->enable_uwu_filter = enable_uwu_filter;
     app_c_->gpu_idx = gpu_idx;
     app_c_->keybind = keybind;
     app_c_->Serialize(AppConfig::kConfigPath);

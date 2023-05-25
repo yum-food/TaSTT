@@ -473,6 +473,7 @@ std::future<bool> PythonWrapper::StartApp(
 					"--window_duration_s", config.window_duration,
 					"--cpu", config.use_cpu ? "1" : "0",
 					"--use_builtin", config.use_builtin ? "1" : "0",
+					"--enable_uwu_filter", config.enable_uwu_filter ? "1" : "0",
 					"--emotes_pickle", kEmotesPickle,
 					"--gpu_idx", std::to_string(config.gpu_idx),
 					"--keybind", Quote(config.keybind),

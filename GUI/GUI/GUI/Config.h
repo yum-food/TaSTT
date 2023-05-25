@@ -57,6 +57,7 @@ public:
 	bool enable_local_beep;
 	bool use_cpu;
 	bool use_builtin;
+	bool enable_uwu_filter;
 	int gpu_idx;
 	std::string keybind;
 

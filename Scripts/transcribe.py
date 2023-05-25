@@ -217,7 +217,7 @@ def transcribe(audio_state, model, frames, use_cpu: bool):
 
     return "".join(s.text for s in segments)
 
-def transcribeAudio(audio_state, model, use_cpu: bool):
+def transcribeAudio(audio_state, model, use_cpu: bool, enable_uwu_filter: bool):
     last_transcribe_time = time.time()
     while audio_state.run_app == True:
         # Pace this out
@@ -257,15 +257,17 @@ def transcribeAudio(audio_state, model, use_cpu: bool):
                 text, window_size = 25)
 
         # Apply filters to transcription
-        uwu_proc = subprocess.Popen(["Resources/Uwu/Uwwwu.exe", audio_state.text],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE)
-        uwu_stdout, uwu_stderr = uwu_proc.communicate()
-        uwu_text = uwu_stdout.decode("utf-8")
-        uwu_text = uwu_text.replace("\n", "")
-        uwu_text = uwu_text.replace("\r", "")
-
-        audio_state.filtered_text = uwu_text
+        filtered_text = audio_state.text
+        if enable_uwu_filter:
+            uwu_proc = subprocess.Popen(["Resources/Uwu/Uwwwu.exe", filtered_text],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE)
+            uwu_stdout, uwu_stderr = uwu_proc.communicate()
+            uwu_text = uwu_stdout.decode("utf-8")
+            uwu_text = uwu_text.replace("\n", "")
+            uwu_text = uwu_text.replace("\r", "")
+            filtered_text = uwu_text
+        audio_state.filtered_text = filtered_text
 
         now = time.time()
         print("Transcription ({} seconds): {}".format(
@@ -475,10 +477,17 @@ def readControllerInput(audio_state, enable_local_beep: bool,
 
 # model should correspond to one of the Whisper models defined in
 # whisper/__init__.py. Examples: tiny, base, small, medium.
-def transcribeLoop(mic: str, language: str, model: str,
-        enable_local_beep: bool, use_cpu: bool, use_builtin: bool,
-        button: str, estate: EmotesState,
-        window_duration_s: int, gpu_idx: int,
+def transcribeLoop(mic: str,
+        language: str,
+        model: str,
+        enable_local_beep: bool,
+        use_cpu: bool,
+        use_builtin: bool,
+        enable_uwu_filter: bool,
+        button: str,
+        estate: EmotesState,
+        window_duration_s: int,
+        gpu_idx: int,
         keyboard_hotkey: str):
     audio_state = getMicStream(mic)
     audio_state.language = langcodes.find(language).language
@@ -505,7 +514,9 @@ def transcribeLoop(mic: str, language: str, model: str,
             download_root = model_root,
             local_files_only = download_it)
 
-    transcribe_audio_thd = threading.Thread(target = transcribeAudio, args = [audio_state, model, use_cpu])
+    transcribe_audio_thd = threading.Thread(
+            target = transcribeAudio,
+            args = [audio_state, model, use_cpu, enable_uwu_filter])
     transcribe_audio_thd.daemon = True
     transcribe_audio_thd.start()
 
@@ -569,6 +580,7 @@ if __name__ == "__main__":
     parser.add_argument("--window_duration_s", type=int, help="The length in seconds of the audio recording handed to the transcription algorithm")
     parser.add_argument("--cpu", type=int, help="If set to 1, use CPU instead of GPU")
     parser.add_argument("--use_builtin", type=int, help="If set to 1, use the text box built into the game.")
+    parser.add_argument("--enable_uwu_filter", type=int, help="If set to 1, transcribed text will be passed through an uwu filter :3.")
     parser.add_argument("--button", type=str, help="The controller button used to start/stop transcription. E.g. \"left joystick\"")
     parser.add_argument("--emotes_pickle", type=str, help="The path to emotes pickle. See emotes_v2.py for details.")
     parser.add_argument("--gpu_idx", type=str, help="The index of the GPU device to use. On single GPU systems, use 0.")
@@ -619,6 +631,11 @@ if __name__ == "__main__":
     else:
         args.use_builtin = False
 
+    if args.enable_uwu_filter == 1:
+        args.enable_uwu_filter = True
+    else:
+        args.enable_uwu_filter = False
+
     estate = EmotesState()
     estate.load(args.emotes_pickle)
 
@@ -630,6 +647,7 @@ if __name__ == "__main__":
     print(f"PATH: {os.environ['PATH']}")
 
     transcribeLoop(args.mic, args.language, args.model, args.enable_local_beep,
-            args.cpu, args.use_builtin, args.button, estate, window_duration_s,
+            args.cpu, args.use_builtin, args.enable_uwu_filter, args.button,
+            estate, window_duration_s,
             args.gpu_idx, args.keybind)
 

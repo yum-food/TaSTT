@@ -80,6 +80,7 @@ private:
     wxCheckBox* py_app_enable_local_beep_;
     wxCheckBox* py_app_use_cpu_;
     wxCheckBox* py_app_use_builtin_;
+    wxCheckBox* py_app_enable_uwu_filter_;
     wxCheckBox* unity_clear_osc_;
     wxCheckBox* whisper_enable_local_beep_;
     wxCheckBox* whisper_use_cpu_;

@@ -71,6 +71,7 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	enable_local_beep(true),
 	use_cpu(false),
 	use_builtin(false),
+	enable_uwu_filter(false),
 	gpu_idx(0),
 	keybind("ctrl+x"),
 
@@ -115,6 +116,7 @@ bool AppConfig::Serialize(const std::filesystem::path& path) {
 	cm.Set("enable_local_beep", enable_local_beep);
 	cm.Set("use_cpu", use_cpu);
 	cm.Set("use_builtin", use_builtin);
+	cm.Set("enable_uwu_filter", enable_uwu_filter);
 	cm.Set("gpu_idx", gpu_idx);
 	cm.Set("keybind", keybind);
 
@@ -172,6 +174,7 @@ bool AppConfig::Deserialize(const std::filesystem::path& path) {
 	cm.Get("enable_local_beep", c.enable_local_beep);
 	cm.Get("use_cpu", c.use_cpu);
 	cm.Get("use_builtin", c.use_builtin);
+	cm.Get("enable_uwu_filter", c.enable_uwu_filter);
 	cm.Get("gpu_idx", c.gpu_idx);
 	cm.Get("keybind", c.keybind);
 
