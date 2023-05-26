@@ -462,8 +462,11 @@ std::future<bool> PythonWrapper::StartApp(
 					"-u",  // Unbuffered output
 					"Resources/Scripts/transcribe.py",
 					"--mic", config.microphone,
-					"--lang", config.language,
+					"--language", config.language,
+					"--language_source", Quote(config.language_source),
+					"--language_target", Quote(config.language_target),
 					"--model", config.model,
+					"--model_translation", config.model_translation,
 					"--chars_per_sync", std::to_string(config.chars_per_sync),
 					"--bytes_per_char", std::to_string(config.bytes_per_char),
 					"--button", Quote(config.button),

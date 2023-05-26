@@ -50,7 +50,10 @@ public:
 	// Transcription-specific settings.
 	std::string microphone;
 	std::string language;
+	std::string language_source;
+	std::string language_target;
 	std::string model;
+	std::string model_translation;
 	std::string button;
 	std::string window_duration;
 

@@ -30,8 +30,11 @@ namespace {
         ID_PY_APP_MIC,
         ID_PY_APP_MIC_PANEL,
         ID_PY_APP_LANG,
+        ID_PY_APP_TRANSLATE_SOURCE,
+        ID_PY_APP_TRANSLATE_TARGET,
         ID_PY_APP_LANG_PANEL,
         ID_PY_APP_MODEL,
+        ID_PY_APP_MODEL_TRANSLATION,
         ID_PY_APP_CHARS_PER_SYNC,
         ID_PY_APP_BYTES_PER_CHAR,
         ID_PY_APP_BUTTON,
@@ -231,6 +234,216 @@ namespace {
     const size_t kNumLangChoices = sizeof(kLangChoices) / sizeof(kLangChoices[0]);
     constexpr int kLangDefault = 0;  // english
 
+    const wxString kLangTargetChoices[] = {
+	  "Do not translate",
+			"Acehnese(Arabic script) | ace_Arab",
+			"Acehnese(Latin script) | ace_Latn",
+			"Afrikaans | afr_Latn",
+			"Akan | aka_Latn",
+			"Amharic | amh_Ethi",
+			"Armenian | hye_Armn",
+			"Assamese | asm_Beng",
+			"Asturian | ast_Latn",
+			"Awadhi | awa_Deva",
+			"Ayacucho Quechua | quy_Latn",
+			"Balinese | ban_Latn",
+			"Bambara | bam_Latn",
+			"Banjar(Arabic script) | bjn_Arab",
+			"Banjar(Latin script) | bjn_Latn",
+			"Bashkir | bak_Cyrl",
+			"Basque | eus_Latn",
+			"Belarusian | bel_Cyrl",
+			"Bemba | bem_Latn",
+			"Bengali | ben_Beng",
+			"Bhojpuri | bho_Deva",
+			"Bosnian | bos_Latn",
+			"Buginese | bug_Latn",
+			"Bulgarian | bul_Cyrl",
+			"Burmese | mya_Mymr",
+			"Catalan | cat_Latn",
+			"Cebuano | ceb_Latn",
+			"Central Atlas Tamazight | tzm_Tfng",
+			"Central Aymara | ayr_Latn",
+			"Central Kanuri(Arabic script) | knc_Arab",
+			"Central Kanuri(Latin script) | knc_Latn",
+			"Central Kurdish | ckb_Arab",
+			"Chhattisgarhi | hne_Deva",
+			"Chinese(Simplified) | zho_Hans",
+			"Chinese(Traditional) | zho_Hant",
+			"Chokwe | cjk_Latn",
+			"Crimean Tatar | crh_Latn",
+			"Croatian | hrv_Latn",
+			"Czech | ces_Latn",
+			"Danish | dan_Latn",
+			"Dari | prs_Arab",
+			"Dutch | nld_Latn",
+			"Dyula | dyu_Latn",
+			"Dzongkha | dzo_Tibt",
+			"Eastern Panjabi | pan_Guru",
+			"Eastern Yiddish | ydd_Hebr",
+			"Egyptian Arabic | arz_Arab",
+			"English | eng_Latn",
+			"Esperanto | epo_Latn",
+			"Estonian | est_Latn",
+			"Ewe | ewe_Latn",
+			"Faroese | fao_Latn",
+			"Fijian | fij_Latn",
+			"Finnish | fin_Latn",
+			"Fon | fon_Latn",
+			"French | fra_Latn",
+			"Friulian | fur_Latn",
+			"Galician | glg_Latn",
+			"Ganda | lug_Latn",
+			"Georgian | kat_Geor",
+			"German | deu_Latn",
+			"Greek | ell_Grek",
+			"Guarani | grn_Latn",
+			"Gujarati | guj_Gujr",
+			"Haitian Creole | hat_Latn",
+			"Halh Mongolian | khk_Cyrl",
+			"Hausa | hau_Latn",
+			"Hebrew | heb_Hebr",
+			"Hindi | hin_Deva",
+			"Hungarian | hun_Latn",
+			"Icelandic | isl_Latn",
+			"Igbo | ibo_Latn",
+			"Ilocano | ilo_Latn",
+			"Indonesian | ind_Latn",
+			"Irish | gle_Latn",
+			"Italian | ita_Latn",
+			"Japanese | jpn_Jpan",
+			"Javanese | jav_Latn",
+			"Jingpho | kac_Latn",
+			"Kabiyè | kbp_Latn",
+			"Kabuverdianu | kea_Latn",
+			"Kabyle | kab_Latn",
+			"Kamba | kam_Latn",
+			"Kannada | kan_Knda",
+			"Kashmiri(Arabic script) | kas_Arab",
+			"Kashmiri(Devanagari script) | kas_Deva",
+			"Kazakh | kaz_Cyrl",
+			"Khmer | khm_Khmr",
+			"Kikongo | kon_Latn",
+			"Kikuyu | kik_Latn",
+			"Kimbundu | kmb_Latn",
+			"Kinyarwanda | kin_Latn",
+			"Korean | kor_Hang",
+			"Kyrgyz | kir_Cyrl",
+			"Lao | lao_Laoo",
+			"Latgalian | ltg_Latn",
+			"Ligurian | lij_Latn",
+			"Limburgish | lim_Latn",
+			"Lingala | lin_Latn",
+			"Lithuanian | lit_Latn",
+			"Lombard | lmo_Latn",
+			"Luba - Kasai | lua_Latn",
+			"Luo | luo_Latn",
+			"Luxembourgish | ltz_Latn",
+			"Macedonian | mkd_Cyrl",
+			"Magahi | mag_Deva",
+			"Maithili | mai_Deva",
+			"Malayalam | mal_Mlym",
+			"Maltese | mlt_Latn",
+			"Maori | mri_Latn",
+			"Marathi | mar_Deva",
+			"Meitei(Bengali script) | mni_Beng",
+			"Mesopotamian Arabic | acm_Arab",
+			"Minangkabau(Arabic script) | min_Arab",
+			"Minangkabau(Latin script) | min_Latn",
+			"Mizo | lus_Latn",
+			"Modern Standard Arabic | arb_Arab",
+			"Modern Standard Arabic(Romanized) | arb_Latn",
+			"Moroccan Arabic | ary_Arab",
+			"Mossi | mos_Latn",
+			"Najdi Arabic | ars_Arab",
+			"Nepali | npi_Deva",
+			"Nigerian Fulfulde | fuv_Latn",
+			"North Azerbaijani | azj_Latn",
+			"North Levantine Arabic | apc_Arab",
+			"Northern Kurdish | kmr_Latn",
+			"Northern Sotho | nso_Latn",
+			"Northern Uzbek | uzn_Latn",
+			"Norwegian Bokmål | nob_Latn",
+			"Norwegian Nynorsk | nno_Latn",
+			"Nuer | nus_Latn",
+			"Nyanja | nya_Latn",
+			"Occitan | oci_Latn",
+			"Odia | ory_Orya",
+			"Pangasinan | pag_Latn",
+			"Papiamento | pap_Latn",
+			"Plateau Malagasy | plt_Latn",
+			"Polish | pol_Latn",
+			"Portuguese | por_Latn",
+			"Romanian | ron_Latn",
+			"Rundi | run_Latn",
+			"Russian | rus_Cyrl",
+			"Samoan | smo_Latn",
+			"Sango | sag_Latn",
+			"Sanskrit | san_Deva",
+			"Santali | sat_Olck",
+			"Sardinian | srd_Latn",
+			"Scottish Gaelic | gla_Latn",
+			"Serbian | srp_Cyrl",
+			"Shan | shn_Mymr",
+			"Shona | sna_Latn",
+			"Sicilian | scn_Latn",
+			"Silesian | szl_Latn",
+			"Sindhi | snd_Arab",
+			"Sinhala | sin_Sinh",
+			"Slovak | slk_Latn",
+			"Slovenian | slv_Latn",
+			"Somali | som_Latn",
+			"South Azerbaijani | azb_Arab",
+			"South Levantine Arabic | ajp_Arab",
+			"Southern Pashto | pbt_Arab",
+			"Southern Sotho | sot_Latn",
+			"Southwestern Dinka | dik_Latn",
+			"Spanish | spa_Latn",
+			"Standard Latvian | lvs_Latn",
+			"Standard Malay | zsm_Latn",
+			"Standard Tibetan | bod_Tibt",
+			"Sundanese | sun_Latn",
+			"Swahili | swh_Latn",
+			"Swati | ssw_Latn",
+			"Swedish | swe_Latn",
+			"Ta'izzi - Adeni Arabic | acq_Arab",
+			"Tagalog | tgl_Latn",
+			"Tajik | tgk_Cyrl",
+			"Tamasheq(Latin script) | taq_Latn",
+			"Tamasheq(Tifinagh script) | taq_Tfng",
+			"Tamil | tam_Taml",
+			"Tatar | tat_Cyrl",
+			"Telugu | tel_Telu",
+			"Thai | tha_Thai",
+			"Tigrinya | tir_Ethi",
+			"Tok Pisin | tpi_Latn",
+			"Tosk Albanian | als_Latn",
+			"Tsonga | tso_Latn",
+			"Tswana | tsn_Latn",
+			"Tumbuka | tum_Latn",
+			"Tunisian Arabic | aeb_Arab",
+			"Turkish | tur_Latn",
+			"Turkmen | tuk_Latn",
+			"Twi | twi_Latn",
+			"Ukrainian | ukr_Cyrl",
+			"Umbundu | umb_Latn",
+			"Urdu | urd_Arab",
+			"Uyghur | uig_Arab",
+			"Venetian | vec_Latn",
+			"Vietnamese | vie_Latn",
+			"Waray | war_Latn",
+			"Welsh | cym_Latn",
+			"West Central Oromo | gaz_Latn",
+			"Western Persian | pes_Arab",
+			"Wolof | wol_Latn",
+			"Xhosa | xho_Latn",
+			"Yoruba | yor_Latn",
+			"Yue Chinese | yue_Hant",
+			"Zulu | zul_Latn",
+		};
+    const size_t kNumLangTargetChoices = sizeof(kLangTargetChoices) / sizeof(kLangTargetChoices[0]);
+    constexpr int kLangTargetDefault = 0;  // do not translate
+
     // lifted from whisper/__init__.py
     const wxString kModelChoices[] = {
         "tiny.en",
@@ -246,6 +459,13 @@ namespace {
     };
     const size_t kNumModelChoices = sizeof(kModelChoices) / sizeof(kModelChoices[0]);
     constexpr int kModelDefault = 2;  // base.en
+
+    const wxString kModelTranslationChoices[] = {
+        "nllb-200-distilled-600M",
+        "nllb-200-distilled-1.3B",
+    };
+    const size_t kNumModelTranslationChoices = sizeof(kModelTranslationChoices) / sizeof(kModelTranslationChoices[0]);
+    constexpr int kModelTranslationDefault = 2;  // base.en
 
     const wxString kCharsPerSync[] = {
         "5",
@@ -413,12 +633,27 @@ Frame::Frame()
                         ID_PY_APP_LANG, wxDefaultPosition, wxDefaultSize,
                         kNumLangChoices, kLangChoices);
                     py_app_lang->SetToolTip("Select which language you will "
-                        "speak in. It will be transcribed into that language. "
-                        "If using a language with non-ASCII characters (i.e. "
-                        "not English), make sure you have 'bytes per char' "
-                        "set to 2. If using something other than English, "
+                        "speak in. If using something other than English, "
                         "make sure you're not using a *.en model.");
                     py_app_lang_ = py_app_lang;
+
+                    auto* py_app_translate_source = new wxChoice(py_app_config_panel_pairs,
+                        ID_PY_APP_TRANSLATE_SOURCE, wxDefaultPosition, wxDefaultSize,
+                        kNumLangTargetChoices, kLangTargetChoices);
+                    py_app_translate_source->SetToolTip("Select which language to "
+                        "translate from, in other words, the language you are transcribing into.");
+                    py_app_translate_source_ = py_app_translate_source;
+
+                    auto* py_app_translate_target = new wxChoice(py_app_config_panel_pairs,
+                        ID_PY_APP_TRANSLATE_TARGET, wxDefaultPosition, wxDefaultSize,
+                        kNumLangTargetChoices, kLangTargetChoices);
+                    py_app_translate_target->SetToolTip("Select which "
+                        "language to translate to. This is the language "
+                        "that will appear in game. "
+                        "If using a language with non-ASCII characters (i.e. "
+                        "not English), make sure you have 'bytes per char' "
+                        "set to 2.");
+                    py_app_translate_target_ = py_app_translate_target;
 
                     auto* py_app_model = new wxChoice(
                         py_app_config_panel_pairs, ID_PY_APP_MODEL,
@@ -431,6 +666,16 @@ Frame::Frame()
                         "models are fine-tuned English language models, and "
                         "don't work for other languages.");
                     py_app_model_ = py_app_model;
+
+                    auto* py_app_model_translation = new wxChoice(
+                        py_app_config_panel_pairs, ID_PY_APP_MODEL_TRANSLATION,
+                        wxDefaultPosition, wxDefaultSize, kNumModelTranslationChoices,
+                        kModelTranslationChoices);
+                    py_app_model_translation->SetToolTip("Select which "
+                        "version of the translation model to use. 600M params "
+                        "uses 4.1 GB of memory, while 1.3B uses ~7GB of "
+                        "memory.");
+                    py_app_model_translation_ = py_app_model_translation;
 
                     auto* py_app_chars_per_sync = new wxChoice(
                         py_app_config_panel_pairs, ID_PY_APP_CHARS_PER_SYNC,
@@ -517,13 +762,28 @@ Frame::Frame()
                         /*flags=*/wxEXPAND);
 
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs,
-                        wxID_ANY, /*label=*/"Language:"));
+                        wxID_ANY, /*label=*/"Spoken language:"));
                     sizer->Add(py_app_lang, /*proportion=*/0,
                         /*flags=*/wxEXPAND);
 
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs,
-                        wxID_ANY, /*label=*/"Model:"));
+                        wxID_ANY, /*label=*/"Translate from:"));
+                    sizer->Add(py_app_translate_source, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Translate to:"));
+                    sizer->Add(py_app_translate_target, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Transcription model:"));
                     sizer->Add(py_app_model, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Translation model:"));
+                    sizer->Add(py_app_model_translation, /*proportion=*/0,
                         /*flags=*/wxEXPAND);
 
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs,
@@ -1084,10 +1344,25 @@ void Frame::ApplyConfigToInputFields()
 		kNumLangChoices, app_c_->language, kLangDefault);
 	py_app_lang->SetSelection(lang_idx);
 
+    auto* py_app_translate_source = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_TRANSLATE_SOURCE));
+	int translate_source_idx = GetDropdownChoiceIndex(kLangTargetChoices,
+		kNumLangTargetChoices, app_c_->language_source, kLangTargetDefault);
+	py_app_translate_source->SetSelection(translate_source_idx);
+
+    auto* py_app_translate_target = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_TRANSLATE_TARGET));
+	int translate_target_idx = GetDropdownChoiceIndex(kLangTargetChoices,
+		kNumLangTargetChoices, app_c_->language_target, kLangTargetDefault);
+	py_app_translate_target->SetSelection(translate_target_idx);
+
     auto* py_app_model = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_MODEL));
 	int model_idx = GetDropdownChoiceIndex(kModelChoices,
 		kNumModelChoices, app_c_->model, kModelDefault);
 	py_app_model->SetSelection(model_idx);
+
+    auto* py_app_model_translation = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_MODEL_TRANSLATION));
+	int model_translation_idx = GetDropdownChoiceIndex(kModelTranslationChoices,
+		kNumModelTranslationChoices, app_c_->model_translation, kModelTranslationDefault);
+	py_app_model_translation->SetSelection(model_translation_idx);
 
     auto* py_app_chars_per_sync = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_CHARS_PER_SYNC));
 	int chars_idx = GetDropdownChoiceIndex(kCharsPerSync,
@@ -1693,9 +1968,21 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     if (which_lang == wxNOT_FOUND) {
         which_lang = kLangDefault;
     }
+    int which_translate_source = py_app_translate_source_->GetSelection();
+    if (which_translate_source == wxNOT_FOUND) {
+        which_translate_source = kLangDefault;
+    }
+    int which_translate_target = py_app_translate_target_->GetSelection();
+    if (which_translate_target == wxNOT_FOUND) {
+        which_translate_target = kLangDefault;
+    }
     int which_model = py_app_model_->GetSelection();
     if (which_model == wxNOT_FOUND) {
         which_model = kModelDefault;
+    }
+    int which_model_translation = py_app_model_translation_->GetSelection();
+    if (which_model_translation == wxNOT_FOUND) {
+        which_model_translation = kModelTranslationDefault;
     }
     int chars_per_sync_idx = py_app_chars_per_sync_->GetSelection();
     if (chars_per_sync_idx == wxNOT_FOUND) {
@@ -1774,7 +2061,10 @@ void Frame::OnAppStart(wxCommandEvent& event) {
 
     app_c_->microphone = kMicChoices[which_mic].ToStdString();
     app_c_->language = kLangChoices[which_lang].ToStdString();
+    app_c_->language_source = kLangTargetChoices[which_translate_source].ToStdString();
+    app_c_->language_target = kLangTargetChoices[which_translate_target].ToStdString();
     app_c_->model = kModelChoices[which_model].ToStdString();
+    app_c_->model_translation = kModelTranslationChoices[which_model_translation].ToStdString();
     app_c_->chars_per_sync = chars_per_sync;
     app_c_->bytes_per_char = bytes_per_char;
     app_c_->button = kButton[button_idx].ToStdString();

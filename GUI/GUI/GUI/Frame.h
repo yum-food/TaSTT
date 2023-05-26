@@ -62,7 +62,10 @@ private:
 
     wxChoice* py_app_mic_;
     wxChoice* py_app_lang_;
+    wxChoice* py_app_translate_source_;
+    wxChoice* py_app_translate_target_;
     wxChoice* py_app_model_;
+    wxChoice* py_app_model_translation_;
     // TODO(yum) figure out how to deduplicate these objects
     wxChoice* py_app_chars_per_sync_;
     wxChoice* py_app_bytes_per_char_;
