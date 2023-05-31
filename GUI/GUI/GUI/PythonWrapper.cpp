@@ -463,7 +463,6 @@ std::future<bool> PythonWrapper::StartApp(
 					"Resources/Scripts/transcribe.py",
 					"--mic", config.microphone,
 					"--language", config.language,
-					"--language_source", Quote(config.language_source),
 					"--language_target", Quote(config.language_target),
 					"--model", config.model,
 					"--model_translation", config.model_translation,

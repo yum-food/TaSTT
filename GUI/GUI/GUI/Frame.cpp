@@ -30,7 +30,6 @@ namespace {
         ID_PY_APP_MIC,
         ID_PY_APP_MIC_PANEL,
         ID_PY_APP_LANG,
-        ID_PY_APP_TRANSLATE_SOURCE,
         ID_PY_APP_TRANSLATE_TARGET,
         ID_PY_APP_LANG_PANEL,
         ID_PY_APP_MODEL,
@@ -130,107 +129,107 @@ namespace {
     constexpr int kMicDefault = 0;  // index
 
     // lifted from whisper/tokenizer.py
-	const wxString kLangChoices[] = {
-	    "english",
-		"chinese",
-		"german",
-		"spanish",
-		"russian",
-		"korean",
-		"french",
-		"japanese",
-		"portuguese",
-		"turkish",
-		"polish",
-		"catalan",
-		"dutch",
-		"arabic",
-		"swedish",
-		"italian",
-		"indonesian",
-		"hindi",
-		"finnish",
-		"vietnamese",
-		"hebrew",
-		"ukrainian",
-		"greek",
-		"malay",
-		"czech",
-		"romanian",
-		"danish",
-		"hungarian",
-		"tamil",
-		"norwegian",
-		"thai",
-		"urdu",
-		"croatian",
-		"bulgarian",
-		"lithuanian",
-		"latin",
-		"maori",
-		"malayalam",
-		"welsh",
-		"slovak",
-		"telugu",
-		"persian",
-		"latvian",
-		"bengali",
-		"serbian",
-		"azerbaijani",
-		"slovenian",
-		"kannada",
-		"estonian",
-		"macedonian",
-		"breton",
-		"basque",
-		"icelandic",
-		"armenian",
-		"nepali",
-		"mongolian",
-		"bosnian",
-		"kazakh",
-		"albanian",
-		"swahili",
-		"galician",
-		"marathi",
-		"punjabi",
-		"sinhala",
-		"khmer",
-		"shona",
-		"yoruba",
-		"somali",
-		"afrikaans",
-		"occitan",
-		"georgian",
-		"belarusian",
-		"tajik",
-		"sindhi",
-		"gujarati",
-		"amharic",
-		"yiddish",
-		"lao",
-		"uzbek",
-		"faroese",
-		"haitian creole",
-		"pashto",
-		"turkmen",
-		"nynorsk",
-		"maltese",
-		"sanskrit",
-		"luxembourgish",
-		"myanmar",
-		"tibetan",
-		"tagalog",
-		"malagasy",
-		"assamese",
-		"tatar",
-		"hawaiian",
-		"lingala",
-		"hausa",
-		"bashkir",
-		"javanese",
-		"sundanese"
-	};
+    const wxString kLangChoices[] = {
+      "english",
+      "afrikaans",
+      "albanian",
+      "amharic",
+      "arabic",
+      "armenian",
+      "assamese",
+      "azerbaijani",
+      "bashkir",
+      "basque",
+      "belarusian",
+      "bengali",
+      "bosnian",
+      "breton",
+      "bulgarian",
+      "catalan",
+      "chinese",
+      "croatian",
+      "czech",
+      "danish",
+      "dutch",
+      "estonian",
+      "faroese",
+      "finnish",
+      "french",
+      "galician",
+      "georgian",
+      "german",
+      "greek",
+      "gujarati",
+      "haitian creole",
+      "hausa",
+      "hawaiian",
+      "hebrew",
+      "hindi",
+      "hungarian",
+      "icelandic",
+      "indonesian",
+      "italian",
+      "japanese",
+      "javanese",
+      "kannada",
+      "kazakh",
+      "khmer",
+      "korean",
+      "lao",
+      "latin",
+      "latvian",
+      "lingala",
+      "lithuanian",
+      "luxembourgish",
+      "macedonian",
+      "malagasy",
+      "malay",
+      "malayalam",
+      "maltese",
+      "maori",
+      "marathi",
+      "mongolian",
+      "myanmar",
+      "nepali",
+      "norwegian",
+      "nynorsk",
+      "occitan",
+      "pashto",
+      "persian",
+      "polish",
+      "portuguese",
+      "punjabi",
+      "romanian",
+      "russian",
+      "sanskrit",
+      "serbian",
+      "shona",
+      "sindhi",
+      "sinhala",
+      "slovak",
+      "slovenian",
+      "somali",
+      "spanish",
+      "sundanese"
+        "swahili",
+      "swedish",
+      "tagalog",
+      "tajik",
+      "tamil",
+      "tatar",
+      "telugu",
+      "thai",
+      "tibetan",
+      "turkish",
+      "turkmen",
+      "ukrainian",
+      "urdu",
+      "uzbek",
+      "vietnamese",
+      "welsh",
+      "yiddish",
+      "yoruba",
+    };
     const size_t kNumLangChoices = sizeof(kLangChoices) / sizeof(kLangChoices[0]);
     constexpr int kLangDefault = 0;  // english
 
@@ -633,16 +632,8 @@ Frame::Frame()
                         ID_PY_APP_LANG, wxDefaultPosition, wxDefaultSize,
                         kNumLangChoices, kLangChoices);
                     py_app_lang->SetToolTip("Select which language you will "
-                        "speak in. If using something other than English, "
-                        "make sure you're not using a *.en model.");
+                        "speak in.");
                     py_app_lang_ = py_app_lang;
-
-                    auto* py_app_translate_source = new wxChoice(py_app_config_panel_pairs,
-                        ID_PY_APP_TRANSLATE_SOURCE, wxDefaultPosition, wxDefaultSize,
-                        kNumLangTargetChoices, kLangTargetChoices);
-                    py_app_translate_source->SetToolTip("Select which language to "
-                        "translate from, in other words, the language you are transcribing into.");
-                    py_app_translate_source_ = py_app_translate_source;
 
                     auto* py_app_translate_target = new wxChoice(py_app_config_panel_pairs,
                         ID_PY_APP_TRANSLATE_TARGET, wxDefaultPosition, wxDefaultSize,
@@ -674,7 +665,8 @@ Frame::Frame()
                     py_app_model_translation->SetToolTip("Select which "
                         "version of the translation model to use. 600M params "
                         "uses 4.1 GB of memory, while 1.3B uses ~7GB of "
-                        "memory.");
+                        "memory. If 'Translate to' is set to 'Do not "
+                        "translate', this does nothing.");
                     py_app_model_translation_ = py_app_model_translation;
 
                     auto* py_app_chars_per_sync = new wxChoice(
@@ -767,18 +759,13 @@ Frame::Frame()
                         /*flags=*/wxEXPAND);
 
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs,
-                        wxID_ANY, /*label=*/"Translate from:"));
-                    sizer->Add(py_app_translate_source, /*proportion=*/0,
+                        wxID_ANY, /*label=*/"Transcription model:"));
+                    sizer->Add(py_app_model, /*proportion=*/0,
                         /*flags=*/wxEXPAND);
 
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs,
                         wxID_ANY, /*label=*/"Translate to:"));
                     sizer->Add(py_app_translate_target, /*proportion=*/0,
-                        /*flags=*/wxEXPAND);
-
-                    sizer->Add(new wxStaticText(py_app_config_panel_pairs,
-                        wxID_ANY, /*label=*/"Transcription model:"));
-                    sizer->Add(py_app_model, /*proportion=*/0,
                         /*flags=*/wxEXPAND);
 
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs,
@@ -1343,11 +1330,6 @@ void Frame::ApplyConfigToInputFields()
 	int lang_idx = GetDropdownChoiceIndex(kLangChoices,
 		kNumLangChoices, app_c_->language, kLangDefault);
 	py_app_lang->SetSelection(lang_idx);
-
-    auto* py_app_translate_source = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_TRANSLATE_SOURCE));
-	int translate_source_idx = GetDropdownChoiceIndex(kLangTargetChoices,
-		kNumLangTargetChoices, app_c_->language_source, kLangTargetDefault);
-	py_app_translate_source->SetSelection(translate_source_idx);
 
     auto* py_app_translate_target = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_TRANSLATE_TARGET));
 	int translate_target_idx = GetDropdownChoiceIndex(kLangTargetChoices,
@@ -1968,10 +1950,6 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     if (which_lang == wxNOT_FOUND) {
         which_lang = kLangDefault;
     }
-    int which_translate_source = py_app_translate_source_->GetSelection();
-    if (which_translate_source == wxNOT_FOUND) {
-        which_translate_source = kLangDefault;
-    }
     int which_translate_target = py_app_translate_target_->GetSelection();
     if (which_translate_target == wxNOT_FOUND) {
         which_translate_target = kLangDefault;
@@ -2061,7 +2039,6 @@ void Frame::OnAppStart(wxCommandEvent& event) {
 
     app_c_->microphone = kMicChoices[which_mic].ToStdString();
     app_c_->language = kLangChoices[which_lang].ToStdString();
-    app_c_->language_source = kLangTargetChoices[which_translate_source].ToStdString();
     app_c_->language_target = kLangTargetChoices[which_translate_target].ToStdString();
     app_c_->model = kModelChoices[which_model].ToStdString();
     app_c_->model_translation = kModelTranslationChoices[which_model_translation].ToStdString();

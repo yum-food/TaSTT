@@ -64,7 +64,6 @@ AppConfig::AppConfig(wxTextCtrl* out)
 
 	microphone("index"),
 	language("english"),
-	language_source("Do not translate"),
 	language_target("Do not translate"),
 	model("base.en"),
 	model_translation("nllb-200-distilled-600M"),
@@ -115,7 +114,6 @@ bool AppConfig::Serialize(const std::filesystem::path& path) {
 
 	cm.Set("microphone", microphone);
 	cm.Set("language", language);
-	cm.Set("language_source", language_source);
 	cm.Set("language_target", language_target);
 	cm.Set("model", model);
 	cm.Set("model_translation", model_translation);
@@ -179,7 +177,6 @@ bool AppConfig::Deserialize(const std::filesystem::path& path) {
 	AppConfig c(out_);
 	cm.Get("microphone", c.microphone);
 	cm.Get("language", c.language);
-	cm.Get("language_source", c.language_source);
 	cm.Get("language_target", c.language_target);
 	cm.Get("model", c.model);
 	cm.Get("model_translation", c.model_translation);

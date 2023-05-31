@@ -11,4 +11,5 @@ pyaudio
 python-osc
 playsound==1.2.2
 pyyaml
+sentence_splitter
 transformers>=4.21.0

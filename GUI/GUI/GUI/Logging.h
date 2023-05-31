@@ -40,8 +40,9 @@ namespace Logging {
 	void Log(wxTextCtrl* frame, std::string_view format, Args&&... args) {
 		const std::string raw = std::vformat(format, std::make_format_args(args...));
 		const std::string masked = HidePII(std::move(raw));
+		const std::string decoded = wxString::FromUTF8(masked).ToStdString();
 
-		kThreadLogger.Append(frame, std::move(masked));
+		kThreadLogger.Append(frame, std::move(decoded));
 	}
 
 	void DrainAsyncOutput(wxProcess* proc, wxTextCtrl* frame);
