@@ -47,7 +47,6 @@ namespace {
         ID_PY_APP_ENABLE_LOWERCASE_FILTER,
         ID_PY_APP_ROWS,
         ID_PY_APP_COLS,
-        ID_PY_APP_WINDOW_DURATION,
         ID_PY_APP_GPU_IDX,
         ID_PY_APP_KEYBIND,
         ID_UNITY_PANEL,
@@ -713,19 +712,6 @@ Frame::Frame()
                         "The number of columns on the text box.");
                     py_app_cols_ = py_app_cols;
 
-                    auto* py_app_window_duration = new wxTextCtrl(
-                        py_app_config_panel_pairs, ID_PY_APP_WINDOW_DURATION,
-                        app_c_->window_duration, wxDefaultPosition,
-                        wxDefaultSize, /*style=*/0);
-                    py_app_window_duration->SetToolTip(
-                        "This controls how long the slice of audio that "
-                        "we feed the transcription algorithm is, in seconds. "
-                        "Shorter values (as low as 10 seconds) can be transcribed "
-                        "more quickly, but are less accurate. Longer values "
-                        "(as high as 28 seconds) take longer to transcribe, "
-                        "but are far more accurate.");
-                    py_app_window_duration_ = py_app_window_duration;
-
 					auto* py_app_gpu_idx = new wxTextCtrl(
                         py_app_config_panel_pairs, ID_PY_APP_GPU_IDX,
                         std::to_string(app_c_->gpu_idx), wxDefaultPosition,
@@ -802,11 +788,6 @@ Frame::Frame()
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs,
                         wxID_ANY, /*label=*/"Text box columns:"));
                     sizer->Add(py_app_cols, /*proportion=*/0,
-                        /*flags=*/wxEXPAND);
-
-                    sizer->Add(new wxStaticText(py_app_config_panel_pairs,
-                        wxID_ANY, /*label=*/"Window duration (s):"));
-                    sizer->Add(py_app_window_duration, /*proportion=*/0,
                         /*flags=*/wxEXPAND);
 
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs,
@@ -1996,52 +1977,44 @@ void Frame::OnAppStart(wxCommandEvent& event) {
         kCharsPerSync[chars_per_sync_idx].ToStdString();
     std::string bytes_per_char_str =
         kBytesPerChar[bytes_per_char_idx].ToStdString();
-    std::string window_duration_str =
-        py_app_window_duration_->GetValue().ToStdString();
     std::string gpu_idx_str =
         py_app_gpu_idx_->GetValue().ToStdString();
     std::string keybind =
         py_app_keybind_->GetValue().ToStdString();
-    int rows, cols, chars_per_sync, bytes_per_char, window_duration, gpu_idx;
+    int rows, cols, chars_per_sync, bytes_per_char, gpu_idx;
     try {
         rows = std::stoi(rows_str);
         cols = std::stoi(cols_str);
         chars_per_sync = std::stoi(chars_per_sync_str);
         bytes_per_char = std::stoi(bytes_per_char_str);
-        window_duration = std::stoi(window_duration_str);
         gpu_idx = std::stoi(gpu_idx_str);
     }
     catch (const std::invalid_argument&) {
 		Log(transcribe_out_, "Could not parse rows \"{}\", cols \"{}\", chars "
-            "per sync \"{}\", bytes per char \"{}\" window duration \"{}\" "
+            "per sync \"{}\", bytes per char \"{}\" "
             "or gpu_idx \"{}\""
             "as an integer\n", rows_str, cols_str, chars_per_sync_str,
-            bytes_per_char_str, window_duration_str, gpu_idx_str);
+            bytes_per_char_str, gpu_idx_str);
         return;
     }
     catch (const std::out_of_range&) {
 		Log(transcribe_out_, "Rows \"{}\", cols \"{}\", chars per sync "
-            "\"{}\", bytes per char \"{}\" or window duration \"{}\" are out "
+            "\"{}\", bytes per char \"{}\" or \"{}\" are out "
             "of range\n", rows_str, cols_str, chars_per_sync_str,
-            bytes_per_char_str, window_duration_str);
+            bytes_per_char_str);
         return;
     }
     const int max_rows = 10;
     const int max_cols = 240;
-    const int min_window_duration_s = 10;
-    const int max_window_duration_s = 300;
     const int min_gpu_idx = 0;
     const int max_gpu_idx = 10;
     if (rows < 0 || rows > max_rows ||
         cols < 0 || cols > max_cols ||
-        window_duration < min_window_duration_s ||
-        window_duration > max_window_duration_s ||
         gpu_idx < min_gpu_idx || gpu_idx > max_gpu_idx) {
         Log(transcribe_out_, "Rows not on [{},{}] or cols not on [{},{}] or "
-            "window_duration not on [{},{}] or gpu_idx not on [{}, {}]\n",
+            "gpu_idx not on [{}, {}]\n",
             0, max_rows,
             0, max_cols,
-            min_window_duration_s, max_window_duration_s,
             min_gpu_idx, max_gpu_idx);
         return;
     }
@@ -2056,7 +2029,6 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     app_c_->button = kButton[button_idx].ToStdString();
     app_c_->rows = rows;
     app_c_->cols = cols;
-    app_c_->window_duration = std::to_string(window_duration);
     app_c_->enable_local_beep = enable_local_beep;
     app_c_->use_cpu = use_cpu;
     app_c_->use_builtin = use_builtin;

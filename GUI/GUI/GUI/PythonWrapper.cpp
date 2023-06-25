@@ -472,7 +472,9 @@ std::future<bool> PythonWrapper::StartApp(
 					"--enable_local_beep", config.enable_local_beep ? "1" : "0",
 					"--rows", std::to_string(config.rows),
 					"--cols", std::to_string(config.cols),
-					"--window_duration_s", config.window_duration,
+					// this is the max length of the audio buffer. 5 minutes
+					// is a reasonable approximation of infinity.
+					"--window_duration_s", "300",
 					"--cpu", config.use_cpu ? "1" : "0",
 					"--use_builtin", config.use_builtin ? "1" : "0",
 					"--enable_uwu_filter", config.enable_uwu_filter ? "1" : "0",

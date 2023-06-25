@@ -68,7 +68,6 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	model("base.en"),
 	model_translation("nllb-200-distilled-600M"),
 	button("left joystick"),
-	window_duration("15"),
 
 	enable_local_beep(true),
 	use_cpu(false),
@@ -118,7 +117,6 @@ bool AppConfig::Serialize(const std::filesystem::path& path) {
 	cm.Set("model", model);
 	cm.Set("model_translation", model_translation);
 	cm.Set("button", button);
-	cm.Set("window_duration", window_duration);
 
 	cm.Set("enable_local_beep", enable_local_beep);
 	cm.Set("use_cpu", use_cpu);
@@ -181,7 +179,6 @@ bool AppConfig::Deserialize(const std::filesystem::path& path) {
 	cm.Get("model", c.model);
 	cm.Get("model_translation", c.model_translation);
 	cm.Get("button", c.button);
-	cm.Get("window_duration", c.window_duration);
 
 	cm.Get("enable_local_beep", c.enable_local_beep);
 	cm.Get("use_cpu", c.use_cpu);
