@@ -4,6 +4,7 @@ from datetime import datetime
 from emotes_v2 import EmotesState
 from faster_whisper import WhisperModel
 from functools import partial
+from math import ceil
 from playsound import playsound
 from sentence_splitter import split_text_into_sentences
 
@@ -20,12 +21,12 @@ import os
 import osc_ctrl
 import pyaudio
 import steamvr
-import string_matcher
 import subprocess
 import sys
 import threading
 import time
 import transformers
+import typing
 import wave
 
 class AudioState:
@@ -48,8 +49,13 @@ class AudioState:
         # PyAudio stream object
         self.stream = None
 
+        self.committed_text = ""
         self.text = ""
         self.filtered_text = ""
+        # List of:
+        #   List of tuples of:
+        #     Segment start time, end time, and text
+        self.ranges_ls = []
         self.frames = []
 
         # Locks access to `text`.
@@ -189,6 +195,8 @@ def resetAudioLocked(audio_state):
             audio_state.transcribe_sleep_duration_min_s
 
     audio_state.text = ""
+    audio_state.preview_text = ""
+    audio_state.filtered_text = ""
 
 def resetDisplayLocked(audio_state):
     osc_ctrl.clear(audio_state.osc_state)
@@ -201,7 +209,10 @@ def resetAudio(audio_state):
     audio_state.transcribe_lock.release()
 
 # Transcribe the audio recorded in a file.
-def transcribe(audio_state, model, frames, use_cpu: bool):
+# Returns two strings: committed text, and preview text.
+# Committed text is temporally stable. Preview text is *not* temporally stable,
+# but is lower latency than committed text.
+def transcribe(audio_state, model, frames, use_cpu: bool) -> typing.Tuple[str,str]:
     start_time = time.time()
 
     frames = audio_state.frames
@@ -217,9 +228,41 @@ def transcribe(audio_state, model, frames, use_cpu: bool):
             beam_size = 5,
             language = audio_state.language,
             vad_filter = True,
-            without_timestamps = True)
+            condition_on_previous_text = True,
+            without_timestamps = False)
+    ranges = []
+    for s in segments:
+        #print(f"Segment: {s}")
+        ranges.append((s.start, s.end, s.text))
+    audio_state.ranges_ls.append(ranges)
 
-    return "".join(s.text for s in segments)
+    committed_text = ""
+    if True:
+        # Tuple of (start time, end time, transcript)
+        first_segments = []
+        for ranges in audio_state.ranges_ls:
+            for segment in ranges:
+                first_segments.append(segment)
+                break
+        if len(first_segments) >= 3:
+            c0 = first_segments[-3]
+            c1 = first_segments[-2]
+            c2 = first_segments[-1]
+            #print(f"c0: {c0}, c1: {c1}, c2: {c2}")
+            if c0 == c1 and c1 == c2:
+                # For simplicity, completely reset saved audio ranges.
+                audio_state.ranges_ls = []
+                committed_text = c2[2]
+                n_frames_to_drop = int(ceil(audio_state.RATE * c0[1]))
+                del audio_state.frames[0:n_frames_to_drop]
+
+    preview_text = ""
+    for seg in ranges:
+        if seg[2] == committed_text:
+            continue
+        preview_text += seg[2]
+
+    return (committed_text, preview_text)
 
 def transcribeAudio(audio_state,
         model,
@@ -251,8 +294,8 @@ def transcribeAudio(audio_state,
                     audio_state.transcribe_sleep_duration_max_s,
                     longer_sleep_dur)
 
-        text = transcribe(audio_state, model, audio_state.frames, use_cpu)
-        if not text:
+        text, preview_text = transcribe(audio_state, model, audio_state.frames, use_cpu)
+        if len(text) == 0 and len(preview_text) == 0:
             print("no transcription, spin ({} seconds)".format(time.time() - last_transcribe_time))
             last_transcribe_time = time.time()
             continue
@@ -260,23 +303,24 @@ def transcribeAudio(audio_state,
         if audio_state.drop_transcription:
             audio_state.drop_transcription = False
             audio_state.text = ""
+            audio_state.preview_text = ""
             audio_state.filtered_text = ""
             print("drop transcription ({} seconds)".format(time.time() - last_transcribe_time))
             last_transcribe_time = time.time()
             continue
 
         old_text = audio_state.text
-        audio_state.text = string_matcher.matchStrings(audio_state.text,
-                text, window_size = 25)
+        audio_state.text += text
+        audio_state.preview_text = audio_state.text + preview_text
 
         now = time.time()
         print("Transcription ({} seconds): {}".format(
             now - last_transcribe_time,
-            audio_state.text))
+            audio_state.preview_text))
         last_transcribe_time = now
 
         # Translate if requested.
-        translated = audio_state.text
+        translated = audio_state.preview_text
         if audio_state.language_target:
             whisper_lang = audio_state.whisper_language
             nllb_lang = lang_compat.whisper_to_nllb[whisper_lang]
@@ -314,7 +358,7 @@ def transcribeAudio(audio_state,
             filtered_text = filtered_text.lower()
         audio_state.filtered_text = filtered_text
 
-        if old_text != audio_state.text:
+        if old_text != audio_state.preview_text:
             # We think the user said something, so  reset the amount of
             # time we sleep between transcriptions to the minimum.
             audio_state.transcribe_no_change_count = 0
