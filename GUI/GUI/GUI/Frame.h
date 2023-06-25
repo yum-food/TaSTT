@@ -107,7 +107,7 @@ private:
     // Initialize GUI input fields using `app_c_`.
     void ApplyConfigToInputFields();
     // Ensure that virtual env is set up.
-    void EnsureVirtualEnv(bool block);
+    void EnsureVirtualEnv(bool block, bool force = false);
 
     void OnExit(wxCloseEvent& event);
     void OnNavbarTranscribe(wxCommandEvent& event);
@@ -127,6 +127,7 @@ private:
     void OnClearOSC(wxCommandEvent& event);
     void OnBackupVenv(wxCommandEvent& event);
     void OnRestoreVenv(wxCommandEvent& event);
+    void OnSetupVenv(wxCommandEvent& event);
 
     void LoadAndSetIcons();
     void Resize();

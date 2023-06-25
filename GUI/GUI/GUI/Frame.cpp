@@ -77,6 +77,7 @@ namespace {
 		ID_DEBUG_BUTTON_CLEAR_OSC,
 		ID_DEBUG_BUTTON_BACKUP_VENV,
 		ID_DEBUG_BUTTON_RESTORE_VENV,
+		ID_DEBUG_BUTTON_SETUP_VENV,
 		ID_WHISPER_PANEL,
 		ID_WHISPER_OUT,
 		ID_WHISPER_CONFIG_PANEL,
@@ -1241,6 +1242,13 @@ Frame::Frame()
                     "~/Downloads/TaSTT_venv");
 				debug_button_restore_venv->SetWindowStyleFlag(wxBU_EXACTFIT);
 
+				auto* debug_button_setup_venv = new wxButton(
+                    debug_config_panel, ID_DEBUG_BUTTON_SETUP_VENV,
+                    "Set up virtual env");
+                debug_button_setup_venv->SetToolTip(
+                    "Reinstall packages to the virtual environment");
+				debug_button_setup_venv->SetWindowStyleFlag(wxBU_EXACTFIT);
+
 				auto* sizer = new wxBoxSizer(wxVERTICAL);
 				debug_config_panel->SetSizer(sizer);
 				sizer->Add(debug_button_list_pip, /*proportion=*/0,
@@ -1254,6 +1262,8 @@ Frame::Frame()
 				sizer->Add(debug_button_backup_venv, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
 				sizer->Add(debug_button_restore_venv, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+				sizer->Add(debug_button_setup_venv, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
 			}
 
@@ -1296,6 +1306,8 @@ Frame::Frame()
 	Bind(wxEVT_BUTTON, &Frame::OnBackupVenv, this, ID_DEBUG_BUTTON_BACKUP_VENV);
 	Bind(wxEVT_BUTTON, &Frame::OnRestoreVenv, this,
         ID_DEBUG_BUTTON_RESTORE_VENV);
+	Bind(wxEVT_BUTTON, &Frame::OnSetupVenv, this,
+        ID_DEBUG_BUTTON_SETUP_VENV);
     Bind(wxEVT_CHOICE, &Frame::OnUnityParamChange, this,
         ID_UNITY_CHARS_PER_SYNC);
     Bind(wxEVT_CHOICE, &Frame::OnUnityParamChange, this,
@@ -1460,7 +1472,7 @@ void Frame::OnNavbarDebug(wxCommandEvent& event)
     Resize();
 }
 
-void Frame::EnsureVirtualEnv(bool block)
+void Frame::EnsureVirtualEnv(bool block, bool force)
 {
     auto status = env_proc_.wait_for(std::chrono::seconds(0));
     if (status != std::future_status::ready) {
@@ -1469,7 +1481,7 @@ void Frame::EnsureVirtualEnv(bool block)
 	}
 
 	static const std::filesystem::path venv_flag = std::filesystem::current_path() / ".venv_is_set_up";
-	if (std::filesystem::exists(venv_flag)) {
+	if (!force && std::filesystem::exists(venv_flag)) {
 		std::ifstream venv_flag_ifs(venv_flag);
 		std::string venv_flag_ts_str;
 		std::getline(venv_flag_ifs, venv_flag_ts_str);
@@ -1488,17 +1500,7 @@ void Frame::EnsureVirtualEnv(bool block)
 			Log(transcribe_out_, "Could not venv flag timestamp \"{}\" as long "
 				"- will re-setup venv");
 		}
-		if (is_valid) {
-			auto now = std::chrono::system_clock::now();
-			const int64_t seconds_since_epoch = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
-            int64_t seconds_old = seconds_since_epoch - venv_flag_ts;
-            if (seconds_old >= 0 &&
-                seconds_old < 60 * 60) {
-                return;
-            }
-            Log(transcribe_out_, "Virtual environment last set up {} seconds "
-                "ago, verifying installation\n", seconds_old);
-		}
+        return;
 	}
 
     env_proc_ = std::move(std::async(std::launch::async, [&]() {
@@ -1890,6 +1892,13 @@ void Frame::OnRestoreVenv(wxCommandEvent& event)
 		"packages should not be re-acquired. Output is printed to the "
         "transcription panel.\n");
     EnsureVirtualEnv(/*block=*/false);
+}
+
+void Frame::OnSetupVenv(wxCommandEvent& event)
+{
+	Log(debug_out_, "Setting up virtual environment. Output is printed to the "
+        "transcription panel.\n");
+    EnsureVirtualEnv(/*block=*/false, /*force=*/true);
 }
 
 void Frame::OnUnityParamChangeImpl() {
