@@ -8,6 +8,7 @@
 #endif
 
 #include "Config.h"
+#include "Transcript.h"
 
 #include <future>
 #include <memory>
@@ -93,6 +94,8 @@ private:
     wxCheckBox* whisper_enable_browser_src_;
 
     std::future<bool> py_app_;
+    std::future<bool> obs_app_;
+    Transcript transcript_;
     bool run_py_app_;
     std::future<bool> unity_app_;
     std::future<bool> dump_mics_;

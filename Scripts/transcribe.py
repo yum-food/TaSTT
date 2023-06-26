@@ -57,6 +57,7 @@ class AudioState:
         #     Segment start time, end time, and text
         self.ranges_ls = []
         self.frames = []
+        self.drop_frames_till_i = -1
 
         # Locks access to `text`.
         self.transcribe_lock = threading.Lock()
@@ -131,6 +132,9 @@ def onAudioFramesAvailable(
             audio_state.CHUNK)
     if len(audio_state.frames) > max_frames:
         audio_state.frames = audio_state.frames[-1 * max_frames:]
+    if audio_state.drop_frames_till_i > 0:
+        audio_state.frames = audio_state.frames[audio_state.drop_frames_till_i:-1]
+        audio_state.drop_frames_till_i = -1
 
 
     return (frames, pyaudio.paContinue)
@@ -227,6 +231,7 @@ def transcribe(audio_state, model, frames, use_cpu: bool) -> typing.Tuple[str,st
             audio,
             beam_size = 5,
             language = audio_state.language,
+            temperature = [0.0],
             vad_filter = True,
             condition_on_previous_text = True,
             without_timestamps = False)
@@ -244,17 +249,20 @@ def transcribe(audio_state, model, frames, use_cpu: bool) -> typing.Tuple[str,st
             for segment in ranges:
                 first_segments.append(segment)
                 break
-        if len(first_segments) >= 3:
-            c0 = first_segments[-3]
+        if len(first_segments) >= 5:
+            # Hack: require convergence across many frames to give the
+            # algorithm a longer buffer to work with.
+            c0 = first_segments[-1]
             c1 = first_segments[-2]
-            c2 = first_segments[-1]
+            c2 = first_segments[-3]
+            c3 = first_segments[-4]
             #print(f"c0: {c0}, c1: {c1}, c2: {c2}")
-            if c0 == c1 and c1 == c2:
+            if c0 == c1 and c1 == c2 and c2 == c3:
                 # For simplicity, completely reset saved audio ranges.
                 audio_state.ranges_ls = []
-                committed_text = c2[2]
+                committed_text = c0[2]
                 n_frames_to_drop = int(ceil(audio_state.RATE * c0[1]))
-                del audio_state.frames[0:n_frames_to_drop]
+                audio_state.drop_frames_till_i = n_frames_to_drop
 
     preview_text = ""
     for seg in ranges:

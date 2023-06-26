@@ -61,6 +61,8 @@ void BrowserSource::Run(volatile bool* run)
 			resp_oss << "}";
 			payload = resp_oss.str();
 			type = WebServer::JSON;
+
+			//Log(out_, "Serving transcript to port {}: {}\n", port_, transcript_oss.str());
 		});
 
 	if (!ws.Run(run)) {

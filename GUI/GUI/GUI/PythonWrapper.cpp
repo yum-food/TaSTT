@@ -448,16 +448,19 @@ bool PythonWrapper::InstallPip(
 
 std::future<bool> PythonWrapper::StartApp(
 		const AppConfig& config,
+		wxTextCtrl *out,
 		const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
 		const std::function<void(std::string& in)>&& in_cb,
 		const std::function<bool()>&& run_cb,
 		const std::function<void()>&& prestart_cb) {
+
 	return std::move(std::async(std::launch::async,
 		[&](
 			const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
 			const std::function<void(std::string& in)>&& in_cb,
 			const std::function<bool()>&& run_cb) -> bool {
 				prestart_cb();
+
 				return InvokeWithArgs({
 					"-u",  // Unbuffered output
 					"Resources/Scripts/transcribe.py",

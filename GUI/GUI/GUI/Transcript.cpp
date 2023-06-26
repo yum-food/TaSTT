@@ -5,6 +5,12 @@ void Transcript::Append(std::string&& segment) {
 	segments_.push_back(std::move(segment));
 }
 
+void Transcript::Set(std::string&& segment) {
+	std::scoped_lock l(mu_);
+	segments_.clear();
+	segments_.push_back(std::move(segment));
+}
+
 void Transcript::Clear() {
 	std::scoped_lock l(mu_);
 	segments_.clear();

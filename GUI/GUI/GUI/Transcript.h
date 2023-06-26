@@ -10,6 +10,7 @@ public:
 	Transcript() = default;
 
 	void Append(std::string&& segment);
+	void Set(std::string&& segment);
 	void Clear();
 
 	std::vector<std::string> Get();

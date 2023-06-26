@@ -1,3 +1,4 @@
+#include "BrowserSource.h"
 #include "Frame.h"
 #include "Logging.h"
 #include "PythonWrapper.h"
@@ -6,6 +7,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <regex>
 #include <string>
 #include <vector>
 #include <wx/filepicker.h>
@@ -549,6 +551,11 @@ Frame::Frame()
 	{
 		auto p = std::promise<bool>();
 		py_app_ = p.get_future();
+		p.set_value(true);
+	}
+	{
+		auto p = std::promise<bool>();
+		obs_app_ = p.get_future();
 		p.set_value(true);
 	}
 	{
@@ -1930,6 +1937,12 @@ void Frame::OnAppStart(wxCommandEvent& event) {
 		return;
 	}
 
+    status = obs_app_.wait_for(std::chrono::seconds(0));
+    if (status != std::future_status::ready) {
+		Log(transcribe_out_, "Transcription engine (OBS server) already running\n");
+		return;
+	}
+
 	Log(transcribe_out_, "Launching transcription engine\n");
 
     int which_mic = py_app_mic_->GetSelection();
@@ -2043,6 +2056,16 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     auto out_cb = [&](const std::string& out, const std::string& err) {
         Log(transcribe_out_, "{}", out);
         Log(transcribe_out_, "{}", err);
+
+		std::regex pattern("^Transcription \\(([0-9]*\\.[0-9]+) seconds\\):");
+        if (std::regex_search(out, pattern)) {
+            std::string filtered_transcript = std::regex_replace(out, pattern, "");
+            filtered_transcript.erase(std::remove_if(filtered_transcript.begin(), filtered_transcript.end(), [](char c) {
+                return c == '\n' || c == '\r';
+                }), filtered_transcript.end());
+            Log(transcribe_out_, "Got transcription line! Transcript: \"{}\"", filtered_transcript);
+            transcript_.Set(std::move(filtered_transcript));
+        }
     };
     auto in_cb = [&](std::string& in) {};
     auto run_cb = [&]() {
@@ -2052,8 +2075,17 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     auto prestart_cb = [this]() -> void {
         EnsureVirtualEnv(/*block=*/true);
     };
-    py_app_ = std::move(PythonWrapper::StartApp(*app_c_, std::move(out_cb),
-        std::move(in_cb), std::move(run_cb), std::move(prestart_cb)));
+
+	// TODO(yum) parameterize port
+    obs_app_ = std::async(std::launch::async,
+        [&]() -> bool {
+			BrowserSource browser_src(8097, transcribe_out_, &transcript_);
+            browser_src.Run(&run_py_app_);
+            return true;
+        });
+    py_app_ = std::move(PythonWrapper::StartApp(*app_c_, transcribe_out_,
+        std::move(out_cb), std::move(in_cb), std::move(run_cb),
+        std::move(prestart_cb)));
     Log(transcribe_out_, "py app valid: {}\n", py_app_.valid());
 }
 
@@ -2065,6 +2097,8 @@ void Frame::OnAppStop() {
     }
     run_py_app_ = false;
     py_app_.wait();
+    obs_app_.wait();
+    transcript_.Clear();
 	Log(transcribe_out_, "Stopped transcription engine\n");
 }
 

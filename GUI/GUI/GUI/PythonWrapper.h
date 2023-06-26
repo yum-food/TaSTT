@@ -73,6 +73,7 @@ namespace PythonWrapper
 	// app restarts.
 	std::future<bool> StartApp(
 		const AppConfig& config,
+		wxTextCtrl *out,
 		const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
 		const std::function<void(std::string& in)>&& in_cb = [](std::string&) {},
 		const std::function<bool()>&& run_cb = []() { return true; },
