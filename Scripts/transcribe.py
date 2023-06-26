@@ -437,6 +437,7 @@ def readKeyboardInput(audio_state, enable_local_beep: bool,
             audio_state.transcribe_sleep_duration = audio_state.transcribe_sleep_duration_min_s
 
             audio_state.audio_paused = True
+            resetAudioLocked(audio_state)
 
             if enable_local_beep == 1:
                 playsound(os.path.abspath("Resources/Sounds/Noise_Off_Quiet.wav"),
