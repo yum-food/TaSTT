@@ -11,6 +11,7 @@ from sentence_splitter import split_text_into_sentences
 import argparse
 import copy
 import ctranslate2
+import editdistance
 import generate_utils
 import keybind_event_machine
 import keyboard
@@ -39,7 +40,7 @@ class AudioState:
 
         # The maximum length that recordAudio() will put into frames before it
         # starts dropping from the start.
-        self.MAX_LENGTH_S = 30
+        self.MAX_LENGTH_S = 300
         # The minimum length that recordAudio() will wait for before saving audio.
         self.MIN_LENGTH_S = 1
 
@@ -257,11 +258,20 @@ def transcribe(audio_state, model, frames, use_cpu: bool) -> typing.Tuple[str,st
             c1 = first_segments[-2]
             c2 = first_segments[-3]
             c3 = first_segments[-4]
+
+            c0_c1_d = editdistance.eval(c0[2], c1[2])
+            c1_c2_d = editdistance.eval(c1[2], c2[2])
+            c2_c3_d = editdistance.eval(c2[2], c3[2])
+
+            max_edit = 8
+
             #print(f"c0: {c0}, c1: {c1}, c2: {c2}")
-            if c0 == c1 and c1 == c2 and c2 == c3:
+            #if c0 == c1 and c1 == c2 and c2 == c3:
+            if c0_c1_d < max_edit and c1_c2_d < max_edit and c2_c3_d < max_edit:
                 # For simplicity, completely reset saved audio ranges.
                 audio_state.ranges_ls = []
                 committed_text = c0[2]
+                print(f"Dropping frames until {c0[1]}")
                 n_frames_to_drop = int(ceil(audio_state.RATE * c0[1]))
                 audio_state.drop_frames_till_i = n_frames_to_drop
 

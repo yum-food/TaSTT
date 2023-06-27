@@ -2122,16 +2122,24 @@ void Frame::OnAppStart(wxCommandEvent& event) {
 }
 
 void Frame::OnAppStop() {
+    run_py_app_ = false;
     auto status = py_app_.wait_for(std::chrono::seconds(0));
     if (status == std::future_status::ready) {
 		Log(transcribe_out_, "Transcription engine already stopped\n");
-        return;
     }
-    run_py_app_ = false;
-    py_app_.wait();
-    obs_app_.wait();
+    else {
+		py_app_.wait();
+		Log(transcribe_out_, "Stopped transcription engine\n");
+    }
+    status = obs_app_.wait_for(std::chrono::seconds(0));
+    if (status == std::future_status::ready) {
+		Log(transcribe_out_, "Browser source already stopped\n");
+    }
+    else {
+		obs_app_.wait();
+		Log(transcribe_out_, "Stopped browser source\n");
+    }
     transcript_.Clear();
-	Log(transcribe_out_, "Stopped transcription engine\n");
 }
 
 void Frame::OnAppStop(wxCommandEvent& event) {
