@@ -149,7 +149,6 @@ cp -Recurse ../Sounds TaSTT/Resources/Sounds
 cp -Recurse ../UnityAssets TaSTT/Resources/UnityAssets
 cp -Recurse ../BrowserSource TaSTT/Resources/BrowserSource
 cp GUI/x64/$release/GUI.exe TaSTT/TaSTT.exe
-cp ../"TaSTT-Whisper"/x64/Release/Whisper.dll TaSTT/Whisper.dll
 mkdir TaSTT/Resources/Models
 mkdir TaSTT/Resources/Uwu
 cp UwwwuPP/build/Src/Debug/Uwwwu.exe TaSTT/Resources/Uwu/

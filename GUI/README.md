@@ -18,8 +18,6 @@ $ git submodule update
       Unrestricted` in an admin instance of powershell. Heed the warning,
       this is a security risk! Never run code from someone you don't trust
       unless you've carefully audited it.
-  3.1. If you haven't built TaSTT-Whisper before, you'll see an error. Ignore
-      it.
 4. Open `Libraries/wx/build/msw/wx_vc17.sln` with Visual Studio 2022.
 5. Select every project in the Solution Explorer except for `_custom_build`.
 6. Right click, select Properties, go to C/C++, Code Generation, and set
@@ -29,18 +27,14 @@ $ git submodule update
   1. The build configuration is in the top. By default it's probably Debug/x64.
   2. To build: ctrl+shift+B
   3. If you saw an error in 3.1, rerun Libraries/fetch.ps1.
-8. Follow `Build instructions` section of TaSTT-Whisper/Readme.md and build it
-   as x64/Release.
-  8.0. If you see a message like `Based on your solution... you might need to
-      install additional components`, do it.
-9. Open GUI/GUI.sln with Visual Studio 2022.
-10. Build x64/Release.
-11. Run package.ps1 from powershell.
-  11.0. If you're not creating a redistributable release, use this command
+8. Open GUI/GUI.sln with Visual Studio 2022.
+9. Build x64/Release.
+10. Run package.ps1 from powershell.
+  10.0. If you're not creating a redistributable release, use this command
         instead (it's way faster): `package.ps1 -skip_zip`.
-  11.1. When PortableGit creates a window, wait for it to complete, then press
+  10.1. When PortableGit creates a window, wait for it to complete, then press
         then press enter in Powershell.
-  11.2. The first time you run this it'll take a long time since it has to
+  10.2. The first time you run this it'll take a long time since it has to
         fetch a few large packages. Subsequent invocations will be much faster
         since it won't reacquire anything already downloaded. On my connection,
         it took 90 minutes to finish downloading, mostly because Google Drive
@@ -49,9 +43,8 @@ $ git submodule update
 ## High level design
 
 * The GUI is written using wxWidgets.
-* Python executes core business logic. We can't migrate away since
-  there's no CUDA-enabled Whisper implementation available in a good
-  systems programming language.
+* Python executes core business logic. With libraries like faster\_whisper
+  available, this provides a nice balance between flexibility and performance.
 * To skirt licensing complexity, we distribute an embedded python
   that's hacked up to allow installing packages via pip. We use this
   to install packages at runtime (like a net installer), so we don't

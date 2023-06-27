@@ -25,12 +25,10 @@ private:
     wxPanel* transcribe_panel_;
     wxPanel* unity_panel_;
     wxPanel* debug_panel_;
-    wxPanel* whisper_panel_;
 
     wxTextCtrl* transcribe_out_;
     wxTextCtrl* unity_out_;
     wxTextCtrl* debug_out_;
-    wxTextCtrl* whisper_out_;
 
     wxTextCtrl* unity_animator_generated_dir_;
     wxTextCtrl* unity_animator_generated_name_;
@@ -44,17 +42,6 @@ private:
     wxTextCtrl* py_app_browser_src_port_;
     wxTextCtrl* unity_rows_;
     wxTextCtrl* unity_cols_;
-    wxTextCtrl* whisper_rows_;
-    wxTextCtrl* whisper_cols_;
-    wxTextCtrl* whisper_browser_src_port_;
-    wxTextCtrl* whisper_max_ctxt_;
-    wxTextCtrl* whisper_beam_width_;
-    wxTextCtrl* whisper_beam_n_best_;
-    wxTextCtrl* whisper_vad_min_duration_;
-    wxTextCtrl* whisper_vad_max_duration_;
-    wxTextCtrl* whisper_vad_drop_start_silence_;
-    wxTextCtrl* whisper_vad_pause_duration_;
-    wxTextCtrl* whisper_vad_retain_duration_;
 
     wxDirPickerCtrl* unity_assets_file_picker_;
     wxFilePickerCtrl* unity_animator_file_picker_;
@@ -72,13 +59,6 @@ private:
     wxChoice* py_app_button_;
     wxChoice* unity_chars_per_sync_;
     wxChoice* unity_bytes_per_char_;
-    wxChoice* whisper_mic_;
-    wxChoice* whisper_lang_;
-    wxChoice* whisper_model_;
-    wxChoice* whisper_chars_per_sync_;
-    wxChoice* whisper_bytes_per_char_;
-    wxChoice* whisper_button_;
-    wxChoice* whisper_decode_method_;
 
     wxCheckBox* py_app_enable_local_beep_;
     wxCheckBox* py_app_enable_browser_src_;
@@ -89,11 +69,6 @@ private:
     wxCheckBox* py_app_enable_uppercase_filter_;
     wxCheckBox* py_app_enable_lowercase_filter_;
     wxCheckBox* unity_clear_osc_;
-    wxCheckBox* whisper_enable_local_beep_;
-    wxCheckBox* whisper_use_cpu_;
-    wxCheckBox* whisper_enable_builtin_;
-    wxCheckBox* whisper_enable_custom_;
-    wxCheckBox* whisper_enable_browser_src_;
 
     std::future<bool> py_app_;
     std::future<bool> obs_app_;

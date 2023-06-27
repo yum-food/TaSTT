@@ -27,14 +27,5 @@ if (-Not (Test-Path wx)) {
   popd > $null
 }
 
-
-if (Test-Path ../GUI/GUI/whisper/) {
-  rm -Recurse ../GUI/GUI/whisper/
-}
-
-mkdir ../GUI/GUI/whisper/
-cp ../../TaSTT-Whisper/Whisper/API/*.h ../GUI/GUI/whisper/
-cp ../../TaSTT-Whisper/x64/Release/Whisper.lib ../GUI/GUI/whisper/
-
 popd > $null  # $PSScriptRoot
 
