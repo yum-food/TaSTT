@@ -56,6 +56,8 @@ public:
 	std::string button;
 
 	bool enable_local_beep;
+	bool enable_browser_src;
+	int browser_src_port;
 	bool use_cpu;
 	bool use_builtin;
 	bool enable_uwu_filter;
@@ -92,7 +94,6 @@ public:
 	float whisper_vad_retain_duration;
 
 	// Browser source-specific settings.
-	int browser_src_port;
 	bool whisper_enable_builtin;
 	bool whisper_enable_custom;
 	bool whisper_enable_browser_src;

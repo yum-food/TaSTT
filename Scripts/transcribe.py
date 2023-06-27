@@ -249,7 +249,7 @@ def transcribe(audio_state, model, frames, use_cpu: bool) -> typing.Tuple[str,st
             for segment in ranges:
                 first_segments.append(segment)
                 break
-        if len(first_segments) >= 5:
+        if len(first_segments) >= 4:
             # Hack: require convergence across many frames to give the
             # algorithm a longer buffer to work with.
             c0 = first_segments[-1]

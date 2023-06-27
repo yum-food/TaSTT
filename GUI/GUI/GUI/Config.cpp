@@ -70,6 +70,8 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	button("left joystick"),
 
 	enable_local_beep(true),
+	enable_browser_src(false),
+	browser_src_port(8097),
 	use_cpu(false),
 	use_builtin(false),
 	enable_uwu_filter(false),
@@ -102,7 +104,6 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	whisper_vad_pause_duration(0.2),
 	whisper_vad_retain_duration(0.2),
 
-	browser_src_port(9517),
 	whisper_enable_builtin(false),
 	whisper_enable_custom(false),
 	whisper_enable_browser_src(true)
@@ -119,6 +120,8 @@ bool AppConfig::Serialize(const std::filesystem::path& path) {
 	cm.Set("button", button);
 
 	cm.Set("enable_local_beep", enable_local_beep);
+	cm.Set("enable_browser_src", enable_browser_src);
+	cm.Set("browser_src_port", browser_src_port);
 	cm.Set("use_cpu", use_cpu);
 	cm.Set("use_builtin", use_builtin);
 	cm.Set("enable_uwu_filter", enable_uwu_filter);
@@ -151,7 +154,6 @@ bool AppConfig::Serialize(const std::filesystem::path& path) {
 	cm.Set("whisper_vad_pause_duration", whisper_vad_pause_duration);
 	cm.Set("whisper_vad_retain_duration", whisper_vad_retain_duration);
 
-	cm.Set("browser_src_port", browser_src_port);
 	cm.Set("whisper_enable_builtin", whisper_enable_builtin);
 	cm.Set("whisper_enable_custom", whisper_enable_custom);
 	cm.Set("whisper_enable_browser_src", whisper_enable_browser_src);
@@ -181,6 +183,8 @@ bool AppConfig::Deserialize(const std::filesystem::path& path) {
 	cm.Get("button", c.button);
 
 	cm.Get("enable_local_beep", c.enable_local_beep);
+	cm.Get("enable_browser_src", c.enable_browser_src);
+	cm.Get("browser_src_port", c.browser_src_port);
 	cm.Get("use_cpu", c.use_cpu);
 	cm.Get("use_builtin", c.use_builtin);
 	cm.Get("enable_uwu_filter", c.enable_uwu_filter);
@@ -213,7 +217,6 @@ bool AppConfig::Deserialize(const std::filesystem::path& path) {
 	cm.Get("whisper_vad_pause_duration", c.whisper_vad_pause_duration);
 	cm.Get("whisper_vad_retain_duration", c.whisper_vad_retain_duration);
 
-	cm.Get("browser_src_port", c.browser_src_port);
 	cm.Get("whisper_enable_builtin", c.whisper_enable_builtin);
 	cm.Get("whisper_enable_custom", c.whisper_enable_custom);
 	cm.Get("whisper_enable_browser_src", c.whisper_enable_browser_src);

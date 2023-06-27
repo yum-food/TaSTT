@@ -41,6 +41,7 @@ private:
     wxTextCtrl* py_app_cols_;
     wxTextCtrl* py_app_gpu_idx_;
     wxTextCtrl* py_app_keybind_;
+    wxTextCtrl* py_app_browser_src_port_;
     wxTextCtrl* unity_rows_;
     wxTextCtrl* unity_cols_;
     wxTextCtrl* whisper_rows_;
@@ -80,6 +81,7 @@ private:
     wxChoice* whisper_decode_method_;
 
     wxCheckBox* py_app_enable_local_beep_;
+    wxCheckBox* py_app_enable_browser_src_;
     wxCheckBox* py_app_use_cpu_;
     wxCheckBox* py_app_use_builtin_;
     wxCheckBox* py_app_enable_uwu_filter_;

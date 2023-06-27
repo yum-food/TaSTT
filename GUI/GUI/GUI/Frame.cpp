@@ -41,6 +41,7 @@ namespace {
         ID_PY_APP_BUTTON,
         ID_PY_APP_MODEL_PANEL,
         ID_PY_APP_ENABLE_LOCAL_BEEP,
+        ID_PY_APP_ENABLE_BROWSER_SRC,
         ID_PY_APP_USE_CPU,
         ID_PY_APP_USE_BUILTIN,
         ID_PY_APP_ENABLE_UWU_FILTER,
@@ -51,6 +52,7 @@ namespace {
         ID_PY_APP_COLS,
         ID_PY_APP_GPU_IDX,
         ID_PY_APP_KEYBIND,
+        ID_PY_APP_BROWSER_SRC_PORT,
         ID_UNITY_PANEL,
         ID_UNITY_CONFIG_PANEL,
         ID_UNITY_OUT,
@@ -739,6 +741,17 @@ Frame::Frame()
 						"quickly.");
 					py_app_keybind_ = py_app_keybind;
 
+					auto* py_app_browser_src_port = new wxTextCtrl(
+						py_app_config_panel_pairs, ID_PY_APP_BROWSER_SRC_PORT,
+						std::to_string(app_c_->browser_src_port), wxDefaultPosition,
+						wxDefaultSize, /*style=*/0);
+                    py_app_browser_src_port->SetToolTip(
+                        "The port to send the transcript to when `Enable "
+                        "browser source` is enabled. To preview, go to "
+                        "localhost:$PORT in your browser, where $PORT is the "
+                        "value you configure here.");
+					py_app_browser_src_port_ = py_app_browser_src_port;
+
                     auto* sizer = new wxFlexGridSizer(/*cols=*/2);
                     py_app_config_panel_pairs->SetSizer(sizer);
 
@@ -801,7 +814,20 @@ Frame::Frame()
                         wxID_ANY, /*label=*/"GPU index:"));
                     sizer->Add(py_app_gpu_idx, /*proportion=*/0,
                         /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Browser source port:"));
+                    sizer->Add(py_app_browser_src_port, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
                 }
+
+                auto* py_app_enable_browser_src = new wxCheckBox(py_config_panel,
+                    ID_PY_APP_ENABLE_BROWSER_SRC, "Enable browser source");
+                py_app_enable_browser_src->SetValue(app_c_->enable_browser_src);
+                py_app_enable_browser_src->SetToolTip(
+                    "Stream transcript to a browser source. To preview, go to "
+                    "localhost:8097, or whatever port you configured.");
+                py_app_enable_browser_src_ = py_app_enable_browser_src;
 
                 auto* py_app_enable_local_beep = new wxCheckBox(py_config_panel,
                     ID_PY_APP_ENABLE_LOCAL_BEEP, "Enable local beep");
@@ -878,6 +904,8 @@ Frame::Frame()
                 sizer->Add(py_dump_mics_button, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
                 sizer->Add(py_app_config_panel_pairs, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+                sizer->Add(py_app_enable_browser_src, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
                 sizer->Add(py_app_enable_local_beep, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
@@ -1367,6 +1395,10 @@ void Frame::ApplyConfigToInputFields()
     py_app_desktop_keybind->Clear();
     py_app_desktop_keybind->AppendText(app_c_->keybind);
 
+    auto* py_app_desktop_browser_src_port = static_cast<wxTextCtrl*>(FindWindowById(ID_PY_APP_BROWSER_SRC_PORT));
+    py_app_desktop_browser_src_port->Clear();
+    py_app_desktop_browser_src_port->AppendText(std::to_string(app_c_->browser_src_port));
+
     auto* py_app_rows = static_cast<wxTextCtrl*>(FindWindowById(ID_PY_APP_ROWS));
     py_app_rows->Clear();
     py_app_rows->AppendText(std::to_string(app_c_->rows));
@@ -1381,6 +1413,9 @@ void Frame::ApplyConfigToInputFields()
 
     auto* py_app_enable_local_beep = static_cast<wxCheckBox*>(FindWindowById(ID_PY_APP_ENABLE_LOCAL_BEEP));
     py_app_enable_local_beep->SetValue(app_c_->enable_local_beep);
+
+    auto* py_app_enable_browser_src = static_cast<wxCheckBox*>(FindWindowById(ID_PY_APP_ENABLE_BROWSER_SRC));
+    py_app_enable_browser_src->SetValue(app_c_->enable_browser_src);
 
     auto* py_app_use_cpu = static_cast<wxCheckBox*>(FindWindowById(ID_PY_APP_USE_CPU));
     py_app_use_cpu->SetValue(app_c_->use_cpu);
@@ -1978,6 +2013,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
         button_idx = kBytesDefault;
     }
     const bool enable_local_beep = py_app_enable_local_beep_->GetValue();
+    const bool enable_browser_src = py_app_enable_browser_src_->GetValue();
     const bool use_cpu = py_app_use_cpu_->GetValue();
     const bool use_builtin = py_app_use_builtin_->GetValue();
     const bool enable_uwu_filter = py_app_enable_uwu_filter_->GetValue();
@@ -1994,41 +2030,48 @@ void Frame::OnAppStart(wxCommandEvent& event) {
         py_app_gpu_idx_->GetValue().ToStdString();
     std::string keybind =
         py_app_keybind_->GetValue().ToStdString();
-    int rows, cols, chars_per_sync, bytes_per_char, gpu_idx;
+    std::string browser_src_port_str =
+        py_app_browser_src_port_->GetValue().ToStdString();
+    int rows, cols, chars_per_sync, bytes_per_char, gpu_idx, browser_src_port;
     try {
         rows = std::stoi(rows_str);
         cols = std::stoi(cols_str);
         chars_per_sync = std::stoi(chars_per_sync_str);
         bytes_per_char = std::stoi(bytes_per_char_str);
         gpu_idx = std::stoi(gpu_idx_str);
+        browser_src_port = std::stoi(browser_src_port_str);
     }
     catch (const std::invalid_argument&) {
 		Log(transcribe_out_, "Could not parse rows \"{}\", cols \"{}\", chars "
-            "per sync \"{}\", bytes per char \"{}\" "
-            "or gpu_idx \"{}\""
+            "per sync \"{}\", bytes per char \"{}\", "
+            "gpu_idx \"{}\", or browser src port \"{}\""
             "as an integer\n", rows_str, cols_str, chars_per_sync_str,
-            bytes_per_char_str, gpu_idx_str);
+            bytes_per_char_str, gpu_idx_str, browser_src_port_str);
         return;
     }
     catch (const std::out_of_range&) {
 		Log(transcribe_out_, "Rows \"{}\", cols \"{}\", chars per sync "
-            "\"{}\", bytes per char \"{}\" or \"{}\" are out "
-            "of range\n", rows_str, cols_str, chars_per_sync_str,
-            bytes_per_char_str);
+            "\"{}\", bytes per char \"{}\", gpu idx \"{}\", or browser src "
+            "port \"{}\" are out of range\n", rows_str, cols_str, chars_per_sync_str,
+            bytes_per_char_str, gpu_idx, browser_src_port_str);
         return;
     }
     const int max_rows = 10;
     const int max_cols = 240;
     const int min_gpu_idx = 0;
     const int max_gpu_idx = 10;
+    const int min_browser_src_port = 1024;
+    const int max_browser_src_port = 65535;
     if (rows < 0 || rows > max_rows ||
         cols < 0 || cols > max_cols ||
-        gpu_idx < min_gpu_idx || gpu_idx > max_gpu_idx) {
+        gpu_idx < min_gpu_idx || gpu_idx > max_gpu_idx ||
+        browser_src_port < min_browser_src_port || browser_src_port > max_browser_src_port) {
         Log(transcribe_out_, "Rows not on [{},{}] or cols not on [{},{}] or "
-            "gpu_idx not on [{}, {}]\n",
+            "gpu_idx not on [{}, {}] or browser src port not on [{}, {}]\n",
             0, max_rows,
             0, max_cols,
-            min_gpu_idx, max_gpu_idx);
+            min_gpu_idx, max_gpu_idx,
+            min_browser_src_port, max_browser_src_port);
         return;
     }
 
@@ -2043,6 +2086,8 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     app_c_->rows = rows;
     app_c_->cols = cols;
     app_c_->enable_local_beep = enable_local_beep;
+    app_c_->enable_browser_src = enable_browser_src;
+    app_c_->browser_src_port = browser_src_port;
     app_c_->use_cpu = use_cpu;
     app_c_->use_builtin = use_builtin;
     app_c_->enable_uwu_filter = enable_uwu_filter;
@@ -2063,7 +2108,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
             filtered_transcript.erase(std::remove_if(filtered_transcript.begin(), filtered_transcript.end(), [](char c) {
                 return c == '\n' || c == '\r';
                 }), filtered_transcript.end());
-            Log(transcribe_out_, "Got transcription line! Transcript: \"{}\"", filtered_transcript);
+            //Log(transcribe_out_, "Got transcription line! Transcript: \"{}\"", filtered_transcript);
             transcript_.Set(std::move(filtered_transcript));
         }
     };
@@ -2076,11 +2121,12 @@ void Frame::OnAppStart(wxCommandEvent& event) {
         EnsureVirtualEnv(/*block=*/true);
     };
 
-	// TODO(yum) parameterize port
     obs_app_ = std::async(std::launch::async,
-        [&]() -> bool {
-			BrowserSource browser_src(8097, transcribe_out_, &transcript_);
-            browser_src.Run(&run_py_app_);
+        [this, enable_browser_src, browser_src_port]() -> bool {
+            if (enable_browser_src) {
+                BrowserSource browser_src(browser_src_port, transcribe_out_, &transcript_);
+                browser_src.Run(&run_py_app_);
+            }
             return true;
         });
     py_app_ = std::move(PythonWrapper::StartApp(*app_c_, transcribe_out_,
