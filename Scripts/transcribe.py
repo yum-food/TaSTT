@@ -49,9 +49,15 @@ class AudioState:
         # PyAudio stream object
         self.stream = None
 
-        self.committed_text = ""
+        self.preview_text = ""
         self.text = ""
         self.filtered_text = ""
+
+        # If set to true, then the transcript strings (`text` and friends) will
+        # be reset whenever transcription is toggled on. At time of writing,
+        # this only applies to keyboard controls.
+        self.reset_on_toggle = True
+
         # List of:
         #   List of tuples of:
         #     Segment start time, end time, and text
@@ -198,19 +204,14 @@ def resetAudioLocked(audio_state):
     audio_state.transcribe_sleep_duration = \
             audio_state.transcribe_sleep_duration_min_s
 
-    audio_state.text = ""
-    audio_state.preview_text = ""
-    audio_state.filtered_text = ""
+    if audio_state.reset_on_toggle:
+        print("resetAudioLocked resetting text")
+        audio_state.text = ""
+        audio_state.preview_text = ""
+        audio_state.filtered_text = ""
 
 def resetDisplayLocked(audio_state):
     osc_ctrl.clear(audio_state.osc_state)
-
-def resetAudio(audio_state):
-    audio_state.transcribe_lock.acquire()
-    audio_state.audio_lock.acquire()
-    resetAudioLocked(audio_state)
-    audio_state.audio_lock.release()
-    audio_state.transcribe_lock.release()
 
 # Transcribe the audio recorded in a file.
 # Returns two strings: committed text, and preview text.
@@ -422,7 +423,12 @@ def readKeyboardInput(audio_state, enable_local_beep: bool,
                 osc_ctrl.toggleBoard(audio_state.osc_state.client, False)
             #playsound(os.path.abspath("../Sounds/Noise_Off_Quiet.wav"))
 
-            audio_state.drop_transcription = True
+            if audio_state.reset_on_toggle:
+                print("Toggle detected, dropping transcript (-2)")
+                audio_state.drop_transcription = True
+            else:
+                print("Toggle detected, committing preview text (2)")
+                audio_state.text += audio_state.preview_text
             audio_state.audio_paused = True
             resetAudioLocked(audio_state)
             resetDisplayLocked(audio_state)
@@ -448,7 +454,12 @@ def readKeyboardInput(audio_state, enable_local_beep: bool,
                 osc_ctrl.indicateSpeech(audio_state.osc_state.client, True)
                 osc_ctrl.toggleBoard(audio_state.osc_state.client, True)
                 osc_ctrl.lockWorld(audio_state.osc_state.client, False)
-            audio_state.drop_transcription = True
+            if audio_state.reset_on_toggle:
+                print("Toggle detected, dropping transcript (2)")
+                audio_state.drop_transcription = True
+            else:
+                print("Toggle detected, committing preview text (2)")
+                audio_state.text += audio_state.preview_text
             audio_state.audio_paused = False
 
             resetAudioLocked(audio_state)
@@ -585,11 +596,13 @@ def transcribeLoop(mic: str,
         estate: EmotesState,
         window_duration_s: int,
         gpu_idx: int,
-        keyboard_hotkey: str):
+        keyboard_hotkey: str,
+        reset_on_toggle: bool):
     audio_state = getMicStream(mic)
     audio_state.whisper_language = language
     audio_state.language = langcodes.find(language).language
     audio_state.MAX_LENGTH_S = window_duration_s
+    audio_state.reset_on_toggle = reset_on_toggle
 
     lang_bits = language_target.split(" | ")
     if len(lang_bits) == 2:
@@ -748,6 +761,7 @@ if __name__ == "__main__":
     parser.add_argument("--emotes_pickle", type=str, help="The path to emotes pickle. See emotes_v2.py for details.")
     parser.add_argument("--gpu_idx", type=str, help="The index of the GPU device to use. On single GPU systems, use 0.")
     parser.add_argument("--keybind", type=str, help="The keyboard hotkey to use to toggle transcription. For example, ctrl+shift+s")
+    parser.add_argument("--reset_on_toggle", type=int, help="Whether to reset (clear) the transcript every time that transcription is toggled on.")
     args = parser.parse_args()
 
     if not args.mic:
@@ -795,6 +809,11 @@ if __name__ == "__main__":
         args.cpu = True
     else:
         args.cpu = False
+
+    if args.reset_on_toggle == 1:
+        args.reset_on_toggle = True
+    else:
+        args.reset_on_toggle = False
 
     if args.use_builtin == 1:
         args.use_builtin = True
@@ -844,5 +863,7 @@ if __name__ == "__main__":
             args.enable_lowercase_filter,
             args.button,
             estate, window_duration_s,
-            args.gpu_idx, args.keybind)
+            args.gpu_idx,
+            args.keybind,
+            args.reset_on_toggle)
 

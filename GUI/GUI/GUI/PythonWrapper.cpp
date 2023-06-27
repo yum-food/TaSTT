@@ -496,6 +496,7 @@ std::future<bool> PythonWrapper::StartApp(
 					"--emotes_pickle", kEmotesPickle,
 					"--gpu_idx", std::to_string(config.gpu_idx),
 					"--keybind", Quote(config.keybind),
+					"--reset_on_toggle", config.reset_on_toggle ? "1" : "0",
 					},
 					std::move(out_cb),
 					std::move(in_cb),
