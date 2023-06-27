@@ -56,6 +56,7 @@ Basic controls:
   * Custom textbox requires as few as 65 parameter bits
   * Transcription doesn't affect VRChat framerate much, since VRC is heavily
     CPU-bound. Performance impact when not speaking is negligible.
+* Browser source. Use with OBS!
 * Multi-language support.
   * Japanese, Korean, and Chinese glyphs included, among many other languages.
     * Full list of Unicode blocks is defined in
@@ -286,8 +287,8 @@ features and bugfixes will likely continue in the "completed" state.
    1. ~~Error detection & correction.~~ DONE
    2. ~~Text-to-text interface. Type in terminal, show in game.~~ DONE
    3. ~~Speech-to-text interface. Speak out loud, show in game.~~ DONE
-   4. Translation into non-English. Whisper natively supports translating N
-      languages into English, but not the other way around.
+   4. ~~Translation into non-English. Whisper natively supports translating N
+      languages into English, but not the other way around.~~ DONE
    5. Display text in overlay. Enables (1) lower latency view of TaSTT's
       transcription state; (2) checking transcriptions ahead of time; (3)
       checking transcriptions without having to see the board in game.
@@ -300,8 +301,8 @@ features and bugfixes will likely continue in the "completed" state.
       keybinds.~~ DONE
    9. One-click upgrade. Fetch latest stable release, copy over virtual env and
       UI configs, relaunch.
-   10. Browser source for OBS. Blocker: the transcription layer doesn't handle
-      long pauses well.
+   10. ~~Browser source for OBS. Blocker: the transcription layer doesn't handle
+      long pauses well.~~ DONE
    11. Test suite. Some long representative transcripts with mechanical word
        error rate (WER) calculation.
 4. Optimization
@@ -326,8 +327,8 @@ features and bugfixes will likely continue in the "completed" state.
       The other encoding scheme is thus ~2.5 times more efficient. This could
       be used to significantly speed up sync times. (Thanks, Noppers for the
       idea!)
-   6. Use Const-Me/Whisper for transcription.
-   7. Implement beam search in Const-Me/Whisper.
+   6. ~~Use Const-Me/Whisper for transcription.~~ WON'T DO
+   7. ~~Implement beam search in Const-Me/Whisper.~~ WON'T DO
 5. Bugfixes
    1. ~~The whisper STT says "Thank you." when there's no audio?~~ DONE
    2. JP and CN transcription does not work in the GUI due to encoding issues.
@@ -335,5 +336,5 @@ features and bugfixes will likely continue in the "completed" state.
    1. Smooth scrolling.
    2. ~~Infinite scrolling.~~ DONE
    3. ~~Sound indicator, maybe like animal crossing :)~~ DONE
-   4. Support texture-based PBR shading
+   4. ~~Support texture-based PBR shading~~ DONE
 
