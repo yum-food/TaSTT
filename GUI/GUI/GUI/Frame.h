@@ -40,6 +40,7 @@ private:
     wxTextCtrl* py_app_gpu_idx_;
     wxTextCtrl* py_app_keybind_;
     wxTextCtrl* py_app_browser_src_port_;
+    wxTextCtrl* py_app_commit_fuzz_threshold_;
     wxTextCtrl* unity_rows_;
     wxTextCtrl* unity_cols_;
 

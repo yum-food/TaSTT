@@ -72,6 +72,7 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	enable_local_beep(true),
 	enable_browser_src(false),
 	browser_src_port(8097),
+	commit_fuzz_threshold(8),
 	use_cpu(false),
 	use_builtin(false),
 	enable_uwu_filter(false),
@@ -123,6 +124,7 @@ bool AppConfig::Serialize(const std::filesystem::path& path) {
 	cm.Set("enable_local_beep", enable_local_beep);
 	cm.Set("enable_browser_src", enable_browser_src);
 	cm.Set("browser_src_port", browser_src_port);
+	cm.Set("commit_fuzz_threshold", commit_fuzz_threshold);
 	cm.Set("use_cpu", use_cpu);
 	cm.Set("use_builtin", use_builtin);
 	cm.Set("enable_uwu_filter", enable_uwu_filter);
@@ -187,6 +189,7 @@ bool AppConfig::Deserialize(const std::filesystem::path& path) {
 	cm.Get("enable_local_beep", c.enable_local_beep);
 	cm.Get("enable_browser_src", c.enable_browser_src);
 	cm.Get("browser_src_port", c.browser_src_port);
+	cm.Get("commit_fuzz_threshold", c.commit_fuzz_threshold);
 	cm.Get("use_cpu", c.use_cpu);
 	cm.Get("use_builtin", c.use_builtin);
 	cm.Get("enable_uwu_filter", c.enable_uwu_filter);

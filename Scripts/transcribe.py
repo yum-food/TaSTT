@@ -59,6 +59,11 @@ class AudioState:
         # this only applies to keyboard controls.
         self.reset_on_toggle = True
 
+        # The edit distance under which two consecutive transcripts are
+        # considered to match. This affects how easily `preview_text`
+        # gets appended to `text`.
+        self.commit_fuzz_threshold = 8
+
         # List of:
         #   List of tuples of:
         #     Segment start time, end time, and text
@@ -263,7 +268,7 @@ def transcribe(audio_state, model, frames, use_cpu: bool) -> typing.Tuple[str,st
             c1_c2_d = editdistance.eval(c1[2], c2[2])
             c2_c3_d = editdistance.eval(c2[2], c3[2])
 
-            max_edit = 8
+            max_edit = audio_state.commit_fuzz_threshold
 
             #print(f"c0: {c0}, c1: {c1}, c2: {c2}")
             #if c0 == c1 and c1 == c2 and c2 == c3:
@@ -607,12 +612,14 @@ def transcribeLoop(mic: str,
         window_duration_s: int,
         gpu_idx: int,
         keyboard_hotkey: str,
-        reset_on_toggle: bool):
+        reset_on_toggle: bool,
+        commit_fuzz_threshold: int):
     audio_state = getMicStream(mic)
     audio_state.whisper_language = language
     audio_state.language = langcodes.find(language).language
     audio_state.MAX_LENGTH_S = window_duration_s
     audio_state.reset_on_toggle = reset_on_toggle
+    audio_state.commit_fuzz_threshold = commit_fuzz_threshold
 
     lang_bits = language_target.split(" | ")
     if len(lang_bits) == 2:
@@ -772,6 +779,7 @@ if __name__ == "__main__":
     parser.add_argument("--gpu_idx", type=str, help="The index of the GPU device to use. On single GPU systems, use 0.")
     parser.add_argument("--keybind", type=str, help="The keyboard hotkey to use to toggle transcription. For example, ctrl+shift+s")
     parser.add_argument("--reset_on_toggle", type=int, help="Whether to reset (clear) the transcript every time that transcription is toggled on.")
+    parser.add_argument("--commit_fuzz_threshold", type=int, help="The edit distance under which two consecutive transcripts are considered to match.")
     args = parser.parse_args()
 
     if not args.mic:
@@ -809,6 +817,11 @@ if __name__ == "__main__":
     if not args.gpu_idx:
         print("--gpu_idx required", file=sys.stderr)
         sys.exit(1)
+
+    if not args.commit_fuzz_threshold:
+        print("--commit_fuzz_threshold required", file=sys.stderr)
+        sys.exit(1)
+
     args.gpu_idx = int(args.gpu_idx)
 
     window_duration_s = 120
@@ -875,5 +888,6 @@ if __name__ == "__main__":
             estate, window_duration_s,
             args.gpu_idx,
             args.keybind,
-            args.reset_on_toggle)
+            args.reset_on_toggle,
+            args.commit_fuzz_threshold)
 

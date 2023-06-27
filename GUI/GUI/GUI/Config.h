@@ -58,6 +58,7 @@ public:
 	bool enable_local_beep;
 	bool enable_browser_src;
 	int browser_src_port;
+	int commit_fuzz_threshold;
 	bool use_cpu;
 	bool use_builtin;
 	bool enable_uwu_filter;

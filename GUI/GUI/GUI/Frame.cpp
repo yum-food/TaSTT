@@ -53,6 +53,7 @@ namespace {
         ID_PY_APP_GPU_IDX,
         ID_PY_APP_KEYBIND,
         ID_PY_APP_BROWSER_SRC_PORT,
+        ID_PY_APP_COMMIT_FUZZ_THRESHOLD,
         ID_UNITY_PANEL,
         ID_UNITY_CONFIG_PANEL,
         ID_UNITY_OUT,
@@ -721,6 +722,20 @@ Frame::Frame()
                         "value you configure here.");
 					py_app_browser_src_port_ = py_app_browser_src_port;
 
+					auto* py_app_commit_fuzz_threshold = new wxTextCtrl(
+						py_app_config_panel_pairs, ID_PY_APP_COMMIT_FUZZ_THRESHOLD,
+						std::to_string(app_c_->commit_fuzz_threshold), wxDefaultPosition,
+						wxDefaultSize, /*style=*/0);
+                    py_app_commit_fuzz_threshold->SetToolTip(
+                        "The transcription app requires subsequent "
+                        "transcripts to be within this edit distance of each "
+                        "other before it commits them. Higher values make "
+                        "transcripts commit more easily, making the app "
+                        "faster but less accurate. Lower values make "
+                        "transcripts commit less easily, making the app "
+                        "slower but more accurate.");
+					py_app_commit_fuzz_threshold_ = py_app_commit_fuzz_threshold;
+
                     auto* sizer = new wxFlexGridSizer(/*cols=*/2);
                     py_app_config_panel_pairs->SetSizer(sizer);
 
@@ -782,6 +797,11 @@ Frame::Frame()
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs,
                         wxID_ANY, /*label=*/"GPU index:"));
                     sizer->Add(py_app_gpu_idx, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Commit similarity threshold:"));
+                    sizer->Add(py_app_commit_fuzz_threshold, /*proportion=*/0,
                         /*flags=*/wxEXPAND);
 
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs,
@@ -1379,6 +1399,10 @@ void Frame::ApplyConfigToInputFields()
     auto* py_app_desktop_browser_src_port = static_cast<wxTextCtrl*>(FindWindowById(ID_PY_APP_BROWSER_SRC_PORT));
     py_app_desktop_browser_src_port->Clear();
     py_app_desktop_browser_src_port->AppendText(std::to_string(app_c_->browser_src_port));
+
+    auto* py_app_desktop_commit_fuzz_threshold = static_cast<wxTextCtrl*>(FindWindowById(ID_PY_APP_COMMIT_FUZZ_THRESHOLD));
+    py_app_desktop_commit_fuzz_threshold->Clear();
+    py_app_desktop_commit_fuzz_threshold->AppendText(std::to_string(app_c_->commit_fuzz_threshold));
 
     auto* py_app_rows = static_cast<wxTextCtrl*>(FindWindowById(ID_PY_APP_ROWS));
     py_app_rows->Clear();
@@ -2017,7 +2041,9 @@ void Frame::OnAppStart(wxCommandEvent& event) {
         py_app_keybind_->GetValue().ToStdString();
     std::string browser_src_port_str =
         py_app_browser_src_port_->GetValue().ToStdString();
-    int rows, cols, chars_per_sync, bytes_per_char, gpu_idx, browser_src_port;
+    std::string commit_fuzz_threshold_str =
+        py_app_commit_fuzz_threshold_->GetValue().ToStdString();
+    int rows, cols, chars_per_sync, bytes_per_char, gpu_idx, browser_src_port, commit_fuzz_threshold;
     try {
         rows = std::stoi(rows_str);
         cols = std::stoi(cols_str);
@@ -2025,20 +2051,30 @@ void Frame::OnAppStart(wxCommandEvent& event) {
         bytes_per_char = std::stoi(bytes_per_char_str);
         gpu_idx = std::stoi(gpu_idx_str);
         browser_src_port = std::stoi(browser_src_port_str);
+        commit_fuzz_threshold = std::stoi(commit_fuzz_threshold_str);
     }
     catch (const std::invalid_argument&) {
 		Log(transcribe_out_, "Could not parse rows \"{}\", cols \"{}\", chars "
-            "per sync \"{}\", bytes per char \"{}\", "
-            "gpu_idx \"{}\", or browser src port \"{}\""
+            "per sync \"{}\", "
+            "bytes per char \"{}\", "
+            "gpu_idx \"{}\", "
+            "browser src port \"{}\"", ""
+            "or commit_fuzz_threshold \"{}\""
             "as an integer\n", rows_str, cols_str, chars_per_sync_str,
-            bytes_per_char_str, gpu_idx_str, browser_src_port_str);
+            bytes_per_char_str, gpu_idx_str, browser_src_port_str,
+            commit_fuzz_threshold_str);
         return;
     }
     catch (const std::out_of_range&) {
-		Log(transcribe_out_, "Rows \"{}\", cols \"{}\", chars per sync "
-            "\"{}\", bytes per char \"{}\", gpu idx \"{}\", or browser src "
-            "port \"{}\" are out of range\n", rows_str, cols_str, chars_per_sync_str,
-            bytes_per_char_str, gpu_idx, browser_src_port_str);
+		Log(transcribe_out_, "Rows \"{}\", "
+            "cols \"{}\", "
+            "chars per sync \"{}\", "
+            "bytes per char \"{}\", "
+            "gpu idx \"{}\", "
+            "browser src port \"{}\", "
+            "or commit_fuzz_threshold \"{}\" "
+            "are out of range\n", rows_str, cols_str, chars_per_sync_str,
+            bytes_per_char_str, gpu_idx_str, browser_src_port_str, commit_fuzz_threshold_str);
         return;
     }
     const int max_rows = 10;
@@ -2047,18 +2083,28 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     const int max_gpu_idx = 10;
     const int min_browser_src_port = 1024;
     const int max_browser_src_port = 65535;
+    const int min_commit_fuzz_threshold = 0;
+    const int max_commit_fuzz_threshold = 100;
     if (rows < 0 || rows > max_rows ||
         cols < 0 || cols > max_cols ||
         gpu_idx < min_gpu_idx || gpu_idx > max_gpu_idx ||
-        browser_src_port < min_browser_src_port || browser_src_port > max_browser_src_port) {
+        browser_src_port < min_browser_src_port || browser_src_port > max_browser_src_port ||
+        commit_fuzz_threshold < min_commit_fuzz_threshold || commit_fuzz_threshold > max_commit_fuzz_threshold) {
         Log(transcribe_out_, "Rows not on [{},{}] or cols not on [{},{}] or "
-            "gpu_idx not on [{}, {}] or browser src port not on [{}, {}]\n",
+            "gpu_idx not on [{}, {}] or "
+            "browser src port not on [{}, {}] or "
+            "commit_fuzz_threshold not on [{}, {}] "
+            "\n",
             0, max_rows,
             0, max_cols,
             min_gpu_idx, max_gpu_idx,
-            min_browser_src_port, max_browser_src_port);
+            min_browser_src_port, max_browser_src_port,
+            min_commit_fuzz_threshold, max_commit_fuzz_threshold);
         return;
     }
+
+    Log(transcribe_out_, "Commit fuzz threshold str: {}\n", commit_fuzz_threshold_str);
+    Log(transcribe_out_, "Commit fuzz threshold: {}\n", commit_fuzz_threshold);
 
     app_c_->microphone = kMicChoices[which_mic].ToStdString();
     app_c_->language = kLangChoices[which_lang].ToStdString();
@@ -2073,6 +2119,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     app_c_->enable_local_beep = enable_local_beep;
     app_c_->enable_browser_src = enable_browser_src;
     app_c_->browser_src_port = browser_src_port;
+    app_c_->commit_fuzz_threshold = commit_fuzz_threshold;
     app_c_->use_cpu = use_cpu;
     app_c_->use_builtin = use_builtin;
     app_c_->enable_uwu_filter = enable_uwu_filter;
