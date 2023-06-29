@@ -2137,9 +2137,6 @@ void Frame::OnAppStart(wxCommandEvent& event) {
         return;
     }
 
-    Log(transcribe_out_, "Commit fuzz threshold str: {}\n", commit_fuzz_threshold_str);
-    Log(transcribe_out_, "Commit fuzz threshold: {}\n", commit_fuzz_threshold);
-
     app_c_->microphone = kMicChoices[which_mic].ToStdString();
     app_c_->language = kLangChoices[which_lang].ToStdString();
     app_c_->language_target = kLangTargetChoices[which_translate_target].ToStdString();

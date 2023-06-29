@@ -4,7 +4,7 @@ from datetime import datetime
 from emotes_v2 import EmotesState
 from faster_whisper import WhisperModel
 from functools import partial
-from math import ceil
+from math import floor, ceil
 from playsound import playsound
 from profanity_filter import ProfanityFilter
 from sentence_splitter import split_text_into_sentences
@@ -78,7 +78,7 @@ class AudioState:
         #     Segment start time, end time, and text
         self.ranges_ls = []
         self.frames = []
-        self.drop_frames_till_i = -1
+        self.drop_samples_till_i = -1
 
         # Locks access to `text`.
         self.transcribe_lock = threading.Lock()
@@ -153,10 +153,24 @@ def onAudioFramesAvailable(
             audio_state.CHUNK)
     if len(audio_state.frames) > max_frames:
         audio_state.frames = audio_state.frames[-1 * max_frames:]
-    if audio_state.drop_frames_till_i > 0:
-        audio_state.frames = audio_state.frames[audio_state.drop_frames_till_i:-1]
-        audio_state.drop_frames_till_i = -1
-
+    if audio_state.drop_samples_till_i > 0:
+        # Caller wants us to keep this many *whisper* samples, assuming that
+        # we're getting one full frame every (1024 / 16KHz) seconds.
+        # However we really get one full whisper frame a little slower, since
+        # mics usually have a higher sample rate than 16 KHz (see decimation
+        # code above).
+        # The ratio of (mic sample rate) / (16KHz) is simply `keep_every`.
+        #
+        # TODO we should be more careful and avoid dropping an entire chunk
+        # since phonemes can absolutely fit into that amount of time. However
+        # whisper can usually figure it out so it's not a huge deal.
+        n_frames_to_drop = audio_state.drop_samples_till_i / audio_state.CHUNK
+        n_frames_to_drop *= keep_every
+        n_frames_to_drop = int(ceil(n_frames_to_drop))
+        if audio_state.enable_debug_mode:
+            print(f"Dropping {n_frames_to_drop} frames, buffer has {len(audio_state.frames)} frames total")
+        audio_state.frames = audio_state.frames[n_frames_to_drop:]
+        audio_state.drop_samples_till_i = -1
 
     return (frames, pyaudio.paContinue)
 
@@ -282,15 +296,15 @@ def transcribe(audio_state, model, frames, use_cpu: bool) -> typing.Tuple[str,st
             max_edit = audio_state.commit_fuzz_threshold
 
             if audio_state.enable_debug_mode:
-                print(f"c0: {c0}, c1: {c1}, c2: {c2}")
+                print(f"c0: {c0}, c1: {c1}, c2: {c2}, c3: {c3}")
             if c0_c1_d < max_edit and c1_c2_d < max_edit and c2_c3_d < max_edit:
                 # For simplicity, completely reset saved audio ranges.
                 audio_state.ranges_ls = []
                 committed_text = c0[2]
                 if audio_state.enable_debug_mode:
                     print(f"Dropping frames until {c0[1]}")
-                n_frames_to_drop = int(ceil(audio_state.RATE * c0[1]))
-                audio_state.drop_frames_till_i = n_frames_to_drop
+                n_samples_to_drop = int(ceil(audio_state.RATE * c0[1]))
+                audio_state.drop_samples_till_i = n_samples_to_drop
 
     preview_text = ""
     for seg in ranges:
@@ -357,6 +371,8 @@ def transcribeAudio(audio_state,
                 now - last_transcribe_time,
                 audio_state.preview_text))
             last_transcribe_time = now
+            print(f"Commit text: {text}")
+            print(f"Preview text: {preview_text}")
 
         # Translate if requested.
         translated = audio_state.preview_text
