@@ -38,6 +38,9 @@ class AudioState:
         # This matches the framerate expected by whisper.
         self.RATE = 16000
 
+        # If set, print additional information to stdout while transcribing.
+        self.enable_debug_mode = False
+
         # The maximum length that recordAudio() will put into frames before it
         # starts dropping from the start.
         self.MAX_LENGTH_S = 300
@@ -211,7 +214,8 @@ def resetAudioLocked(audio_state):
             audio_state.transcribe_sleep_duration_min_s
 
     if audio_state.reset_on_toggle:
-        print("resetAudioLocked resetting text")
+        if audio_state.enable_debug_mode:
+            print("resetAudioLocked resetting text")
         audio_state.text = ""
         audio_state.preview_text = ""
         audio_state.filtered_text = ""
@@ -244,7 +248,8 @@ def transcribe(audio_state, model, frames, use_cpu: bool) -> typing.Tuple[str,st
             without_timestamps = False)
     ranges = []
     for s in segments:
-        #print(f"Segment: {s}")
+        if audio_state.enable_debug_mode:
+            print(f"Segment: {s}")
         ranges.append((s.start, s.end, s.text))
     audio_state.ranges_ls.append(ranges)
 
@@ -270,13 +275,14 @@ def transcribe(audio_state, model, frames, use_cpu: bool) -> typing.Tuple[str,st
 
             max_edit = audio_state.commit_fuzz_threshold
 
-            #print(f"c0: {c0}, c1: {c1}, c2: {c2}")
-            #if c0 == c1 and c1 == c2 and c2 == c3:
+            if audio_state.enable_debug_mode:
+                print(f"c0: {c0}, c1: {c1}, c2: {c2}")
             if c0_c1_d < max_edit and c1_c2_d < max_edit and c2_c3_d < max_edit:
                 # For simplicity, completely reset saved audio ranges.
                 audio_state.ranges_ls = []
                 committed_text = c0[2]
-                print(f"Dropping frames until {c0[1]}")
+                if audio_state.enable_debug_mode:
+                    print(f"Dropping frames until {c0[1]}")
                 n_frames_to_drop = int(ceil(audio_state.RATE * c0[1]))
                 audio_state.drop_frames_till_i = n_frames_to_drop
 
@@ -320,7 +326,8 @@ def transcribeAudio(audio_state,
 
         text, preview_text = transcribe(audio_state, model, audio_state.frames, use_cpu)
         if len(text) == 0 and len(preview_text) == 0:
-            print("no transcription, spin ({} seconds)".format(time.time() - last_transcribe_time))
+            if audio_state.enable_debug_mode:
+                print("no transcription, spin ({} seconds)".format(time.time() - last_transcribe_time))
             last_transcribe_time = time.time()
             continue
 
@@ -329,7 +336,8 @@ def transcribeAudio(audio_state,
             audio_state.text = ""
             audio_state.preview_text = ""
             audio_state.filtered_text = ""
-            print("drop transcription ({} seconds)".format(time.time() - last_transcribe_time))
+            if audio_state.enable_debug_mode:
+                print("drop transcription ({} seconds)".format(time.time() - last_transcribe_time))
             last_transcribe_time = time.time()
             continue
 
@@ -436,13 +444,14 @@ def readKeyboardInput(audio_state, enable_local_beep: bool,
             if not use_builtin:
                 osc_ctrl.indicateSpeech(audio_state.osc_state.client, False)
                 osc_ctrl.toggleBoard(audio_state.osc_state.client, False)
-            #playsound(os.path.abspath("../Sounds/Noise_Off_Quiet.wav"))
 
             if audio_state.reset_on_toggle:
-                print("Toggle detected, dropping transcript (-2)")
+                if audio_state.enable_debug_mode:
+                    print("Toggle detected, dropping transcript (1)")
                 audio_state.drop_transcription = True
             else:
-                print("Toggle detected, committing preview text (2)")
+                if audio_state.enable_debug_mode:
+                    print("Toggle detected, committing preview text (1)")
                 audio_state.text += audio_state.preview_text
             audio_state.audio_paused = True
             resetAudioLocked(audio_state)
@@ -458,7 +467,6 @@ def readKeyboardInput(audio_state, enable_local_beep: bool,
             audio_state.transcribe_sleep_duration = audio_state.transcribe_sleep_duration_min_s
 
             audio_state.audio_paused = True
-            resetAudioLocked(audio_state)
 
             if enable_local_beep == 1:
                 playsound(os.path.abspath("Resources/Sounds/Noise_Off_Quiet.wav"),
@@ -470,10 +478,12 @@ def readKeyboardInput(audio_state, enable_local_beep: bool,
                 osc_ctrl.toggleBoard(audio_state.osc_state.client, True)
                 osc_ctrl.lockWorld(audio_state.osc_state.client, False)
             if audio_state.reset_on_toggle:
-                print("Toggle detected, dropping transcript (2)")
+                if audio_state.enable_debug_mode:
+                    print("Toggle detected, dropping transcript (2)")
                 audio_state.drop_transcription = True
             else:
-                print("Toggle detected, committing preview text (2)")
+                if audio_state.enable_debug_mode:
+                    print("Toggle detected, committing preview text (2)")
                 audio_state.text += audio_state.preview_text
             audio_state.audio_paused = False
 
@@ -492,7 +502,8 @@ def readControllerInput(audio_state, enable_local_beep: bool,
         try:
             session = steamvr.SessionState()
         except:
-            print("steamvr is off, no controller input")
+            if audio_state.enable_debug_mode:
+                print("steamvr is off, no controller input")
             session = None
             time.sleep(5)
 
@@ -607,6 +618,7 @@ def transcribeLoop(mic: str,
         remove_trailing_period: bool,
         enable_uppercase_filter: bool,
         enable_lowercase_filter: bool,
+        enable_debug_mode: bool,
         button: str,
         estate: EmotesState,
         window_duration_s: int,
@@ -620,6 +632,7 @@ def transcribeLoop(mic: str,
     audio_state.MAX_LENGTH_S = window_duration_s
     audio_state.reset_on_toggle = reset_on_toggle
     audio_state.commit_fuzz_threshold = commit_fuzz_threshold
+    audio_state.enable_debug_mode = enable_debug_mode
 
     lang_bits = language_target.split(" | ")
     if len(lang_bits) == 2:
@@ -721,7 +734,6 @@ def transcribeLoop(mic: str,
     keyboard_input_thd.daemon = True
     keyboard_input_thd.start()
 
-    print("Press enter to start a new message.")
     for line in sys.stdin:
         audio_state.transcribe_lock.acquire()
         audio_state.audio_lock.acquire()
@@ -745,12 +757,6 @@ if __name__ == "__main__":
 
     print("args: {}".format(" ".join(sys.argv)))
 
-    # Set cwd to TaSTT/
-    abspath = os.path.abspath(__file__)
-    dname = os.path.dirname(abspath)
-    dname = os.path.dirname(dname)
-    dname = os.path.dirname(dname)
-    #os.chdir(dname)
     print(f"Set cwd to {os.getcwd()}")
 
     parser = argparse.ArgumentParser()
@@ -780,6 +786,7 @@ if __name__ == "__main__":
     parser.add_argument("--keybind", type=str, help="The keyboard hotkey to use to toggle transcription. For example, ctrl+shift+s")
     parser.add_argument("--reset_on_toggle", type=int, help="Whether to reset (clear) the transcript every time that transcription is toggled on.")
     parser.add_argument("--commit_fuzz_threshold", type=int, help="The edit distance under which two consecutive transcripts are considered to match.")
+    parser.add_argument("--enable_debug_mode", type=int, help="If set to 1, print additional information to stdout while transcribing.")
     args = parser.parse_args()
 
     if not args.mic:
@@ -863,6 +870,11 @@ if __name__ == "__main__":
     else:
         args.enable_lowercase_filter = False
 
+    if args.enable_debug_mode == 1:
+        args.enable_debug_mode = True
+    else:
+        args.enable_debug_mode = False
+
     estate = EmotesState()
     estate.load(args.emotes_pickle)
 
@@ -884,6 +896,7 @@ if __name__ == "__main__":
             args.remove_trailing_period,
             args.enable_uppercase_filter,
             args.enable_lowercase_filter,
+            args.enable_debug_mode,
             args.button,
             estate, window_duration_s,
             args.gpu_idx,

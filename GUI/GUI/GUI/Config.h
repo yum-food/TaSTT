@@ -65,6 +65,7 @@ public:
 	bool remove_trailing_period;
 	bool enable_uppercase_filter;
 	bool enable_lowercase_filter;
+	bool enable_debug_mode;
 	bool reset_on_toggle;
 	int gpu_idx;
 	std::string keybind;

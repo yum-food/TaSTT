@@ -69,6 +69,7 @@ private:
     wxCheckBox* py_app_remove_trailing_period_;
     wxCheckBox* py_app_enable_uppercase_filter_;
     wxCheckBox* py_app_enable_lowercase_filter_;
+    wxCheckBox* py_app_enable_debug_mode_;
     wxCheckBox* py_app_reset_on_toggle_;
     wxCheckBox* unity_clear_osc_;
 

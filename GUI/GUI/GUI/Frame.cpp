@@ -47,6 +47,7 @@ namespace {
         ID_PY_APP_REMOVE_TRAILING_PERIOD,
         ID_PY_APP_ENABLE_UPPERCASE_FILTER,
         ID_PY_APP_ENABLE_LOWERCASE_FILTER,
+        ID_PY_APP_ENABLE_DEBUG_MODE,
         ID_PY_APP_RESET_ON_TOGGLE,
         ID_PY_APP_ROWS,
         ID_PY_APP_COLS,
@@ -881,6 +882,16 @@ Frame::Frame()
                 );
                 py_app_enable_lowercase_filter_ = py_app_enable_lowercase_filter;
 
+                auto* py_app_enable_debug_mode = new wxCheckBox(py_config_panel,
+                    ID_PY_APP_ENABLE_DEBUG_MODE, "Enable debug mode");
+                py_app_enable_debug_mode->SetValue(app_c_->enable_debug_mode);
+                py_app_enable_debug_mode->SetToolTip(
+                    "If checked, the transcription engine will print out "
+                    "additional information. Use this if you're debugging a "
+                    "technical issue."
+                );
+                py_app_enable_debug_mode_ = py_app_enable_debug_mode;
+
                 auto* py_app_reset_on_toggle = new wxCheckBox(py_config_panel,
                     ID_PY_APP_RESET_ON_TOGGLE, "Reset transcript on toggle");
                 py_app_reset_on_toggle->SetValue(app_c_->reset_on_toggle);
@@ -921,6 +932,8 @@ Frame::Frame()
                 sizer->Add(py_app_enable_uppercase_filter, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
                 sizer->Add(py_app_enable_lowercase_filter, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+                sizer->Add(py_app_enable_debug_mode, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
                 sizer->Add(py_app_start_button, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
@@ -1439,6 +1452,9 @@ void Frame::ApplyConfigToInputFields()
 
     auto* py_app_enable_lowercase_filter = static_cast<wxCheckBox*>(FindWindowById(ID_PY_APP_ENABLE_LOWERCASE_FILTER));
     py_app_enable_lowercase_filter->SetValue(app_c_->enable_lowercase_filter);
+
+    auto* py_app_enable_debug_mode = static_cast<wxCheckBox*>(FindWindowById(ID_PY_APP_ENABLE_DEBUG_MODE));
+    py_app_enable_debug_mode->SetValue(app_c_->enable_debug_mode);
 
     auto* py_app_reset_on_toggle = static_cast<wxCheckBox*>(FindWindowById(ID_PY_APP_RESET_ON_TOGGLE));
     py_app_reset_on_toggle->SetValue(app_c_->reset_on_toggle);
@@ -2028,6 +2044,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     const bool remove_trailing_period = py_app_remove_trailing_period_->GetValue();
     const bool enable_uppercase_filter = py_app_enable_uppercase_filter_->GetValue();
     const bool enable_lowercase_filter = py_app_enable_lowercase_filter_->GetValue();
+    const bool enable_debug_mode = py_app_enable_debug_mode_->GetValue();
     const bool reset_on_toggle = py_app_reset_on_toggle_->GetValue();
     std::string rows_str = py_app_rows_->GetValue().ToStdString();
     std::string cols_str = py_app_cols_->GetValue().ToStdString();
@@ -2126,6 +2143,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     app_c_->remove_trailing_period = remove_trailing_period;
     app_c_->enable_uppercase_filter = enable_uppercase_filter;
     app_c_->enable_lowercase_filter = enable_lowercase_filter;
+    app_c_->enable_debug_mode = enable_debug_mode;
     app_c_->reset_on_toggle = reset_on_toggle;
     app_c_->gpu_idx = gpu_idx;
     app_c_->keybind = keybind;
