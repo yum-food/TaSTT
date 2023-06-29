@@ -493,6 +493,7 @@ std::future<bool> PythonWrapper::StartApp(
 					"--remove_trailing_period", config.remove_trailing_period ? "1" : "0",
 					"--enable_uppercase_filter", config.enable_uppercase_filter ? "1" : "0",
 					"--enable_lowercase_filter", config.enable_lowercase_filter ? "1" : "0",
+					"--enable_profanity_filter", config.enable_profanity_filter ? "1" : "0",
 					"--enable_debug_mode", config.enable_debug_mode ? "1" : "0",
 					"--emotes_pickle", kEmotesPickle,
 					"--gpu_idx", std::to_string(config.gpu_idx),

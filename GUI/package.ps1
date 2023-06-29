@@ -133,6 +133,22 @@ if (-Not (Test-Path UwwwuPP)) {
   popd > $null
 }
 
+if (-Not (Test-Path Profanity)) {
+  mkdir Profanity
+  pushd Profanity > $null
+
+  $repo = "List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words"
+  git clone https://github.com/LDNOOBW/$repo
+
+  mkdir Profanity
+  cp $repo/LICENSE Profanity/
+  cp $repo/en Profanity/
+
+  echo "Source: https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words" > Profanity/AUTHOR
+
+  popd > $null
+}
+
 mkdir $install_dir > $null
 mkdir $install_dir/Resources > $null
 cp -Recurse ../Animations TaSTT/Resources/Animations
@@ -153,6 +169,7 @@ mkdir TaSTT/Resources/Models
 mkdir TaSTT/Resources/Uwu
 cp UwwwuPP/build/Src/Debug/Uwwwu.exe TaSTT/Resources/Uwu/
 cp UwwwuPP/LICENSE TaSTT/Resources/Uwu/
+cp -r Profanity/Profanity TaSTT/Resources/Profanity
 
 if (-Not $skip_zip) {
   Compress-Archive -Path "$install_dir" -DestinationPath "$install_dir.zip" -Force
