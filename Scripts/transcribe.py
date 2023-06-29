@@ -132,9 +132,6 @@ def onAudioFramesAvailable(
         frame_count,
         time_info,
         status_flags):
-    if audio_state.audio_paused:
-        return (frames, pyaudio.paContinue)
-
     # Reduce sample rate from mic rate to Whisper rate by dropping frames.
     decimated = b''
     frame_len = int(len(frames) / frame_count)
@@ -147,7 +144,8 @@ def onAudioFramesAvailable(
             next_frame += keep_every
         i += 1
 
-    audio_state.frames.append(decimated)
+    if not audio_state.audio_paused:
+        audio_state.frames.append(decimated)
 
     max_frames = int(input_rate * audio_state.MAX_LENGTH_S /
             audio_state.CHUNK)
@@ -625,15 +623,25 @@ def readControllerInput(audio_state, enable_local_beep: bool,
                             block=False)
                 elif state == PAUSE_STATE:
                     state = RECORD_STATE
-
-                    if enable_local_beep == 1:
-                        playsound(os.path.abspath("Resources/Sounds/Noise_On_Quiet.wav"),
-                            block=False)
-
                     if not use_builtin:
                         osc_ctrl.indicateSpeech(audio_state.osc_state.client, True)
                         osc_ctrl.toggleBoard(audio_state.osc_state.client, True)
                         osc_ctrl.lockWorld(audio_state.osc_state.client, False)
+                    if audio_state.reset_on_toggle:
+                        if audio_state.enable_debug_mode:
+                            print("Toggle detected, dropping transcript (3)")
+                        audio_state.drop_transcription = True
+                    else:
+                        if audio_state.enable_debug_mode:
+                            print("Toggle detected, committing preview text (3)")
+                        audio_state.text += audio_state.preview_text
+
+                    resetAudioLocked(audio_state)
+                    resetDisplayLocked(audio_state)
+
+                    if enable_local_beep == 1:
+                        playsound(os.path.abspath("Resources/Sounds/Noise_On_Quiet.wav"),
+                            block=False)
 
 # model should correspond to one of the Whisper models defined in
 # whisper/__init__.py. Examples: tiny, base, small, medium.
