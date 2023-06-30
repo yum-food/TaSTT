@@ -755,6 +755,7 @@ def transcribeLoop(mic: str,
         model = model_root
     model = WhisperModel(model,
             device = model_device,
+            device_index = gpu_idx,
             compute_type = "int8",
             download_root = model_root,
             local_files_only = download_it)
