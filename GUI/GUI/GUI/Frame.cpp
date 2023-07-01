@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <fstream>
 #include <regex>
+#include <sstream>
 #include <string>
 #include <vector>
 #include <wx/filepicker.h>
@@ -2164,20 +2165,31 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     app_c_->keybind = keybind;
     app_c_->Serialize(AppConfig::kConfigPath);
 
-    auto out_cb = [&](const std::string& out, const std::string& err) {
-        Log(transcribe_out_, "{}", out);
-        Log(transcribe_out_, "{}", err);
+	auto out_cb = [&](const std::string& out, const std::string& err) {
+		Log(transcribe_out_, "{}", out);
+		Log(transcribe_out_, "{}", err);
 
-		std::regex pattern("^Transcription \\(([0-9]*\\.[0-9]+) seconds\\):");
-        if (std::regex_search(out, pattern)) {
-            std::string filtered_transcript = std::regex_replace(out, pattern, "");
-            filtered_transcript.erase(std::remove_if(filtered_transcript.begin(), filtered_transcript.end(), [](char c) {
-                return c == '\n' || c == '\r';
-                }), filtered_transcript.end());
-            //Log(transcribe_out_, "Got transcription line! Transcript: \"{}\"", filtered_transcript);
-            transcript_.Set(std::move(filtered_transcript));
-        }
-    };
+		std::istringstream out_iss(out);
+		std::string out_line;
+		while (std::getline(out_iss, out_line)) {
+			if (out_line.starts_with("Finalized: 1")) {
+				transcript_.SetFinalized(true);
+			}
+			else if (out_line.starts_with("Finalized: 0")) {
+				transcript_.SetFinalized(false);
+			}
+
+			std::regex pattern("^Transcription \\(([0-9]*\\.[0-9]+) seconds\\):");
+			if (std::regex_search(out_line, pattern)) {
+				std::string filtered_transcript = std::regex_replace(out_line, pattern, "");
+				filtered_transcript.erase(std::remove_if(filtered_transcript.begin(), filtered_transcript.end(), [](char c) {
+					return c == '\n' || c == '\r';
+					}), filtered_transcript.end());
+				//Log(transcribe_out_, "Got transcription line! Transcript: \"{}\"", filtered_transcript);
+				transcript_.Set(std::move(filtered_transcript));
+			}
+		}
+	};
     auto in_cb = [&](std::string& in) {};
     auto run_cb = [&]() {
         return run_py_app_;

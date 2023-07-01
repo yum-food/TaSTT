@@ -55,9 +55,12 @@ void BrowserSource::Run(volatile bool* run)
 				transcript_oss << segment;
 			}
 
+			bool is_final = transcript_->IsFinalized();
+
 			std::ostringstream resp_oss;
 			resp_oss << "{";
-			resp_oss << "\"transcript\":\"" << transcript_oss.str() << "\"";
+			resp_oss << "\"transcript\":\"" << transcript_oss.str() << "\",";
+			resp_oss << "\"is_final\":" << std::to_string(is_final ? 1 : 0) << "";
 			resp_oss << "}";
 			payload = resp_oss.str();
 			type = WebServer::JSON;

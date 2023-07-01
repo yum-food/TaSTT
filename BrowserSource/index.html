@@ -17,6 +17,24 @@
       color: #89CFF0;
       -webkit-text-stroke: 3.0px #000;
     }
+    .red_circle {
+      height: 50px;
+      width: 50px;
+      background-color: red;
+      border-radius: 50%;
+      display: inline-block;
+      vertical-align: middle;
+      margin: 20px;
+    }
+    .grey_circle {
+      height: 50px;
+      width: 50px;
+      background-color: grey;
+      border-radius: 50%;
+      display: inline-block;
+      vertical-align: middle;
+      margin: 20px;
+    }
   </style>
   <body>
     <div id="transcript"></div>
@@ -31,7 +49,15 @@
                 dataType: 'json',
                 success: function(data) {
                         var transcript = data.transcript;
-                        $('#transcript').html(transcript);
+                        var red_circle = '<span class="red_circle"></span>';
+                        var grey_circle = '<span class="grey_circle"></span>';
+                        var transcript_w_circle = transcript;
+                        if (data.is_final == 1) {
+                          transcript_w_circle += grey_circle;
+                        } else {
+                          transcript_w_circle += red_circle;
+                        }
+                        $('#transcript').html(transcript_w_circle);
                         $('#transcript').css("background-color", "#00000080");
                 },
                 error: function(jqXHR, textStatus, errorThrown) {

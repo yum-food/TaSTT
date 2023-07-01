@@ -364,6 +364,18 @@ def transcribeAudio(audio_state,
         audio_state.text += text
         audio_state.preview_text = audio_state.text + preview_text
 
+        if len(preview_text) == 0:
+            print("Finalized: 1")
+        else:
+            print("Finalized: 0")
+
+        # Hard cap transcript at 4096 chars. Letting it grow longer than this
+        # eventually causes lag. This happens routinely when streaming. Capping
+        # like this does not affect the visible portion of the transcript in
+        # OBS, but it might affect the visible portion in-game. (Don't make
+        # your friends read more than 4k characters on a fucking chatbox.)
+        audio_state.text = audio_state.text[-4096:]
+
         now = time.time()
         if audio_state.enable_debug_mode:
             print("Raw transcription ({} seconds): {}".format(
@@ -738,8 +750,6 @@ def transcribeLoop(mic: str,
                 src_lang=nllb_lang)
 
         print(f"Translation ready to go")
-
-    print("Safe to start talking")
 
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)

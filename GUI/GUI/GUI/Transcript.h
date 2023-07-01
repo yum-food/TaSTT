@@ -13,9 +13,16 @@ public:
 	void Set(std::string&& segment);
 	void Clear();
 
+	// Indicate whether the transcript is "finalized", i.e. the transcription
+	// engine has committed the entirety of the transcript and will no longer
+	// change it.
+	void SetFinalized(bool is_finalized);
+
 	std::vector<std::string> Get();
+	bool IsFinalized();
 
 private:
 	std::mutex mu_;
 	std::vector<std::string> segments_;
+	bool is_finalized_{ false };
 };
