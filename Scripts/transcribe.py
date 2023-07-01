@@ -320,6 +320,7 @@ def transcribeAudio(audio_state,
         enable_uppercase_filter: bool,
         enable_lowercase_filter: bool,
         ):
+    print("Ready!")
     last_transcribe_time = time.time()
     while audio_state.run_app == True:
         # Pace this out
@@ -403,7 +404,7 @@ def transcribeAudio(audio_state,
             uwu_text = uwu_text.replace("\r", "")
             filtered_text = uwu_text
         if remove_trailing_period:
-            if len(filtered_text) > 0 and filtered_text[-1] == '.':
+            if len(filtered_text) > 0 and filtered_text[-1] == '.' and not filtered_text.endswith("..."):
                 filtered_text = filtered_text[0:len(filtered_text)-1]
         if enable_uppercase_filter:
             filtered_text = filtered_text.upper()
