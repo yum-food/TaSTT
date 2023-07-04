@@ -1,8 +1,0 @@
-editdistance
-future==0.18.2
-openvr
-pillow
-playsound==1.2.2
-pyaudio
-python-osc
-wget

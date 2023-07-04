@@ -149,6 +149,19 @@ if (-Not (Test-Path Profanity)) {
   popd > $null
 }
 
+if (-Not (Test-Path curl)) {
+  git clone https://github.com/curl/curl
+
+  pushd curl > $null
+
+  mkdir build
+  cd build
+  cmake.exe -DCMAKE_BUILD_TYPE=Release ..
+  cmake.exe --build . --config Release
+
+  popd > $null
+}
+
 mkdir $install_dir > $null
 mkdir $install_dir/Resources > $null
 cp -Recurse ../Animations TaSTT/Resources/Animations
@@ -170,6 +183,9 @@ mkdir TaSTT/Resources/Uwu
 cp UwwwuPP/build/Src/Debug/Uwwwu.exe TaSTT/Resources/Uwu/
 cp UwwwuPP/LICENSE TaSTT/Resources/Uwu/
 cp -r Profanity/Profanity TaSTT/Resources/Profanity
+mkdir TaSTT/Resources/curl
+cp curl/build/src/Release/curl.exe TaSTT/Resources/curl/
+cp -r curl/LICENSES TaSTT/Resources/curl/
 
 if (-Not $skip_zip) {
   Compress-Archive -Path "$install_dir" -DestinationPath "$install_dir.zip" -Force
