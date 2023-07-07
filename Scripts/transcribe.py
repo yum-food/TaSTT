@@ -278,12 +278,15 @@ def transcribe(audio_state, model, frames, use_cpu: bool) -> typing.Tuple[str,st
             audio,
             beam_size = 5,
             language = audio_state.language,
-            temperature = [0.0],
+            temperature = [0.0, 0.2, 0.4],
+            log_prob_threshold = -1.0,
             vad_filter = True,
             condition_on_previous_text = True,
             without_timestamps = False)
     ranges = []
     for s in segments:
+        if s.avg_log_prob < -1.0 or s.no_speech_prob > 0.6:
+            continue
         if audio_state.enable_debug_mode:
             print(f"Segment: {s}")
         ranges.append((s.start, s.end, s.text))
