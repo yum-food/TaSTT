@@ -137,6 +137,9 @@ def onAudioFramesAvailable(
     frame_len = int(len(frames) / frame_count)
     next_frame = 0.0
     keep_every = float(input_rate) / audio_state.RATE
+    #print(f"Keep every {keep_every}th frame")
+    #print(f"len frames: {len(frames)}")
+    #print(f"len decimated: {len(decimated)}")
     i = 0
     for i in range(0, frame_count):
         if i >= next_frame:
@@ -173,7 +176,7 @@ def onAudioFramesAvailable(
     # Now enforce a minimum duration on frames. This reduces cases where the
     # STT hallucinates random things. In the Whisper paper, they enforce a
     # minimum audio buffer duration of 5.0 seconds, so I do the same here.
-    empty_chunk = b'0' * int(ceil(audio_state.CHUNK / keep_every))
+    empty_chunk = b'00' * int(ceil(audio_state.CHUNK / keep_every))
     chunk_duration_s = float(audio_state.CHUNK) / audio_state.RATE
     cur_duration_s = len(audio_state.frames) * chunk_duration_s
     desired_min_duration_s = 5.0
