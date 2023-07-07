@@ -170,6 +170,20 @@ def onAudioFramesAvailable(
         audio_state.frames = audio_state.frames[n_frames_to_drop:]
         audio_state.drop_samples_till_i = -1
 
+    # Now enforce a minimum duration on frames. This reduces cases where the
+    # STT hallucinates random things. In the Whisper paper, they enforce a
+    # minimum audio buffer duration of 5.0 seconds, so I do the same here.
+    empty_chunk = [0] * int(audio_state.CHUNK / keep_every)
+    chunk_duration_s = float(audio_state.CHUNK) / audio_state.RATE
+    cur_duration_s = len(audio_state.frames) * chunk_duration_s
+    desired_min_duration_s = 5.0
+    delta_duration_s = desired_min_duration_s - cur_duration_s
+    if delta_duration_s > 0:
+        delta_chunks = int(ceil(delta_duration_s / chunk_duration_s))
+        if audio_state.enable_debug_mode:
+            print(f"Padding with {delta_duration_s} seconds ({delta_chunks} chunks) of silence")
+        audio_state.frames = empty_chunk * delta_chunks + audio_state.frames
+
     return (frames, pyaudio.paContinue)
 
 def getMicStream(which_mic) -> AudioState:
