@@ -1,6 +1,6 @@
 ctranslate2
 editdistance
-faster-whisper@https://github.com/guillaumekln/faster-whisper/archive/358d373691c95205021bd4bbf28cde7ce4d10030.tar.gz
+faster-whisper@https://github.com/guillaumekln/faster-whisper/archive/78d57d73c5b4a76b32d1d5a415e4e7aea760295c.tar.gz
 future==0.18.2
 keyboard
 langcodes
