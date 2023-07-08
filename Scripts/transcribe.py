@@ -4,7 +4,7 @@ from datetime import datetime
 from emotes_v2 import EmotesState
 from faster_whisper import WhisperModel
 from functools import partial
-from math import floor, ceil
+from math import ceil
 from playsound import playsound
 from profanity_filter import ProfanityFilter
 from sentence_splitter import split_text_into_sentences

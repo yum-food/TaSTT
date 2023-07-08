@@ -100,7 +100,7 @@ Avatar resources used:
 * Tris: 4
 * Material slots: 1
 * Texture memory: 340 KB (English), 130 MB (international)
-* Parameters: 65-217 (configurable; more bits == faster paging)
+* Parameter bits: 65-217 (configurable; more bits == faster paging)
 * Menu slots: 1
 
 ## Motivation
@@ -119,8 +119,8 @@ reason or another:
    update every ~2 seconds, making it a poor choice for latency-sensitive
    communication.
 3. [KillFrenzy's AvatarText](https://github.com/killfrenzy96/KillFrenzyAvatarText)
-   only supports text-to-text, and is GPL, making it legally risky for people
-   who want to sell closed-source software.
+   only supports text-to-text. It's an excellent product with high-quality
+   source code, but it lacks integration with a client-side STT engine.
 4. [I5UCC's VRCTextboxSTT](https://github.com/I5UCC/VRCTextboxSTT) makes
    KillFrenzy's AvatarText and Whisper kiss. It's the closest spiritual cousin
    to this repository. The author has made incredible sustained progress on
@@ -222,7 +222,7 @@ Completed at commit 1f15133dd985442, AKA release 0.10.0.
 
 ### Milestone 3: STT Generally performant
 
-Status: IN PROGRESS.
+Status: COMPLETE.
 
 Scope: The speech-to-text may be used on resource constrained systems.
 
@@ -236,9 +236,11 @@ it's caused by the inference layer being unable to "second guess" itself
 (previous transcriptions cannot be edited in the current architecture),
 or something else.
 
+Completed at commit 1f2e5c6cf16e7e7, AKA release 0.11.2.
+
 ### Milestone 4: Enable non-VRChat use cases
 
-Status: IN PROGRESS.
+Status: COMPLETE.
 
 Scope: The speech-to-text may be used as a tool for usecases outside of VRChat.
 
@@ -246,6 +248,8 @@ Streamers could use the STT as an OBS browser source. VR players could use it
 to type into arbitrary text fields (voice-driven keyboard device). MMO players
 could also use the voice-driven keyboard (speak -> preview -> rapid commit?)
 while raiding.
+
+Completed at commit 7a576bcac1c37c3, AKA release 0.13.1.
 
 ### Milestone 5: Integration into other tools
 
