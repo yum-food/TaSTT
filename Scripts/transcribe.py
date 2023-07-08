@@ -4,7 +4,7 @@ from datetime import datetime
 from emotes_v2 import EmotesState
 from faster_whisper import WhisperModel
 from functools import partial
-from math import ceil
+from math import ceil, floor
 from playsound import playsound
 from profanity_filter import ProfanityFilter
 from sentence_splitter import split_text_into_sentences
@@ -161,16 +161,18 @@ def onAudioFramesAvailable(
         # mics usually have a higher sample rate than 16 KHz (see decimation
         # code above).
         # The ratio of (mic sample rate) / (16KHz) is simply `keep_every`.
-        #
-        # TODO we should be more careful and avoid dropping an entire chunk
-        # since phonemes can absolutely fit into that amount of time. However
-        # whisper can usually figure it out so it's not a huge deal.
         n_frames_to_drop = audio_state.drop_samples_till_i / audio_state.CHUNK
         n_frames_to_drop *= keep_every
-        n_frames_to_drop = int(ceil(n_frames_to_drop))
+        n_frames_to_drop = int(floor(n_frames_to_drop))
         if audio_state.enable_debug_mode:
             print(f"Dropping {n_frames_to_drop} frames, buffer has {len(audio_state.frames)} frames total")
+        # First drop every whole chunk
         audio_state.frames = audio_state.frames[n_frames_to_drop:]
+        # Then drop the part of the most recent chunk we no longer want
+        if len(audio_state.frames) > 0:
+            n_samples_to_drop = int(ceil((n_frames_to_drop % 1.0) * audio_state.CHUNK))
+            bytes_per_sample = 2
+            audio_state.frames[0] = audio_state.frames[0][n_samples_to_drop * bytes_per_sample:]
         audio_state.drop_samples_till_i = -1
 
     # Now enforce a minimum duration on frames. This reduces cases where the
