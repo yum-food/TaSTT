@@ -161,18 +161,21 @@ def onAudioFramesAvailable(
         # mics usually have a higher sample rate than 16 KHz (see decimation
         # code above).
         # The ratio of (mic sample rate) / (16KHz) is simply `keep_every`.
-        n_frames_to_drop = audio_state.drop_samples_till_i / audio_state.CHUNK
+        n_frames_to_drop = float(audio_state.drop_samples_till_i) / audio_state.CHUNK
         n_frames_to_drop *= keep_every
-        n_frames_to_drop = int(floor(n_frames_to_drop))
+        n_frames_to_drop_int = int(floor(n_frames_to_drop))
         if audio_state.enable_debug_mode:
-            print(f"Dropping {n_frames_to_drop} frames, buffer has {len(audio_state.frames)} frames total")
+            print(f"Dropping {n_frames_to_drop_int} frames, buffer has {len(audio_state.frames)} frames total")
         # First drop every whole chunk
-        audio_state.frames = audio_state.frames[n_frames_to_drop:]
+        audio_state.frames = audio_state.frames[n_frames_to_drop_int:]
         # Then drop the part of the most recent chunk we no longer want
         if len(audio_state.frames) > 0:
-            n_samples_to_drop = int(ceil((n_frames_to_drop % 1.0) * audio_state.CHUNK))
+            n_samples_to_drop = int(ceil((n_frames_to_drop % 1.0) * audio_state.CHUNK / keep_every))
+            if audio_state.enable_debug_mode:
+                print(f"Zeroing {n_samples_to_drop} samples in frame 0")
+                print(f"Frame 0 has length {len(audio_state.frames[0])}")
             bytes_per_sample = 2
-            audio_state.frames[0] = audio_state.frames[0][n_samples_to_drop * bytes_per_sample:]
+            audio_state.frames[0] = b'00' * n_samples_to_drop + audio_state.frames[0][n_samples_to_drop * bytes_per_sample:]
         audio_state.drop_samples_till_i = -1
 
     # Now enforce a minimum duration on frames. This reduces cases where the
