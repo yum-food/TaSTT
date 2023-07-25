@@ -1477,6 +1477,18 @@ void Frame::ApplyConfigToInputFields()
     py_app_reset_on_toggle->SetValue(app_c_->reset_on_toggle);
 
     // Unity panel
+    auto* unity_assets_path = static_cast<wxDirPickerCtrl*>(FindWindowById(ID_UNITY_ASSETS_FILE_PICKER));
+    unity_assets_path->SetPath(app_c_->assets_path);
+
+    auto* unity_animator_path = static_cast<wxFilePickerCtrl*>(FindWindowById(ID_UNITY_ANIMATOR_FILE_PICKER));
+    unity_animator_path->SetPath(app_c_->fx_path);
+
+    auto* unity_params_path = static_cast<wxFilePickerCtrl*>(FindWindowById(ID_UNITY_PARAMETERS_FILE_PICKER));
+    unity_params_path->SetPath(app_c_->params_path);
+
+    auto* unity_menu_path = static_cast<wxFilePickerCtrl*>(FindWindowById(ID_UNITY_MENU_FILE_PICKER));
+    unity_menu_path->SetPath(app_c_->menu_path);
+
     auto* unity_chars_per_sync = static_cast<wxChoice*>(FindWindowById(ID_UNITY_CHARS_PER_SYNC));
 	unity_chars_per_sync->SetSelection(chars_idx);
 
