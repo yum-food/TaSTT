@@ -78,7 +78,9 @@ private:
     std::future<bool> obs_app_;
     Transcript transcript_;
     bool run_py_app_;
+    bool run_unity_auto_refresh_;
     std::future<bool> unity_app_;
+    std::future<bool> unity_auto_refresh_;
     std::future<bool> dump_mics_;
     std::future<bool> env_proc_;
     std::future<void> reset_venv_proc_;
@@ -102,6 +104,8 @@ private:
     void OnAppStop(wxCommandEvent& event);
     void OnAppDrain(wxTimerEvent& event);
     void OnGenerateFX(wxCommandEvent& event);
+    void OnUnityAutoRefresh(wxCommandEvent& event);
+    void OnUnityAutoRefreshStop(wxCommandEvent& event);
     void OnUnityParamChangeImpl();
     void OnUnityParamChange(wxCommandEvent& event);
     void OnListPip(wxCommandEvent& event);

@@ -7,6 +7,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <numeric>
 #include <regex>
 #include <sstream>
 #include <string>
@@ -70,6 +71,8 @@ namespace {
 		ID_UNITY_PARAMETERS_GENERATED_NAME,
 		ID_UNITY_MENU_GENERATED_NAME,
 		ID_UNITY_BUTTON_GEN_ANIMATOR,
+		ID_UNITY_BUTTON_AUTO_REFRESH,
+		ID_UNITY_BUTTON_AUTO_REFRESH_STOP,
         ID_UNITY_CHARS_PER_SYNC,
         ID_UNITY_BYTES_PER_CHAR,
         ID_UNITY_ROWS,
@@ -536,6 +539,11 @@ Frame::Frame()
 	{
 		auto p = std::promise<bool>();
 		unity_app_ = p.get_future();
+		p.set_value(true);
+	}
+	{
+		auto p = std::promise<bool>();
+		unity_auto_refresh_ = p.get_future();
 		p.set_value(true);
 	}
 	{
@@ -1199,11 +1207,31 @@ Frame::Frame()
                     ID_UNITY_BUTTON_GEN_ANIMATOR, "Generate avatar assets");
                 unity_button_gen_fx->SetWindowStyleFlag(wxBU_EXACTFIT);
 
+				auto* unity_button_auto_refresh = new wxButton(unity_config_panel,
+                    ID_UNITY_BUTTON_AUTO_REFRESH, "Begin auto generating assets on change");
+                unity_button_auto_refresh->SetWindowStyleFlag(wxBU_EXACTFIT);
+                unity_button_auto_refresh->SetToolTip(
+                    "When the configured FX controller, parameters, or menu "
+                    "change (as determined by its hash changing), "
+                    "automatically regenerate TaSTT assets."
+                );
+
+				auto* unity_button_auto_refresh_stop = new wxButton(unity_config_panel,
+                    ID_UNITY_BUTTON_AUTO_REFRESH_STOP,
+                    "Stop auto generating assets on change");
+                unity_button_auto_refresh_stop->SetWindowStyleFlag(wxBU_EXACTFIT);
+				unity_button_auto_refresh_stop->SetToolTip(
+					"Stop auto-generating TaSTT assets on change.");
+
 				auto* sizer = new wxBoxSizer(wxVERTICAL);
 				unity_config_panel->SetSizer(sizer);
 				sizer->Add(unity_config_panel_pairs);
                 sizer->Add(clear_osc);
 				sizer->Add(unity_button_gen_fx, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+				sizer->Add(unity_button_auto_refresh, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+				sizer->Add(unity_button_auto_refresh_stop, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
             }
 
@@ -1342,6 +1370,10 @@ Frame::Frame()
 	Bind(wxEVT_BUTTON, &Frame::OnDumpMics, this, ID_PY_DUMP_MICS_BUTTON);
 	Bind(wxEVT_BUTTON, &Frame::OnGenerateFX, this,
         ID_UNITY_BUTTON_GEN_ANIMATOR);
+	Bind(wxEVT_BUTTON, &Frame::OnUnityAutoRefresh, this,
+        ID_UNITY_BUTTON_AUTO_REFRESH);
+	Bind(wxEVT_BUTTON, &Frame::OnUnityAutoRefreshStop, this,
+        ID_UNITY_BUTTON_AUTO_REFRESH_STOP);
 	Bind(wxEVT_BUTTON, &Frame::OnListPip, this, ID_DEBUG_BUTTON_LIST_PIP);
 	Bind(wxEVT_BUTTON, &Frame::OnClearPip, this, ID_DEBUG_BUTTON_CLEAR_PIP);
 	Bind(wxEVT_BUTTON, &Frame::OnListPip, this, ID_DEBUG_BUTTON_LIST_PIP);
@@ -1773,6 +1805,106 @@ void Frame::OnGenerateFX(wxCommandEvent& event)
 		}
 		return true;
 	}));
+}
+
+// Return a non-cryptographic hash of the file at `path`.
+std::string hash_non_crypto(const std::string& path) {
+    std::ifstream file_ifs(path, std::ios::binary);
+    if (!file_ifs) {
+        std::cerr << "Could not open the file: " << path << '\n';
+        return 0;
+    }
+
+    // Read all bytes from the file into a vector
+    std::vector<uint8_t> data((std::istreambuf_iterator<char>(file_ifs)),
+        std::istreambuf_iterator<char>());
+
+    // Compute the hash as a sum of all bytes
+    uint32_t hash = std::accumulate(data.begin(), data.end(), 0);
+
+    std::stringstream ss;
+    ss << std::hex << hash;
+    return ss.str();
+}
+
+void Frame::OnUnityAutoRefresh(wxCommandEvent& event)
+{
+    auto status = unity_auto_refresh_.wait_for(std::chrono::seconds(0));
+    if (status != std::future_status::ready) {
+		Log(unity_out_, "Auto refresh thread already running\n");
+		return;
+	}
+
+	run_unity_auto_refresh_ = true;
+
+    unity_auto_refresh_ = std::move(std::async(std::launch::async, [&]() {
+        std::string fx_hash_prev;
+        std::string params_hash_prev;
+        std::string menu_hash_prev;
+        while (run_unity_auto_refresh_) {
+            std::this_thread::sleep_for(std::chrono::seconds(3));
+
+			std::filesystem::path unity_animator_path;
+			if (!GetUserPath(unity_out_,
+				unity_animator_file_picker_->GetPath().ToStdString(),
+				unity_animator_path,
+				"Cannot auto-refresh FX layer: Failed to validate animator directory")) {
+				return false;
+			}
+			std::filesystem::path unity_parameters_path;
+			if (!GetUserPath(unity_out_,
+				unity_parameters_file_picker_->GetPath().ToStdString(),
+				unity_parameters_path,
+				"Cannot auto-refresh FX layer: Failed to validate parameters directory")) {
+				return false;
+			}
+			std::filesystem::path unity_menu_path;
+			if (!GetUserPath(unity_out_, unity_menu_file_picker_->GetPath().ToStdString(),
+				unity_menu_path,
+				"Cannot auto-refresh FX layer: Failed to validate menu directory")) {
+				return false;
+			}
+
+            if (fx_hash_prev.empty() || params_hash_prev.empty() || menu_hash_prev.empty()) {
+                Log(unity_out_, "Generating initial hash of animator, parameters and menu\n");
+                fx_hash_prev = hash_non_crypto(unity_animator_path.string());
+                params_hash_prev = hash_non_crypto(unity_parameters_path.string());
+                menu_hash_prev = hash_non_crypto(unity_menu_path.string());
+                continue;
+            }
+
+			const std::string fx_hash = hash_non_crypto(unity_animator_path.string());
+			const std::string params_hash = hash_non_crypto(unity_parameters_path.string());
+			const std::string menu_hash = hash_non_crypto(unity_menu_path.string());
+
+            if (fx_hash.empty() || params_hash.empty() || menu_hash.empty()) {
+                Log(unity_out_, "Failed to hash animator ({}, {}), parameters ({}, {}), or menu ({}, {})\n",
+                    unity_animator_path.string(), fx_hash,
+                    unity_parameters_path.string(), params_hash,
+                    unity_menu_path.string(), menu_hash);
+                continue;
+            }
+
+            if (fx_hash != fx_hash_prev ||
+                params_hash != params_hash_prev ||
+                menu_hash != menu_hash_prev) {
+                Log(unity_out_, "Detected change in animator ({}), params ({}), or menu ({}), regenerating unity assets\n",
+                    fx_hash != fx_hash_prev ? "CHANGED" : "NO_CHANGE",
+                    params_hash != params_hash_prev ? "CHANGED" : "NO_CHANGE",
+                    menu_hash != menu_hash_prev ? "CHANGED" : "NO_CHANGE");
+                OnGenerateFX(event);
+                fx_hash_prev = fx_hash;
+                params_hash_prev = params_hash;
+                menu_hash_prev = menu_hash;
+            }
+		}
+        Log(unity_out_, "Stopping unity asset auto-generation\n");
+        return true;
+        }));
+}
+
+void Frame::OnUnityAutoRefreshStop(wxCommandEvent& event) {
+	run_unity_auto_refresh_ = false;
 }
 
 void Frame::OnListPip(wxCommandEvent& event)
