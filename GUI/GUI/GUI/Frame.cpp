@@ -1040,7 +1040,7 @@ Frame::Frame()
                         unity_config_panel_pairs,
                         ID_UNITY_ANIMATOR_GENERATED_DIR,
 						wxEmptyString, wxDefaultPosition, wxDefaultSize,
-                        wxTE_READONLY);
+                        /*style=*/0);
                     unity_animator_generated_dir->AppendText("TaSTT_Generated");
                     unity_animator_generated_dir->SetToolTip(
                         "TaSTT will create a bunch of files "
@@ -1489,6 +1489,10 @@ void Frame::ApplyConfigToInputFields()
     auto* unity_menu_path = static_cast<wxFilePickerCtrl*>(FindWindowById(ID_UNITY_MENU_FILE_PICKER));
     unity_menu_path->SetPath(app_c_->menu_path);
 
+    auto* unity_generated_dir = static_cast<wxTextCtrl*>(FindWindowById(ID_UNITY_ANIMATOR_GENERATED_DIR));
+    unity_generated_dir->Clear();
+    unity_generated_dir->AppendText(app_c_->unity_generated_dir);
+
     auto* unity_chars_per_sync = static_cast<wxChoice*>(FindWindowById(ID_UNITY_CHARS_PER_SYNC));
 	unity_chars_per_sync->SetSelection(chars_idx);
 
@@ -1749,6 +1753,7 @@ void Frame::OnGenerateFX(wxCommandEvent& event)
 		app_c_->fx_path = unity_animator_path.string();
 		app_c_->params_path = unity_parameters_path.string();
 		app_c_->menu_path = unity_menu_path.string();
+        app_c_->unity_generated_dir = unity_animator_generated_dir;
 		app_c_->bytes_per_char = bytes_per_char;
 		app_c_->chars_per_sync = chars_per_sync;
 		app_c_->rows = rows;

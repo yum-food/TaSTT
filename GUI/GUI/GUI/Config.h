@@ -82,6 +82,7 @@ public:
 	std::string fx_path;
 	std::string params_path;
 	std::string menu_path;
+	std::string unity_generated_dir;
 	bool clear_osc;
 
 	// WhisperCPP-specific settings.

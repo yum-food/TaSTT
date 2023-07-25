@@ -94,6 +94,7 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	fx_path(),
 	params_path(),
 	menu_path(),
+	unity_generated_dir("TaSTT_Generated"),
 	clear_osc(true),
 
 	whisper_model("ggml-medium.bin"),
@@ -148,6 +149,7 @@ bool AppConfig::Serialize(const std::filesystem::path& path) {
 	cm.Set("fx_path", fx_path);
 	cm.Set("params_path", params_path);
 	cm.Set("menu_path", menu_path);
+	cm.Set("unity_generated_dir", unity_generated_dir);
 	cm.Set("clear_osc", clear_osc);
 
 	cm.Set("whisper_model", whisper_model);
@@ -215,6 +217,7 @@ bool AppConfig::Deserialize(const std::filesystem::path& path) {
 	cm.Get("fx_path", c.fx_path);
 	cm.Get("params_path", c.params_path);
 	cm.Get("menu_path", c.menu_path);
+	cm.Get("unity_generated_dir", c.unity_generated_dir);
 	cm.Get("clear_osc", c.clear_osc);
 
 	cm.Get("whisper_model", c.whisper_model);
