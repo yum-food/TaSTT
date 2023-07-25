@@ -688,14 +688,6 @@ bool PythonWrapper::GenerateAnimator(
 				Log(out, "Error removing unicode texture: {} ({})\n", err.message(), err.value());
 				return false;
 			}
-			if (i != 0) {
-				std::filesystem::remove(tastt_fonts_path / ("Bitmaps/font-" + std::to_string(i) + ".png.meta"), err);
-				if (err.value()) {
-					Log(out, "failed!\n");
-					Log(out, "Error removing unicode texture metadata: {} ({})\n", err.message(), err.value());
-					return false;
-				}
-			}
 		}
 		std::filesystem::remove(tastt_fonts_path / "Bitmaps/emotes.png", err);
 		if (err.value()) {
@@ -704,14 +696,6 @@ bool PythonWrapper::GenerateAnimator(
 			return false;
 		}
 
-		Log(out, "success!\n");
-	} else {
-		std::error_code err;
-		if (!std::filesystem::remove(tastt_fonts_path / "Bitmaps/font-ascii.png.meta", err)) {
-			Log(out, "failed!\n");
-			Log(out, "Error: {} ({})\n", err.message(), err.value());
-			return false;
-		}
 		Log(out, "success!\n");
 	}
 	{
