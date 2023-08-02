@@ -110,7 +110,6 @@ class AudioState:
                 generate_utils.config.BOARD_COLS)
 
     def sleepInterruptible(self, dur_s, stride_ms = 5):
-        dur_ms = dur_s * 1000.0
         timeout = time.time() + dur_s
         while self.audio_paused and self.run_app and time.time() < timeout:
             time.sleep(stride_ms / 1000.0)
@@ -349,18 +348,21 @@ def transcribeAudio(audio_state,
     print("Ready!")
     last_transcribe_time = time.time()
     while audio_state.run_app == True:
-        # Pace this out
-        if audio_state.audio_paused:
+        # Pace this out.
+        # If `preview_text` is not empty, then we're still transcribing a
+        # message, so don't enter the idle path.
+        if audio_state.audio_paused and len(audio_state.preview_text) == 0:
             audio_state.sleepInterruptible(audio_state.transcribe_sleep_duration)
         else:
-            time.sleep(0.05)
+            # This sleep directly affects latency so keep it short.
+            time.sleep(0.005)
 
         audio_state.transcribe_no_change_count += 1
         # Increase sleep time. Code below will set sleep time back to minimum
         # if a change is detected.
         longer_sleep_dur = audio_state.transcribe_sleep_duration
         longer_sleep_dur += audio_state.transcribe_sleep_duration_min_s * (1.3**audio_state.transcribe_no_change_count)
-        if audio_state.audio_paused:
+        if audio_state.audio_paused and len(audio_state.preview_text) == 0:
             audio_state.transcribe_sleep_duration = min(
                     1000 * 1000,
                     longer_sleep_dur)
@@ -388,7 +390,7 @@ def transcribeAudio(audio_state,
 
         old_text = audio_state.text
         audio_state.text += text
-        audio_state.preview_text = audio_state.text + preview_text
+        audio_state.preview_text = preview_text
 
         if len(preview_text) == 0:
             print("Finalized: 1")
@@ -406,13 +408,13 @@ def transcribeAudio(audio_state,
         if audio_state.enable_debug_mode:
             print("Raw transcription ({} seconds): {}".format(
                 now - last_transcribe_time,
-                audio_state.preview_text))
+                audio_state.text + audio_state.preview_text))
             last_transcribe_time = now
             print(f"Commit text: {text}")
             print(f"Preview text: {preview_text}")
 
         # Translate if requested.
-        translated = audio_state.preview_text
+        translated = audio_state.text + audio_state.preview_text
         if audio_state.language_target:
             whisper_lang = audio_state.whisper_language
             nllb_lang = lang_compat.whisper_to_nllb[whisper_lang]
