@@ -328,6 +328,10 @@ def transcribe(audio_state, model, frames, use_cpu: bool) -> typing.Tuple[str,st
                     print(f"Dropping frames until {c0[1]}")
                 n_samples_to_drop = int(ceil(audio_state.RATE * c0[1]))
                 audio_state.drop_samples_till_i = n_samples_to_drop
+                while audio_state.drop_samples_till_i == n_samples_to_drop:
+                    # To prevent a race, wait until those audio samples are
+                    # dropped by the microphone capture thread before returning.
+                    time.sleep(.001)
 
     preview_text = ""
     for seg in ranges:
@@ -353,22 +357,14 @@ def transcribeAudio(audio_state,
         # message, so don't enter the idle path.
         if audio_state.audio_paused and len(audio_state.preview_text) == 0:
             audio_state.sleepInterruptible(audio_state.transcribe_sleep_duration)
-        else:
-            # This sleep directly affects latency so keep it short.
-            time.sleep(0.005)
 
-        audio_state.transcribe_no_change_count += 1
-        # Increase sleep time. Code below will set sleep time back to minimum
-        # if a change is detected.
-        longer_sleep_dur = audio_state.transcribe_sleep_duration
-        longer_sleep_dur += audio_state.transcribe_sleep_duration_min_s * (1.3**audio_state.transcribe_no_change_count)
-        if audio_state.audio_paused and len(audio_state.preview_text) == 0:
+            audio_state.transcribe_no_change_count += 1
+            # Increase sleep time. Code below will set sleep time back to minimum
+            # if a change is detected.
+            longer_sleep_dur = audio_state.transcribe_sleep_duration
+            longer_sleep_dur += audio_state.transcribe_sleep_duration_min_s * (1.3**audio_state.transcribe_no_change_count)
             audio_state.transcribe_sleep_duration = min(
                     1000 * 1000,
-                    longer_sleep_dur)
-        else:
-            audio_state.transcribe_sleep_duration = min(
-                    audio_state.transcribe_sleep_duration_max_s,
                     longer_sleep_dur)
 
         text, preview_text = transcribe(audio_state, model, audio_state.frames, use_cpu)
@@ -460,7 +456,7 @@ def transcribeAudio(audio_state,
             filtered_text))
         last_transcribe_time = now
 
-        if old_text != audio_state.preview_text:
+        if old_text != audio_state.text + audio_state.preview_text:
             # We think the user said something, so  reset the amount of
             # time we sleep between transcriptions to the minimum.
             audio_state.transcribe_no_change_count = 0
