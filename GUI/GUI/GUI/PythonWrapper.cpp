@@ -522,9 +522,9 @@ bool PythonWrapper::GenerateAnimator(
 	std::string generate_menu_path = "Resources/Scripts/generate_menu.py";
 	std::string generate_shader_path = "Resources/Scripts/generate_shader.py";
 	std::string shader_template_path = "Resources/Shaders/TaSTT_template.shader";
-	std::string shader_lighting_template_path = "Resources/Shaders/TaSTT_lighting_template.cginc";
+	std::string shader_lighting_template_path = "Resources/Shaders/STT_generated_template.cginc";
 	std::string shader_path = "Resources/Shaders/TaSTT.shader";
-	std::string shader_lighting_path = "Resources/Shaders/TaSTT_lighting.cginc";
+	std::string shader_lighting_path = "Resources/Shaders/STT_generated.cginc";
 
 	// Generated directory locations
 	std::filesystem::path tastt_generated_dir_path =

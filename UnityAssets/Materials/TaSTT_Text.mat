@@ -7,13 +7,13 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: TaSTT_Text
-  m_Shader: {fileID: 4800000, guid: feba055fa9e7f9543aaae032a30ec878, type: 3}
-  m_ShaderKeywords: RENDER_MARGIN_ON
+  m_Name: STTExperiment
+  m_Shader: {fileID: 4800000, guid: 54bb178efaf25f446a83bf02d6d15033, type: 3}
+  m_ShaderKeywords: BG_SMOOTHNESS_INVERT_ON ENABLE_DITHERING_ON ENABLE_RAY_MARCH_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3000
+  m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
@@ -39,12 +39,8 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - Custom_Background:
+    - Custom_Cubemap:
         m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - TaSTT_Backplate:
-        m_Texture: {fileID: 2800000, guid: 06c9223f22185d54b920542d45168c6b, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
@@ -72,31 +68,31 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Font_0x2000_0x3FFF:
-        m_Texture: {fileID: 2800000, guid: 45d1d35ef90dd5742bab73718b1fa64e, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Font_0x4000_0x5FFF:
-        m_Texture: {fileID: 2800000, guid: fbb9dcb303ae5fc46a1b4f6b82b55a16, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Font_0x6000_0x7FFF:
-        m_Texture: {fileID: 2800000, guid: cf2fc1dc6a21e9d42bf08d8148dba0b7, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Font_0x8000_0x9FFF:
-        m_Texture: {fileID: 2800000, guid: d06c79dd35cbaa94c81b2eb9240a7c57, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Font_0xA000_0xBFFF:
-        m_Texture: {fileID: 2800000, guid: dea31226b42fe7e4d9470806d43afcf8, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Font_0xC000_0xDFFF:
-        m_Texture: {fileID: 2800000, guid: e8c2974f31efa7a4e9e7588c90561a85, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Img_0xE000_0xE03F:
-        m_Texture: {fileID: 2800000, guid: 054057c5bf512e842854e6746e754159, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -116,413 +112,135 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - AA_Amount: 5
     - BG_Enable: 0
     - BG_NormalStrength: 1
     - BG_Smoothness_Invert: 1
     - Emissive: 0.1
+    - Enable_Custom_Cubemap: 0
     - Enable_Dithering: 1
     - Enable_Margin_Effect_Squares: 0
-    - Margin_Rounding_Scale: 0.11
-    - Margin_Scale: 0.06
+    - Enable_Ray_March: 1
+    - Margin_Rounding_Scale: 0.15
+    - Margin_Scale: 0.1
     - Metallic: 0.5
-    - Render_Margin: 1
+    - Render_Margin: 0
     - Render_Visual_Indicator: 0
     - Smoothness: 0.2
-    - TaSTT_Indicator_0: 0
-    - TaSTT_Indicator_1: 0
-    - Use_Custom_Background: 0
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _GlossMapScale: 1
-    - _Glossiness: 0
+    - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _Letter_Row00_Col00_Byte0: 0
-    - _Letter_Row00_Col00_Byte1: 0
     - _Letter_Row00_Col01_Byte0: 0
-    - _Letter_Row00_Col01_Byte1: 0
     - _Letter_Row00_Col02_Byte0: 0
-    - _Letter_Row00_Col02_Byte1: 0
     - _Letter_Row00_Col03_Byte0: 0
-    - _Letter_Row00_Col03_Byte1: 0
     - _Letter_Row00_Col04_Byte0: 0
-    - _Letter_Row00_Col04_Byte1: 0
     - _Letter_Row00_Col05_Byte0: 0
-    - _Letter_Row00_Col05_Byte1: 0
     - _Letter_Row00_Col06_Byte0: 0
-    - _Letter_Row00_Col06_Byte1: 0
     - _Letter_Row00_Col07_Byte0: 0
-    - _Letter_Row00_Col07_Byte1: 0
     - _Letter_Row00_Col08_Byte0: 0
-    - _Letter_Row00_Col08_Byte1: 0
     - _Letter_Row00_Col09_Byte0: 0
-    - _Letter_Row00_Col09_Byte1: 0
     - _Letter_Row00_Col10_Byte0: 0
-    - _Letter_Row00_Col10_Byte1: 0
     - _Letter_Row00_Col11_Byte0: 0
-    - _Letter_Row00_Col11_Byte1: 0
     - _Letter_Row00_Col12_Byte0: 0
-    - _Letter_Row00_Col12_Byte1: 0
     - _Letter_Row00_Col13_Byte0: 0
-    - _Letter_Row00_Col13_Byte1: 0
     - _Letter_Row00_Col14_Byte0: 0
-    - _Letter_Row00_Col14_Byte1: 0
     - _Letter_Row00_Col15_Byte0: 0
-    - _Letter_Row00_Col15_Byte1: 0
     - _Letter_Row00_Col16_Byte0: 0
-    - _Letter_Row00_Col16_Byte1: 0
     - _Letter_Row00_Col17_Byte0: 0
-    - _Letter_Row00_Col17_Byte1: 0
     - _Letter_Row00_Col18_Byte0: 0
-    - _Letter_Row00_Col18_Byte1: 0
     - _Letter_Row00_Col19_Byte0: 0
-    - _Letter_Row00_Col19_Byte1: 0
     - _Letter_Row00_Col20_Byte0: 0
-    - _Letter_Row00_Col20_Byte1: 0
     - _Letter_Row00_Col21_Byte0: 0
-    - _Letter_Row00_Col21_Byte1: 0
     - _Letter_Row00_Col22_Byte0: 0
-    - _Letter_Row00_Col22_Byte1: 0
     - _Letter_Row00_Col23_Byte0: 0
-    - _Letter_Row00_Col23_Byte1: 0
     - _Letter_Row00_Col24_Byte0: 0
-    - _Letter_Row00_Col24_Byte1: 0
     - _Letter_Row00_Col25_Byte0: 0
-    - _Letter_Row00_Col25_Byte1: 0
     - _Letter_Row00_Col26_Byte0: 0
-    - _Letter_Row00_Col26_Byte1: 0
     - _Letter_Row00_Col27_Byte0: 0
-    - _Letter_Row00_Col27_Byte1: 0
     - _Letter_Row00_Col28_Byte0: 0
-    - _Letter_Row00_Col28_Byte1: 0
     - _Letter_Row00_Col29_Byte0: 0
-    - _Letter_Row00_Col29_Byte1: 0
     - _Letter_Row00_Col30_Byte0: 0
-    - _Letter_Row00_Col30_Byte1: 0
     - _Letter_Row00_Col31_Byte0: 0
-    - _Letter_Row00_Col31_Byte1: 0
     - _Letter_Row00_Col32_Byte0: 0
-    - _Letter_Row00_Col32_Byte1: 0
     - _Letter_Row00_Col33_Byte0: 0
-    - _Letter_Row00_Col33_Byte1: 0
     - _Letter_Row00_Col34_Byte0: 0
-    - _Letter_Row00_Col34_Byte1: 0
     - _Letter_Row00_Col35_Byte0: 0
-    - _Letter_Row00_Col35_Byte1: 0
-    - _Letter_Row00_Col36_Byte0: 0
-    - _Letter_Row00_Col36_Byte1: 0
-    - _Letter_Row00_Col37_Byte0: 0
-    - _Letter_Row00_Col37_Byte1: 0
-    - _Letter_Row00_Col38_Byte0: 0
-    - _Letter_Row00_Col38_Byte1: 0
-    - _Letter_Row00_Col39_Byte0: 0
-    - _Letter_Row00_Col39_Byte1: 0
-    - _Letter_Row00_Col40_Byte0: 0
-    - _Letter_Row00_Col40_Byte1: 0
-    - _Letter_Row00_Col41_Byte0: 0
-    - _Letter_Row00_Col41_Byte1: 0
-    - _Letter_Row00_Col42_Byte0: 0
-    - _Letter_Row00_Col42_Byte1: 0
-    - _Letter_Row00_Col43_Byte0: 0
-    - _Letter_Row00_Col43_Byte1: 0
-    - _Letter_Row00_Col44_Byte0: 0
-    - _Letter_Row00_Col44_Byte1: 0
-    - _Letter_Row00_Col45_Byte0: 0
-    - _Letter_Row00_Col45_Byte1: 0
-    - _Letter_Row00_Col46_Byte0: 0
-    - _Letter_Row00_Col46_Byte1: 0
-    - _Letter_Row00_Col47_Byte0: 0
-    - _Letter_Row00_Col47_Byte1: 0
     - _Letter_Row01_Col00_Byte0: 0
-    - _Letter_Row01_Col00_Byte1: 0
     - _Letter_Row01_Col01_Byte0: 0
-    - _Letter_Row01_Col01_Byte1: 0
     - _Letter_Row01_Col02_Byte0: 0
-    - _Letter_Row01_Col02_Byte1: 0
     - _Letter_Row01_Col03_Byte0: 0
-    - _Letter_Row01_Col03_Byte1: 0
     - _Letter_Row01_Col04_Byte0: 0
-    - _Letter_Row01_Col04_Byte1: 0
     - _Letter_Row01_Col05_Byte0: 0
-    - _Letter_Row01_Col05_Byte1: 0
     - _Letter_Row01_Col06_Byte0: 0
-    - _Letter_Row01_Col06_Byte1: 0
     - _Letter_Row01_Col07_Byte0: 0
-    - _Letter_Row01_Col07_Byte1: 0
     - _Letter_Row01_Col08_Byte0: 0
-    - _Letter_Row01_Col08_Byte1: 0
     - _Letter_Row01_Col09_Byte0: 0
-    - _Letter_Row01_Col09_Byte1: 0
     - _Letter_Row01_Col10_Byte0: 0
-    - _Letter_Row01_Col10_Byte1: 0
     - _Letter_Row01_Col11_Byte0: 0
-    - _Letter_Row01_Col11_Byte1: 0
     - _Letter_Row01_Col12_Byte0: 0
-    - _Letter_Row01_Col12_Byte1: 0
     - _Letter_Row01_Col13_Byte0: 0
-    - _Letter_Row01_Col13_Byte1: 0
     - _Letter_Row01_Col14_Byte0: 0
-    - _Letter_Row01_Col14_Byte1: 0
     - _Letter_Row01_Col15_Byte0: 0
-    - _Letter_Row01_Col15_Byte1: 0
     - _Letter_Row01_Col16_Byte0: 0
-    - _Letter_Row01_Col16_Byte1: 0
     - _Letter_Row01_Col17_Byte0: 0
-    - _Letter_Row01_Col17_Byte1: 0
     - _Letter_Row01_Col18_Byte0: 0
-    - _Letter_Row01_Col18_Byte1: 0
     - _Letter_Row01_Col19_Byte0: 0
-    - _Letter_Row01_Col19_Byte1: 0
     - _Letter_Row01_Col20_Byte0: 0
-    - _Letter_Row01_Col20_Byte1: 0
     - _Letter_Row01_Col21_Byte0: 0
-    - _Letter_Row01_Col21_Byte1: 0
     - _Letter_Row01_Col22_Byte0: 0
-    - _Letter_Row01_Col22_Byte1: 0
     - _Letter_Row01_Col23_Byte0: 0
-    - _Letter_Row01_Col23_Byte1: 0
     - _Letter_Row01_Col24_Byte0: 0
-    - _Letter_Row01_Col24_Byte1: 0
     - _Letter_Row01_Col25_Byte0: 0
-    - _Letter_Row01_Col25_Byte1: 0
     - _Letter_Row01_Col26_Byte0: 0
-    - _Letter_Row01_Col26_Byte1: 0
     - _Letter_Row01_Col27_Byte0: 0
-    - _Letter_Row01_Col27_Byte1: 0
     - _Letter_Row01_Col28_Byte0: 0
-    - _Letter_Row01_Col28_Byte1: 0
     - _Letter_Row01_Col29_Byte0: 0
-    - _Letter_Row01_Col29_Byte1: 0
     - _Letter_Row01_Col30_Byte0: 0
-    - _Letter_Row01_Col30_Byte1: 0
     - _Letter_Row01_Col31_Byte0: 0
-    - _Letter_Row01_Col31_Byte1: 0
     - _Letter_Row01_Col32_Byte0: 0
-    - _Letter_Row01_Col32_Byte1: 0
     - _Letter_Row01_Col33_Byte0: 0
-    - _Letter_Row01_Col33_Byte1: 0
     - _Letter_Row01_Col34_Byte0: 0
-    - _Letter_Row01_Col34_Byte1: 0
     - _Letter_Row01_Col35_Byte0: 0
-    - _Letter_Row01_Col35_Byte1: 0
-    - _Letter_Row01_Col36_Byte0: 0
-    - _Letter_Row01_Col36_Byte1: 0
-    - _Letter_Row01_Col37_Byte0: 0
-    - _Letter_Row01_Col37_Byte1: 0
-    - _Letter_Row01_Col38_Byte0: 0
-    - _Letter_Row01_Col38_Byte1: 0
-    - _Letter_Row01_Col39_Byte0: 0
-    - _Letter_Row01_Col39_Byte1: 0
-    - _Letter_Row01_Col40_Byte0: 0
-    - _Letter_Row01_Col40_Byte1: 0
-    - _Letter_Row01_Col41_Byte0: 0
-    - _Letter_Row01_Col41_Byte1: 0
-    - _Letter_Row01_Col42_Byte0: 0
-    - _Letter_Row01_Col42_Byte1: 0
-    - _Letter_Row01_Col43_Byte0: 0
-    - _Letter_Row01_Col43_Byte1: 0
-    - _Letter_Row01_Col44_Byte0: 0
-    - _Letter_Row01_Col44_Byte1: 0
-    - _Letter_Row01_Col45_Byte0: 0
-    - _Letter_Row01_Col45_Byte1: 0
-    - _Letter_Row01_Col46_Byte0: 0
-    - _Letter_Row01_Col46_Byte1: 0
-    - _Letter_Row01_Col47_Byte0: 0
-    - _Letter_Row01_Col47_Byte1: 0
     - _Letter_Row02_Col00_Byte0: 0
-    - _Letter_Row02_Col00_Byte1: 0
     - _Letter_Row02_Col01_Byte0: 0
-    - _Letter_Row02_Col01_Byte1: 0
     - _Letter_Row02_Col02_Byte0: 0
-    - _Letter_Row02_Col02_Byte1: 0
     - _Letter_Row02_Col03_Byte0: 0
-    - _Letter_Row02_Col03_Byte1: 0
     - _Letter_Row02_Col04_Byte0: 0
-    - _Letter_Row02_Col04_Byte1: 0
     - _Letter_Row02_Col05_Byte0: 0
-    - _Letter_Row02_Col05_Byte1: 0
     - _Letter_Row02_Col06_Byte0: 0
-    - _Letter_Row02_Col06_Byte1: 0
     - _Letter_Row02_Col07_Byte0: 0
-    - _Letter_Row02_Col07_Byte1: 0
     - _Letter_Row02_Col08_Byte0: 0
-    - _Letter_Row02_Col08_Byte1: 0
     - _Letter_Row02_Col09_Byte0: 0
-    - _Letter_Row02_Col09_Byte1: 0
     - _Letter_Row02_Col10_Byte0: 0
-    - _Letter_Row02_Col10_Byte1: 0
     - _Letter_Row02_Col11_Byte0: 0
-    - _Letter_Row02_Col11_Byte1: 0
     - _Letter_Row02_Col12_Byte0: 0
-    - _Letter_Row02_Col12_Byte1: 0
     - _Letter_Row02_Col13_Byte0: 0
-    - _Letter_Row02_Col13_Byte1: 0
     - _Letter_Row02_Col14_Byte0: 0
-    - _Letter_Row02_Col14_Byte1: 0
     - _Letter_Row02_Col15_Byte0: 0
-    - _Letter_Row02_Col15_Byte1: 0
     - _Letter_Row02_Col16_Byte0: 0
-    - _Letter_Row02_Col16_Byte1: 0
     - _Letter_Row02_Col17_Byte0: 0
-    - _Letter_Row02_Col17_Byte1: 0
     - _Letter_Row02_Col18_Byte0: 0
-    - _Letter_Row02_Col18_Byte1: 0
     - _Letter_Row02_Col19_Byte0: 0
-    - _Letter_Row02_Col19_Byte1: 0
     - _Letter_Row02_Col20_Byte0: 0
-    - _Letter_Row02_Col20_Byte1: 0
     - _Letter_Row02_Col21_Byte0: 0
-    - _Letter_Row02_Col21_Byte1: 0
     - _Letter_Row02_Col22_Byte0: 0
-    - _Letter_Row02_Col22_Byte1: 0
     - _Letter_Row02_Col23_Byte0: 0
-    - _Letter_Row02_Col23_Byte1: 0
     - _Letter_Row02_Col24_Byte0: 0
-    - _Letter_Row02_Col24_Byte1: 0
     - _Letter_Row02_Col25_Byte0: 0
-    - _Letter_Row02_Col25_Byte1: 0
     - _Letter_Row02_Col26_Byte0: 0
-    - _Letter_Row02_Col26_Byte1: 0
     - _Letter_Row02_Col27_Byte0: 0
-    - _Letter_Row02_Col27_Byte1: 0
     - _Letter_Row02_Col28_Byte0: 0
-    - _Letter_Row02_Col28_Byte1: 0
     - _Letter_Row02_Col29_Byte0: 0
-    - _Letter_Row02_Col29_Byte1: 0
     - _Letter_Row02_Col30_Byte0: 0
-    - _Letter_Row02_Col30_Byte1: 0
     - _Letter_Row02_Col31_Byte0: 0
-    - _Letter_Row02_Col31_Byte1: 0
     - _Letter_Row02_Col32_Byte0: 0
-    - _Letter_Row02_Col32_Byte1: 0
     - _Letter_Row02_Col33_Byte0: 0
-    - _Letter_Row02_Col33_Byte1: 0
     - _Letter_Row02_Col34_Byte0: 0
-    - _Letter_Row02_Col34_Byte1: 0
     - _Letter_Row02_Col35_Byte0: 0
-    - _Letter_Row02_Col35_Byte1: 0
-    - _Letter_Row02_Col36_Byte0: 0
-    - _Letter_Row02_Col36_Byte1: 0
-    - _Letter_Row02_Col37_Byte0: 0
-    - _Letter_Row02_Col37_Byte1: 0
-    - _Letter_Row02_Col38_Byte0: 0
-    - _Letter_Row02_Col38_Byte1: 0
-    - _Letter_Row02_Col39_Byte0: 0
-    - _Letter_Row02_Col39_Byte1: 0
-    - _Letter_Row02_Col40_Byte0: 0
-    - _Letter_Row02_Col40_Byte1: 0
-    - _Letter_Row02_Col41_Byte0: 0
-    - _Letter_Row02_Col41_Byte1: 0
-    - _Letter_Row02_Col42_Byte0: 0
-    - _Letter_Row02_Col42_Byte1: 0
-    - _Letter_Row02_Col43_Byte0: 0
-    - _Letter_Row02_Col43_Byte1: 0
-    - _Letter_Row02_Col44_Byte0: 0
-    - _Letter_Row02_Col44_Byte1: 0
-    - _Letter_Row02_Col45_Byte0: 0
-    - _Letter_Row02_Col45_Byte1: 0
-    - _Letter_Row02_Col46_Byte0: 0
-    - _Letter_Row02_Col46_Byte1: 0
-    - _Letter_Row02_Col47_Byte0: 0
-    - _Letter_Row02_Col47_Byte1: 0
-    - _Letter_Row03_Col00_Byte0: 0
-    - _Letter_Row03_Col00_Byte1: 0
-    - _Letter_Row03_Col01_Byte0: 0
-    - _Letter_Row03_Col01_Byte1: 0
-    - _Letter_Row03_Col02_Byte0: 0
-    - _Letter_Row03_Col02_Byte1: 0
-    - _Letter_Row03_Col03_Byte0: 0
-    - _Letter_Row03_Col03_Byte1: 0
-    - _Letter_Row03_Col04_Byte0: 0
-    - _Letter_Row03_Col04_Byte1: 0
-    - _Letter_Row03_Col05_Byte0: 0
-    - _Letter_Row03_Col05_Byte1: 0
-    - _Letter_Row03_Col06_Byte0: 0
-    - _Letter_Row03_Col06_Byte1: 0
-    - _Letter_Row03_Col07_Byte0: 0
-    - _Letter_Row03_Col07_Byte1: 0
-    - _Letter_Row03_Col08_Byte0: 0
-    - _Letter_Row03_Col08_Byte1: 0
-    - _Letter_Row03_Col09_Byte0: 0
-    - _Letter_Row03_Col09_Byte1: 0
-    - _Letter_Row03_Col10_Byte0: 0
-    - _Letter_Row03_Col10_Byte1: 0
-    - _Letter_Row03_Col11_Byte0: 0
-    - _Letter_Row03_Col11_Byte1: 0
-    - _Letter_Row03_Col12_Byte0: 0
-    - _Letter_Row03_Col12_Byte1: 0
-    - _Letter_Row03_Col13_Byte0: 0
-    - _Letter_Row03_Col13_Byte1: 0
-    - _Letter_Row03_Col14_Byte0: 0
-    - _Letter_Row03_Col14_Byte1: 0
-    - _Letter_Row03_Col15_Byte0: 0
-    - _Letter_Row03_Col15_Byte1: 0
-    - _Letter_Row03_Col16_Byte0: 0
-    - _Letter_Row03_Col16_Byte1: 0
-    - _Letter_Row03_Col17_Byte0: 0
-    - _Letter_Row03_Col17_Byte1: 0
-    - _Letter_Row03_Col18_Byte0: 0
-    - _Letter_Row03_Col18_Byte1: 0
-    - _Letter_Row03_Col19_Byte0: 0
-    - _Letter_Row03_Col19_Byte1: 0
-    - _Letter_Row03_Col20_Byte0: 0
-    - _Letter_Row03_Col20_Byte1: 0
-    - _Letter_Row03_Col21_Byte0: 0
-    - _Letter_Row03_Col21_Byte1: 0
-    - _Letter_Row03_Col22_Byte0: 0
-    - _Letter_Row03_Col22_Byte1: 0
-    - _Letter_Row03_Col23_Byte0: 0
-    - _Letter_Row03_Col23_Byte1: 0
-    - _Letter_Row03_Col24_Byte0: 0
-    - _Letter_Row03_Col24_Byte1: 0
-    - _Letter_Row03_Col25_Byte0: 0
-    - _Letter_Row03_Col25_Byte1: 0
-    - _Letter_Row03_Col26_Byte0: 0
-    - _Letter_Row03_Col26_Byte1: 0
-    - _Letter_Row03_Col27_Byte0: 0
-    - _Letter_Row03_Col27_Byte1: 0
-    - _Letter_Row03_Col28_Byte0: 0
-    - _Letter_Row03_Col28_Byte1: 0
-    - _Letter_Row03_Col29_Byte0: 0
-    - _Letter_Row03_Col29_Byte1: 0
-    - _Letter_Row03_Col30_Byte0: 0
-    - _Letter_Row03_Col30_Byte1: 0
-    - _Letter_Row03_Col31_Byte0: 0
-    - _Letter_Row03_Col31_Byte1: 0
-    - _Letter_Row03_Col32_Byte0: 0
-    - _Letter_Row03_Col32_Byte1: 0
-    - _Letter_Row03_Col33_Byte0: 0
-    - _Letter_Row03_Col33_Byte1: 0
-    - _Letter_Row03_Col34_Byte0: 0
-    - _Letter_Row03_Col34_Byte1: 0
-    - _Letter_Row03_Col35_Byte0: 0
-    - _Letter_Row03_Col35_Byte1: 0
-    - _Letter_Row03_Col36_Byte0: 0
-    - _Letter_Row03_Col36_Byte1: 0
-    - _Letter_Row03_Col37_Byte0: 0
-    - _Letter_Row03_Col37_Byte1: 0
-    - _Letter_Row03_Col38_Byte0: 0
-    - _Letter_Row03_Col38_Byte1: 0
-    - _Letter_Row03_Col39_Byte0: 0
-    - _Letter_Row03_Col39_Byte1: 0
-    - _Letter_Row03_Col40_Byte0: 0
-    - _Letter_Row03_Col40_Byte1: 0
-    - _Letter_Row03_Col41_Byte0: 0
-    - _Letter_Row03_Col41_Byte1: 0
-    - _Letter_Row03_Col42_Byte0: 0
-    - _Letter_Row03_Col42_Byte1: 0
-    - _Letter_Row03_Col43_Byte0: 0
-    - _Letter_Row03_Col43_Byte1: 0
-    - _Letter_Row03_Col44_Byte0: 0
-    - _Letter_Row03_Col44_Byte1: 0
-    - _Letter_Row03_Col45_Byte0: 0
-    - _Letter_Row03_Col45_Byte1: 0
-    - _Letter_Row03_Col46_Byte0: 0
-    - _Letter_Row03_Col46_Byte1: 0
-    - _Letter_Row03_Col47_Byte0: 0
-    - _Letter_Row03_Col47_Byte1: 0
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
@@ -538,7 +256,6 @@ Material:
     - BG_Emission_Color: {r: 0, g: 0, b: 0, a: 1}
     - Background_Color: {r: 0, g: 0, b: 0, a: 1}
     - Margin_Color: {r: 1, g: 1, b: 1, a: 1}
-    - SpecularTint: {r: 1, g: 1, b: 1, a: 1}
     - Text_Color: {r: 1, g: 1, b: 1, a: 1}
-    - _Color: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

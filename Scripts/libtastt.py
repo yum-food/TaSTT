@@ -12,6 +12,149 @@ import typing
 # be in a different layer.
 import osc_ctrl
 
+SCALE_ANIMATION_TEMPLATE = """
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!74 &7400000
+AnimationClip:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: TaSTT_Scale_0
+  serializedVersion: 6
+  m_Legacy: 0
+  m_Compressed: 0
+  m_UseHighQualityCurve: 1
+  m_RotationCurves: []
+  m_CompressedRotationCurves: []
+  m_EulerCurves: []
+  m_PositionCurves: []
+  m_ScaleCurves:
+  - curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: {x: 5, y: 5, z: 5}
+        inSlope: {x: 0, y: 0, z: 0}
+        outSlope: {x: 0, y: 0, z: 0}
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: {x: 0, y: 0.33333334, z: 0.33333334}
+        outWeight: {x: 0, y: 0.33333334, z: 0.33333334}
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    path: World Constraint/Container/TaSTT
+  m_FloatCurves: []
+  m_PPtrCurves: []
+  m_SampleRate: 60
+  m_WrapMode: 0
+  m_Bounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
+  m_ClipBindingConstant:
+    genericBindings:
+    - serializedVersion: 2
+      path: 1272388438
+      attribute: 3
+      script: {fileID: 0}
+      typeID: 4
+      customType: 0
+      isPPtrCurve: 0
+    - serializedVersion: 2
+      path: 1272388438
+      attribute: 1225223716
+      script: {fileID: 0}
+      typeID: 23
+      customType: 0
+      isPPtrCurve: 0
+    pptrCurveMapping: []
+  m_AnimationClipSettings:
+    serializedVersion: 2
+    m_AdditiveReferencePoseClip: {fileID: 0}
+    m_AdditiveReferencePoseTime: 0
+    m_StartTime: 0
+    m_StopTime: 0.016666668
+    m_OrientationOffsetY: 0
+    m_Level: 0
+    m_CycleOffset: 0
+    m_HasAdditiveReferencePose: 0
+    m_LoopTime: 1
+    m_LoopBlend: 0
+    m_LoopBlendOrientation: 0
+    m_LoopBlendPositionY: 0
+    m_LoopBlendPositionXZ: 0
+    m_KeepOriginalOrientation: 0
+    m_KeepOriginalPositionY: 1
+    m_KeepOriginalPositionXZ: 0
+    m_HeightFromFeet: 0
+    m_Mirror: 0
+  m_EditorCurves:
+  - curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 5
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    attribute: m_LocalScale.x
+    path: World Constraint/Container/TaSTT
+    classID: 4
+    script: {fileID: 0}
+  - curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 5
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    attribute: m_LocalScale.y
+    path: World Constraint/Container/TaSTT
+    classID: 4
+    script: {fileID: 0}
+  - curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 5
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    attribute: m_LocalScale.z
+    path: World Constraint/Container/TaSTT
+    classID: 4
+    script: {fileID: 0}
+  m_EulerEditorCurves: []
+  m_HasGenericRootTransform: 0
+  m_HasMotionFloatCurves: 0
+  m_Events: []
+"""
+
 LETTER_ANIMATION_TEMPLATE = """
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
@@ -32,6 +175,34 @@ AnimationClip:
   m_PositionCurves: []
   m_ScaleCurves: []
   m_FloatCurves:
+  - curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: REPLACEME_LETTER_VALUE
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.016666668
+        value: REPLACEME_LETTER_VALUE
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    attribute: material.REPLACEME_LETTER_PARAM
+    path: TaSTT
+    classID: 23
+    script: {fileID: 0}
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -123,6 +294,34 @@ AnimationClip:
       m_RotationOrder: 4
     attribute: material.REPLACEME_LETTER_PARAM
     path: TaSTT
+    classID: 23
+    script: {fileID: 0}
+  - curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: REPLACEME_LETTER_VALUE
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.016666668
+        value: REPLACEME_LETTER_VALUE
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    attribute: material.REPLACEME_LETTER_PARAM
+    path: TaSTT
     classID: 137
     script: {fileID: 0}
   m_EulerEditorCurves: []
@@ -180,7 +379,7 @@ def generateClearAnimation(anim_dir, guid_map):
     # Serialize animation to file
     anim_name = generate_utils.getClearAnimationName()
     anim_path = os.path.join(anim_dir, anim_name + ".anim")
-    print("Generating clear animation at {}".format(anim_path))
+    print("Generating clear animation at {}".format(anim_path), file=sys.stderr)
     with open(anim_path, "w", encoding="utf-8") as f:
         f.write(libunity.unityYamlToString([anim_node]))
     # Generate metadata
@@ -235,32 +434,36 @@ def generateToggleAnimations(anim_dir, shader_param, guid_map):
         guid_map[meta.guid] = anim_path
 
 # Generate a toggle animation for a shader parameter.
-def generateFloatAnimation(anim_name: str, anim_dir: str,
-        path: str, attribute: str,
+def generateScaleAnimation(anim_name: str, anim_dir: str,
+        path: str,
         value: float,
         guid_map: typing.Dict[str, str]) -> str:
-    print("Generating float toggle animation {}/{}".format(path,attribute),
+    print("Generating scale animation {}".format(path),
             file=sys.stderr)
 
     parser = libunity.UnityParser()
-    parser.parse(LETTER_ANIMATION_TEMPLATE)
+    parser.parse(SCALE_ANIMATION_TEMPLATE)
+
+    #print("kill me", file=sys.stderr)
+    #print(libunity.unityYamlToString([parser.nodes[0]]), file=sys.stdout)
+    #print("NOW", file=sys.stdout)
 
     # 0.0 represents false, 1.0 represents true. Don't forget that we add
     # `UNITY_ANIMATION_FUDGE_MARGIN` to everything.
     anim_node = parser.nodes[0]
     anim_clip = anim_node.mapping['AnimationClip']
-    curve_template = anim_clip.mapping['m_FloatCurves'].sequence[0]
-    anim_clip.mapping['m_FloatCurves'].sequence = []
-    anim_clip.mapping['m_EditorCurves'].sequence = []
+    #print("here 3", file=sys.stderr)
+    for curve in anim_clip.mapping['m_ScaleCurves'].sequence:
+        for keyframe in curve.mapping['curve'].mapping['m_Curve'].sequence:
+            keyframe.mapping['value'].mapping['x'] = str(value)
+            keyframe.mapping['value'].mapping['y'] = str(value)
+            keyframe.mapping['value'].mapping['z'] = str(value)
+    #print("here 4", file=sys.stderr)
+    for curve in anim_clip.mapping['m_EditorCurves'].sequence:
+        for keyframe in curve.mapping['curve'].mapping['m_Curve'].sequence:
+            keyframe.mapping['value'] = value
 
-    curve = curve_template.copy()
-    for keyframe in curve.mapping['curve'].mapping['m_Curve'].sequence:
-        keyframe.mapping['value'] = str(value)
-        curve.mapping['attribute'] = attribute
-        curve.mapping['path'] = path
-    # Add curve to animation
-    anim_clip.mapping['m_FloatCurves'].sequence.append(curve)
-    anim_clip.mapping['m_EditorCurves'].sequence.append(curve)
+    #print("here 5", file=sys.stderr)
 
     # Serialize animation to file
     anim_path = os.path.join(anim_dir, anim_name + ".anim")
@@ -469,11 +672,11 @@ def generateScaleLayer(anim: libunity.UnityAnimator,
     path = "World Constraint/Container/TaSTT"
     attribute = "blendShape.Scale"
 
-    guid_lo = generateFloatAnimation("TaSTT_Scale_0", gen_anim_dir,
-            path, attribute,
-            0.0, guid_map)
-    guid_hi = generateFloatAnimation("TaSTT_Scale_100", gen_anim_dir,
-            path, attribute,
+    guid_lo = generateScaleAnimation("TaSTT_Scale_0", gen_anim_dir,
+            path,
+            5.0, guid_map)
+    guid_hi = generateScaleAnimation("TaSTT_Scale_100", gen_anim_dir,
+            path,
             100.0, guid_map)
 
     anim.addAnimatorBlendTree(scale_layer,

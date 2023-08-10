@@ -1,4 +1,4 @@
-﻿Shader "TaSTT"
+﻿Shader "yum_food/TaSTT_exp"
 {
   Properties
   {
@@ -16,6 +16,8 @@
     Margin_Rounding_Scale("Margin rounding scale", float) = 0.03
     [MaterialToggle] Enable_Margin_Effect_Squares(
         "Enable margin effect: Squares", float) = 0
+    [MaterialToggle] Enable_Ray_March(
+        "Enable ray marching", float) = 0
 
     [MaterialToggle] Enable_Dithering("Enable dithering", float) = 1
 
