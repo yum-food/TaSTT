@@ -755,6 +755,7 @@ bool PythonWrapper::GenerateAnimator(
 			return false;
 		}
 	}
+#if 0
 	{
 		Log(out, "Adding enable/disable toggle... ");
 		if (!InvokeWithArgs({ libunity_path, "add_toggle",
@@ -766,6 +767,7 @@ bool PythonWrapper::GenerateAnimator(
 			return false;
 		}
 	}
+#endif
 	{
 		Log(out, "Merging with user animator... ");
 		if (!InvokeWithArgs({ libunity_path, "merge",

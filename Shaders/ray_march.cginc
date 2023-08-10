@@ -10,6 +10,21 @@
 #include "poi.cginc"
 #include "stt_text.cginc"
 
+float Ray_March_Emerge;
+
+float get_phase_fraction(float r, float nth_phase, float n_phases) {
+  float stride = 1.0 / n_phases;
+
+  // Prevent boundary condition where saturated values get set to 0 by the
+  // glsl_mod below.
+  r = min(.9999 * (nth_phase + 1) * stride, r);
+
+  float r0 = clamp(r, nth_phase * stride, (nth_phase + 1) * stride);
+  r0 = glsl_mod(r0, stride);
+
+  return r0 / stride;
+}
+
 float stt_map(float3 p, out float3 hsv, out float smoothness, out float alpha, out float2 text_uv)
 {
   hsv[0] = 0;
@@ -18,6 +33,10 @@ float stt_map(float3 p, out float3 hsv, out float smoothness, out float alpha, o
   smoothness = 0.3;
   alpha = 0;
 
+  float p0r = get_phase_fraction(Ray_March_Emerge, 0, 3);
+  float p1r = get_phase_fraction(Ray_March_Emerge, 1, 3);
+  float p2r = get_phase_fraction(Ray_March_Emerge, 2, 3);
+
   float dist = 1000 * 1000 * 1000;
   {
     float3 pp = p;
@@ -25,7 +44,14 @@ float stt_map(float3 p, out float3 hsv, out float smoothness, out float alpha, o
     pp.x -= 0.02;
     pp.z -= 0.01;
 
-    float d = distance_from_box_frame(pp, float3(6, .5, 3) * .003, .0002);
+    float box_thck = .0002;
+
+    float3 box_sz = float3(6, .5, 3) * .003;
+    box_sz.y = lerp(box_thck, box_sz.y, p0r) * p0r;
+    box_sz.x = lerp(box_thck, box_sz.x, p1r) * p0r;
+    box_sz.z = lerp(box_thck, box_sz.z, p2r) * p0r;
+
+    float d = distance_from_box_frame(pp, box_sz, box_thck);
 
     alpha = (d < dist) * 1 + (d >= dist) * alpha;
     dist = min(dist, d);
@@ -37,6 +63,12 @@ float stt_map(float3 p, out float3 hsv, out float smoothness, out float alpha, o
     pp.z -= 0.01;
 
     float3 box_scale = float3(.01, .0001, .005) * 1.6;
+
+    float p3r = get_phase_fraction(Ray_March_Emerge, 3, 4);
+    box_scale.x *= ceil(p3r);
+    box_scale.y *= ceil(p3r);
+    box_scale.z = lerp(0, box_scale.z, p3r);
+
     float d = distance_from_box(pp, box_scale);
 
     text_uv = (clamp(pp.xz, -1 * box_scale.xz, box_scale.xz) / box_scale.xz);
@@ -132,10 +164,7 @@ float4 stt_ray_march(inout v2f v2f_i, inout float depth)
     //v2f_i.normal = old_normal;
   }
 
-  float4 background_color = float4(0, 0, 0, 0);
-
-  float3 final_color = lerp(background_color.rgb, ray_march_color.rgb, ray_march_color.a);
-  return float4(final_color, 1.0);
+  return ray_march_color;
 }
 
 #endif  // __RAY_MARCH_INC__

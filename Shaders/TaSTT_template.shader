@@ -1,4 +1,4 @@
-﻿Shader "yum_food/TaSTT_exp"
+﻿Shader "TaSTT/Chatbox"
 {
   Properties
   {
@@ -18,6 +18,7 @@
         "Enable margin effect: Squares", float) = 0
     [MaterialToggle] Enable_Ray_March(
         "Enable ray marching", float) = 0
+    Ray_March_Emerge("Ray march emerge", Range(0, 1)) = 1.0
 
     [MaterialToggle] Enable_Dithering("Enable dithering", float) = 1
 

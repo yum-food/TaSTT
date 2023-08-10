@@ -727,7 +727,7 @@ class UnityAnimator():
 
         return anim_state
 
-    def addTransition(self, dst_state):
+    def addTransition(self, dst_state, dur_s = 0.0):
         # Create animation state
         parser = UnityParser()
         parser.parse(TRANSITION_TEMPLATE)
@@ -740,6 +740,7 @@ class UnityAnimator():
         node.anchor = str(new_id)
         state = node.mapping['AnimatorStateTransition']
         state.mapping['m_DstState'].mapping['fileID'] = dst_state.anchor
+        state.mapping['m_TransitionDuration'] = dur_s
         self.nodes.append(node)
 
         return node

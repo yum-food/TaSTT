@@ -619,17 +619,19 @@ def generateFXLayer(which_layer: int, anim: libunity.UnityAnimator, layer:
 # Returns a map containing the off and on states, as well as the
 # transitions between them.
 def generateToggle(layer_name: str,
+        parameter_name: str,
         gen_anim_dir: str,
         off_anim_basename: str,
         on_anim_basename: str,
         anim: libunity.UnityAnimator,
-        guid_map: typing.Dict[str, str]) -> typing.Dict[str,
+        guid_map: typing.Dict[str, str],
+        duration_s: float = 0.0) -> typing.Dict[str,
                 libunity.UnityDocument]:
     layer = anim.addLayer(layer_name)
 
     # For simplicity, use the layer name as the parameter name.
-    parameter_name = layer_name
-    anim.addParameter(parameter_name, bool)
+    if parameter_name is not None:
+        anim.addParameter(parameter_name, bool)
 
     off_state = anim.addAnimatorState(layer, layer_name + "_Off",
             is_default_state = True)
@@ -647,11 +649,11 @@ def generateToggle(layer_name: str,
         on_anim_meta.loadOrCreate(on_anim_path, guid_map)
         anim.setAnimatorStateAnimation(on_state, on_anim_meta.guid)
 
-    off_to_on_trans = anim.addTransition(on_state)
+    off_to_on_trans = anim.addTransition(on_state, duration_s)
     anim.addTransitionBooleanCondition(off_state,
             off_to_on_trans, parameter_name, True)
 
-    on_to_off_trans = anim.addTransition(off_state)
+    on_to_off_trans = anim.addTransition(off_state, duration_s)
     anim.addTransitionBooleanCondition(on_state,
             on_to_off_trans, parameter_name, False)
 
@@ -700,6 +702,7 @@ def generateFX(guid_map, gen_anim_dir):
 
     states = generateToggle(
             generate_utils.getSpeechNoiseToggleParam(),
+            generate_utils.getSpeechNoiseToggleParam(),
             gen_anim_dir,
             "TaSTT_Speech_Noise_Off.anim",
             "TaSTT_Speech_Noise_On.anim",
@@ -712,30 +715,41 @@ def generateFX(guid_map, gen_anim_dir):
             states["off_to_on"], generate_utils.getToggleParam(), True)
 
     generateToggle(generate_utils.getToggleParam(),
+            generate_utils.getToggleParam(),
             gen_anim_dir,
             "TaSTT_Toggle_Off.anim",
             "TaSTT_Toggle_On.anim",
             anim, guid_map)
     generateToggle(generate_utils.getLockWorldParam(),
+            generate_utils.getLockWorldParam(),
             gen_anim_dir,
             "TaSTT_Lock_World_Disable.anim",
             "TaSTT_Lock_World_Enable.anim",
             anim, guid_map)
     generateToggle(
             generate_utils.getClearBoardParam(),
+            generate_utils.getClearBoardParam(),
             gen_anim_dir,
             None,  # No animation in the `off` state.
             generate_utils.getClearAnimationName() + ".anim",
             anim, guid_map)
     generateToggle(generate_utils.getIndicator0Param(),
+            generate_utils.getIndicator0Param(),
             gen_anim_dir,
             generate_utils.getIndicator0Param() + "_Off.anim",
             generate_utils.getIndicator0Param() + "_On.anim",
             anim, guid_map)
     generateToggle(generate_utils.getIndicator1Param(),
+            generate_utils.getIndicator1Param(),
             gen_anim_dir,
             generate_utils.getIndicator1Param() + "_Off.anim",
             generate_utils.getIndicator1Param() + "_On.anim",
+            anim, guid_map)
+    generateToggle(generate_utils.getToggleParam(),
+            None,
+            gen_anim_dir,
+            "TaSTT_Emerge_000.anim",
+            "TaSTT_Emerge_100.anim",
             anim, guid_map)
     generateScaleLayer(anim, gen_anim_dir, guid_map)
 
