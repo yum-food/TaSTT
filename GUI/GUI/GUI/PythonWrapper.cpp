@@ -663,6 +663,25 @@ bool PythonWrapper::GenerateAnimator(
 		Log(out, "success!\n");
 	}
 	{
+		Log(out, "Deleting shader templates... ");
+		try {
+			if (std::filesystem::exists(tastt_shaders_path) && std::filesystem::is_directory(tastt_shaders_path)) {
+				for (const auto& entry : std::filesystem::directory_iterator(tastt_shaders_path)) {
+					if (entry.is_regular_file()) {
+						if (entry.path().stem().string().ends_with("_template")) {
+							std::filesystem::remove(entry.path());
+						}
+					}
+				}
+			}
+		}
+		catch (const std::exception& e) {
+			Log(out, "failed!\n");
+			Log(out, "Error: {}\n", e.what());
+		}
+		Log(out, "success!\n");
+	}
+	{
 		Log(out, "Copying canned fonts... ");
 		auto opts = std::filesystem::copy_options();
 		opts |= std::filesystem::copy_options::overwrite_existing;
