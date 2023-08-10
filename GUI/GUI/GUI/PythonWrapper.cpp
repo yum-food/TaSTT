@@ -549,8 +549,6 @@ bool PythonWrapper::GenerateAnimator(
 		tastt_generated_dir_path / "FX0.controller";
 	std::filesystem::path tastt_fx1_path =
 		tastt_generated_dir_path / "FX1.controller";
-	std::filesystem::path tastt_fx2_path =
-		tastt_generated_dir_path / "FX2.controller";
 	// This is the final animator.
 	std::filesystem::path tastt_animator_path =
 		tastt_generated_dir_path / unity_animator_generated_name;
@@ -772,8 +770,8 @@ bool PythonWrapper::GenerateAnimator(
 		Log(out, "Merging with user animator... ");
 		if (!InvokeWithArgs({ libunity_path, "merge",
 			"--fx0", Quote(config.fx_path),
-			"--fx1", Quote(tastt_fx1_path),
-			"--fx_dest", Quote(tastt_fx2_path), },
+			"--fx1", Quote(tastt_fx0_path),
+			"--fx_dest", Quote(tastt_fx1_path), },
 			"Failed to merge animators", out)) {
 			return false;
 		}
@@ -781,7 +779,7 @@ bool PythonWrapper::GenerateAnimator(
 	{
 		Log(out, "Setting noop animations... ");
 		if (!InvokeWithArgs({ libunity_path, "set_noop_anim",
-			"--fx0", Quote(tastt_fx2_path),
+			"--fx0", Quote(tastt_fx1_path),
 			"--fx_dest", Quote(tastt_animator_path),
 			"--gen_anim_dir", Quote(tastt_animations_path),
 			"--guid_map", Quote(guid_map_path), },

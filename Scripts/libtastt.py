@@ -630,8 +630,7 @@ def generateToggle(layer_name: str,
     layer = anim.addLayer(layer_name)
 
     # For simplicity, use the layer name as the parameter name.
-    if parameter_name is not None:
-        anim.addParameter(parameter_name, bool)
+    anim.addParameter(parameter_name, bool)
 
     off_state = anim.addAnimatorState(layer, layer_name + "_Off",
             is_default_state = True)
@@ -745,12 +744,12 @@ def generateFX(guid_map, gen_anim_dir):
             generate_utils.getIndicator1Param() + "_Off.anim",
             generate_utils.getIndicator1Param() + "_On.anim",
             anim, guid_map)
-    generateToggle(generate_utils.getToggleParam(),
-            None,
+    generateToggle("TaSTT_Expand",
+            generate_utils.getToggleParam(),
             gen_anim_dir,
             "TaSTT_Emerge_000.anim",
             "TaSTT_Emerge_100.anim",
-            anim, guid_map)
+            anim, guid_map, 0.5)
     generateScaleLayer(anim, gen_anim_dir, guid_map)
 
     return anim

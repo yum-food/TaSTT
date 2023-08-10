@@ -581,8 +581,14 @@ class UnityAnimator():
             unity_type = '3'
         elif param_type == bool:
             unity_type = '4'
+
         anim = self.peekNodeOfClass('91')
         params = anim.mapping['AnimatorController'].mapping['m_AnimatorParameters']
+
+        for p in params.sequence:
+            if p.mapping['m_Name'] == param_name:
+                return
+
         param = params.addChildMapping()
         param.mapping['m_Name'] = param_name
         param.mapping['m_Type'] = unity_type

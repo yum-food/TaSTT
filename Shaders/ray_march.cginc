@@ -12,6 +12,19 @@
 
 float Ray_March_Emerge;
 
+// Allows us to divide [0,1] into `n_phases` equal-sized slices and remap `r`
+// onto the `nth_phase`.
+//
+// A few examples:
+//  get_phase_fraction(0.9, 0, 2) = 1.0
+//  get_phase_fraction(0.9, 1, 2) = 0.8
+//  get_phase_fraction(0.5, 0, 3) = 1.0
+//  get_phase_fraction(0.5, 1, 3) = 0.5
+//  get_phase_fraction(0.5, 2, 3) = 0.0
+//
+// So if `r` is past the slice we're looking at, it returns 1; if it's before
+// the slice we're looking at, it returns 0; if it's on the slice we're looking
+// at, it gets remapped onto [0,1].
 float get_phase_fraction(float r, float nth_phase, float n_phases) {
   float stride = 1.0 / n_phases;
 
@@ -37,6 +50,10 @@ float stt_map(float3 p, out float3 hsv, out float smoothness, out float alpha, o
   float p1r = get_phase_fraction(Ray_March_Emerge, 1, 3);
   float p2r = get_phase_fraction(Ray_March_Emerge, 2, 3);
 
+  // Use this to make the box grow out of the bottom left corner instead of the
+  // middle.
+  float3 emerge_offset = 0;
+
   float dist = 1000 * 1000 * 1000;
   {
     float3 pp = p;
@@ -47,6 +64,11 @@ float stt_map(float3 p, out float3 hsv, out float smoothness, out float alpha, o
     float box_thck = .0002;
 
     float3 box_sz = float3(6, .5, 3) * .003;
+
+    emerge_offset.x = lerp(box_sz.x, box_thck, p1r);
+    emerge_offset.z = lerp(box_sz.z, box_thck, p2r);
+    pp += emerge_offset;
+
     box_sz.y = lerp(box_thck, box_sz.y, p0r) * p0r;
     box_sz.x = lerp(box_thck, box_sz.x, p1r) * p0r;
     box_sz.z = lerp(box_thck, box_sz.z, p2r) * p0r;
@@ -62,17 +84,22 @@ float stt_map(float3 p, out float3 hsv, out float smoothness, out float alpha, o
     pp.x -= 0.02;
     pp.z -= 0.01;
 
-    float3 box_scale = float3(.01, .0001, .005) * 1.6;
+    float3 box_scale = float3(.01, .0001, .0045) * 1.6;
 
     float p3r = get_phase_fraction(Ray_March_Emerge, 3, 4);
     box_scale.x *= ceil(p3r);
     box_scale.y *= ceil(p3r);
     box_scale.z = lerp(0, box_scale.z, p3r);
 
+    pp += emerge_offset;
+
     float d = distance_from_box(pp, box_scale);
 
     text_uv = (clamp(pp.xz, -1 * box_scale.xz, box_scale.xz) / box_scale.xz);
     text_uv = (text_uv + 1) / 2;
+
+    bool in_mirror = !(unity_CameraProjection[2][0] == 0.0 && unity_CameraProjection[2][1] == 0.0);
+    text_uv = lerp(text_uv, float2(1.0 - text_uv.x, text_uv.y), in_mirror);
 
     alpha = (d < dist) * 1 + (d >= dist) * alpha;
     hsv[1] = (d < dist) * 0 + (d >= dist) * hsv[1];
@@ -149,7 +176,9 @@ float4 stt_ray_march(float3 ro, float3 rd, inout v2f v2f_i, inout float depth)
     color.w = alpha;
 
     depth = lerp(-1000, depth, distance_to_closest < MINIMUM_HIT_DISTANCE);
-    return lerp(0, light(v2f_i, color, metallic, smoothness), distance_to_closest < MINIMUM_HIT_DISTANCE);
+    fixed4 lit_color = light(v2f_i, color, metallic, smoothness);
+    fixed4 shaded_color = lerp(lit_color, color, 0.2);
+    return lerp(0, shaded_color, distance_to_closest < MINIMUM_HIT_DISTANCE);
 }
 
 float4 stt_ray_march(inout v2f v2f_i, inout float depth)
