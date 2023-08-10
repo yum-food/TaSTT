@@ -223,7 +223,7 @@ class Metadata:
             path = path + ".meta"
 
         self.guid = None
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             for line in f:
                 if line.startswith("guid"):
                     self.guid = line.split()[1]
@@ -239,7 +239,7 @@ class Metadata:
         self.persist(path, guid_map)
 
     def persist(self, path, guid_map):
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write(str(self))
 
         guid_map[self.guid] = path
@@ -856,11 +856,11 @@ class UnityAnimator():
         new_anim_path = "OFF_{}".format(os.path.basename(animation_path))
         new_anim_path = "{}/{}".format(generated_anim_dir, new_anim_path)
 
-        with open(new_anim_path, "w") as f:
+        with open(new_anim_path, "w", encoding="utf-8") as f:
             f.write(str(anim))
 
         meta = Metadata()
-        with open(new_anim_path + ".meta", "w") as f:
+        with open(new_anim_path + ".meta", "w", encoding="utf-8") as f:
             f.write(str(meta))
 
     def generateOffAnimationsAnimStates(self, guid_map, generated_anim_dir):
@@ -1086,7 +1086,7 @@ class UnityParser:
 
     def parseFile(self, yaml_file):
         yaml_str = ""
-        with open(yaml_file, "r") as f:
+        with open(yaml_file, "r", encoding="utf-8") as f:
             yaml_str = f.read()
         return self.parse(yaml_str)
 

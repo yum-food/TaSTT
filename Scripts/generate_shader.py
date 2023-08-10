@@ -100,7 +100,7 @@ def generateLetterAccessor(nbytes: int, nrows: int, ncols: int, prefix: str = ""
 def applyLineMacro(old_path: str, new_path: str, macro: str, replacement: str) -> bool:
     new_lines = []
     times_applied = 0
-    with open(old_path, 'r') as f:
+    with open(old_path, 'r', encoding="utf-8") as f:
         for line in f:
             if line[-1] == '\n':
                 line = line[0:len(line)-1]
@@ -109,13 +109,11 @@ def applyLineMacro(old_path: str, new_path: str, macro: str, replacement: str) -
                 times_applied += 1
             else:
                 new_lines.append(line)
-    with open(new_path, 'w') as f:
+    with open(new_path, 'w', encoding="utf-8") as f:
         f.write('\n'.join(new_lines))
     return times_applied
 
 if __name__ == "__main__":
-    sys.stdout.reconfigure(encoding="utf-8")
-
     print("args: {}".format(" ".join(sys.argv)))
 
     parser = argparse.ArgumentParser()

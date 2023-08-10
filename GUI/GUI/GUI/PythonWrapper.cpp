@@ -753,19 +753,6 @@ bool PythonWrapper::GenerateAnimator(
 			return false;
 		}
 	}
-#if 0
-	{
-		Log(out, "Adding enable/disable toggle... ");
-		if (!InvokeWithArgs({ libunity_path, "add_toggle",
-			"--fx0", Quote(tastt_fx0_path),
-			"--fx_dest", Quote(tastt_fx1_path),
-			"--gen_anim_dir", Quote(tastt_animations_path),
-			"--guid_map", Quote(guid_map_path), },
-			"Failed to add enable/disable toggle", out)) {
-			return false;
-		}
-	}
-#endif
 	{
 		Log(out, "Merging with user animator... ");
 		if (!InvokeWithArgs({ libunity_path, "merge",
