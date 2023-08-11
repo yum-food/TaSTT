@@ -8,17 +8,6 @@
 static float BG_Effect_Bias = 0.0;
 static float BG_Effect_Weight = 1.0;
 
-float BG_Effect_Emission_Strength;
-float Enable_Custom_Cubemap;
-UNITY_DECLARE_TEXCUBE(Custom_Cubemap);
-
-sampler2D BG_Emission_Mask;
-sampler2D BG_Emission_Color;
-
-float BG_Emission_Strength;
-float4 BG_Emission_Mask_ST;
-
-
 UnityIndirect GetIndirect(v2f i, float3 view_dir, float smoothness) {
   UnityIndirect indirect;
   indirect.diffuse = 0;
@@ -35,17 +24,10 @@ UnityIndirect GetIndirect(v2f i, float3 view_dir, float smoothness) {
   float roughness = 1 - smoothness;
   roughness *= 1.7 - .7 * roughness;
   float3 env_sample;
-  if (Enable_Custom_Cubemap) {
-    env_sample = UNITY_SAMPLE_TEXCUBE_LOD(
-        Custom_Cubemap,
-        reflect_dir,
-        roughness * UNITY_SPECCUBE_LOD_STEPS);
-  } else {
-    env_sample = UNITY_SAMPLE_TEXCUBE_LOD(
-        unity_SpecCube0,
-        reflect_dir,
-        roughness * UNITY_SPECCUBE_LOD_STEPS);
-  }
+  env_sample = UNITY_SAMPLE_TEXCUBE_LOD(
+      unity_SpecCube0,
+      reflect_dir,
+      roughness * UNITY_SPECCUBE_LOD_STEPS);
   indirect.specular = env_sample;
   #endif
 
@@ -81,25 +63,10 @@ fixed4 light(inout v2f i,
 {
   initNormal(i);
 
-  float2 iddx = ddx(i.uv.x);
-  float2 iddy = ddy(i.uv.y);
-
-  bool is_ray_hit = (albedo.r > 0 || albedo.g > 0 || albedo.b > 0);
-  if (is_ray_hit) {
-    albedo.rgb *= BG_Effect_Weight;
-    albedo.rgb += BG_Effect_Bias;
-  } else {
-    albedo.rgb = float3(0, 0, 0);
-  }
-
   float3 specular_tint;
   float one_minus_reflectivity;
   albedo.rgb = DiffuseAndSpecularFromMetallic(
     albedo, metallic, specular_tint, one_minus_reflectivity);
-
-  float emission_mask_sample = tex2Dgrad(BG_Emission_Mask, i.uv.xy, iddx, iddy);
-  fixed3 emission = emission_mask_sample *
-      tex2Dgrad(BG_Emission_Color, i.uv.xy, iddx, iddy) * BG_Emission_Strength;
 
   float3 view_dir = normalize(_WorldSpaceCameraPos - i.worldPos);
   fixed3 pbr = UNITY_BRDF_PBS(albedo,
@@ -110,8 +77,6 @@ fixed4 light(inout v2f i,
       view_dir,
       GetLight(i),
       GetIndirect(i, view_dir, smoothness)).rgb;
-  pbr.rgb += emission;
-  pbr.rgb += albedo.rgb * BG_Effect_Emission_Strength;
 
   return fixed4(saturate(pbr), albedo.a);
 }

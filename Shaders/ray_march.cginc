@@ -222,6 +222,7 @@ float4 stt_ray_march(float3 ro, float3 rd, inout v2f v2f_i, inout float depth)
 
     float3 normal = stt_calculate_normal(current_position);
     v2f_i.normal = normalize(mul(unity_ObjectToWorld, normal));
+    v2f_i.worldPos = mul(unity_ObjectToWorld, float4(current_position, 1.0)).xyz;
 
     float epsilon = .005;
     float letter_mask = 0;
