@@ -206,7 +206,7 @@ float4 stt_ray_march(float3 ro, float3 rd, inout v2f v2f_i, inout float depth)
     float3 current_position = 0;
     float distance_to_closest = 1;
 
-    #define STT_RAY_MARCH_STEPS 32
+    #define STT_RAY_MARCH_STEPS 64
     float obj_id;
     float2 text_uv;
 
