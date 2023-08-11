@@ -136,7 +136,8 @@ float stt_map(float3 p, out int obj_id, out float2 text_uv)
     box_scale.y *= ceil(p3r);
     box_scale.z *= ceil(p3r);
 
-    float d = distance_from_box(pp, box_scale);
+    // Only use calculation when in phase 3.
+    float d = lerp(1000, distance_from_box(pp, box_scale), ceil(p3r));
 
     text_uv = (clamp(pp.xz, -1 * box_scale.xz, box_scale.xz) / box_scale.xz);
     text_uv = (text_uv + 1) / 2;
