@@ -51,14 +51,6 @@ def toggleBoard(client, show: bool):
     addr = "/avatar/parameters/" + generate_utils.getToggleParam()
     client.send_message(addr, show)
 
-def indicateSpeech(client, is_speaking: bool):
-    addr = "/avatar/parameters/" + generate_utils.getIndicator0Param()
-    client.send_message(addr, is_speaking)
-
-def indicatePaging(client, is_paging: bool):
-    addr = "/avatar/parameters/" + generate_utils.getIndicator1Param()
-    client.send_message(addr, is_paging)
-
 def enable(client):
     addr="/avatar/parameters/" + generate_utils.getEnableParam()
     client.send_message(addr, True)
@@ -98,11 +90,6 @@ def pageMessage(osc_state: OscState, msg: str, estate: EmotesState) -> bool:
     #print("sending page {}: {} ({})".format(slice_idx, msg_slice,
     #    len(msg_slice)))
 
-    empty_slice = " " * len(msg_slice)
-    if msg_slice != empty_slice:
-        addr="/avatar/parameters/" + generate_utils.getSpeechNoiseToggleParam()
-        osc_state.client.send_message(addr, True)
-
     # Really long messages just wrap back around.
     which_region = (slice_idx % generate_utils.config.numRegions(0))
 
@@ -137,10 +124,6 @@ def pageMessage(osc_state: OscState, msg: str, estate: EmotesState) -> bool:
 
     # Wait for parameter sync.
     time.sleep(SYNC_DELAY_S)
-
-    if msg_slice != empty_slice:
-        addr="/avatar/parameters/" + generate_utils.getSpeechNoiseToggleParam()
-        osc_state.client.send_message(addr, False)
 
 # Like `pageMessage` but uses the built-in chatbox. The built-in chatbox
 # truncates data at about 150 chars, so just send the suffix of the message for

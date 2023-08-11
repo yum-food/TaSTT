@@ -58,12 +58,6 @@ def generate():
     params["PARAM_NAME"] = generate_utils.getEnableParam()
     result += generate_utils.replaceMacros(BOOL_PARAM, params)
 
-    params["PARAM_NAME"] = generate_utils.getIndicator0Param()
-    result += generate_utils.replaceMacros(BOOL_PARAM, params)
-
-    params["PARAM_NAME"] = generate_utils.getIndicator1Param()
-    result += generate_utils.replaceMacros(BOOL_PARAM, params)
-
     params["PARAM_NAME"] = generate_utils.getScaleParam()
     params["DEFAULT_FLOAT"] = "0.05"
     result += generate_utils.replaceMacros(FLOAT_PARAM, params)
@@ -71,14 +65,6 @@ def generate():
 
     params["PARAM_NAME"] = generate_utils.getToggleParam()
     result += generate_utils.replaceMacros(BOOL_PARAM, params)
-
-    params["PARAM_NAME"] = generate_utils.getSpeechNoiseToggleParam()
-    result += generate_utils.replaceMacros(BOOL_PARAM, params)
-
-    params["PARAM_NAME"] = generate_utils.getSpeechNoiseEnableParam()
-    params["SAVED"] = "1"
-    result += generate_utils.replaceMacros(BOOL_PARAM, params)
-    params["SAVED"] = "0"
 
     params["PARAM_NAME"] = generate_utils.getLockWorldParam()
     result += generate_utils.replaceMacros(BOOL_PARAM, params)

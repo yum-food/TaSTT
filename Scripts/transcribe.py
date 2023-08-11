@@ -471,7 +471,6 @@ def sendAudio(audio_state, use_builtin: bool, estate: EmotesState):
         else:
             ret = osc_ctrl.pageMessage(audio_state.osc_state, text, estate)
             is_paging = (ret == False)
-            osc_ctrl.indicatePaging(audio_state.osc_state.client, is_paging)
 
             # Pace this out
             time.sleep(0.01)
@@ -508,7 +507,6 @@ def readKeyboardInput(audio_state, enable_local_beep: bool,
         if event == EVENT_DOUBLE_PRESS:
             state = PAUSE_STATE
             if not use_builtin:
-                osc_ctrl.indicateSpeech(audio_state.osc_state.client, False)
                 osc_ctrl.toggleBoard(audio_state.osc_state.client, False)
 
             if audio_state.reset_on_toggle:
@@ -528,7 +526,6 @@ def readKeyboardInput(audio_state, enable_local_beep: bool,
         if state == RECORD_STATE:
             state = PAUSE_STATE
             if not use_builtin:
-                osc_ctrl.indicateSpeech(audio_state.osc_state.client, False)
                 osc_ctrl.lockWorld(audio_state.osc_state.client, True)
             audio_state.transcribe_sleep_duration = audio_state.transcribe_sleep_duration_min_s
 
@@ -540,7 +537,6 @@ def readKeyboardInput(audio_state, enable_local_beep: bool,
         elif state == PAUSE_STATE:
             state = RECORD_STATE
             if not use_builtin:
-                osc_ctrl.indicateSpeech(audio_state.osc_state.client, True)
                 osc_ctrl.toggleBoard(audio_state.osc_state.client, True)
                 osc_ctrl.lockWorld(audio_state.osc_state.client, False)
             if audio_state.reset_on_toggle:
@@ -576,8 +572,6 @@ def readControllerInput(audio_state, enable_local_beep: bool,
     RECORD_STATE = 0
     PAUSE_STATE = 1
     state = PAUSE_STATE
-    osc_ctrl.indicateSpeech(audio_state.osc_state.client, False)
-    osc_ctrl.indicatePaging(audio_state.osc_state.client, False)
 
     hand_id = steamvr.hands[button.split()[0]]
     button_id = steamvr.buttons[button.split()[1]]
@@ -611,7 +605,6 @@ def readControllerInput(audio_state, enable_local_beep: bool,
                 # Long press: treat as the end of transcription.
                 state = PAUSE_STATE
                 if not use_builtin:
-                    osc_ctrl.indicateSpeech(audio_state.osc_state.client, False)
                     osc_ctrl.lockWorld(audio_state.osc_state.client, True)
                 audio_state.transcribe_sleep_duration = audio_state.transcribe_sleep_duration_min_s
                 audio_state.audio_paused = True
@@ -637,7 +630,6 @@ def readControllerInput(audio_state, enable_local_beep: bool,
                         block=False)
 
                 if not use_builtin:
-                    osc_ctrl.indicateSpeech(audio_state.osc_state.client, False)
                     osc_ctrl.toggleBoard(audio_state.osc_state.client, False)
 
                 resetAudioLocked(audio_state)
@@ -649,7 +641,6 @@ def readControllerInput(audio_state, enable_local_beep: bool,
                 if state == RECORD_STATE:
                     state = PAUSE_STATE
                     if not use_builtin:
-                        osc_ctrl.indicateSpeech(audio_state.osc_state.client, False)
                         osc_ctrl.lockWorld(audio_state.osc_state.client, True)
                     audio_state.transcribe_sleep_duration = audio_state.transcribe_sleep_duration_min_s
 
@@ -661,7 +652,6 @@ def readControllerInput(audio_state, enable_local_beep: bool,
                 elif state == PAUSE_STATE:
                     state = RECORD_STATE
                     if not use_builtin:
-                        osc_ctrl.indicateSpeech(audio_state.osc_state.client, True)
                         osc_ctrl.toggleBoard(audio_state.osc_state.client, True)
                         osc_ctrl.lockWorld(audio_state.osc_state.client, False)
                     if audio_state.reset_on_toggle:

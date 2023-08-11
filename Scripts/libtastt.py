@@ -482,9 +482,6 @@ def generateScaleAnimation(anim_name: str, anim_dir: str,
 def generateAnimations(anim_dir, guid_map):
     generateClearAnimation(anim_dir, guid_map)
 
-    generateToggleAnimations(anim_dir, generate_utils.getIndicator0Param(), guid_map)
-    generateToggleAnimations(anim_dir, generate_utils.getIndicator1Param(), guid_map)
-
     print("Generating letter animations", file=sys.stderr)
 
     parser = libunity.UnityParser()
@@ -544,10 +541,7 @@ def generateFXController(anim: libunity.UnityAnimator) -> typing.Dict[int, libun
     anim.addParameter(generate_utils.getHipToggleParam(), bool)
     anim.addParameter(generate_utils.getHandToggleParam(), bool)
     anim.addParameter(generate_utils.getToggleParam(), bool)
-    anim.addParameter(generate_utils.getSpeechNoiseEnableParam(), bool)
     anim.addParameter(generate_utils.getClearBoardParam(), bool)
-    anim.addParameter(generate_utils.getIndicator0Param(), bool)
-    anim.addParameter(generate_utils.getIndicator1Param(), bool)
     anim.addParameter(generate_utils.getScaleParam(), float)
 
     layers = {}
@@ -699,20 +693,6 @@ def generateFX(guid_map, gen_anim_dir):
             print("Generating layer {}/{}".format(which_layer, len(layers[byte].items())), file=sys.stderr)
             generateFXLayer(which_layer, anim, layer, gen_anim_dir, byte)
 
-    states = generateToggle(
-            generate_utils.getSpeechNoiseToggleParam(),
-            generate_utils.getSpeechNoiseToggleParam(),
-            gen_anim_dir,
-            "TaSTT_Speech_Noise_Off.anim",
-            "TaSTT_Speech_Noise_On.anim",
-            anim, guid_map)
-    # Enable beeping only if user has turned it on.
-    anim.addTransitionBooleanCondition(states["off"],
-            states["off_to_on"], generate_utils.getSpeechNoiseEnableParam(), True)
-    # Enable beeping only if board is out.
-    anim.addTransitionBooleanCondition(states["off"],
-            states["off_to_on"], generate_utils.getToggleParam(), True)
-
     generateToggle(generate_utils.getToggleParam(),
             generate_utils.getToggleParam(),
             gen_anim_dir,
@@ -731,18 +711,6 @@ def generateFX(guid_map, gen_anim_dir):
             gen_anim_dir,
             None,  # No animation in the `off` state.
             generate_utils.getClearAnimationName() + ".anim",
-            anim, guid_map)
-    generateToggle(generate_utils.getIndicator0Param(),
-            generate_utils.getIndicator0Param(),
-            gen_anim_dir,
-            generate_utils.getIndicator0Param() + "_Off.anim",
-            generate_utils.getIndicator0Param() + "_On.anim",
-            anim, guid_map)
-    generateToggle(generate_utils.getIndicator1Param(),
-            generate_utils.getIndicator1Param(),
-            gen_anim_dir,
-            generate_utils.getIndicator1Param() + "_Off.anim",
-            generate_utils.getIndicator1Param() + "_On.anim",
             anim, guid_map)
     generateToggle("TaSTT_Expand",
             generate_utils.getToggleParam(),
