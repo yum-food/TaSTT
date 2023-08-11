@@ -72,7 +72,7 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	enable_local_beep(true),
 	enable_browser_src(false),
 	browser_src_port(8097),
-	commit_fuzz_threshold(8),
+	commit_fuzz_threshold(4),
 	use_cpu(false),
 	use_builtin(false),
 	enable_uwu_filter(false),

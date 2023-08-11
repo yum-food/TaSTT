@@ -11,6 +11,7 @@
 #include "stt_text.cginc"
 
 float _Emerge;
+float _Ellipsis;
 
 float4 _Text_Color;
 float _Text_Metallic;
@@ -173,6 +174,36 @@ float stt_map(float3 p, out int obj_id, out float2 text_uv)
     skew = lerp(0, skew, p3r);
 
     float d = distance_from_rect_pyramid_frame(pp, edgex, edgey, height, r, skew);
+    obj_id = lerp(obj_id, OBJ_ID_FRAME, d < dist);
+    dist = min(dist, d);
+  }
+  {
+    float3 pp = p;
+
+    float3 xoff = float3(.003, 0, 0);
+
+    float r_small = .0005;
+    float r_big = .001;
+    float r_phase = glsl_mod(_Time[1], 1.0);
+
+    float r0_p0r = get_phase_fraction(r_phase, 0, 8);
+    float r0_p2r = get_phase_fraction(r_phase, 3, 8);
+    float r1_p0r = get_phase_fraction(glsl_mod(r_phase + .25, 1.0), 0, 8);
+    float r1_p2r = get_phase_fraction(glsl_mod(r_phase + .25, 1.0), 3, 8);
+    float r2_p0r = get_phase_fraction(glsl_mod(r_phase + .50, 1.0), 0, 8);
+    float r2_p2r = get_phase_fraction(glsl_mod(r_phase + .50, 1.0), 3, 8);
+
+    float r0 = lerp(r_small, r_big, r0_p0r * (1 - r0_p2r));
+    float r1 = lerp(r_small, r_big, r1_p0r * (1 - r1_p2r));
+    float r2 = lerp(r_small, r_big, r2_p0r * (1 - r2_p2r));
+
+    pp -= box_center_g;
+
+    float d = distance_from_sphere(pp - xoff, 0, r0);
+    d = min(d, distance_from_sphere(pp, 0, r1));
+    d = min(d, distance_from_sphere(pp + xoff, 0, r2));
+    d = lerp(1000, d, _Ellipsis);
+
     obj_id = lerp(obj_id, OBJ_ID_FRAME, d < dist);
     dist = min(dist, d);
   }

@@ -71,13 +71,11 @@ float2 GetLetterUV(float2 uv, int nth_letter,
   // (AddMarginToUV), resulting in long lines on the edge of the display.
   float lo = margin / 2;
   float hi = 1.0 - margin / 2;
-  if (margin != 0 &&
-      (CHAR_FRAC_ROW < lo ||
-      CHAR_FRAC_COL < lo ||
-      CHAR_FRAC_ROW > hi ||
-      CHAR_FRAC_COL > hi)) {
-    return float2(-1, -1);
-  }
+  bool skip_result = (margin != 0) *
+      !(CHAR_FRAC_ROW > lo *
+        CHAR_FRAC_COL > lo *
+        CHAR_FRAC_ROW < hi *
+        CHAR_FRAC_COL < hi);
 
   float LETTER_COL = fmod(nth_letter, floor(texture_cols));
   float LETTER_ROW = floor(texture_rows) - floor(nth_letter / floor(texture_cols));
@@ -89,7 +87,7 @@ float2 GetLetterUV(float2 uv, int nth_letter,
   result.x = LETTER_UV_COL;
   result.y = LETTER_UV_ROW;
 
-  return result;
+  return lerp(result, -1, skip_result);;
 }
 
 float4 GetLetter(float2 uv) {

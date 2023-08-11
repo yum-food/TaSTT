@@ -18,9 +18,7 @@
     _Frame_Emissive ("Frame emission", Range(0, 1)) = 0.2
 
     _Emerge("Emerge animation time", Range(0, 1)) = 1.0
-
-    [MaterialToggle] Enable_Custom_Cubemap("Enable custom cubemap", float) = 0
-		Custom_Cubemap("Custom cubemap", Cube) = "" {}
+    [MaterialToggle] _Ellipsis("Show ellipsis", float) = 0
 
     _Font_0x0000_0x1FFF ("_Font 0 (unicode 0x0000 - 0x1FFFF)", 2D) = "white" {}
     _Font_0x2000_0x3FFF ("_Font 1 (unicode 0x2000 - 0x3FFFF)", 2D) = "white" {}
