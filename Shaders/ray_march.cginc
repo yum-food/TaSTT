@@ -10,7 +10,22 @@
 #include "poi.cginc"
 #include "stt_text.cginc"
 
-float Ray_March_Emerge;
+float _Emerge;
+
+float4 _Text_Color;
+float _Text_Metallic;
+float _Text_Smoothness;
+float _Text_Emissive;
+
+float4 _BG_Color;
+float _BG_Metallic;
+float _BG_Smoothness;
+float _BG_Emissive;
+
+float4 _Frame_Color;
+float _Frame_Metallic;
+float _Frame_Smoothness;
+float _Frame_Emissive;
 
 // Allows us to divide [0,1] into `n_phases` equal-sized slices and remap `r`
 // onto the `nth_phase`.
@@ -63,18 +78,18 @@ float distance_from_rect_pyramid_frame(float3 p, float dx, float dy, float h, fl
   return dist;
 }
 
-float stt_map(float3 p, out float3 hsv, out float smoothness, out float alpha, out float2 text_uv)
-{
-  hsv[0] = 0;
-  hsv[1] = 1;
-  hsv[2] = 1;
-  smoothness = 0.3;
-  alpha = 0;
+#define OBJ_ID_NONE 0
+#define OBJ_ID_FRAME 1
+#define OBJ_ID_BG 2
 
-  float p0r = get_phase_fraction(Ray_March_Emerge, 0, 4);
-  float p1r = get_phase_fraction(Ray_March_Emerge, 1, 4);
-  float p2r = get_phase_fraction(Ray_March_Emerge, 2, 4);
-  float p3r = get_phase_fraction(Ray_March_Emerge, 3, 4);
+float stt_map(float3 p, out int obj_id, out float2 text_uv)
+{
+  obj_id = OBJ_ID_NONE;
+
+  float p0r = get_phase_fraction(_Emerge, 0, 4);
+  float p1r = get_phase_fraction(_Emerge, 1, 4);
+  float p2r = get_phase_fraction(_Emerge, 2, 4);
+  float p3r = get_phase_fraction(_Emerge, 3, 4);
 
   float dist = 1000 * 1000 * 1000;
   float3 box_scale_g = float3(1, 1, .85);
@@ -100,7 +115,7 @@ float stt_map(float3 p, out float3 hsv, out float smoothness, out float alpha, o
 
     float d = distance_from_box_frame(pp, box_sz, box_thck);
 
-    alpha = (d < dist) * 1 + (d >= dist) * alpha;
+    obj_id = lerp(obj_id, OBJ_ID_FRAME, d < dist);
     dist = min(dist, d);
   }
   {
@@ -129,9 +144,7 @@ float stt_map(float3 p, out float3 hsv, out float smoothness, out float alpha, o
     bool in_mirror = !(unity_CameraProjection[2][0] == 0.0 && unity_CameraProjection[2][1] == 0.0);
     text_uv = lerp(text_uv, float2(1.0 - text_uv.x, text_uv.y), in_mirror);
 
-    alpha = (d < dist) * 1 + (d >= dist) * alpha;
-    hsv[1] = (d < dist) * 0 + (d >= dist) * hsv[1];
-    hsv[2] = (d < dist) * 0 + (d >= dist) * hsv[2];
+    obj_id = lerp(obj_id, OBJ_ID_BG, d < dist);
     dist = min(dist, d);
   }
   {
@@ -159,6 +172,7 @@ float stt_map(float3 p, out float3 hsv, out float smoothness, out float alpha, o
     skew = lerp(0, skew, p3r);
 
     float d = distance_from_rect_pyramid_frame(pp, edgex, edgey, height, r, skew);
+    obj_id = lerp(obj_id, OBJ_ID_FRAME, d < dist);
     dist = min(dist, d);
   }
 
@@ -173,13 +187,11 @@ float3 stt_calculate_normal(in float3 p)
 
     // Calculate the 3D gradient. By definition, the gradient is orthogonal
     // (normal) to the surface.
-    float3 hsv;
-    float smoothness;
-    float alpha;
+    float obj_id;
     float2 text_uv;
-    float gradient_x = stt_map(p + small_step.xyy, hsv, smoothness, alpha, text_uv) - stt_map(p - small_step.xyy, hsv, smoothness, alpha, text_uv);
-    float gradient_y = stt_map(p + small_step.yxy, hsv, smoothness, alpha, text_uv) - stt_map(p - small_step.yxy, hsv, smoothness, alpha, text_uv);
-    float gradient_z = stt_map(p + small_step.yyx, hsv, smoothness, alpha, text_uv) - stt_map(p - small_step.yyx, hsv, smoothness, alpha, text_uv);
+    float gradient_x = stt_map(p + small_step.xyy, obj_id, text_uv) - stt_map(p - small_step.xyy, obj_id, text_uv);
+    float gradient_y = stt_map(p + small_step.yxy, obj_id, text_uv) - stt_map(p - small_step.yxy, obj_id, text_uv);
+    float gradient_z = stt_map(p + small_step.yyx, obj_id, text_uv) - stt_map(p - small_step.yyx, obj_id, text_uv);
 
     float3 normal = float3(gradient_x, gradient_y, gradient_z);
 
@@ -195,11 +207,7 @@ float4 stt_ray_march(float3 ro, float3 rd, inout v2f v2f_i, inout float depth)
     float distance_to_closest = 1;
 
     #define STT_RAY_MARCH_STEPS 32
-    float4 color = 0;
-    float metallic = 0.5;
-    float smoothness;
-    float alpha;
-    float3 hsv;
+    float obj_id;
     float2 text_uv;
 
     for (int i = 0; i < STT_RAY_MARCH_STEPS &&
@@ -207,33 +215,48 @@ float4 stt_ray_march(float3 ro, float3 rd, inout v2f v2f_i, inout float depth)
         total_distance_traveled < MAXIMUM_TRACE_DISTANCE; i++)
     {
         current_position = ro + total_distance_traveled * rd;
-        distance_to_closest = stt_map(current_position, hsv, smoothness, alpha, text_uv);
+        distance_to_closest = stt_map(current_position, obj_id, text_uv);
         total_distance_traveled += distance_to_closest;
     }
+    obj_id = lerp(0, obj_id, distance_to_closest < MINIMUM_HIT_DISTANCE);
 
     float3 normal = stt_calculate_normal(current_position);
     v2f_i.normal = normalize(mul(unity_ObjectToWorld, normal));
 
     float epsilon = .005;
+    float letter_mask = 0;
     if (text_uv.x > epsilon && text_uv.x < 1 - epsilon &&
         text_uv.y > epsilon && text_uv.y < 1 - epsilon) {
       text_uv.y = 1.0 - text_uv.y;
       // Make backside render left-to-right.
       text_uv.x = lerp(text_uv.x, 1.0 - text_uv.x, (normal.y + 1) / 2);
-      hsv[0] = 0;
       text_uv = AddMarginToUV(1.0 - text_uv, .01);
-      hsv[1] = 0;
-      hsv[2] = GetLetter(text_uv);
+      letter_mask = GetLetter(text_uv);
     }
 
-    depth = getWorldSpaceDepth(mul(unity_ObjectToWorld, float4(current_position, 1.0)).xyz);
-    color.xyz = HSVtoRGB(hsv);
-    color.w = alpha;
+    float4 text = light(v2f_i, _Text_Color, _Text_Metallic, _Text_Smoothness);
+    text += _Text_Color * _Text_Emissive;
+    text = clamp(text, 0, 1);
 
-    depth = lerp(-1000, depth, distance_to_closest < MINIMUM_HIT_DISTANCE);
-    fixed4 lit_color = light(v2f_i, color, metallic, smoothness);
-    fixed4 shaded_color = lerp(lit_color, color, 0.2);
-    return lerp(0, shaded_color, distance_to_closest < MINIMUM_HIT_DISTANCE);
+    float4 bg = light(v2f_i, _BG_Color, _BG_Metallic, _BG_Smoothness);
+    bg += _BG_Color * _BG_Emissive;
+    bg = clamp(bg, 0, 1);
+
+    float4 frame = light(v2f_i, _Frame_Color, _Frame_Metallic, _Frame_Smoothness);
+    frame += _Frame_Color * _Frame_Emissive;
+    frame = clamp(frame, 0, 1);
+
+    depth = getWorldSpaceDepth(mul(unity_ObjectToWorld, float4(current_position, 1.0)).xyz);
+
+    switch ((int) obj_id) {
+      case OBJ_ID_NONE:
+        depth = -1000;
+        return 0;
+      case OBJ_ID_FRAME:
+        return frame;
+      case OBJ_ID_BG:
+        return lerp(bg, text, letter_mask);
+    }
 }
 
 float4 stt_ray_march(inout v2f v2f_i, inout float depth)

@@ -130,6 +130,13 @@ float smoothstep_quintic(float x)
   return x*x*x*(x*(x*6.0-15.0)+10.0);
 }
 
+float distance_from_line_segment( float3 p, float3 a, float3 b, float r )
+{
+  float3 pa = p - a, ba = b - a;
+  float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
+  return length( pa - ba*h ) - r;
+}
+
 // End licensed section
 
 #endif  // __IQ_SDF_INC__

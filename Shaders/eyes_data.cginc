@@ -11,7 +11,7 @@ struct appdata
 struct v2f
 {
   float4 position : SV_POSITION;
-  float4 uv : TEXCOORD0;
+  float2 uv : TEXCOORD0;
   float3 normal : TEXCOORD1;
   float3 worldPos : TEXCOORD2;
 

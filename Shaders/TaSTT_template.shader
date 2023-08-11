@@ -2,35 +2,22 @@
 {
   Properties
   {
-    Text_Color ("Text Color", Color) = (1, 1, 1, 1)
-    Background_Color ("Background Color", Color) = (0, 0, 0, 1)
-    Margin_Color ("Margin color", Color) = (1, 1, 1, 1)
+    _Text_Color ("Text color", Color) = (1, 1, 1, 1)
+    _Text_Metallic ("Text metallic", Range(0, 1)) = 0
+    _Text_Smoothness ("Text smoothness", Range(0, 1)) = 0
+    _Text_Emissive ("Text emission", Range(0, 1)) = 0.2
 
-    [Gamma] Metallic("Metallic", Range(0, 1)) = 0.5
-    Smoothness("Smoothness", Range(0, 1)) = 0.2
-    Emissive("Emissive", Range(0, 1)) = 0.1
+    _BG_Color ("Background color", Color) = (0, 0, 0, 1)
+    _BG_Metallic ("Background metallic", Range(0, 1)) = 0
+    _BG_Smoothness ("Background smoothness", Range(0, 1)) = 0
+    _BG_Emissive ("Background emission", Range(0, 1)) = 0.2
 
-    [MaterialToggle] Render_Margin("Render margin", float) = 1
-    [MaterialToggle] Render_Visual_Indicator("Render visual speech indicator", float) = 1
-    Margin_Scale("Margin scale", float) = 0.03
-    Margin_Rounding_Scale("Margin rounding scale", float) = 0.03
-    [MaterialToggle] Enable_Margin_Effect_Squares(
-        "Enable margin effect: Squares", float) = 0
-    [MaterialToggle] Enable_Ray_March(
-        "Enable ray marching", float) = 0
-    Ray_March_Emerge("Ray march emerge", Range(0, 1)) = 1.0
+    _Frame_Color ("Frame color", Color) = (1, 1, 1, 1)
+    _Frame_Metallic ("Frame metallic", Range(0, 1)) = 0
+    _Frame_Smoothness ("Frame smoothness", Range(0, 1)) = 0
+    _Frame_Emissive ("Frame emission", Range(0, 1)) = 0.2
 
-    [MaterialToggle] Enable_Dithering("Enable dithering", float) = 1
-
-    [MaterialToggle] BG_Enable("Enable custom background", float) = 0
-    BG_BaseColor("Background base color", 2D) = "black" {}
-    [NoScaleOffset] BG_NormalMap ("Background normal map", 2D) = "bump" {}
-    BG_NormalStrength ("Background normal strength", Float) = 1
-    BG_Smoothness("Background smoothness", 2D) = "black" {}
-    [MaterialToggle]BG_Smoothness_Invert("Invert background smoothness", float) = 1
-    BG_Metallic("Background metallic", 2D) = "black" {}
-    BG_Emission_Mask("Background emission mask", 2D) = "black" {}
-    BG_Emission_Color("Background emission color", Color) = (0, 0, 0)
+    _Emerge("Emerge animation time", Range(0, 1)) = 1.0
 
     [MaterialToggle] Enable_Custom_Cubemap("Enable custom cubemap", float) = 0
 		Custom_Cubemap("Custom cubemap", Cube) = "" {}
