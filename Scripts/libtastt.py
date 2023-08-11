@@ -705,6 +705,12 @@ def generateFX(guid_map, gen_anim_dir):
             "TaSTT_Lock_World_Disable.anim",
             "TaSTT_Lock_World_Enable.anim",
             anim, guid_map)
+    generateToggle(generate_utils.getEllipsisParam(),
+            generate_utils.getEllipsisParam(),
+            gen_anim_dir,
+            "TaSTT_Ellipsis_Off.anim",
+            "TaSTT_Ellipsis_On.anim",
+            anim, guid_map)
     generateToggle(
             generate_utils.getClearBoardParam(),
             generate_utils.getClearBoardParam(),

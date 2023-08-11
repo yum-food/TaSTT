@@ -58,6 +58,9 @@ def generate():
     params["PARAM_NAME"] = generate_utils.getEnableParam()
     result += generate_utils.replaceMacros(BOOL_PARAM, params)
 
+    params["PARAM_NAME"] = generate_utils.getEllipsisParam()
+    result += generate_utils.replaceMacros(BOOL_PARAM, params)
+
     params["PARAM_NAME"] = generate_utils.getScaleParam()
     params["DEFAULT_FLOAT"] = "0.05"
     result += generate_utils.replaceMacros(FLOAT_PARAM, params)

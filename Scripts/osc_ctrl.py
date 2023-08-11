@@ -59,6 +59,10 @@ def disable(client):
     addr="/avatar/parameters/" + generate_utils.getEnableParam()
     client.send_message(addr, False)
 
+def ellipsis(client, enable: bool):
+    addr="/avatar/parameters/" + generate_utils.getEllipsisParam()
+    client.send_message(addr, enable)
+
 def clear(osc_state: OscState):
     disable(osc_state.client)
 
@@ -121,6 +125,8 @@ def pageMessage(osc_state: OscState, msg: str, estate: EmotesState) -> bool:
     #print("len encoded: {}".format(len(encoded)))
     for i in range(0, len(encoded)):
         updateRegion(osc_state.client, i, encoded[i])
+
+    ellipsis(osc_state.client, False)
 
     # Wait for parameter sync.
     time.sleep(SYNC_DELAY_S)
