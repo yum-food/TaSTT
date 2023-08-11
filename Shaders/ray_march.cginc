@@ -38,6 +38,31 @@ float get_phase_fraction(float r, float nth_phase, float n_phases) {
   return r0 / stride;
 }
 
+// d = base edge length
+// h = height
+// e = frame thickness
+// Pyramid base is on xy plane.
+float distance_from_rect_pyramid_frame(float3 p, float dx, float dy, float h, float e, float skew)
+{
+  float3 p0 = float3(dx/2, dy/2, 0);
+  float3 p1 = float3(dx/2, -dy/2, 0);
+  float3 p2 = float3(-dx/2, -dy/2, 0);
+  float3 p3 = float3(-dx/2, dy/2, 0);
+  float3 p4 = float3(skew, 0, h);
+
+  float dist = 1000;
+  dist = min(dist, distance_from_line_segment(p, p0, p1, e));
+  dist = min(dist, distance_from_line_segment(p, p1, p2, e));
+  dist = min(dist, distance_from_line_segment(p, p2, p3, e));
+  dist = min(dist, distance_from_line_segment(p, p3, p0, e));
+  dist = min(dist, distance_from_line_segment(p, p0, p4, e));
+  dist = min(dist, distance_from_line_segment(p, p1, p4, e));
+  dist = min(dist, distance_from_line_segment(p, p2, p4, e));
+  dist = min(dist, distance_from_line_segment(p, p3, p4, e));
+
+  return dist;
+}
+
 float stt_map(float3 p, out float3 hsv, out float smoothness, out float alpha, out float2 text_uv)
 {
   hsv[0] = 0;
@@ -46,25 +71,25 @@ float stt_map(float3 p, out float3 hsv, out float smoothness, out float alpha, o
   smoothness = 0.3;
   alpha = 0;
 
-  float p0r = get_phase_fraction(Ray_March_Emerge, 0, 3);
-  float p1r = get_phase_fraction(Ray_March_Emerge, 1, 3);
-  float p2r = get_phase_fraction(Ray_March_Emerge, 2, 3);
-
-  // Use this to make the box grow out of the bottom left corner instead of the
-  // middle.
-  float3 emerge_offset = 0;
+  float p0r = get_phase_fraction(Ray_March_Emerge, 0, 4);
+  float p1r = get_phase_fraction(Ray_March_Emerge, 1, 4);
+  float p2r = get_phase_fraction(Ray_March_Emerge, 2, 4);
+  float p3r = get_phase_fraction(Ray_March_Emerge, 3, 4);
 
   float dist = 1000 * 1000 * 1000;
+  float3 box_scale_g = float3(1, 1, .85);
+  float3 box_center_g = float3(.020, 0, .0122);
   {
     float3 pp = p;
-
-    pp.x -= 0.02;
-    pp.z -= 0.01;
+    pp -= box_center_g;
 
     float box_thck = .0002;
 
-    float3 box_sz = float3(6, .5, 3) * .003;
+    float3 box_sz = float3(6, .5, 3) * .003 * box_scale_g;
 
+    // Use this to make the box grow out of the bottom left corner instead of the
+    // middle.
+    float3 emerge_offset = 0;
     emerge_offset.x = lerp(box_sz.x, box_thck, p1r);
     emerge_offset.z = lerp(box_sz.z, box_thck, p2r);
     pp += emerge_offset;
@@ -80,18 +105,21 @@ float stt_map(float3 p, out float3 hsv, out float smoothness, out float alpha, o
   }
   {
     float3 pp = p;
+    pp -= box_center_g;
 
-    pp.x -= 0.02;
-    pp.z -= 0.01;
+    float3 box_scale = float3(10, 0.1, 4.9) * .00175 * box_scale_g;
+    float3 box_pad = float3(.001, 0, .001);
+    box_scale -= box_pad;
 
-    float3 box_scale = float3(.01, .0001, .0045) * 1.6;
-
-    float p3r = get_phase_fraction(Ray_March_Emerge, 3, 4);
-    box_scale.x *= ceil(p3r);
-    box_scale.y *= ceil(p3r);
-    box_scale.z = lerp(0, box_scale.z, p3r);
-
+    // Use this to make the board grow out of the left edge instead of from the
+    // center.
+    float3 emerge_offset = 0;
+    emerge_offset.x = lerp(box_scale.x, 0, p3r);
     pp += emerge_offset;
+
+    box_scale.x = lerp(0, box_scale.x, p3r);
+    box_scale.y *= ceil(p3r);
+    box_scale.z *= ceil(p3r);
 
     float d = distance_from_box(pp, box_scale);
 
@@ -104,6 +132,33 @@ float stt_map(float3 p, out float3 hsv, out float smoothness, out float alpha, o
     alpha = (d < dist) * 1 + (d >= dist) * alpha;
     hsv[1] = (d < dist) * 0 + (d >= dist) * hsv[1];
     hsv[2] = (d < dist) * 0 + (d >= dist) * hsv[2];
+    dist = min(dist, d);
+  }
+  {
+    float3 pp = p;
+
+    pp -= box_center_g - float3(6, 0, 3) * .003 * box_scale_g;
+
+    float scale = .0025 + .0002;
+    pp.x -= scale/2;
+
+    float edgex = 1 * scale;
+    float edgey = 1 * scale;
+    float height = -1.3 * scale;
+    float r = .06 * scale;
+    float skew = -.75 * scale;
+
+    pp.z += lerp(0, .0008, p0r) * p0r;
+    r = lerp(0, r, p0r) * p0r;
+    edgey = lerp(0, edgey, p0r) * p0r;
+
+    pp.x += lerp(edgex/2, 0, p1r);
+    edgex = lerp(0, edgex, p1r);
+
+    height = lerp(0, height, p2r);
+    skew = lerp(0, skew, p3r);
+
+    float d = distance_from_rect_pyramid_frame(pp, edgex, edgey, height, r, skew);
     dist = min(dist, d);
   }
 
