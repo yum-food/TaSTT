@@ -149,7 +149,7 @@ float stt_map(float3 p, out int obj_id, out float2 text_uv)
     text_uv = (clamp(pp.xz, -1 * box_scale.xz, box_scale.xz) / box_scale.xz);
     text_uv = (text_uv + 1) / 2;
 
-    bool in_mirror = !(unity_CameraProjection[2][0] == 0.0 * unity_CameraProjection[2][1] == 0.0);
+    bool in_mirror = !((unity_CameraProjection[2][0] == 0.0) * (unity_CameraProjection[2][1] == 0.0));
     text_uv = lerp(text_uv, float2(1.0 - text_uv.x, text_uv.y), in_mirror);
 
     obj_id = lerp(obj_id, OBJ_ID_BG, d < dist);
