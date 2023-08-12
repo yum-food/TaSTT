@@ -62,19 +62,25 @@ float distance_from_rect_pyramid_frame(float3 p, float dx, float dy, float h, fl
 {
   float3 p0 = float3(dx/2, dy/2, 0);
   float3 p1 = float3(dx/2, -dy/2, 0);
-  float3 p2 = float3(-dx/2, -dy/2, 0);
   float3 p3 = float3(-dx/2, dy/2, 0);
   float3 p4 = float3(skew, 0, h);
 
+  float3 pp = p;
+  // Symmetry
+  pp.x = abs(pp.x);
+  float d01 = distance_from_line_segment(pp, p0, p1, e);
+
+  pp = p;
+  pp.y = abs(pp.y);
+  float d03 = distance_from_line_segment(pp, p0, p3, e);
+  float d04 = distance_from_line_segment(pp, p0, p4, e);
+  float d14 = distance_from_line_segment(pp, p3, p4, e);
+
   float dist = 1000;
-  dist = min(dist, distance_from_line_segment(p, p0, p1, e));
-  dist = min(dist, distance_from_line_segment(p, p1, p2, e));
-  dist = min(dist, distance_from_line_segment(p, p2, p3, e));
-  dist = min(dist, distance_from_line_segment(p, p3, p0, e));
-  dist = min(dist, distance_from_line_segment(p, p0, p4, e));
-  dist = min(dist, distance_from_line_segment(p, p1, p4, e));
-  dist = min(dist, distance_from_line_segment(p, p2, p4, e));
-  dist = min(dist, distance_from_line_segment(p, p3, p4, e));
+  dist = min(dist, d01);
+  dist = min(dist, d04);
+  dist = min(dist, d03);
+  dist = min(dist, d14);
 
   return dist;
 }
