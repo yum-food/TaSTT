@@ -40,9 +40,9 @@ float prng(float2 p)
 
 bool f3ltf3(fixed3 a, fixed3 b)
 {
-  return a[0] < b[0] &&
-    a[1] < b[1] &&
-    a[2] < b[2];
+  return (a[0] < b[0]) *
+    (a[1] < b[1]) *
+    (a[2] < b[2]);
 }
 
 // Write the nth letter in the current cell and return the value of the
@@ -91,15 +91,13 @@ float2 GetLetterUV(float2 uv, int nth_letter,
 }
 
 float4 GetLetter(float2 uv) {
-  fixed4 text = fixed4(0, 0, 0, 0);
-  bool discard_text = false;
-
   uint letter = GetLetterParameter(uv);
 
   float texture_cols;
   float texture_rows;
   float2 letter_uv;
   bool is_emote = false;
+
   if (letter < 0xE000) {
     letter_uv = GetLetterUV(uv, letter % 0x2000, TEXTURE_NCOLS, TEXTURE_NROWS, BOARD_NCOLS, BOARD_NROWS, /*margin=*/0.02);
   } else {
@@ -110,9 +108,7 @@ float4 GetLetter(float2 uv) {
     letter_uv = GetLetterUV(uv, letter % 0x2000, texture_cols, texture_rows, BOARD_NCOLS, BOARD_NROWS, /*margin=*/0);
   }
 
-  if (letter_uv.x == -1 && letter_uv.y == -1) {
-    discard_text = true;
-  }
+  bool discard_text = (letter_uv.x == -1) * (letter_uv.y == -1);
 
   // We use ddx/ddy to get the correct mipmaps of the font textures. This
   // confers 2 main benefits:
@@ -121,50 +117,50 @@ float4 GetLetter(float2 uv) {
   const float iddx = ddx(letter_uv.x);
   const float iddy = ddy(letter_uv.y);
 
-  if (Enable_Dithering && !is_emote) {
-    // Add noise to UV.
-    // Here, iddx and iddy tell us how big the current UV cell is with respect to
-    // screen space (i.e. how many pixels wide it is).
-    float noise = frac(prng(letter_uv) + _Time[0]);
-    letter_uv.x += (noise - 0.5) * iddx / 4.0;
-    letter_uv.y += (noise - 0.5) * iddy / 4.0;
-  }
+  bool add_dithering = Enable_Dithering * !is_emote;
+  // Add noise to UV.
+  // Here, iddx and iddy tell us how big the current UV cell is with respect to
+  // screen space (i.e. how many pixels wide it is).
+  float noise = frac(prng(letter_uv) + _Time[0]);
+  letter_uv.x += lerp(0, (noise - 0.5) * iddx / 4.0, add_dithering);
+  letter_uv.y += lerp(0, (noise - 0.5) * iddy / 4.0, add_dithering);
 
+  fixed4 text = fixed4(0, 0, 0, 0);
   int which_texture = (int) floor(letter / (uint) (64 * 128));
   [forcecase] switch (which_texture)
   {
     case 0:
       // Divide iddx, iddy by 2.0 to remain on a higher-detail mip level for
       // longer.
-      text += _Font_0x0000_0x1FFF.SampleGrad(linear_clamp_sampler,
+      text = _Font_0x0000_0x1FFF.SampleGrad(linear_clamp_sampler,
           letter_uv, iddx / 2.0, iddy / 2.0);
       break;
     case 1:
-      text += _Font_0x2000_0x3FFF.SampleGrad(linear_clamp_sampler,
+      text = _Font_0x2000_0x3FFF.SampleGrad(linear_clamp_sampler,
           letter_uv, iddx / 2.0, iddy / 2.0);
       break;
     case 2:
-      text += _Font_0x4000_0x5FFF.SampleGrad(linear_clamp_sampler,
+      text = _Font_0x4000_0x5FFF.SampleGrad(linear_clamp_sampler,
           letter_uv, iddx / 2.0, iddy / 2.0);
       break;
     case 3:
-      text += _Font_0x6000_0x7FFF.SampleGrad(linear_clamp_sampler,
+      text = _Font_0x6000_0x7FFF.SampleGrad(linear_clamp_sampler,
           letter_uv, iddx / 2.0, iddy / 2.0);
       break;
     case 4:
-      text += _Font_0x8000_0x9FFF.SampleGrad(linear_clamp_sampler,
+      text = _Font_0x8000_0x9FFF.SampleGrad(linear_clamp_sampler,
           letter_uv, iddx / 2.0, iddy / 2.0);
       break;
     case 5:
-      text += _Font_0xA000_0xBFFF.SampleGrad(linear_clamp_sampler,
+      text = _Font_0xA000_0xBFFF.SampleGrad(linear_clamp_sampler,
           letter_uv, iddx / 2.0, iddy / 2.0);
       break;
     case 6:
-      text += _Font_0xC000_0xDFFF.SampleGrad(linear_clamp_sampler,
+      text = _Font_0xC000_0xDFFF.SampleGrad(linear_clamp_sampler,
           letter_uv, iddx / 2.0, iddy / 2.0);
       break;
     case 7:
-      text += _Img_0xE000_0xE03F.SampleGrad(linear_clamp_sampler,
+      text = _Img_0xE000_0xE03F.SampleGrad(linear_clamp_sampler,
           letter_uv, iddx / 2.0, iddy / 2.0);
       break;
     default:
@@ -174,11 +170,9 @@ float4 GetLetter(float2 uv) {
 
   // The edges of each letter cell can be slightly grey due to mip maps.
   // Detect this and shade it as the background.
-  fixed3 grey = 0.5;
-  if (f3ltf3(text.rgb, grey) || discard_text || is_emote) {
-    return 0;
-  }
-  return fixed4(text.rgb, 1);
+  fixed3 grey = 0.7;
+  bool disc = !(!f3ltf3(text.rgb, grey) * !discard_text * !is_emote);
+  return lerp(fixed4(text.rgb, 1), 0, disc);
 }
 
 #endif //  __STT_TEXT_INC__

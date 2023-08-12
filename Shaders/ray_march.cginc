@@ -143,7 +143,7 @@ float stt_map(float3 p, out int obj_id, out float2 text_uv)
     text_uv = (clamp(pp.xz, -1 * box_scale.xz, box_scale.xz) / box_scale.xz);
     text_uv = (text_uv + 1) / 2;
 
-    bool in_mirror = !(unity_CameraProjection[2][0] == 0.0 && unity_CameraProjection[2][1] == 0.0);
+    bool in_mirror = !(unity_CameraProjection[2][0] == 0.0 * unity_CameraProjection[2][1] == 0.0);
     text_uv = lerp(text_uv, float2(1.0 - text_uv.x, text_uv.y), in_mirror);
 
     obj_id = lerp(obj_id, OBJ_ID_BG, d < dist);
@@ -177,7 +177,7 @@ float stt_map(float3 p, out int obj_id, out float2 text_uv)
     obj_id = lerp(obj_id, OBJ_ID_FRAME, d < dist);
     dist = min(dist, d);
   }
-  {
+  if (_Ellipsis > 0.1) {
     float3 pp = p;
 
     float3 xoff = float3(.003, 0, 0);
@@ -202,7 +202,6 @@ float stt_map(float3 p, out int obj_id, out float2 text_uv)
     float d = distance_from_sphere(pp - xoff, 0, r0);
     d = min(d, distance_from_sphere(pp, 0, r1));
     d = min(d, distance_from_sphere(pp + xoff, 0, r2));
-    d = lerp(1000, d, _Ellipsis);
 
     obj_id = lerp(obj_id, OBJ_ID_FRAME, d < dist);
     dist = min(dist, d);
@@ -233,18 +232,18 @@ float3 stt_calculate_normal(in float3 p)
 float4 stt_ray_march(float3 ro, float3 rd, inout v2f v2f_i, inout float depth)
 {
     float total_distance_traveled = 0.0;
-    const float MINIMUM_HIT_DISTANCE = 1.0 / (1000 * 20);
-    const float MAXIMUM_TRACE_DISTANCE = 1000.0;
+    const float MINIMUM_HIT_DISTANCE = .00005;
+    const float MAXIMUM_TRACE_DISTANCE = 10.0;
     float3 current_position = 0;
     float distance_to_closest = 1;
 
-    #define STT_RAY_MARCH_STEPS 64
+    #define STT_RAY_MARCH_STEPS 48
     float obj_id;
     float2 text_uv;
 
-    for (int i = 0; i < STT_RAY_MARCH_STEPS &&
-        distance_to_closest > MINIMUM_HIT_DISTANCE &&
-        total_distance_traveled < MAXIMUM_TRACE_DISTANCE; i++)
+    for (int i = 0; (i < STT_RAY_MARCH_STEPS) *
+        (distance_to_closest > MINIMUM_HIT_DISTANCE) *
+        (total_distance_traveled < MAXIMUM_TRACE_DISTANCE); i++)
     {
         current_position = ro + total_distance_traveled * rd;
         distance_to_closest = stt_map(current_position, obj_id, text_uv);
@@ -281,6 +280,7 @@ float4 stt_ray_march(float3 ro, float3 rd, inout v2f v2f_i, inout float depth)
 
     depth = getWorldSpaceDepth(mul(unity_ObjectToWorld, float4(current_position, 1.0)).xyz);
 
+    [forcecase]
     switch ((int) obj_id) {
       case OBJ_ID_NONE:
         depth = -1000;
