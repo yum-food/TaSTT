@@ -183,7 +183,7 @@ float stt_map(float3 p, out int obj_id, out float2 text_uv)
     obj_id = lerp(obj_id, OBJ_ID_FRAME, d < dist);
     dist = min(dist, d);
   }
-  if (_Ellipsis > 0.1) {
+  if (_Ellipsis > 0.1 && _Emerge > .99) {
     float3 pp = p;
 
     float3 xoff = float3(.003, 0, 0);
