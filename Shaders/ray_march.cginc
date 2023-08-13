@@ -29,7 +29,7 @@ float _Frame_Smoothness;
 float _Frame_Emissive;
 
 #define MY_COORD_SCALE 100
-#define MY_COORD_SCALE_INV 1.0 / 100
+#define MY_COORD_SCALE_INV 1.0 / MY_COORD_SCALE
 #define OBJ_SPACE_TO_MINE \
   float4x4( \
       MY_COORD_SCALE, 0, 0, 0, \
@@ -278,9 +278,13 @@ float4 stt_ray_march(float3 ro, float3 rd, inout v2f v2f_i, inout float depth)
 {
     float total_distance_traveled = 0.0;
     const float MINIMUM_HIT_DISTANCE = .00002 * MY_COORD_SCALE;
-    const float MAXIMUM_TRACE_DISTANCE = .5 * MY_COORD_SCALE;
+    const float MAXIMUM_TRACE_DISTANCE = 2 * MY_COORD_SCALE;
     float3 current_position = 0;
     float distance_to_closest = 1;
+
+    // TODO(yum) remove
+    float3 old_world_pos = v2f_i.worldPos;
+    depth = getWorldSpaceDepth(old_world_pos);
 
     #define STT_RAY_MARCH_STEPS 48
     float obj_id;
@@ -314,7 +318,8 @@ float4 stt_ray_march(float3 ro, float3 rd, inout v2f v2f_i, inout float depth)
     frame += _Frame_Color * _Frame_Emissive;
     frame = clamp(frame, 0, 1);
 
-    depth = getWorldSpaceDepth(mul(MY_SPACE_TO_WORLD, float4(current_position, 1.0)).xyz);
+    // TODO(yum) restore
+    //depth = getWorldSpaceDepth(v2f_i.worldPos);
 
     [forcecase]
     switch ((int) obj_id) {
