@@ -38,7 +38,7 @@ float prng(float2 p)
   return frac(sin(dot(p, float2(561.0, 885.0))) * 776.2) / 2.0;
 }
 
-bool f3ltf3(fixed3 a, fixed3 b)
+bool f3ltf3(float3 a, float3 b)
 {
   return (a[0] < b[0]) *
     (a[1] < b[1]) *
@@ -125,7 +125,7 @@ float4 GetLetter(float2 uv) {
   letter_uv.x += lerp(0, (noise - 0.5) * iddx / 4.0, add_dithering);
   letter_uv.y += lerp(0, (noise - 0.5) * iddy / 4.0, add_dithering);
 
-  fixed4 text = fixed4(0, 0, 0, 0);
+  float4 text = float4(0, 0, 0, 0);
   int which_texture = (int) floor(letter / (uint) (64 * 128));
   [forcecase] switch (which_texture)
   {
@@ -165,14 +165,14 @@ float4 GetLetter(float2 uv) {
       break;
     default:
       // Return some distinctive pattern that will look like a bug.
-      return fixed4(1, 0, _SinTime[0], 1);
+      return float4(1, 0, _SinTime[0], 1);
   }
 
   // The edges of each letter cell can be slightly grey due to mip maps.
   // Detect this and shade it as the background.
-  fixed3 grey = 0.7;
+  float3 grey = 0.7;
   bool disc = !(!f3ltf3(text.rgb, grey) * !discard_text * !is_emote);
-  return lerp(fixed4(text.rgb, 1), 0, disc);
+  return lerp(float4(text.rgb, 1), 0, disc);
 }
 
 #endif //  __STT_TEXT_INC__

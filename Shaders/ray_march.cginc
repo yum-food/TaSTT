@@ -28,6 +28,27 @@ float _Frame_Metallic;
 float _Frame_Smoothness;
 float _Frame_Emissive;
 
+#define MY_COORD_SCALE 100
+#define MY_COORD_SCALE_INV 1.0 / 100
+#define OBJ_SPACE_TO_MINE \
+  float4x4( \
+      MY_COORD_SCALE, 0, 0, 0, \
+      0, MY_COORD_SCALE, 0, 0, \
+      0, 0, MY_COORD_SCALE, 0, \
+      0, 0, 0, MY_COORD_SCALE \
+      )
+#define WORLD_SPACE_TO_MINE \
+  mul(unity_WorldToObject, OBJ_SPACE_TO_MINE)
+#define MY_SPACE_TO_OBJ \
+  float4x4( \
+      MY_COORD_SCALE_INV, 0, 0, 0, \
+      0, MY_COORD_SCALE_INV, 0, 0, \
+      0, 0, MY_COORD_SCALE_INV, 0, \
+      0, 0, 0, MY_COORD_SCALE_INV \
+      )
+#define MY_SPACE_TO_WORLD \
+  mul(MY_SPACE_TO_OBJ, unity_ObjectToWorld)
+
 // Allows us to divide [0,1] into `n_phases` equal-sized slices and remap `r`
 // onto the `nth_phase`.
 //
@@ -99,13 +120,13 @@ float stt_map(float3 p, out int obj_id, out float2 text_uv)
   float p3r = get_phase_fraction(_Emerge, 3, 4);
 
   float dist = 1000 * 1000 * 1000;
-  float3 box_scale_g = float3(1, 1, .85);
-  float3 box_center_g = float3(.020, 0, .0122);
+  float3 box_scale_g = float3(1, 1, .85) * MY_COORD_SCALE;
+  float3 box_center_g = float3(.020, 0, .0122) * MY_COORD_SCALE;
   {
     float3 pp = p;
     pp -= box_center_g;
 
-    float box_thck = .0002;
+    float box_thck = .0002 * MY_COORD_SCALE;
 
     float3 box_sz = float3(6, .5, 3) * .003 * box_scale_g;
 
@@ -128,9 +149,11 @@ float stt_map(float3 p, out int obj_id, out float2 text_uv)
   {
     float3 pp = p;
     pp -= box_center_g;
+    //pp -= float3(-0.00018, .0013, -.0002) * MY_COORD_SCALE;
+    pp -= float3(-0.00018, 0, -.0002) * MY_COORD_SCALE;
 
     float3 box_scale = float3(10, 0.1, 4.9) * .00175 * box_scale_g;
-    float3 box_pad = float3(.001, 0, .001);
+    float3 box_pad = float3(.001, 0, .001) * MY_COORD_SCALE;
     box_scale -= box_pad;
 
     // Use this to make the board grow out of the left edge instead of from the
@@ -161,6 +184,7 @@ float stt_map(float3 p, out int obj_id, out float2 text_uv)
     pp -= box_center_g - float3(6, 0, 3) * .003 * box_scale_g;
 
     float scale = .0025 + .0002;
+    scale *= MY_COORD_SCALE;
     pp.x -= scale/2;
 
     float edgex = 1 * scale;
@@ -169,7 +193,7 @@ float stt_map(float3 p, out int obj_id, out float2 text_uv)
     float r = .06 * scale;
     float skew = -.75 * scale;
 
-    pp.z += lerp(0, .0008, p0r) * p0r;
+    pp.z += lerp(0, .0008 * MY_COORD_SCALE, p0r) * p0r;
     r = lerp(0, r, p0r) * p0r;
     edgey = lerp(0, edgey, p0r) * p0r;
 
@@ -186,10 +210,10 @@ float stt_map(float3 p, out int obj_id, out float2 text_uv)
   if (_Ellipsis > 0.1 && _Emerge > .99) {
     float3 pp = p;
 
-    float3 xoff = float3(.003, 0, 0);
+    float3 xoff = float3(.003, 0, 0) * MY_COORD_SCALE;
 
-    float r_small = .0005;
-    float r_big = .001;
+    float r_small = .0005 * MY_COORD_SCALE;
+    float r_big = .001 * MY_COORD_SCALE;
     float r_phase = glsl_mod(_Time[1], 1.0);
 
     float r0_p0r = get_phase_fraction(r_phase, 0, 8);
@@ -216,6 +240,7 @@ float stt_map(float3 p, out int obj_id, out float2 text_uv)
   return dist;
 }
 
+// Calculate normals for ray-marched STT structure.
 float3 stt_calculate_normal(in float3 p)
 {
     // Setting a very low value makes the surface normals look noisy. In this
@@ -235,11 +260,25 @@ float3 stt_calculate_normal(in float3 p)
     return normalize(normal);
 }
 
+float get_letter_mask(float2 text_uv, bool mirror)
+{
+  float epsilon = .005;
+  if (text_uv.x > epsilon && text_uv.x < 1 - epsilon &&
+      text_uv.y > epsilon && text_uv.y < 1 - epsilon) {
+    text_uv.y = 1.0 - text_uv.y;
+    // Make backside render left-to-right.
+    text_uv.x = lerp(text_uv.x, 1.0 - text_uv.x, mirror);
+    text_uv = AddMarginToUV(1.0 - text_uv, .01);
+    return GetLetter(text_uv);
+  }
+  return 0;
+}
+
 float4 stt_ray_march(float3 ro, float3 rd, inout v2f v2f_i, inout float depth)
 {
     float total_distance_traveled = 0.0;
-    const float MINIMUM_HIT_DISTANCE = .00005;
-    const float MAXIMUM_TRACE_DISTANCE = 10.0;
+    const float MINIMUM_HIT_DISTANCE = .00002 * MY_COORD_SCALE;
+    const float MAXIMUM_TRACE_DISTANCE = .5 * MY_COORD_SCALE;
     float3 current_position = 0;
     float distance_to_closest = 1;
 
@@ -248,29 +287,20 @@ float4 stt_ray_march(float3 ro, float3 rd, inout v2f v2f_i, inout float depth)
     float2 text_uv;
 
     for (int i = 0; (i < STT_RAY_MARCH_STEPS) *
-        (distance_to_closest > MINIMUM_HIT_DISTANCE) *
+        (distance_to_closest > MINIMUM_HIT_DISTANCE/4) *
         (total_distance_traveled < MAXIMUM_TRACE_DISTANCE); i++)
     {
         current_position = ro + total_distance_traveled * rd;
         distance_to_closest = stt_map(current_position, obj_id, text_uv);
         total_distance_traveled += distance_to_closest;
     }
-    obj_id = lerp(0, obj_id, distance_to_closest < MINIMUM_HIT_DISTANCE);
+    obj_id = lerp(OBJ_ID_NONE, obj_id, distance_to_closest < MINIMUM_HIT_DISTANCE);
 
     float3 normal = stt_calculate_normal(current_position);
-    v2f_i.normal = normalize(mul(unity_ObjectToWorld, normal));
-    v2f_i.worldPos = mul(unity_ObjectToWorld, float4(current_position, 1.0)).xyz;
+    v2f_i.normal = normalize(mul(MY_SPACE_TO_WORLD, normal));
+    v2f_i.worldPos = mul(MY_SPACE_TO_WORLD, float4(current_position, 1.0)).xyz;
 
-    float epsilon = .005;
-    float letter_mask = 0;
-    if (text_uv.x > epsilon && text_uv.x < 1 - epsilon &&
-        text_uv.y > epsilon && text_uv.y < 1 - epsilon) {
-      text_uv.y = 1.0 - text_uv.y;
-      // Make backside render left-to-right.
-      text_uv.x = lerp(text_uv.x, 1.0 - text_uv.x, (normal.y + 1) / 2);
-      text_uv = AddMarginToUV(1.0 - text_uv, .01);
-      letter_mask = GetLetter(text_uv);
-    }
+    float letter_mask = get_letter_mask(text_uv, ((normal.y + 1) / 2) > .01);
 
     float4 text = light(v2f_i, _Text_Color, _Text_Metallic, _Text_Smoothness);
     text += _Text_Color * _Text_Emissive;
@@ -284,7 +314,7 @@ float4 stt_ray_march(float3 ro, float3 rd, inout v2f v2f_i, inout float depth)
     frame += _Frame_Color * _Frame_Emissive;
     frame = clamp(frame, 0, 1);
 
-    depth = getWorldSpaceDepth(mul(unity_ObjectToWorld, float4(current_position, 1.0)).xyz);
+    depth = getWorldSpaceDepth(mul(MY_SPACE_TO_WORLD, float4(current_position, 1.0)).xyz);
 
     [forcecase]
     switch ((int) obj_id) {
@@ -302,9 +332,9 @@ float4 stt_ray_march(inout v2f v2f_i, inout float depth)
 {
   float4 ray_march_color;
   {
-    float3 camera_position = mul(unity_WorldToObject, float4(_WorldSpaceCameraPos, 1.0)).xyz;
+    float3 camera_position = mul(WORLD_SPACE_TO_MINE, float4(_WorldSpaceCameraPos, 1.0)).xyz;
     float3 ro = camera_position;
-    float3 rd = normalize(mul(unity_WorldToObject, float4(v2f_i.worldPos, 1.0)).xyz - ro);
+    float3 rd = normalize(mul(WORLD_SPACE_TO_MINE, float4(v2f_i.worldPos, 1.0)).xyz - ro);
     float3 old_normal = v2f_i.normal;
     ray_march_color = stt_ray_march(ro, rd, v2f_i, depth);
     //v2f_i.normal = old_normal;
