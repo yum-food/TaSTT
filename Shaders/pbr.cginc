@@ -56,8 +56,8 @@ void initNormal(inout v2f i)
   i.normal = normalize(i.normal);
 }
 
-fixed4 light(inout v2f i,
-    fixed4 albedo,
+float4 light(inout v2f i,
+    float4 albedo,
     float metallic,
     float smoothness)
 {
@@ -69,7 +69,7 @@ fixed4 light(inout v2f i,
     albedo, metallic, specular_tint, one_minus_reflectivity);
 
   float3 view_dir = normalize(_WorldSpaceCameraPos - i.worldPos);
-  fixed3 pbr = UNITY_BRDF_PBS(albedo,
+  float3 pbr = UNITY_BRDF_PBS(albedo,
       specular_tint,
       one_minus_reflectivity,
       smoothness,
@@ -78,7 +78,7 @@ fixed4 light(inout v2f i,
       GetLight(i),
       GetIndirect(i, view_dir, smoothness)).rgb;
 
-  return fixed4(saturate(pbr), albedo.a);
+  return float4(saturate(pbr), albedo.a);
 }
 
 float getWorldSpaceDepth(in float3 world_pos)

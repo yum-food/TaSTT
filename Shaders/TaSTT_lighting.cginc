@@ -9,20 +9,6 @@
 #include "stt_generated.cginc"
 #include "stt_text.cginc"
 
-SamplerState linear_repeat_sampler;
-
-float _TaSTT_Indicator_0;
-float _TaSTT_Indicator_1;
-
-fixed4 float3tofixed4(in float3 f3, in float alpha)
-{
-  return fixed4(
-    f3.r,
-    f3.g,
-    f3.b,
-    alpha);
-}
-
 void getVertexLightColor(inout v2f i)
 {
   #if defined(VERTEXLIGHT_ON)

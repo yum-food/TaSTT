@@ -49,6 +49,9 @@ float _Frame_Emissive;
 #define MY_SPACE_TO_WORLD \
   mul(MY_SPACE_TO_OBJ, unity_ObjectToWorld)
 
+#define MINIMUM_HIT_DISTANCE .00002 * MY_COORD_SCALE
+#define MAXIMUM_TRACE_DISTANCE 2 * MY_COORD_SCALE
+
 // Allows us to divide [0,1] into `n_phases` equal-sized slices and remap `r`
 // onto the `nth_phase`.
 //
@@ -243,13 +246,11 @@ float stt_map(float3 p, out int obj_id, out float2 text_uv)
 // Calculate normals for ray-marched STT structure.
 float3 stt_calculate_normal(in float3 p)
 {
-    // Setting a very low value makes the surface normals look noisy. In this
-    // case. that's desired, since it produces a glittery effect.
     const float3 small_step = float3(0.0001, 0.0, 0.0);
 
     // Calculate the 3D gradient. By definition, the gradient is orthogonal
     // (normal) to the surface.
-    float obj_id;
+    int obj_id;
     float2 text_uv;
     float gradient_x = stt_map(p + small_step.xyy, obj_id, text_uv) - stt_map(p - small_step.xyy, obj_id, text_uv);
     float gradient_y = stt_map(p + small_step.yxy, obj_id, text_uv) - stt_map(p - small_step.yxy, obj_id, text_uv);
@@ -274,23 +275,14 @@ float get_letter_mask(float2 text_uv, bool mirror)
   return 0;
 }
 
-float4 stt_ray_march(float3 ro, float3 rd, inout v2f v2f_i, inout float depth)
+float3 stt_march(float3 ro, float3 rd, out int obj_id, out float2 text_uv, int steps)
 {
     float total_distance_traveled = 0.0;
-    const float MINIMUM_HIT_DISTANCE = .00002 * MY_COORD_SCALE;
-    const float MAXIMUM_TRACE_DISTANCE = 2 * MY_COORD_SCALE;
     float3 current_position = 0;
     float distance_to_closest = 1;
 
-    // TODO(yum) remove
-    float3 old_world_pos = v2f_i.worldPos;
-    depth = getWorldSpaceDepth(old_world_pos);
-
     #define STT_RAY_MARCH_STEPS 48
-    float obj_id;
-    float2 text_uv;
-
-    for (int i = 0; (i < STT_RAY_MARCH_STEPS) *
+    for (int i = 0; (i < steps) *
         (distance_to_closest > MINIMUM_HIT_DISTANCE/4) *
         (total_distance_traveled < MAXIMUM_TRACE_DISTANCE); i++)
     {
@@ -299,6 +291,20 @@ float4 stt_ray_march(float3 ro, float3 rd, inout v2f v2f_i, inout float depth)
         total_distance_traveled += distance_to_closest;
     }
     obj_id = lerp(OBJ_ID_NONE, obj_id, distance_to_closest < MINIMUM_HIT_DISTANCE);
+
+    return current_position;
+}
+
+float4 stt_ray_march(float3 ro, float3 rd, inout v2f v2f_i, inout float depth)
+{
+
+    // TODO(yum) remove
+    float3 old_world_pos = v2f_i.worldPos;
+    depth = getWorldSpaceDepth(old_world_pos);
+
+    int obj_id;
+    float2 text_uv;
+    float3 current_position = stt_march(ro, rd, obj_id, text_uv, /*steps=*/48);
 
     float3 normal = stt_calculate_normal(current_position);
     v2f_i.normal = normalize(mul(MY_SPACE_TO_WORLD, normal));
@@ -318,11 +324,14 @@ float4 stt_ray_march(float3 ro, float3 rd, inout v2f v2f_i, inout float depth)
     frame += _Frame_Color * _Frame_Emissive;
     frame = clamp(frame, 0, 1);
 
+    frame += _Frame_Color * _Frame_Emissive;
+    frame = clamp(frame, 0, 1);
+
     // TODO(yum) restore
     //depth = getWorldSpaceDepth(v2f_i.worldPos);
 
     [forcecase]
-    switch ((int) obj_id) {
+    switch (obj_id) {
       case OBJ_ID_NONE:
         depth = -1000;
         return 0;
