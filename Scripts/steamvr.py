@@ -1,80 +1,99 @@
-#!/usr/bin/env python3
-
-# python3 -m pip install openvr
-# License: BSD-3.0 (requires showing notice in binary distributions)
-import openvr as vr
+import ctypes
 import time
+import xr
 
 EVENT_NONE = 0
 EVENT_RISING_EDGE = 1
 EVENT_FALLING_EDGE = 2
 
-hands = {}
-hands["left"] = vr.TrackedControllerRole_LeftHand
-hands["right"] = vr.TrackedControllerRole_RightHand
+# hand: either "right" or "left"
+# button: either "a" or "b"
+def pollButtonPress(hand: str = "right", button: str = "b") -> int:
+    # ContextObject is a high level pythonic class meant to keep simple cases simple.
+    with xr.ContextObject(
+        instance_create_info=xr.InstanceCreateInfo(
+            enabled_extension_names=[
+                xr.KHR_OPENGL_ENABLE_EXTENSION_NAME,  # A graphics extension is mandatory
+            ],
+        ),
+    ) as context:
+        controller_path_str = f"/user/hand/{hand}"
+        binding_path_str = f"/user/hand/{hand}/input/{button}/click"
+        print(f"Controller path: {controller_path_str}")
+        print(f"Binding path: {binding_path_str}")
 
-buttons = {}
-buttons["a"] = vr.k_EButton_IndexController_A
-buttons["b"] = vr.k_EButton_IndexController_B
-buttons["joystick"] = vr.k_EButton_Axis0
+        # Set up the B button action
+        controller_paths = (xr.Path * 1)(
+            xr.string_to_path(context.instance, controller_path_str,)
+        )
+        b_button_action = xr.create_action(
+            action_set=context.default_action_set,
+            create_info=xr.ActionCreateInfo(
+                action_type=xr.ActionType.BOOLEAN_INPUT,
+                action_name="tastt_button_press",
+                localized_action_name="TaSTT Button Press",
+                count_subaction_paths=len(controller_paths),
+                subaction_paths=controller_paths,
+            ),
+        )
+        suggested_bindings = (xr.ActionSuggestedBinding * 1)(
+            xr.ActionSuggestedBinding(
+                action=b_button_action,
+                binding=xr.string_to_path(
+                    instance=context.instance,
+                    path_string=binding_path_str,
+                ),
+            ),
+        )
+        xr.suggest_interaction_profile_bindings(
+            instance=context.instance,
+            suggested_bindings=xr.InteractionProfileSuggestedBinding(
+                interaction_profile=xr.string_to_path(
+                    context.instance,
+                    "/interaction_profiles/valve/index_controller",
+                ),
+                count_suggested_bindings=len(suggested_bindings),
+                suggested_bindings=suggested_bindings,
+            ),
+        )
 
-class SessionState:
-    def __init__(self):
-        self.system = vr.init(vr.VRApplication_Background)
-        self.last_packet = 0
-        # Whether the configured input event is high or low.
-        self.event_high = False
+        last_change_time = 0
+        for frame_index, frame_state in enumerate(context.frame_loop()):
+            if context.session_state != xr.SessionState.FOCUSED:
+                yield EVENT_NONE
+                continue
 
-# Checks if the given button on the given controller is pressed.
-# Defaults to joystick click / left hand.
-# Returns three values:
-#   0 - button not pressed
-#   1 - button rising edge
-#   2 - button falling edge
-def pollButtonPress(
-        session_state: SessionState,
-        hand_id: vr.ETrackedControllerRole = hands["left"],
-        button_id: vr.EVRButtonId = buttons["joystick"],
-        ) -> int:
-    lh_idx = session_state.system.getTrackedDeviceIndexForControllerRole(hand_id)
-    #print("left hand device idx: {}".format(lh_idx))
+            active_action_set = xr.ActiveActionSet(
+                action_set=context.default_action_set,
+                subaction_path=xr.NULL_PATH,
+            )
+            xr.sync_actions(
+                session=context.session,
+                sync_info=xr.ActionsSyncInfo(
+                    count_active_action_sets=1,
+                    active_action_sets=ctypes.pointer(active_action_set),
+                ),
+            )
 
-    got_state, state = session_state.system.getControllerState(lh_idx)
-    if not got_state:
-        return EVENT_NONE
+            action_info = xr.ActionStateGetInfo(action=b_button_action)
+            action_bool = xr.get_action_state_boolean(
+                session=context.session, get_info=action_info
+            )
 
-    if state.unPacketNum == session_state.last_packet:
-        return EVENT_NONE
+            if action_bool.changed_since_last_sync == 0:
+                yield EVENT_NONE
+                continue
 
-    # Clicking joysticks and moving joysticks fire the same events. To
-    # differentiate movement from clicking, we create a dead zone: if the event
-    # fires while the stick isn't moved far from center, we assume it's a
-    # click, not movement.
-    dead_zone_radius = 0.7
-
-    button_mask = (1 << button_id)
-    ret = EVENT_NONE
-    if (state.ulButtonPressed & button_mask) != 0 and\
-            (state.rAxis[0].x**2 + state.rAxis[0].y**2 < dead_zone_radius**2):
-        #print("button pressed: %016x" % state.ulButtonPressed)
-        #for i in range(0, 5):
-        #    print("axis {} x: {} y: {}".format(i, state.rAxis[i].x, state.rAxis[i].y))
-        if not session_state.event_high:
-            ret = EVENT_RISING_EDGE
-        session_state.event_high = True
-    elif session_state.event_high:
-        session_state.event_high = False
-        ret = EVENT_FALLING_EDGE
-    return ret
+            if action_bool.current_state == 1:
+                yield EVENT_RISING_EDGE
+                continue
+            else:
+                yield EVENT_FALLING_EDGE
+                continue
 
 if __name__ == "__main__":
-    session_state = SessionState()
+    gen = run()
     while True:
-        time.sleep(0.1)
-
-        event = pollButtonPress(session_state, hand_id = hands["left"], button_id = buttons["joystick"])
-        if event == EVENT_RISING_EDGE:
-            print("rising edge")
-        elif event == EVENT_FALLING_EDGE:
-            print("falling edge")
+        event = next(gen)
+        print(f"event: {event}")
 

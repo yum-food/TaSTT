@@ -482,10 +482,10 @@ namespace {
     constexpr int kBytesDefault = 0;
 
     const wxString kButton[] = {
-        "left joystick",
+        "left thumbstick",
         "left a",
         "left b",
-        "right joystick",
+        "right thumbstick",
         "right a",
         "right b",
     };

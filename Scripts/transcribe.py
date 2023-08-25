@@ -559,23 +559,12 @@ def readKeyboardInput(audio_state, enable_local_beep: bool,
 
 def readControllerInput(audio_state, enable_local_beep: bool,
         use_builtin: bool, button: str):
-    session = None
-    first = True
-    while session == None and audio_state.run_app == True:
-        try:
-            session = steamvr.SessionState()
-        except:
-            if audio_state.enable_debug_mode:
-                print("steamvr is off, no controller input")
-            session = None
-            time.sleep(5)
-
     RECORD_STATE = 0
     PAUSE_STATE = 1
     state = PAUSE_STATE
 
-    hand_id = steamvr.hands[button.split()[0]]
-    button_id = steamvr.buttons[button.split()[1]]
+    hand_id = button.split()[0]
+    button_id = button.split()[1]
 
     # Rough description of state machine:
     #   Single short press: toggle transcription
@@ -585,11 +574,12 @@ def readControllerInput(audio_state, enable_local_beep: bool,
 
     last_rising = time.time()
     last_medium_press_end = 0
-    while audio_state.run_app == True:
-        time.sleep(0.05)
 
-        event = steamvr.pollButtonPress(session, hand_id=hand_id,
-                button_id=button_id)
+    button_generator = steamvr.pollButtonPress(hand=hand_id, button=button_id)
+    while audio_state.run_app == True:
+        time.sleep(0.01)
+
+        event = next(button_generator)
 
         if event == steamvr.EVENT_RISING_EDGE:
             last_rising = time.time()

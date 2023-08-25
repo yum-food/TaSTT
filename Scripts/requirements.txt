@@ -5,7 +5,7 @@ future==0.18.2
 keyboard
 langcodes
 language-data
-openvr
+pyopenxr
 pillow
 pyaudio
 python-osc
