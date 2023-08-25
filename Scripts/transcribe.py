@@ -5,7 +5,6 @@ from emotes_v2 import EmotesState
 from faster_whisper import WhisperModel
 from functools import partial
 from math import ceil, floor
-from playsound import playsound
 from profanity_filter import ProfanityFilter
 from sentence_splitter import split_text_into_sentences
 
@@ -30,6 +29,7 @@ import time
 import transformers
 import typing
 import wave
+import winsound
 
 class AudioState:
     def __init__(self):
@@ -85,6 +85,14 @@ class AudioState:
 
         # Locks access to `frames`, and audio stored on disk.
         self.audio_lock = threading.Lock()
+
+        # Audio events that should play. Input thread appends to this list,
+        # audio feedback thread drains it.
+        self.audio_events = []
+        self.AUDIO_EVENT_TOGGLE_ON = 1
+        self.AUDIO_EVENT_TOGGLE_OFF = 2
+        self.AUDIO_EVENT_DISMISS = 3
+        self.AUDIO_EVENT_UPDATE = 4
 
         # Used to tell the threads when to stop.
         self.run_app = True
@@ -532,8 +540,7 @@ def readKeyboardInput(audio_state, enable_local_beep: bool,
             audio_state.audio_paused = True
 
             if enable_local_beep == 1:
-                playsound(os.path.abspath("Resources/Sounds/Noise_Off_Quiet.wav"),
-                    block=False)
+                audio_state.audio_events.append(audio_state.AUDIO_EVENT_TOGGLE_OFF)
         elif state == PAUSE_STATE:
             state = RECORD_STATE
             if not use_builtin:
@@ -554,8 +561,37 @@ def readKeyboardInput(audio_state, enable_local_beep: bool,
             resetDisplayLocked(audio_state)
 
             if enable_local_beep == 1:
-                playsound(os.path.abspath("Resources/Sounds/Noise_On_Quiet.wav"),
-                    block=False)
+                audio_state.audio_events.append(audio_state.AUDIO_EVENT_TOGGLE_ON)
+
+def audioFeedbackThread(audio_state, enable_local_beep: bool,
+        use_builtin: bool, button: str):
+    with open(os.path.abspath("Resources/Sounds/Noise_On_Quiet.wav"), "rb") as f:
+        waveform0 = f.read()
+    with open(os.path.abspath("Resources/Sounds/Noise_Off_Quiet.wav"), "rb") as f:
+        waveform1 = f.read()
+    with open(os.path.abspath("Resources/Sounds/Dismiss_Noise_Quiet.wav"), "rb") as f:
+        waveform2 = f.read()
+    with open(os.path.abspath("Resources/Sounds/KB_Noise_Off_Quiet.wav"), "rb") as f:
+        waveform3 = f.read()
+    while audio_state.run_app == True:
+        time.sleep(0.01)
+
+        if len(audio_state.audio_events) == 0:
+            continue
+
+        event = audio_state.audio_events[0]
+        audio_state.audio_events = audio_state.audio_events[1:]
+
+        waveform = waveform0
+        if event == audio_state.AUDIO_EVENT_TOGGLE_ON:
+            waveform = waveform0
+        elif event == audio_state.AUDIO_EVENT_TOGGLE_OFF:
+            waveform = waveform1
+        elif event == audio_state.AUDIO_EVENT_DISMISS:
+            waveform = waveform2
+        elif event == audio_state.AUDIO_EVENT_UPDATE:
+            waveform = waveform3
+        winsound.PlaySound(waveform, winsound.SND_MEMORY)
 
 def readControllerInput(audio_state, enable_local_beep: bool,
         use_builtin: bool, button: str):
@@ -578,7 +614,6 @@ def readControllerInput(audio_state, enable_local_beep: bool,
     button_generator = steamvr.pollButtonPress(hand=hand_id, button=button_id)
     while audio_state.run_app == True:
         time.sleep(0.01)
-
         event = next(button_generator)
 
         if event == steamvr.EVENT_RISING_EDGE:
@@ -603,13 +638,11 @@ def readControllerInput(audio_state, enable_local_beep: bool,
                 if last_rising - last_medium_press_end < 1.0:
                     # Type transcription
                     if enable_local_beep == 1:
-                        playsound(os.path.abspath("Resources/Sounds/KB_Noise_Off_Quiet.wav"),
-                            block=False)
+                        audio_state.audio_events.append(audio_state.AUDIO_EVENT_UPDATE)
                     keyboard.write(audio_state.filtered_text)
                 else:
                     if enable_local_beep == 1:
-                        playsound(os.path.abspath("Resources/Sounds/Noise_Off_Quiet.wav"),
-                            block=False)
+                        audio_state.audio_events.append(audio_state.AUDIO_EVENT_TOGGLE_OFF)
 
             elif now - last_rising > 0.5:
                 # Medium press
@@ -617,8 +650,7 @@ def readControllerInput(audio_state, enable_local_beep: bool,
                 state = PAUSE_STATE
 
                 if enable_local_beep == 1:
-                    playsound(os.path.abspath("Resources/Sounds/Dismiss_Noise_Quiet.wav"),
-                        block=False)
+                    audio_state.audio_events.append(audio_state.AUDIO_EVENT_DISMISS)
 
                 if not use_builtin:
                     osc_ctrl.toggleBoard(audio_state.osc_state.client, False)
@@ -638,8 +670,7 @@ def readControllerInput(audio_state, enable_local_beep: bool,
                     audio_state.audio_paused = True
 
                     if enable_local_beep == 1:
-                        playsound(os.path.abspath("Resources/Sounds/Noise_Off_Quiet.wav"),
-                            block=False)
+                        audio_state.audio_events.append(audio_state.AUDIO_EVENT_TOGGLE_OFF)
                 elif state == PAUSE_STATE:
                     state = RECORD_STATE
                     if not use_builtin:
@@ -659,8 +690,7 @@ def readControllerInput(audio_state, enable_local_beep: bool,
                     resetDisplayLocked(audio_state)
 
                     if enable_local_beep == 1:
-                        playsound(os.path.abspath("Resources/Sounds/Noise_On_Quiet.wav"),
-                            block=False)
+                        audio_state.audio_events.append(audio_state.AUDIO_EVENT_TOGGLE_ON)
 
 # model should correspond to one of the Whisper models defined in
 # whisper/__init__.py. Examples: tiny, base, small, medium.
@@ -794,6 +824,11 @@ def transcribeLoop(mic: str,
     controller_input_thd.daemon = True
     controller_input_thd.start()
 
+    audio_feedback_thd = threading.Thread(target = audioFeedbackThread, args
+            = [audio_state, enable_local_beep, use_builtin, button])
+    audio_feedback_thd.daemon = True
+    audio_feedback_thd.start()
+
     keyboard_input_thd = threading.Thread(target = readKeyboardInput, args
             = [audio_state, enable_local_beep, use_builtin, keyboard_hotkey])
     keyboard_input_thd.daemon = True
@@ -815,6 +850,7 @@ def transcribeLoop(mic: str,
     audio_state.run_app = False
     transcribe_audio_thd.join()
     controller_input_thd.join()
+    audio_feedback_thd.join()
     keyboard_input_thd.join()
 
 if __name__ == "__main__":
