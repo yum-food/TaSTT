@@ -616,7 +616,7 @@ def readControllerInput(audio_state, enable_local_beep: bool,
         time.sleep(0.01)
         event = next(button_generator)
 
-        if event == steamvr.EVENT_RISING_EDGE:
+        if event.opcode == steamvr.EVENT_RISING_EDGE:
             last_rising = time.time()
 
             if state == PAUSE_STATE:
@@ -625,7 +625,7 @@ def readControllerInput(audio_state, enable_local_beep: bool,
                 audio_state.drop_transcription = True
                 audio_state.audio_paused = False
 
-        elif event == steamvr.EVENT_FALLING_EDGE:
+        elif event.opcode == steamvr.EVENT_FALLING_EDGE:
             now = time.time()
             if now - last_rising > 1.5:
                 # Long press: treat as the end of transcription.
