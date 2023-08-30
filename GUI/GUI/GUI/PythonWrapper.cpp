@@ -535,6 +535,8 @@ bool PythonWrapper::GenerateAnimator(
 		tastt_generated_dir_path / "Animations";
 	std::filesystem::path tastt_assets_path =
 		tastt_generated_dir_path / "UnityAssets";
+	std::filesystem::path tastt_sounds_path =
+		tastt_generated_dir_path / "Sounds";
 	std::filesystem::path tastt_shaders_path =
 		tastt_generated_dir_path / "Shaders";
 	std::filesystem::path tastt_fonts_path =
@@ -641,6 +643,20 @@ bool PythonWrapper::GenerateAnimator(
 		opts |= std::filesystem::copy_options::recursive;
 		std::error_code error;
 		std::filesystem::copy("Resources/UnityAssets", tastt_assets_path, opts, error);
+		if (error.value()) {
+			Log(out, "failed!\n");
+			Log(out, "Error: {} ({})\n", error.message(), error.value());
+			return false;
+		}
+		Log(out, "success!\n");
+	}
+	{
+		Log(out, "Copying canned sounds... ");
+		auto opts = std::filesystem::copy_options();
+		opts |= std::filesystem::copy_options::overwrite_existing;
+		opts |= std::filesystem::copy_options::recursive;
+		std::error_code error;
+		std::filesystem::copy("Resources/Sounds", tastt_sounds_path, opts, error);
 		if (error.value()) {
 			Log(out, "failed!\n");
 			Log(out, "Error: {} ({})\n", error.message(), error.value());

@@ -81,6 +81,9 @@ def getSelectParam() -> str:
 def getEnableParam():
     return "TaSTT_Enable"
 
+def getSoundParam(i: int):
+    return f"TaSTT_Sound{str(i)}"
+
 def getEllipsisParam():
     return "TaSTT_Ellipsis"
 

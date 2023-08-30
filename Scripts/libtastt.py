@@ -155,6 +155,88 @@ AnimationClip:
   m_Events: []
 """
 
+SOUND_ANIMATION_TEMPLATE = """
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!74 &7400000
+AnimationClip:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Sound1_On
+  serializedVersion: 6
+  m_Legacy: 0
+  m_Compressed: 0
+  m_UseHighQualityCurve: 1
+  m_RotationCurves: []
+  m_CompressedRotationCurves: []
+  m_EulerCurves: []
+  m_PositionCurves: []
+  m_ScaleCurves: []
+  m_FloatCurves:
+  - curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: Infinity
+        outSlope: Infinity
+        tangentMode: 103
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    attribute: m_IsActive
+    path: World Constraint/Container/TaSTT/Audio 1
+    classID: 1
+    script: {fileID: 0}
+  m_PPtrCurves: []
+  m_SampleRate: 60
+  m_WrapMode: 0
+  m_Bounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
+  m_ClipBindingConstant:
+    genericBindings:
+    - serializedVersion: 2
+      path: 2267216663
+      attribute: 2086281974
+      script: {fileID: 0}
+      typeID: 1
+      customType: 0
+      isPPtrCurve: 0
+    pptrCurveMapping: []
+  m_AnimationClipSettings:
+    serializedVersion: 2
+    m_AdditiveReferencePoseClip: {fileID: 0}
+    m_AdditiveReferencePoseTime: 0
+    m_StartTime: 0
+    m_StopTime: 0
+    m_OrientationOffsetY: 0
+    m_Level: 0
+    m_CycleOffset: 0
+    m_HasAdditiveReferencePose: 0
+    m_LoopTime: 1
+    m_LoopBlend: 0
+    m_LoopBlendOrientation: 0
+    m_LoopBlendPositionY: 0
+    m_LoopBlendPositionXZ: 0
+    m_KeepOriginalOrientation: 0
+    m_KeepOriginalPositionY: 1
+    m_KeepOriginalPositionXZ: 0
+    m_HeightFromFeet: 0
+    m_Mirror: 0
+  m_EditorCurves: []
+  m_EulerEditorCurves: []
+  m_HasGenericRootTransform: 0
+  m_HasMotionFloatCurves: 0
+  m_Events: []
+"""
+
 LETTER_ANIMATION_TEMPLATE = """
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
@@ -390,6 +472,40 @@ def generateClearAnimation(anim_dir, guid_map):
     guid_map[anim_path] = meta.guid
     guid_map[meta.guid] = anim_path
 
+# value: 0 or 1
+def generateSoundAnimation(nth_sound: int, value: int, anim_name: str, anim_dir: str, guid_map: typing.Dict[str, str]):
+    print(f"Generating sound {nth_sound} animation", file=sys.stderr)
+
+    parser = libunity.UnityParser()
+    parser.parse(SOUND_ANIMATION_TEMPLATE)
+
+    anim_node = parser.nodes[0]
+    anim_clip = anim_node.mapping['AnimationClip']
+    curve_template = anim_clip.mapping['m_FloatCurves'].sequence[0]
+    anim_clip.mapping['m_FloatCurves'].sequence = []
+    anim_clip.mapping['m_EditorCurves'].sequence = []
+
+    curve = curve_template.copy()
+    for keyframe in curve.mapping['curve'].mapping['m_Curve'].sequence:
+        keyframe.mapping['value'] = str(value)
+        curve.mapping['path'] = f"World Constraint/Container/TaSTT/Audio {nth_sound}"
+    # Add curve to animation
+    anim_clip.mapping['m_FloatCurves'].sequence.append(curve)
+    anim_clip.mapping['m_EditorCurves'].sequence.append(curve)
+
+    # Serialize animation to file
+    anim_path = os.path.join(anim_dir, anim_name + ".anim")
+    print("Generating sound animation at {}".format(anim_path), file=sys.stderr)
+    with open(anim_path, "w", encoding="utf-8") as f:
+        f.write(libunity.unityYamlToString([anim_node]))
+    # Generate metadata
+    meta = libunity.Metadata()
+    with open(anim_path + ".meta", "w", encoding="utf-8") as f:
+        f.write(str(meta))
+    # Add metadata to guid map
+    guid_map[anim_path] = meta.guid
+    guid_map[meta.guid] = anim_path
+
 # Generate a toggle animation for a shader parameter.
 def generateToggleAnimations(anim_dir, shader_param, guid_map):
     print("Generating shader toggle animation", file=sys.stderr)
@@ -482,6 +598,12 @@ def generateScaleAnimation(anim_name: str, anim_dir: str,
 def generateAnimations(anim_dir, guid_map):
     generateClearAnimation(anim_dir, guid_map)
 
+    for i in range(5):
+        anim_name = generate_utils.getSoundParam(i+1) + "_Off"
+        generateSoundAnimation(i+1, 0, anim_name, anim_dir, guid_map)
+        anim_name = generate_utils.getSoundParam(i+1) + "_On"
+        generateSoundAnimation(i+1, 1, anim_name, anim_dir, guid_map)
+
     print("Generating letter animations", file=sys.stderr)
 
     parser = libunity.UnityParser()
@@ -543,6 +665,11 @@ def generateFXController(anim: libunity.UnityAnimator) -> typing.Dict[int, libun
     anim.addParameter(generate_utils.getToggleParam(), bool)
     anim.addParameter(generate_utils.getClearBoardParam(), bool)
     anim.addParameter(generate_utils.getScaleParam(), float)
+
+    for i in range(5):
+        anim.addParameter(generate_utils.getSoundParam(i+1), bool)
+
+    anim.addLayer("=== TaSTT ===", weight=0.0)
 
     layers = {}
     for byte in range(0, generate_utils.config.BYTES_PER_CHAR):
@@ -724,6 +851,16 @@ def generateFX(guid_map, gen_anim_dir):
             "TaSTT_Emerge_000.anim",
             "TaSTT_Emerge_100.anim",
             anim, guid_map, 0.5)
+
+    for i in range(5):
+        param_name = generate_utils.getSoundParam(i+1)
+        generateToggle(f"TaSTT_Audio{i+1}",
+                param_name,
+                gen_anim_dir,
+                param_name + "_Off.anim",
+                param_name + "_On.anim",
+                anim, guid_map)
+
     generateScaleLayer(anim, gen_anim_dir, guid_map)
 
     return anim

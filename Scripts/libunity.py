@@ -598,7 +598,7 @@ class UnityAnimator():
         ctrl = param.addChildMapping('m_Controller')
         ctrl.mapping['fileID'] = anim.anchor
 
-    def addLayer(self, layer_name, add_to_head = False) -> UnityDocument:
+    def addLayer(self, layer_name, add_to_head = False, weight: float = 1.0) -> UnityDocument:
         # Add layer to controller
         anim = self.peekNodeOfClass('91')
         layers = anim.mapping['AnimatorController'].mapping['m_AnimatorLayers']
@@ -612,7 +612,7 @@ class UnityAnimator():
         layer.addChildSequence('m_Behaviours')
         layer.mapping['m_BlendingMode'] = '0'
         layer.mapping['m_SyncedLayerIndex'] = '-1'
-        layer.mapping['m_DefaultWeight'] = '1'
+        layer.mapping['m_DefaultWeight'] = str(weight)
         layer.mapping['m_IKPass'] = '0'
         layer.mapping['m_SyncedLayerAffectsTiming'] = '0'
         layer.addChildMapping('m_Controller').mapping['fileID'] = anim.anchor

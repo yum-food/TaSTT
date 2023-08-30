@@ -61,6 +61,10 @@ def generate():
     params["PARAM_NAME"] = generate_utils.getEllipsisParam()
     result += generate_utils.replaceMacros(BOOL_PARAM, params)
 
+    for i in range(5):
+        params["PARAM_NAME"] = generate_utils.getSoundParam(i+1)
+        result += generate_utils.replaceMacros(BOOL_PARAM, params)
+
     params["PARAM_NAME"] = generate_utils.getScaleParam()
     params["DEFAULT_FLOAT"] = "0.05"
     result += generate_utils.replaceMacros(FLOAT_PARAM, params)

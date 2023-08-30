@@ -8,6 +8,7 @@ from pythonosc import udp_client
 
 import argparse
 import generate_utils
+import random
 import time
 
 # Based on a couple experiments, this seems like about as fast as we can go
@@ -76,6 +77,11 @@ def clear(osc_state: OscState):
 
     osc_state.reset()
 
+# Note: `nth_audio` is 1-indexed
+def playAudio(osc_state: OscState, nth_audio: int, value: bool):
+    addr="/avatar/parameters/" + generate_utils.getSoundParam(nth_audio)
+    osc_state.client.send_message(addr, value)
+
 def updateRegion(client, region_idx, letter_encoded):
     for byte in range(0, generate_utils.config.BYTES_PER_CHAR):
         addr="/avatar/parameters/" + generate_utils.getBlendParam(region_idx, byte)
@@ -90,7 +96,29 @@ def pageMessage(osc_state: OscState, msg: str, estate: EmotesState) -> bool:
 
     msg_slice, slice_idx = osc_state.pager.getNextSlice(msg)
     if slice_idx == -1:
+        for i in range(5):
+            playAudio(osc_state, i+1, False)
         return True
+
+    sounds_to_make = set()
+    letter_i = 1
+    for letter in ["a", "e", "i", "o", "u"]:
+        if letter in msg_slice:
+            sounds_to_make.add(letter_i)
+        letter_i += 1
+    if len(sounds_to_make) == 0:
+        for i in range(5):
+            playAudio(osc_state, i+1, False)
+    else:
+        sound_to_make = random.sample(sounds_to_make, 1)[0]
+        for i in range(5):
+            if i+1 == sound_to_make:
+                # TODO(yum) think about making this probabilistic
+                print(f"Playing sound {i+1}")
+                playAudio(osc_state, i+1, True)
+            else:
+                playAudio(osc_state, i+1, False)
+
     #print("sending page {}: {} ({})".format(slice_idx, msg_slice,
     #    len(msg_slice)))
 
