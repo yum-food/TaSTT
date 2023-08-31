@@ -66,7 +66,7 @@ class AudioState:
         # The edit distance under which two consecutive transcripts are
         # considered to match. This affects how easily `preview_text`
         # gets appended to `text`.
-        self.commit_fuzz_threshold = 8
+        self.commit_fuzz_threshold = 1
 
         # If set, profanity in transcriptions will have their vowels replaced
         # with asterisks. Only works in English.
@@ -156,6 +156,19 @@ def onAudioFramesAvailable(
 
     if not audio_state.audio_paused:
         audio_state.frames.append(decimated)
+
+    # If buffer is getting long, tell the transcription loop to be more ready
+    # to accept transcripts.
+    fps = int(input_rate / audio_state.CHUNK)
+    cur_len_s = len(audio_state.frames) / fps
+    double_at_s = 3.0
+    double_every_s = 1.5
+    delta_s = cur_len_s - double_at_s
+    n_doubles = ceil(delta_s / double_every_s)
+    if n_doubles >= 1:
+        audio_state.commit_fuzz_threshold = 2 ** n_doubles
+    else:
+        audio_state.commit_fuzz_threshold = 1
 
     max_frames = int(input_rate * audio_state.MAX_LENGTH_S /
             audio_state.CHUNK)
@@ -380,7 +393,12 @@ def transcribeAudio(audio_state,
             if audio_state.enable_debug_mode:
                 print("no transcription, spin ({} seconds)".format(time.time() - last_transcribe_time))
             last_transcribe_time = time.time()
+            # Prevent audio buffer from holding more than 1 second of silence
+            # before real speech.
+            audio_state.MAX_LENGTH_S = 1
             continue
+        else:
+            audio_state.MAX_LENGTH_S = 300
 
         if audio_state.drop_transcription:
             audio_state.drop_transcription = False
@@ -720,7 +738,7 @@ def transcribeLoop(mic: str,
     audio_state.language = langcodes.find(language).language
     audio_state.MAX_LENGTH_S = window_duration_s
     audio_state.reset_on_toggle = reset_on_toggle
-    audio_state.commit_fuzz_threshold = commit_fuzz_threshold
+    #audio_state.commit_fuzz_threshold = commit_fuzz_threshold
     audio_state.enable_debug_mode = enable_debug_mode
     audio_state.enable_profanity_filter = enable_profanity_filter
 
