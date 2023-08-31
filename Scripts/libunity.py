@@ -745,7 +745,7 @@ class UnityAnimator():
         node.class_id = "1101"
         node.anchor = str(new_id)
         state = node.mapping['AnimatorStateTransition']
-        state.mapping['m_DstState'].mapping['fileID'] = dst_state.anchor
+        state.mapping['m_DstState'].mapping['fileID'] = copy.copy(dst_state.anchor)
         state.mapping['m_TransitionDuration'] = dur_s
         self.nodes.append(node)
 
@@ -908,7 +908,7 @@ class UnityAnimator():
         # Register the transition with the `from_state`.
         if from_state:
             from_state_trans = from_state.mapping['AnimatorState'].mapping['m_Transitions'].addChildMapping()
-            from_state_trans.mapping['fileID'] = trans.anchor
+            from_state_trans.mapping['fileID'] = copy.copy(trans.anchor)
 
     def addTransitionIntegerEqualityCondition(self, from_state, trans, param, param_val):
         # Populate the transition's condition logic.
@@ -994,7 +994,8 @@ class UnityAnimator():
                 motion.mapping["guid"] = noop_anim_meta.guid
                 motion.mapping["type"] = "2"
             else:
-                print(f"Skipping state {anchor} / {name}")
+                #print(f"Skipping state {anchor} / {name}")
+                pass
 
 def unityYamlToString(nodes):
     lines = []

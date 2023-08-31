@@ -103,18 +103,12 @@ def pageMessage(osc_state: OscState, msg: str, estate: EmotesState) -> bool:
     sounds_to_make = set()
     letter_i = 1
     for letter in ["a", "e", "i", "o", "u"]:
-        if letter in msg_slice:
+        if letter in msg_slice.lower():
             sounds_to_make.add(letter_i)
         letter_i += 1
-    if len(sounds_to_make) == 0:
+    if len(sounds_to_make) > 0:
         for i in range(5):
-            playAudio(osc_state, i+1, False)
-    else:
-        sound_to_make = random.sample(sounds_to_make, 1)[0]
-        for i in range(5):
-            if i+1 == sound_to_make:
-                # TODO(yum) think about making this probabilistic
-                print(f"Playing sound {i+1}")
+            if i+1 in sounds_to_make:
                 playAudio(osc_state, i+1, True)
             else:
                 playAudio(osc_state, i+1, False)

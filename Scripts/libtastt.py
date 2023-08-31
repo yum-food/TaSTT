@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import array
 import generate_utils
 import libunity
 import os
@@ -220,7 +221,7 @@ AnimationClip:
     m_Level: 0
     m_CycleOffset: 0
     m_HasAdditiveReferencePose: 0
-    m_LoopTime: 1
+    m_LoopTime: 0
     m_LoopBlend: 0
     m_LoopBlendOrientation: 0
     m_LoopBlendPositionY: 0
@@ -472,9 +473,14 @@ def generateClearAnimation(anim_dir, guid_map):
     guid_map[anim_path] = meta.guid
     guid_map[meta.guid] = anim_path
 
+# sound_chord: whether to play a, e, i, o, u
 # value: 0 or 1
-def generateSoundAnimation(nth_sound: int, value: int, anim_name: str, anim_dir: str, guid_map: typing.Dict[str, str]):
-    print(f"Generating sound {nth_sound} animation", file=sys.stderr)
+def generateSoundAnimation(sound_chord: typing.Tuple[int,int,int,int,int],
+        value: int,
+        anim_name: str,
+        anim_dir: str, guid_map: typing.Dict[str, str],
+        anim_delay_frames = 2):
+    print(f"Generating sound animation {sound_chord} / {anim_name}", file=sys.stderr)
 
     parser = libunity.UnityParser()
     parser.parse(SOUND_ANIMATION_TEMPLATE)
@@ -485,17 +491,36 @@ def generateSoundAnimation(nth_sound: int, value: int, anim_name: str, anim_dir:
     anim_clip.mapping['m_FloatCurves'].sequence = []
     anim_clip.mapping['m_EditorCurves'].sequence = []
 
-    curve = curve_template.copy()
-    for keyframe in curve.mapping['curve'].mapping['m_Curve'].sequence:
-        keyframe.mapping['value'] = str(value)
-        curve.mapping['path'] = f"World Constraint/Container/TaSTT/Audio {nth_sound}"
-    # Add curve to animation
-    anim_clip.mapping['m_FloatCurves'].sequence.append(curve)
-    anim_clip.mapping['m_EditorCurves'].sequence.append(curve)
+    # Animate all notes.
+    for note_i in range(len(sound_chord)):
+        curve = curve_template.copy()
+
+        keyframe_template = curve.mapping['curve'].mapping['m_Curve'].sequence[0]
+        curve.mapping['curve'].mapping['m_Curve'].sequence = []
+
+        # First keyframe: zero all but first note
+        if note_i != 0:
+            keyframe = keyframe_template.copy()
+            keyframe.mapping['time'] = 0
+            keyframe.mapping['value'] = 0
+            curve.mapping['path'] = f"World Constraint/Container/TaSTT/Audio {note_i + 1}"
+            curve.mapping['curve'].mapping['m_Curve'].sequence.append(keyframe)
+
+        # Subsequent keyframes: animate as normal
+        keyframe = keyframe_template.copy()
+        keyframe.mapping['time']= str(note_i * anim_delay_frames * 1.0 / 60.0)
+        keyframe.mapping['value'] = str(sound_chord[note_i])
+        curve.mapping['path'] = f"World Constraint/Container/TaSTT/Audio {note_i + 1}"
+        curve.mapping['curve'].mapping['m_Curve'].sequence.append(keyframe)
+
+        # Add curve to animation
+        anim_clip.mapping['m_FloatCurves'].sequence.append(curve)
+        anim_clip.mapping['m_EditorCurves'].sequence.append(curve)
+
+    anim_clip.mapping['m_AnimationClipSettings'].mapping['m_StopTime'] = str((len(sound_chord)-1) * anim_delay_frames * 1.0 / 60.0)
 
     # Serialize animation to file
     anim_path = os.path.join(anim_dir, anim_name + ".anim")
-    print("Generating sound animation at {}".format(anim_path), file=sys.stderr)
     with open(anim_path, "w", encoding="utf-8") as f:
         f.write(libunity.unityYamlToString([anim_node]))
     # Generate metadata
@@ -598,11 +623,14 @@ def generateScaleAnimation(anim_name: str, anim_dir: str,
 def generateAnimations(anim_dir, guid_map):
     generateClearAnimation(anim_dir, guid_map)
 
-    for i in range(5):
-        anim_name = generate_utils.getSoundParam(i+1) + "_Off"
-        generateSoundAnimation(i+1, 0, anim_name, anim_dir, guid_map)
-        anim_name = generate_utils.getSoundParam(i+1) + "_On"
-        generateSoundAnimation(i+1, 1, anim_name, anim_dir, guid_map)
+    for chord_bits in range(2**5):
+        chord = [0, 0, 0, 0, 0]
+        for i in range(5):
+            if (chord_bits >> i) % 2 == 1:
+                chord[i] = 1
+        print(f"Generating chord {chord}", file=sys.stderr)
+        anim_name = f"Sound_a{chord[0]}_e{chord[1]}_i{chord[2]}_o{chord[3]}_u{chord[4]}"
+        generateSoundAnimation(chord, 0, anim_name, anim_dir, guid_map)
 
     print("Generating letter animations", file=sys.stderr)
 
@@ -809,6 +837,117 @@ def generateScaleLayer(anim: libunity.UnityAnimator,
 
     pass
 
+def generateSoundLayer(anim: libunity.UnityAnimator,
+        gen_anim_dir: str,
+        guid_map: typing.Dict[str, str],
+        anim_len_s = 12.0/60.0):
+
+    layer = anim.addLayer("TaSTT_Sound")
+
+    # Create `a` state.
+    a_state = anim.addAnimatorState(layer, "a", is_default_state=True)
+
+    for a_bool in range(2):
+        dy = 100
+        dx = a_bool * 800
+        # Create `e` state.
+        ax_e_state = anim.addAnimatorState(layer,
+                f"a{a_bool}_e",
+                dy=dy, dx=dx)
+        # Create transition based on whether `a` is set.
+        trans = anim.addTransition(ax_e_state)
+        param = generate_utils.getSoundParam(1)
+        anim.addTransitionBooleanCondition(a_state, trans, param, a_bool)
+
+        for e_bool in range(2):
+            dy = 200
+            dx = a_bool * 800 + e_bool * 400
+
+            # Create `i` state.
+            ax_ex_i_state = anim.addAnimatorState(layer,
+                    f"a{a_bool}_e{e_bool}_i",
+                    dy=dy, dx=dx)
+
+            # Create transition based on whether `e` is set.
+            trans = anim.addTransition(ax_ex_i_state)
+            param = generate_utils.getSoundParam(2)
+            anim.addTransitionBooleanCondition(ax_e_state, trans, param, e_bool)
+
+            for i_bool in range(2):
+                dy = 300
+                dx = a_bool * 800 + e_bool * 400 + i_bool * 200
+
+                # Create `o` state.
+                ax_ex_ix_o_state = anim.addAnimatorState(layer,
+                        f"a{a_bool}_e{e_bool}_i{i_bool}_o",
+                        dy=dy, dx=dx)
+                # Create transition based on whether `i` is set.
+                trans = anim.addTransition(ax_ex_ix_o_state)
+                param = generate_utils.getSoundParam(3)
+                anim.addTransitionBooleanCondition(ax_ex_i_state, trans, param, i_bool)
+
+                for o_bool in range(2):
+                    dy = 400
+                    dx = a_bool * 800 + e_bool * 400 + i_bool * 200 + o_bool * 100
+
+                    # Create `u` state.
+                    ax_ex_ix_ox_u_state = anim.addAnimatorState(layer,
+                            f"a{a_bool}_e{e_bool}_i{i_bool}_o{o_bool}_u",
+                            dy=dy, dx=dx)
+                    # Create transition based on whether `o` is set.
+                    trans = anim.addTransition(ax_ex_ix_ox_u_state)
+                    param = generate_utils.getSoundParam(4)
+                    anim.addTransitionBooleanCondition(ax_ex_ix_o_state,
+                            trans, param, o_bool)
+
+                    for u_bool in range(2):
+                        dy = 500
+                        dx = a_bool * 800 + e_bool * 400 + i_bool * 200 + o_bool * 100 + u_bool * 50
+                        if u_bool == 1:
+                            dy = 550
+
+                        # Create `u` state.
+                        ax_ex_ix_ox_ux_state = anim.addAnimatorState(layer,
+                                f"a{a_bool}_e{e_bool}_i{i_bool}_o{o_bool}_u{u_bool}",
+                                dy=dy, dx=dx)
+                        # Create transition based on whether `u` is set.
+                        trans = anim.addTransition(ax_ex_ix_ox_ux_state)
+                        param = generate_utils.getSoundParam(5)
+                        anim.addTransitionBooleanCondition(ax_ex_ix_ox_u_state,
+                                trans, param, u_bool)
+
+                        chord = [a_bool, e_bool, i_bool, o_bool, u_bool]
+                        anim_name = f"Sound_a{chord[0]}_e{chord[1]}_i{chord[2]}_o{chord[3]}_u{chord[4]}"
+                        anim_path = os.path.join(gen_anim_dir, anim_name + ".anim")
+                        anim_guid = guid_map[anim_path]
+                        anim.setAnimatorStateAnimation(ax_ex_ix_ox_ux_state, anim_guid)
+
+                        # Create return-home transitions.
+                        trans = anim.addTransition(a_state, dur_s = anim_len_s)
+                        trans.mapping['AnimatorStateTransition'].mapping['m_InterruptionSource'] = '0'
+                        param = generate_utils.getSoundParam(1)
+                        anim.addTransitionBooleanCondition(ax_ex_ix_ox_ux_state, trans, param, 1 - a_bool)
+
+                        trans = anim.addTransition(a_state, dur_s = anim_len_s)
+                        trans.mapping['AnimatorStateTransition'].mapping['m_InterruptionSource'] = '0'
+                        param = generate_utils.getSoundParam(2)
+                        anim.addTransitionBooleanCondition(ax_ex_ix_ox_ux_state, trans, param, 1 - e_bool)
+
+                        trans = anim.addTransition(a_state, dur_s = anim_len_s)
+                        trans.mapping['AnimatorStateTransition'].mapping['m_InterruptionSource'] = '0'
+                        param = generate_utils.getSoundParam(3)
+                        anim.addTransitionBooleanCondition(ax_ex_ix_ox_ux_state, trans, param, 1 - i_bool)
+
+                        trans = anim.addTransition(a_state, dur_s = anim_len_s)
+                        trans.mapping['AnimatorStateTransition'].mapping['m_InterruptionSource'] = '0'
+                        param = generate_utils.getSoundParam(4)
+                        anim.addTransitionBooleanCondition(ax_ex_ix_ox_ux_state, trans, param, 1 - o_bool)
+
+                        trans = anim.addTransition(a_state, dur_s = anim_len_s)
+                        trans.mapping['AnimatorStateTransition'].mapping['m_InterruptionSource'] = '0'
+                        param = generate_utils.getSoundParam(5)
+                        anim.addTransitionBooleanCondition(ax_ex_ix_ox_ux_state, trans, param, 1 - u_bool)
+
 def generateFX(guid_map, gen_anim_dir):
     anim = libunity.UnityAnimator()
 
@@ -852,16 +991,8 @@ def generateFX(guid_map, gen_anim_dir):
             "TaSTT_Emerge_100.anim",
             anim, guid_map, 0.5)
 
-    for i in range(5):
-        param_name = generate_utils.getSoundParam(i+1)
-        generateToggle(f"TaSTT_Audio{i+1}",
-                param_name,
-                gen_anim_dir,
-                param_name + "_Off.anim",
-                param_name + "_On.anim",
-                anim, guid_map)
-
     generateScaleLayer(anim, gen_anim_dir, guid_map)
+    generateSoundLayer(anim, gen_anim_dir, guid_map)
 
     return anim
 
