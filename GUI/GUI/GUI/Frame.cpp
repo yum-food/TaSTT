@@ -1791,6 +1791,7 @@ void Frame::OnGenerateFX(wxCommandEvent& event)
 		std::string out;
 		if (!PythonWrapper::GenerateAnimator(
 			*app_c_,
+            std::string(AppConfig::kConfigPath),
 			unity_animator_generated_dir,
 			unity_animator_generated_name,
 			unity_parameters_generated_name,

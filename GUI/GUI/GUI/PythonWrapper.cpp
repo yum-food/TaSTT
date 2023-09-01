@@ -492,6 +492,7 @@ std::future<bool> PythonWrapper::StartApp(
 
 bool PythonWrapper::GenerateAnimator(
 	const AppConfig& config,
+	const std::string& config_path,
 	const std::string& unity_animator_generated_dir,
 	const std::string& unity_animator_generated_name,
 	const std::string& unity_parameters_generated_name,
@@ -749,10 +750,7 @@ bool PythonWrapper::GenerateAnimator(
 		if (!InvokeWithArgs({ libtastt_path, "gen_anims",
 			"--gen_anim_dir", Quote(tastt_animations_path),
 			"--guid_map", Quote(guid_map_path),
-			"--chars_per_sync", std::to_string(config.chars_per_sync),
-			"--bytes_per_char", std::to_string(config.bytes_per_char),
-			"--rows", std::to_string(config.rows),
-			"--cols", std::to_string(config.cols)},
+			"--config", Quote(config_path) },
 			"Failed to generate animations", out)) {
 			return false;
 		}
@@ -763,10 +761,7 @@ bool PythonWrapper::GenerateAnimator(
 			"--fx_dest", Quote(tastt_fx0_path),
 			"--gen_anim_dir", Quote(tastt_animations_path),
 			"--guid_map", Quote(guid_map_path),
-			"--chars_per_sync", std::to_string(config.chars_per_sync),
-			"--bytes_per_char", std::to_string(config.bytes_per_char),
-			"--rows", std::to_string(config.rows),
-			"--cols", std::to_string(config.cols) },
+			"--config", Quote(config_path) },
 			"Failed to generate FX layer", out)) {
 			return false;
 		}

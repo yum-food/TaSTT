@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import app_config
 import argparse
 import array
 import generate_utils
@@ -1001,20 +1002,21 @@ def parseArgs():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("cmd", type=str, help="")
+    parser.add_argument("--config", type=str, help="The app config.")
     parser.add_argument("--gen_dir", type=str, help="The directory under " +
             "which all generated assets are placed")
     parser.add_argument("--gen_anim_dir", type=str, help="The directory under " +
             "which all generated animations are placed.")
     parser.add_argument("--guid_map", type=str, help="The path to a file which will store guids")
     parser.add_argument("--fx_dest", type=str, help="The path at which to save the generated FX controller")
-    parser.add_argument("--bytes_per_char", type=str, help="The number of bytes to use to represent each character")
-    parser.add_argument("--chars_per_sync", type=str, help="The number of characters to send on each sync event")
-    parser.add_argument("--rows", type=int, help="The number of rows on the board")
-    parser.add_argument("--cols", type=int, help="The number of columns on the board")
     args = parser.parse_args()
 
     if not args.gen_dir:
         args.gen_dir = "generated/"
+
+    if not args.config:
+        print("--config required")
+        sys.exit(1)
 
     if not args.gen_anim_dir:
         args.gen_anim_dir = args.gen_dir + "animations/"
@@ -1028,23 +1030,17 @@ def parseArgs():
     return args
 
 if __name__ == "__main__":
+    args = parseArgs()
+    cfg = app_config.getConfig(args.config)
+
+    print(f"chdir to {os.path.dirname(os.path.abspath(__file__))}")
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-    args = parseArgs()
-
     if args.cmd == "gen_anims":
-        if not args.bytes_per_char or not args.chars_per_sync:
-            print("--bytes_per_char and --chars_per_sync required", file=sys.stderr)
-            sys.exit(1)
-
-        if not args.rows or not args.cols:
-            print("--rows and --cols required", file=sys.stderr)
-            sys.exit(1)
-
-        generate_utils.config.BYTES_PER_CHAR = int(args.bytes_per_char)
-        generate_utils.config.CHARS_PER_SYNC = int(args.chars_per_sync)
-        generate_utils.config.BOARD_ROWS = int(args.rows)
-        generate_utils.config.BOARD_COLS = int(args.cols)
+        generate_utils.config.BYTES_PER_CHAR = int(cfg["bytes_per_char"])
+        generate_utils.config.CHARS_PER_SYNC = int(cfg["chars_per_sync"])
+        generate_utils.config.BOARD_ROWS = int(cfg["rows"])
+        generate_utils.config.BOARD_COLS = int(cfg["cols"])
 
         guid_map = {}
         with open(args.guid_map, 'rb') as f:
@@ -1056,18 +1052,10 @@ if __name__ == "__main__":
         with open(args.guid_map, 'wb') as f:
             pickle.dump(guid_map, f)
     elif args.cmd == "gen_fx":
-        if not args.bytes_per_char or not args.chars_per_sync:
-            print("--bytes_per_char and --chars_per_sync required", file=sys.stderr)
-            sys.exit(1)
-
-        if not args.rows or not args.cols:
-            print("--rows and --cols required", file=sys.stderr)
-            sys.exit(1)
-
-        generate_utils.config.BYTES_PER_CHAR = int(args.bytes_per_char)
-        generate_utils.config.CHARS_PER_SYNC = int(args.chars_per_sync)
-        generate_utils.config.BOARD_ROWS = int(args.rows)
-        generate_utils.config.BOARD_COLS = int(args.cols)
+        generate_utils.config.BYTES_PER_CHAR = int(cfg["bytes_per_char"])
+        generate_utils.config.CHARS_PER_SYNC = int(cfg["chars_per_sync"])
+        generate_utils.config.BOARD_ROWS = int(cfg["rows"])
+        generate_utils.config.BOARD_COLS = int(cfg["cols"])
 
         guid_map = {}
         with open(args.guid_map, 'rb') as f:

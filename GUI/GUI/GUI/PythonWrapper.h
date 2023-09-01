@@ -81,6 +81,7 @@ namespace PythonWrapper
 
 	bool GenerateAnimator(
 		const AppConfig& config,
+		const std::string& config_path,
 		const std::string& unity_animator_generated_dir,
 		const std::string& unity_animator_generated_name,
 		const std::string& unity_parameters_generated_name,
