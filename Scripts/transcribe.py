@@ -681,7 +681,7 @@ def readControllerInput(audio_state):
                         osc_ctrl.toggleBoard(audio_state.osc_state.client, True)
                         osc_ctrl.lockWorld(audio_state.osc_state.client, False)
                         osc_ctrl.ellipsis(audio_state.osc_state.client, True)
-                    if audio_state.reset_on_toggle:
+                    if audio_state.cfg["reset_on_toggle"]:
                         if audio_state.cfg["enable_debug_mode"]:
                             print("Toggle detected, dropping transcript (3)")
                         audio_state.drop_transcription = True
