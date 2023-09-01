@@ -42,6 +42,9 @@ def getToggleParam():
 def getScaleParam():
     return "TaSTT_Scale"
 
+def getEnablePhonemeParam():
+    return "TaSTT_Enable_Phoneme"
+
 # When this is set to true, the board clears.
 def getClearBoardParam():
     return "TaSTT_Clear_Board"

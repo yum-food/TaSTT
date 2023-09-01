@@ -44,3 +44,13 @@ MonoBehaviour:
     subParameters:
     - name: TaSTT_Scale
     labels: []
+  - name: Enable phonemes
+    icon: {fileID: 0}
+    type: 102
+    parameter:
+      name: TaSTT_Enable_Phoneme
+    value: 1
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []

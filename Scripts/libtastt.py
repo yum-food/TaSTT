@@ -434,7 +434,7 @@ AnimatorController:
 # a letter to change after it has been written.
 UNITY_ANIMATION_FUDGE_MARGIN = 0.1
 
-def generateClearAnimation(anim_dir, guid_map):
+def generateClearAnimation(anim_dir: str, guid_map: typing.Dict[str, str]):
     print("Generating board clearing animation", file=sys.stderr)
 
     parser = libunity.UnityParser()
@@ -621,7 +621,7 @@ def generateScaleAnimation(anim_name: str, anim_dir: str,
 
     return meta.guid
 
-def generateAnimations(anim_dir, guid_map):
+def generateAnimations(anim_dir: str, guid_map: typing.Dict[str, str]):
     generateClearAnimation(anim_dir, guid_map)
 
     for chord_bits in range(2**5):
@@ -694,6 +694,7 @@ def generateFXController(anim: libunity.UnityAnimator) -> typing.Dict[int, libun
     anim.addParameter(generate_utils.getToggleParam(), bool)
     anim.addParameter(generate_utils.getClearBoardParam(), bool)
     anim.addParameter(generate_utils.getScaleParam(), float)
+    anim.addParameter(generate_utils.getEnablePhonemeParam(), bool)
 
     for i in range(5):
         anim.addParameter(generate_utils.getSoundParam(i+1), bool)
@@ -845,8 +846,12 @@ def generateSoundLayer(anim: libunity.UnityAnimator,
 
     layer = anim.addLayer("TaSTT_Sound")
 
-    # Create `a` state.
-    a_state = anim.addAnimatorState(layer, "a", is_default_state=True)
+    idle_state = anim.addAnimatorState(layer, "Idle", is_default_state=True, dy=-100)
+    a_state = anim.addAnimatorState(layer, "a")
+
+    trans = anim.addTransition(a_state)
+    param = generate_utils.getEnablePhonemeParam()
+    anim.addTransitionBooleanCondition(idle_state, trans, param, True)
 
     for a_bool in range(2):
         dy = 100
@@ -924,27 +929,27 @@ def generateSoundLayer(anim: libunity.UnityAnimator,
                         anim.setAnimatorStateAnimation(ax_ex_ix_ox_ux_state, anim_guid)
 
                         # Create return-home transitions.
-                        trans = anim.addTransition(a_state, dur_s = anim_len_s)
+                        trans = anim.addTransition(idle_state, dur_s = anim_len_s)
                         trans.mapping['AnimatorStateTransition'].mapping['m_InterruptionSource'] = '0'
                         param = generate_utils.getSoundParam(1)
                         anim.addTransitionBooleanCondition(ax_ex_ix_ox_ux_state, trans, param, 1 - a_bool)
 
-                        trans = anim.addTransition(a_state, dur_s = anim_len_s)
+                        trans = anim.addTransition(idle_state, dur_s = anim_len_s)
                         trans.mapping['AnimatorStateTransition'].mapping['m_InterruptionSource'] = '0'
                         param = generate_utils.getSoundParam(2)
                         anim.addTransitionBooleanCondition(ax_ex_ix_ox_ux_state, trans, param, 1 - e_bool)
 
-                        trans = anim.addTransition(a_state, dur_s = anim_len_s)
+                        trans = anim.addTransition(idle_state, dur_s = anim_len_s)
                         trans.mapping['AnimatorStateTransition'].mapping['m_InterruptionSource'] = '0'
                         param = generate_utils.getSoundParam(3)
                         anim.addTransitionBooleanCondition(ax_ex_ix_ox_ux_state, trans, param, 1 - i_bool)
 
-                        trans = anim.addTransition(a_state, dur_s = anim_len_s)
+                        trans = anim.addTransition(idle_state, dur_s = anim_len_s)
                         trans.mapping['AnimatorStateTransition'].mapping['m_InterruptionSource'] = '0'
                         param = generate_utils.getSoundParam(4)
                         anim.addTransitionBooleanCondition(ax_ex_ix_ox_ux_state, trans, param, 1 - o_bool)
 
-                        trans = anim.addTransition(a_state, dur_s = anim_len_s)
+                        trans = anim.addTransition(idle_state, dur_s = anim_len_s)
                         trans.mapping['AnimatorStateTransition'].mapping['m_InterruptionSource'] = '0'
                         param = generate_utils.getSoundParam(5)
                         anim.addTransitionBooleanCondition(ax_ex_ix_ox_ux_state, trans, param, 1 - u_bool)

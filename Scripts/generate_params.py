@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import app_config
 import argparse
 import generate_utils
 import sys
@@ -27,6 +28,7 @@ INT_PARAM = """
     valueType: 0
     saved: 0
     defaultValue: 0
+    networkSynced: %SYNCED%
 """[1:]
 
 BOOL_PARAM = """
@@ -34,6 +36,7 @@ BOOL_PARAM = """
     valueType: 2
     saved: %SAVED%
     defaultValue: 0
+    networkSynced: %SYNCED%
 """[1:]
 
 FLOAT_PARAM = """
@@ -41,9 +44,10 @@ FLOAT_PARAM = """
     valueType: 1
     saved: 0
     defaultValue: %DEFAULT_FLOAT%
+    networkSynced: %SYNCED%
 """[1:]
 
-def generate():
+def generate(cfg):
     result = ""
 
     # We're working with an 84-character board, and each FX layer is responsible
@@ -51,6 +55,7 @@ def generate():
     params = {}
     params["SAVED"] = "0"
     params["DEFAULT_FLOAT"] = "0"
+    params["SYNCED"] = "1"
 
     params["PARAM_NAME"] = generate_utils.getDummyParam()
     result += generate_utils.replaceMacros(BOOL_PARAM, params)
@@ -61,9 +66,14 @@ def generate():
     params["PARAM_NAME"] = generate_utils.getEllipsisParam()
     result += generate_utils.replaceMacros(BOOL_PARAM, params)
 
+    if not cfg["enable_phonemes"]:
+        params["SYNCED"] = "0"
     for i in range(5):
         params["PARAM_NAME"] = generate_utils.getSoundParam(i+1)
         result += generate_utils.replaceMacros(BOOL_PARAM, params)
+    params["PARAM_NAME"] = generate_utils.getEnablePhonemeParam()
+    result += generate_utils.replaceMacros(BOOL_PARAM, params)
+    params["SYNCED"] = "1"
 
     params["PARAM_NAME"] = generate_utils.getScaleParam()
     params["DEFAULT_FLOAT"] = "0.05"
@@ -102,7 +112,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--old_params", type=str, help="The parameters to append to")
     parser.add_argument("--new_params", type=str, help="The parameters to create")
-    parser.add_argument("--bytes_per_char", type=str, help="The number of bytes to use to represent each character")
+    parser.add_argument("--config", type=str, help="The path to the app config.")
     parser.add_argument("--chars_per_sync", type=str, help="The number of characters to send on each sync event")
     args = parser.parse_args()
 
@@ -112,12 +122,10 @@ if __name__ == "__main__":
         parser.print_help()
         parser.exit(1)
 
-    if not args.bytes_per_char or not args.chars_per_sync:
-        print("--bytes_per_char and --chars_per_sync required", file=sys.stderr)
-        parser.print_help()
-        parser.exit(1)
-    generate_utils.config.BYTES_PER_CHAR = int(args.bytes_per_char)
-    generate_utils.config.CHARS_PER_SYNC = int(args.chars_per_sync)
+    cfg = app_config.getConfig(args.config)
 
-    append(args.old_params, generate(), args.new_params)
+    generate_utils.config.BYTES_PER_CHAR = int(cfg["bytes_per_char"])
+    generate_utils.config.CHARS_PER_SYNC = int(cfg["chars_per_sync"])
+
+    append(args.old_params, generate(cfg), args.new_params)
 

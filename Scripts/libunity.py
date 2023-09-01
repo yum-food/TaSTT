@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from functools import partial
+
 import argparse
 import copy
 import enum
@@ -8,6 +10,7 @@ import os
 import pickle
 import random
 import sys
+import typing
 # python3 -m pip install pyyaml
 # License: MIT.
 import yaml
@@ -484,6 +487,13 @@ class UnityAnimator():
                     node.mapping['fileID'] = str(new_id)
         if hasattr(node, "forEach"):
             node.forEach(self.mergeIterator)
+
+    # Delete any key-value pairs where the value == the value.
+    def scrubReferencesByValue(self, node, values: typing.Set[str]):
+        if hasattr(node, "mapping"):
+            node.mapping = {k: v for k, v in node.mapping.items() if v not in values}
+        if hasattr(node, "forEach"):
+            node.forEach(partial(self.scrubReferencesByValue, values=values))
 
     def peekNodeOfClass(self, classId):
         for node in self.nodes:

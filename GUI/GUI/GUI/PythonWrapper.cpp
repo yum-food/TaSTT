@@ -803,8 +803,7 @@ bool PythonWrapper::GenerateAnimator(
 		if (!InvokeWithArgs({ generate_params_path,
 			"--old_params", Quote(config.params_path),
 			"--new_params", Quote(tastt_params_path),
-			"--chars_per_sync", std::to_string(config.chars_per_sync),
-			"--bytes_per_char", std::to_string(config.bytes_per_char) },
+			"--config", Quote(config_path) },
 			"Failed to generate avatar parameters", out)) {
 			return false;
 		}
