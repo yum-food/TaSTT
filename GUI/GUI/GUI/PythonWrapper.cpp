@@ -499,6 +499,7 @@ bool PythonWrapper::GenerateAnimator(
 	const std::string& unity_menu_generated_name,
 	wxTextCtrl* out) {
 	// Python script locations
+	std::string remove_audio_srcs_path = "Resources/Scripts/remove_audio_sources.py";
 	std::string libunity_path = "Resources/Scripts/libunity.py";
 	std::string libtastt_path = "Resources/Scripts/libtastt.py";
 	std::string generate_emotes_path = "Resources/Scripts/emotes_v2.py";
@@ -633,6 +634,16 @@ bool PythonWrapper::GenerateAnimator(
 			return false;
 		}
 		Log(out, "success!\n");
+	}
+	if (!config.enable_phonemes) {
+		std::string prefab_path = Quote(std::filesystem::path(tastt_assets_path) / "World Constraint.prefab");
+		Log(out, "Remove audio sources from prefab at {}\n", prefab_path);
+		Log(out, "Removing audio sources from prefab... ");
+		if (!InvokeWithArgs({ remove_audio_srcs_path, prefab_path },
+			"Failed to generate guid.map", out)) {
+			return false;
+		}
+		Log(out, "succes!\n");
 	}
 	{
 		Log(out, "Copying canned sounds... ");

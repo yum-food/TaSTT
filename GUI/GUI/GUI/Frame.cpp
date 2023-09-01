@@ -96,6 +96,7 @@ namespace {
         ID_UNITY_ROWS,
         ID_UNITY_COLS,
         ID_UNITY_CLEAR_OSC,
+        ID_UNITY_ENABLE_PHONEMES,
 		ID_DEBUG_PANEL,
 		ID_DEBUG_OUT,
 		ID_DEBUG_CONFIG_PANEL,
@@ -1222,6 +1223,17 @@ Frame::Frame()
 					"an existing avatar.");
                 unity_clear_osc_ = clear_osc;
 
+				auto* enable_phonemes = new wxCheckBox(unity_config_panel,
+					ID_UNITY_ENABLE_PHONEMES, "Enable phonemes");
+				enable_phonemes->SetValue(app_c_->enable_phonemes);
+                enable_phonemes->SetToolTip(
+                    "If checked, the chatbox will be created with 5 audio "
+                    "sources for each English vowel sound: a, e, i, o, and u. "
+                    "Whenever a page of data is sent into the game, any "
+                    "vowels will have the corresponding audio source enabled. "
+                    "This uses 6 parameter bits.");
+                unity_enable_phonemes_ = enable_phonemes;
+
 				auto* unity_button_gen_fx = new wxButton(unity_config_panel,
                     ID_UNITY_BUTTON_GEN_ANIMATOR, "Generate avatar assets");
                 unity_button_gen_fx->SetWindowStyleFlag(wxBU_EXACTFIT);
@@ -1246,6 +1258,7 @@ Frame::Frame()
 				unity_config_panel->SetSizer(sizer);
 				sizer->Add(unity_config_panel_pairs);
                 sizer->Add(clear_osc);
+                sizer->Add(enable_phonemes);
 				sizer->Add(unity_button_gen_fx, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
 				sizer->Add(unity_button_auto_refresh, /*proportion=*/0,
@@ -1407,6 +1420,8 @@ Frame::Frame()
         ID_UNITY_CHARS_PER_SYNC);
     Bind(wxEVT_CHOICE, &Frame::OnUnityParamChange, this,
         ID_UNITY_BYTES_PER_CHAR);
+    Bind(wxEVT_CHECKBOX, &Frame::OnUnityParamChange, this,
+        ID_UNITY_ENABLE_PHONEMES);
 
 	// wx needs this to be able to load PNGs.
 	wxImage::AddHandler(&png_handler_);
@@ -1786,6 +1801,7 @@ void Frame::OnGenerateFX(wxCommandEvent& event)
 		app_c_->rows = rows;
 		app_c_->cols = cols;
 		app_c_->clear_osc = unity_clear_osc_->GetValue();
+		app_c_->enable_phonemes = unity_enable_phonemes_->GetValue();
 		app_c_->Serialize(AppConfig::kConfigPath);
 
 		std::string out;
@@ -2134,15 +2150,21 @@ void Frame::OnUnityParamChangeImpl() {
     //   3. disable
     //   4. lock
     //   5. clear
-    //   6. audio indicator enable
-    //   7. audio indicator toggle
-    //   8. visual indicator 1
-    //   9. visual indicator 2
-    int misc_bits = 9;
-    int total_bits = select_bits + layer_bits + scale_bits + misc_bits;
+    int misc_bits = 5;
+
+    int phoneme_bits = 0;
+    if (unity_enable_phonemes_->GetValue()) {
+        phoneme_bits = 6;
+    }
+
+    int total_bits = select_bits + layer_bits + scale_bits + misc_bits + phoneme_bits;
+
     Log(unity_out_, "This configuration will use {} bits of avatar parameter space:\n", total_bits);
     Log(unity_out_, "  {} bits coming from ({} characters per sync) * ({} bytes per character)\n", layer_bits, chars_per_sync, bytes_per_char);
     Log(unity_out_, "  {} bits coming from fixed overheads\n", select_bits + scale_bits + misc_bits);
+    if (phoneme_bits > 0) {
+        Log(unity_out_, "  {} bits coming from phonemes\n", phoneme_bits);
+    }
 }
 
 void Frame::OnUnityParamChange(wxCommandEvent& event) {

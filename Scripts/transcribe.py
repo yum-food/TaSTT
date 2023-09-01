@@ -475,7 +475,8 @@ def transcribeAudio(audio_state):
             audio_state.transcribe_no_change_count = 0
             audio_state.transcribe_sleep_duration = audio_state.transcribe_sleep_duration_min_s
 
-def sendAudio(audio_state, estate: EmotesState):
+def sendAudio(audio_state):
+    estate = EmotesState()
     while audio_state.run_app == True:
         text = audio_state.filtered_text
         if audio_state.cfg["use_builtin"]:
@@ -699,7 +700,6 @@ def readControllerInput(audio_state):
 # whisper/__init__.py. Examples: tiny, base, small, medium.
 def transcribeLoop(config_path: str):
     cfg = app_config.getConfig(config_path)
-    estate = EmotesState()
 
     generate_utils.config.BYTES_PER_CHAR = int(cfg["bytes_per_char"])
     generate_utils.config.CHARS_PER_SYNC = int(cfg["chars_per_sync"])
@@ -793,13 +793,11 @@ def transcribeLoop(config_path: str):
             download_root = model_root,
             local_files_only = download_it)
 
-    transcribe_audio_thd = threading.Thread(
-            target = transcribeAudio,
-            args = [audio_state])
+    transcribe_audio_thd = threading.Thread(target = transcribeAudio, args = [audio_state])
     transcribe_audio_thd.daemon = True
     transcribe_audio_thd.start()
 
-    send_audio_thd = threading.Thread(target = sendAudio, args = [audio_state, estate])
+    send_audio_thd = threading.Thread(target = sendAudio, args = [audio_state])
     send_audio_thd.daemon = True
     send_audio_thd.start()
 

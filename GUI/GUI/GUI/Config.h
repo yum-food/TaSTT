@@ -84,5 +84,6 @@ public:
 	std::string menu_path;
 	std::string unity_generated_dir;
 	bool clear_osc;
+	bool enable_phonemes;
 };
 

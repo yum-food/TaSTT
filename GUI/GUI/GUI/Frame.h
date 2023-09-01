@@ -73,6 +73,7 @@ private:
     wxCheckBox* py_app_enable_debug_mode_;
     wxCheckBox* py_app_reset_on_toggle_;
     wxCheckBox* unity_clear_osc_;
+    wxCheckBox* unity_enable_phonemes_;
 
     std::future<bool> py_app_;
     std::future<bool> obs_app_;
