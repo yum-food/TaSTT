@@ -15,6 +15,24 @@
 #include <wx/filepicker.h>
 #include <wx/txtstrm.h>
 
+// Does `lhs_type lhs = rhs`, where rhs returns `std::optional<lhs_type>`.
+// If the optional doesn't return a value, this returns.
+// TODO(yum) do this without creating a named temporary.
+// Example:
+//  ASSIGN_OR_RETURN(int, foo, 1)
+#define ASSIGN_OR_RETURN_VOID(lhs_type, lhs, rhs) \
+    std::optional<lhs_type> lhs ## _tmp = rhs; \
+    if (!lhs ## _tmp.has_value()) return; \
+    lhs_type lhs = std::move(lhs ## _tmp).value()
+
+#define ASSIGN_OR_RETURN_BOOL(lhs_type, lhs, rhs) \
+    std::optional<lhs_type> lhs ## _tmp = rhs; \
+    if (!lhs ## _tmp.has_value()) return false; \
+    lhs_type lhs = std::move(lhs ## _tmp).value()
+
+using ::Logging::DrainAsyncOutput;
+using ::Logging::Log;
+
 namespace {
     enum FrameIds {
 		ID_MAIN_PANEL,
@@ -512,10 +530,30 @@ namespace {
 		return default_index;
 	}
 
-}  // namespace
+	std::optional<int> stoiInRange(wxTextCtrl* out, const std::string& int_s, const std::string int_name, int min, int max) {
+		int res;
+		try {
+			res = std::stoi(int_s);
+		}
+		catch (const std::invalid_argument&) {
+			Log(out, "Could not parse {} \"{}\" as an integer: invalid\n",
+				int_name, int_s);
+			return {};
+		}
+		catch (const std::out_of_range&) {
+			Log(out, "Could not parse {} \"{}\" as an integer: out of "
+				"range\n", int_name, int_s);
+			return {};
+		}
+		if (res < min || res > max) {
+			Log(out, "Int argument {} is out of the allowed range [{},{}]\n",
+				int_name, min, max);
+			return {};
+		}
+		return res;
+	}
 
-using ::Logging::DrainAsyncOutput;
-using ::Logging::Log;
+}  // namespace
 
 Frame::Frame()
     : wxFrame(nullptr, wxID_ANY, "TaSTT"),
@@ -1728,35 +1766,15 @@ void Frame::OnGenerateFX(wxCommandEvent& event)
 		if (chars_per_sync_idx == wxNOT_FOUND) {
 			chars_per_sync_idx = kCharsDefault;
 		}
-		std::string chars_per_sync_str =
-			kCharsPerSync[chars_per_sync_idx].ToStdString();
 		int bytes_per_char_idx = unity_bytes_per_char_->GetSelection();
 		if (bytes_per_char_idx == wxNOT_FOUND) {
 			bytes_per_char_idx = kBytesDefault;
 		}
-		std::string bytes_per_char_str =
-			kBytesPerChar[bytes_per_char_idx].ToStdString();
 
-		std::string rows_str = unity_rows_->GetValue().ToStdString();
-		std::string cols_str = unity_cols_->GetValue().ToStdString();
-		int rows, cols, bytes_per_char, chars_per_sync;
-		try {
-			rows = std::stoi(rows_str);
-			cols = std::stoi(cols_str);
-			bytes_per_char = std::stoi(bytes_per_char_str);
-			chars_per_sync = std::stoi(chars_per_sync_str);
-		}
-		catch (const std::invalid_argument&) {
-			Log(unity_out_, "Could not parse rows \"{}\", cols \"{}\", bytes per "
-				"char \"{}\", or chars per sync \"{}\" as an integer\n",
-				rows_str, cols_str, bytes_per_char_str, chars_per_sync_str);
-			return false;
-		}
-		catch (const std::out_of_range&) {
-			Log(unity_out_, "Rows \"{}\" or cols \"{}\" are out of range\n",
-				rows_str, cols_str);
-			return false;
-		}
+		ASSIGN_OR_RETURN_BOOL(int, rows, stoiInRange(transcribe_out_, py_app_rows_->GetValue().ToStdString(), "rows", 1, 10));
+		ASSIGN_OR_RETURN_BOOL(int, cols, stoiInRange(transcribe_out_, py_app_cols_->GetValue().ToStdString(), "cols", 1, 120));
+		ASSIGN_OR_RETURN_BOOL(int, chars_per_sync, stoiInRange(transcribe_out_, kCharsPerSync[chars_per_sync_idx].ToStdString(), "chars_per_sync", 5, 24));
+		ASSIGN_OR_RETURN_BOOL(int, bytes_per_char, stoiInRange(transcribe_out_, kBytesPerChar[bytes_per_char_idx].ToStdString(), "bytes_per_char", 1, 2));
 
 		app_c_->assets_path = unity_assets_path.string();
 		app_c_->fx_path = unity_animator_path.string();
@@ -2096,14 +2114,12 @@ void Frame::OnUnityParamChangeImpl() {
     if (chars_per_sync_idx == wxNOT_FOUND) {
         chars_per_sync_idx = kCharsDefault;
     }
-    std::string chars_per_sync_str = kCharsPerSync[chars_per_sync_idx].ToStdString();
-    int chars_per_sync = std::stoi(chars_per_sync_str);
+	ASSIGN_OR_RETURN_VOID(int, chars_per_sync, stoiInRange(transcribe_out_, kCharsPerSync[chars_per_sync_idx].ToStdString(), "chars_per_sync", 5, 24));
     int bytes_per_char_idx = unity_bytes_per_char_->GetSelection();
     if (bytes_per_char_idx == wxNOT_FOUND) {
         bytes_per_char_idx = kBytesDefault;
     }
-    std::string bytes_per_char_str = kBytesPerChar[bytes_per_char_idx].ToStdString();
-    int bytes_per_char = std::stoi(bytes_per_char_str);
+	ASSIGN_OR_RETURN_VOID(int, bytes_per_char, stoiInRange(transcribe_out_, kBytesPerChar[bytes_per_char_idx].ToStdString(), "bytes_per_char", 1, 2));
 
     // Used to select which region is being updated.
     int select_bits = 8;
@@ -2179,6 +2195,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     if (button_idx == wxNOT_FOUND) {
         button_idx = kBytesDefault;
     }
+
     const bool enable_local_beep = py_app_enable_local_beep_->GetValue();
     const bool enable_browser_src = py_app_enable_browser_src_->GetValue();
     const bool use_cpu = py_app_use_cpu_->GetValue();
@@ -2190,69 +2207,15 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     const bool enable_profanity_filter = py_app_enable_profanity_filter_->GetValue();
     const bool enable_debug_mode = py_app_enable_debug_mode_->GetValue();
     const bool reset_on_toggle = py_app_reset_on_toggle_->GetValue();
-    std::string rows_str = py_app_rows_->GetValue().ToStdString();
-    std::string cols_str = py_app_cols_->GetValue().ToStdString();
-    std::string chars_per_sync_str =
-        kCharsPerSync[chars_per_sync_idx].ToStdString();
-    std::string bytes_per_char_str =
-        kBytesPerChar[bytes_per_char_idx].ToStdString();
-    std::string gpu_idx_str =
-        py_app_gpu_idx_->GetValue().ToStdString();
-    std::string keybind =
-        py_app_keybind_->GetValue().ToStdString();
-    std::string browser_src_port_str =
-        py_app_browser_src_port_->GetValue().ToStdString();
-    int rows, cols, chars_per_sync, bytes_per_char, gpu_idx, browser_src_port;
-    try {
-        rows = std::stoi(rows_str);
-        cols = std::stoi(cols_str);
-        chars_per_sync = std::stoi(chars_per_sync_str);
-        bytes_per_char = std::stoi(bytes_per_char_str);
-        gpu_idx = std::stoi(gpu_idx_str);
-        browser_src_port = std::stoi(browser_src_port_str);
-    }
-    catch (const std::invalid_argument&) {
-        Log(transcribe_out_, "Could not parse rows \"{}\", cols \"{}\", chars "
-            "per sync \"{}\", "
-            "bytes per char \"{}\", "
-            "gpu_idx \"{}\", "
-            "or browser src port \"{}\""
-            "as an integer\n", rows_str, cols_str, chars_per_sync_str,
-            bytes_per_char_str, gpu_idx_str, browser_src_port_str);
-        return;
-    }
-    catch (const std::out_of_range&) {
-        Log(transcribe_out_, "Rows \"{}\", "
-            "cols \"{}\", "
-            "chars per sync \"{}\", "
-            "bytes per char \"{}\", "
-            "gpu idx \"{}\", "
-            "or browser src port \"{}\" "
-            "are out of range\n", rows_str, cols_str, chars_per_sync_str,
-            bytes_per_char_str, gpu_idx_str, browser_src_port_str);
-        return;
-    }
-    const int max_rows = 10;
-    const int max_cols = 240;
-    const int min_gpu_idx = 0;
-    const int max_gpu_idx = 10;
-    const int min_browser_src_port = 1024;
-    const int max_browser_src_port = 65535;
-    if (rows < 0 || rows > max_rows ||
-        cols < 0 || cols > max_cols ||
-        gpu_idx < min_gpu_idx || gpu_idx > max_gpu_idx ||
-        browser_src_port < min_browser_src_port || browser_src_port > max_browser_src_port) {
-        Log(transcribe_out_, "Rows not on [{},{}] or cols not on [{},{}] or "
-            "gpu_idx not on [{}, {}] or "
-            "browser src port not on [{}, {}] or "
-            "commit_fuzz_threshold not on [{}, {}] "
-            "\n",
-            0, max_rows,
-            0, max_cols,
-            min_gpu_idx, max_gpu_idx,
-            min_browser_src_port, max_browser_src_port);
-        return;
-    }
+
+	ASSIGN_OR_RETURN_VOID(int, rows, stoiInRange(transcribe_out_, py_app_rows_->GetValue().ToStdString(), "rows", 1, 10));
+	ASSIGN_OR_RETURN_VOID(int, cols, stoiInRange(transcribe_out_, py_app_cols_->GetValue().ToStdString(), "cols", 1, 120));
+	ASSIGN_OR_RETURN_VOID(int, chars_per_sync, stoiInRange(transcribe_out_, kCharsPerSync[chars_per_sync_idx].ToStdString(), "chars_per_sync", 5, 24));
+	ASSIGN_OR_RETURN_VOID(int, bytes_per_char, stoiInRange(transcribe_out_, kBytesPerChar[bytes_per_char_idx].ToStdString(), "bytes_per_char", 1, 2));
+	ASSIGN_OR_RETURN_VOID(int, gpu_idx, stoiInRange(transcribe_out_, py_app_gpu_idx_->GetValue().ToStdString(), "gpu_idx", 0, 10));
+	ASSIGN_OR_RETURN_VOID(int, browser_src_port, stoiInRange(transcribe_out_, py_app_browser_src_port_->GetValue().ToStdString(), "browser_src_port", 1024, 65535));
+
+    std::string keybind = py_app_keybind_->GetValue().ToStdString();
 
     app_c_->microphone = kMicChoices[which_mic].ToStdString();
     app_c_->language = kLangChoices[which_lang].ToStdString();

@@ -95,23 +95,7 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	params_path(),
 	menu_path(),
 	unity_generated_dir("TaSTT_Generated"),
-	clear_osc(true),
-
-	whisper_model("ggml-medium.bin"),
-	whisper_mic(0),
-	whisper_decode_method("greedy"),
-	whisper_max_ctxt(100),
-	whisper_beam_width(5),
-	whisper_beam_n_best(5),
-	whisper_vad_min_duration(0.5),
-	whisper_vad_max_duration(5.0),
-	whisper_vad_drop_start_silence(0.5),
-	whisper_vad_pause_duration(0.2),
-	whisper_vad_retain_duration(0.2),
-
-	whisper_enable_builtin(false),
-	whisper_enable_custom(false),
-	whisper_enable_browser_src(true)
+	clear_osc(true)
 {}
 
 bool AppConfig::Serialize(const std::filesystem::path& path) {
@@ -151,22 +135,6 @@ bool AppConfig::Serialize(const std::filesystem::path& path) {
 	cm.Set("menu_path", menu_path);
 	cm.Set("unity_generated_dir", unity_generated_dir);
 	cm.Set("clear_osc", clear_osc);
-
-	cm.Set("whisper_model", whisper_model);
-	cm.Set("whisper_mic", whisper_mic);
-	cm.Set("whisper_decode_method", whisper_decode_method);
-	cm.Set("whisper_max_ctxt", whisper_max_ctxt);
-	cm.Set("whisper_beam_width", whisper_beam_width);
-	cm.Set("whisper_beam_n_best", whisper_beam_n_best);
-	cm.Set("whisper_vad_min_duration", whisper_vad_min_duration);
-	cm.Set("whisper_vad_max_duration", whisper_vad_max_duration);
-	cm.Set("whisper_vad_drop_start_silence", whisper_vad_drop_start_silence);
-	cm.Set("whisper_vad_pause_duration", whisper_vad_pause_duration);
-	cm.Set("whisper_vad_retain_duration", whisper_vad_retain_duration);
-
-	cm.Set("whisper_enable_builtin", whisper_enable_builtin);
-	cm.Set("whisper_enable_custom", whisper_enable_custom);
-	cm.Set("whisper_enable_browser_src", whisper_enable_browser_src);
 
 	return Config::Serialize(path, cm);
 }
@@ -219,22 +187,6 @@ bool AppConfig::Deserialize(const std::filesystem::path& path) {
 	cm.Get("menu_path", c.menu_path);
 	cm.Get("unity_generated_dir", c.unity_generated_dir);
 	cm.Get("clear_osc", c.clear_osc);
-
-	cm.Get("whisper_model", c.whisper_model);
-	cm.Get("whisper_mic", c.whisper_mic);
-	cm.Get("whisper_decode_method", c.whisper_decode_method);
-	cm.Get("whisper_max_ctxt", c.whisper_max_ctxt);
-	cm.Get("whisper_beam_width", c.whisper_beam_width);
-	cm.Get("whisper_beam_n_best", c.whisper_beam_n_best);
-	cm.Get("whisper_vad_min_duration", c.whisper_vad_min_duration);
-	cm.Get("whisper_vad_max_duration", c.whisper_vad_max_duration);
-	cm.Get("whisper_vad_drop_start_silence", c.whisper_vad_drop_start_silence);
-	cm.Get("whisper_vad_pause_duration", c.whisper_vad_pause_duration);
-	cm.Get("whisper_vad_retain_duration", c.whisper_vad_retain_duration);
-
-	cm.Get("whisper_enable_builtin", c.whisper_enable_builtin);
-	cm.Get("whisper_enable_custom", c.whisper_enable_custom);
-	cm.Get("whisper_enable_browser_src", c.whisper_enable_browser_src);
 
 	*this = std::move(c);
 	return true;

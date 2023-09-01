@@ -84,23 +84,5 @@ public:
 	std::string menu_path;
 	std::string unity_generated_dir;
 	bool clear_osc;
-
-	// WhisperCPP-specific settings.
-	std::string whisper_model;
-	int whisper_mic;
-	std::string whisper_decode_method;
-	int whisper_max_ctxt;
-	int whisper_beam_width;
-	int whisper_beam_n_best;
-	float whisper_vad_min_duration;
-	float whisper_vad_max_duration;
-	float whisper_vad_drop_start_silence;
-	float whisper_vad_pause_duration;
-	float whisper_vad_retain_duration;
-
-	// Browser source-specific settings.
-	bool whisper_enable_builtin;
-	bool whisper_enable_custom;
-	bool whisper_enable_browser_src;
 };
 
