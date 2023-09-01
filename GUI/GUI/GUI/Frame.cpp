@@ -2285,7 +2285,9 @@ void Frame::OnAppStart(wxCommandEvent& event) {
             }
             return true;
         });
-    py_app_ = std::move(PythonWrapper::StartApp(*app_c_, transcribe_out_,
+    Log(transcribe_out_, "DEBUG::{}:: AppConfig::kConfigPath: {}\n", __func__, AppConfig::kConfigPath);
+    const std::string config_path(AppConfig::kConfigPath);
+    py_app_ = std::move(PythonWrapper::StartApp(config_path, transcribe_out_,
         std::move(out_cb), std::move(in_cb), std::move(run_cb),
         std::move(prestart_cb)));
     Log(transcribe_out_, "py app valid: {}\n", py_app_.valid());

@@ -72,7 +72,7 @@ namespace PythonWrapper
 	// parameters. We could persist those files so settings would persist across
 	// app restarts.
 	std::future<bool> StartApp(
-		const AppConfig& config,
+		const std::string& config_path,
 		wxTextCtrl *out,
 		const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
 		const std::function<void(std::string& in)>&& in_cb = [](std::string&) {},

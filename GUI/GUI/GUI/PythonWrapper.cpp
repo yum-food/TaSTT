@@ -459,7 +459,7 @@ bool PythonWrapper::InstallPip(
 }
 
 std::future<bool> PythonWrapper::StartApp(
-		const AppConfig& config,
+		const std::string& config_path,
 		wxTextCtrl *out,
 		const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
 		const std::function<void(std::string& in)>&& in_cb,
@@ -467,46 +467,27 @@ std::future<bool> PythonWrapper::StartApp(
 		const std::function<void()>&& prestart_cb) {
 
 	return std::move(std::async(std::launch::async,
-		[&](
+		[](
+			const std::string config_path,
+			wxTextCtrl *out,
 			const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
 			const std::function<void(std::string& in)>&& in_cb,
-			const std::function<bool()>&& run_cb) -> bool {
+			const std::function<bool()>&& run_cb,
+			const std::function<void()>&& prestart_cb) -> bool {
 				prestart_cb();
+
+				Log(out, "DEBUG::{}:: config_path: {}\n", __func__, config_path);
 
 				return InvokeWithArgs({
 					"-u",  // Unbuffered output
 					"Resources/Scripts/transcribe.py",
-					"--mic", config.microphone,
-					"--language", config.language,
-					"--language_target", Quote(config.language_target),
-					"--model", config.model,
-					"--model_translation", config.model_translation,
-					"--chars_per_sync", std::to_string(config.chars_per_sync),
-					"--bytes_per_char", std::to_string(config.bytes_per_char),
-					"--button", Quote(config.button),
-					"--enable_local_beep", config.enable_local_beep ? "1" : "0",
-					"--rows", std::to_string(config.rows),
-					"--cols", std::to_string(config.cols),
-					// this is the max length of the audio buffer. 5 minutes
-					// is a reasonable approximation of infinity.
-					"--window_duration_s", "300",
-					"--cpu", config.use_cpu ? "1" : "0",
-					"--use_builtin", config.use_builtin ? "1" : "0",
-					"--enable_uwu_filter", config.enable_uwu_filter ? "1" : "0",
-					"--remove_trailing_period", config.remove_trailing_period ? "1" : "0",
-					"--enable_uppercase_filter", config.enable_uppercase_filter ? "1" : "0",
-					"--enable_lowercase_filter", config.enable_lowercase_filter ? "1" : "0",
-					"--enable_profanity_filter", config.enable_profanity_filter ? "1" : "0",
-					"--enable_debug_mode", config.enable_debug_mode ? "1" : "0",
-					"--emotes_pickle", kEmotesPickle,
-					"--gpu_idx", std::to_string(config.gpu_idx),
-					"--keybind", Quote(config.keybind),
-					"--reset_on_toggle", config.reset_on_toggle ? "1" : "0",
+					"--config", config_path,
 					},
 					std::move(out_cb),
 					std::move(in_cb),
 					std::move(run_cb));
-		}, std::move(out_cb), std::move(in_cb), std::move(run_cb)));
+		}, config_path, out, std::move(out_cb), std::move(in_cb),
+			std::move(run_cb), std::move(prestart_cb)));
 }
 
 bool PythonWrapper::GenerateAnimator(
