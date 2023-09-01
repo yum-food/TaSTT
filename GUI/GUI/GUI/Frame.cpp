@@ -1391,7 +1391,7 @@ Frame::Frame()
     app_c_ = std::make_unique<AppConfig>(transcribe_out_);
     app_c_->Deserialize(AppConfig::kConfigPath);
 
-	Bind(wxEVT_CLOSE_WINDOW, &Frame::OnExit, this, wxID_EXIT);
+	Bind(wxEVT_CLOSE_WINDOW, &Frame::OnExit, this);
 	Bind(wxEVT_BUTTON, &Frame::OnNavbarTranscribe, this,
         ID_NAVBAR_BUTTON_TRANSCRIBE);
 	Bind(wxEVT_BUTTON, &Frame::OnNavbarUnity, this, ID_NAVBAR_BUTTON_UNITY);
@@ -1573,6 +1573,9 @@ void Frame::ApplyConfigToInputFields()
 void Frame::OnExit(wxCloseEvent& event)
 {
     OnAppStop();
+    OnUnityAutoRefreshStop();
+    // Allow default close processing to continue.
+    event.Skip();
 }
 
 void Frame::OnNavbarTranscribe(wxCommandEvent& event)
@@ -1915,8 +1918,20 @@ void Frame::OnUnityAutoRefresh(wxCommandEvent& event)
         }));
 }
 
-void Frame::OnUnityAutoRefreshStop(wxCommandEvent& event) {
+void Frame::OnUnityAutoRefreshStop() {
 	run_unity_auto_refresh_ = false;
+    auto status = unity_auto_refresh_.wait_for(std::chrono::seconds(0));
+    if (status == std::future_status::ready) {
+        Log(transcribe_out_, "Auto-refresh thread already stopped.\n");
+    }
+    else {
+		unity_auto_refresh_.wait();
+		Log(transcribe_out_, "Stopped transcription engine\n");
+    }
+}
+
+void Frame::OnUnityAutoRefreshStop(wxCommandEvent& event) {
+    OnUnityAutoRefreshStop();
 }
 
 void Frame::OnListPip(wxCommandEvent& event)

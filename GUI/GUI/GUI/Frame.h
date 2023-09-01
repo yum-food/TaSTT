@@ -106,6 +106,7 @@ private:
     void OnAppDrain(wxTimerEvent& event);
     void OnGenerateFX(wxCommandEvent& event);
     void OnUnityAutoRefresh(wxCommandEvent& event);
+    void OnUnityAutoRefreshStop();
     void OnUnityAutoRefreshStop(wxCommandEvent& event);
     void OnUnityParamChangeImpl();
     void OnUnityParamChange(wxCommandEvent& event);
