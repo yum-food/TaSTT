@@ -170,10 +170,6 @@ def onAudioFramesAvailable(
     else:
         audio_state.commit_fuzz_threshold = 1
 
-    max_frames = int(input_rate * audio_state.MAX_LENGTH_S /
-            audio_state.CHUNK)
-    if len(audio_state.frames) > max_frames:
-        audio_state.frames = audio_state.frames[-1 * max_frames:]
     if audio_state.drop_samples_till_i > 0:
         # Caller wants us to keep this many *whisper* samples, assuming that
         # we're getting one full frame every (1024 / 16KHz) seconds.
@@ -197,6 +193,11 @@ def onAudioFramesAvailable(
             bytes_per_sample = 2
             audio_state.frames[0] = b'00' * n_samples_to_drop + audio_state.frames[0][n_samples_to_drop * bytes_per_sample:]
         audio_state.drop_samples_till_i = -1
+
+    max_frames = int(input_rate * audio_state.MAX_LENGTH_S /
+            audio_state.CHUNK)
+    if len(audio_state.frames) > max_frames:
+        audio_state.frames = audio_state.frames[-1 * max_frames:]
 
     # Now enforce a minimum duration on frames. This reduces cases where the
     # STT hallucinates random things. In the Whisper paper, they enforce a
@@ -393,9 +394,9 @@ def transcribeAudio(audio_state,
             if audio_state.enable_debug_mode:
                 print("no transcription, spin ({} seconds)".format(time.time() - last_transcribe_time))
             last_transcribe_time = time.time()
-            # Prevent audio buffer from holding more than 1 second of silence
+            # Prevent audio buffer from holding more than a few seconds of silence
             # before real speech.
-            audio_state.MAX_LENGTH_S = 1
+            audio_state.MAX_LENGTH_S = 5
             continue
         else:
             audio_state.MAX_LENGTH_S = 300
@@ -731,14 +732,12 @@ def transcribeLoop(mic: str,
         window_duration_s: int,
         gpu_idx: int,
         keyboard_hotkey: str,
-        reset_on_toggle: bool,
-        commit_fuzz_threshold: int):
+        reset_on_toggle: bool):
     audio_state = getMicStream(mic)
     audio_state.whisper_language = language
     audio_state.language = langcodes.find(language).language
     audio_state.MAX_LENGTH_S = window_duration_s
     audio_state.reset_on_toggle = reset_on_toggle
-    #audio_state.commit_fuzz_threshold = commit_fuzz_threshold
     audio_state.enable_debug_mode = enable_debug_mode
     audio_state.enable_profanity_filter = enable_profanity_filter
 
@@ -905,7 +904,6 @@ if __name__ == "__main__":
     parser.add_argument("--gpu_idx", type=str, help="The index of the GPU device to use. On single GPU systems, use 0.")
     parser.add_argument("--keybind", type=str, help="The keyboard hotkey to use to toggle transcription. For example, ctrl+shift+s")
     parser.add_argument("--reset_on_toggle", type=int, help="Whether to reset (clear) the transcript every time that transcription is toggled on.")
-    parser.add_argument("--commit_fuzz_threshold", type=int, help="The edit distance under which two consecutive transcripts are considered to match.")
     parser.add_argument("--enable_debug_mode", type=int, help="If set to 1, print additional information to stdout while transcribing.")
     args = parser.parse_args()
 
@@ -943,10 +941,6 @@ if __name__ == "__main__":
 
     if not args.gpu_idx:
         print("--gpu_idx required", file=sys.stderr)
-        sys.exit(1)
-
-    if not args.commit_fuzz_threshold:
-        print("--commit_fuzz_threshold required", file=sys.stderr)
         sys.exit(1)
 
     args.gpu_idx = int(args.gpu_idx)
@@ -1027,6 +1021,5 @@ if __name__ == "__main__":
             estate, window_duration_s,
             args.gpu_idx,
             args.keybind,
-            args.reset_on_toggle,
-            args.commit_fuzz_threshold)
+            args.reset_on_toggle)
 

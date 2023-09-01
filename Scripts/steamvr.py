@@ -30,19 +30,22 @@ def pollButtonPress(
     buttons["thumbstick"] = vr.k_EButton_Axis0
 
     system = None
+    first = True
     while not system:
         try:
             system = vr.init(vr.VRApplication_Background)
         except Exception as e:
-            print(f"Failed to start steamVR input thread: {repr(e)}", file=sys.stderr)
-            time.sleep(5)
+            if first:
+                print(f"Failed to start steamVR input thread: {repr(e)}", file=sys.stderr)
+            first = False
+            time.sleep(1)
     last_packet = 0
     event_high = False
 
     while True:
         time.sleep(0.01)
 
-        lh_idx = system.getTrackedDeviceIndexForControllerRole(hand_id)
+        lh_idx = system.getTrackedDeviceIndexForControllerRole(hands[hand])
         #print("left hand device idx: {}".format(lh_idx))
 
         got_state, state = system.getControllerState(lh_idx)
@@ -58,7 +61,7 @@ def pollButtonPress(
         # click, not movement.
         dead_zone_radius = 0.7
 
-        button_mask = (1 << button_id)
+        button_mask = (1 << buttons[button])
         ret = EVENT_NONE
         if (state.ulButtonPressed & button_mask) != 0 and\
                 (state.rAxis[0].x**2 + state.rAxis[0].y**2 < dead_zone_radius**2):
@@ -77,7 +80,7 @@ if __name__ == "__main__":
     while True:
         time.sleep(0.1)
 
-        event = pollButtonPress(session_state, hand_id = hands["left"], button_id = buttons["joystick"])
+        event = pollButtonPress(session_state)
         if event == EVENT_RISING_EDGE:
             print("rising edge")
         elif event == EVENT_FALLING_EDGE:

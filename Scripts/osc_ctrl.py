@@ -108,7 +108,7 @@ def pageMessage(osc_state: OscState, msg: str, estate: EmotesState) -> bool:
         letter_i += 1
     if len(sounds_to_make) > 0:
         for i in range(5):
-            if i+1 in sounds_to_make:
+            if i+1 in sounds_to_make and random.randint(1,3) != 1:
                 playAudio(osc_state, i+1, True)
             else:
                 playAudio(osc_state, i+1, False)

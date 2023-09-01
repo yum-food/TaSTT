@@ -282,6 +282,8 @@ bool PythonWrapper::InvokeCommandWithArgs(const std::string& cmd,
 		});
 
 	// Set spawned process priority to low, to avoid lagging things like OBS.
+	// TODO(yum) make a toggle for this.
+#if 0
 	if (!SetPriorityClass(pi.hProcess, BELOW_NORMAL_PRIORITY_CLASS)) {
 		std::ostringstream err_oss;
 		err_oss << "Error while executing python command \"" << cmd_oss.str()
@@ -289,6 +291,7 @@ bool PythonWrapper::InvokeCommandWithArgs(const std::string& cmd,
 		out_cb("", err_oss.str());
 		return false;
 	}
+#endif
 
 	// While the process is running, drain output and send input every 10 ms.
 	DWORD timeout_ms = 10;
