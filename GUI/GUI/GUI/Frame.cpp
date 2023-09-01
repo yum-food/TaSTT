@@ -2308,7 +2308,6 @@ void Frame::OnAppStart(wxCommandEvent& event) {
             }
             return true;
         });
-    Log(transcribe_out_, "DEBUG::{}:: AppConfig::kConfigPath: {}\n", __func__, AppConfig::kConfigPath);
     const std::string config_path(AppConfig::kConfigPath);
     py_app_ = std::move(PythonWrapper::StartApp(config_path, transcribe_out_,
         std::move(out_cb), std::move(in_cb), std::move(run_cb),
