@@ -29,10 +29,13 @@ def generateEncoding():
 
 class OscState:
     def __init__(self, chars_per_sync: int, rows: int, cols: int,
+            bytes_per_char: int,
             ip = "127.0.0.1", port = 9000):
         self.client = getClient(ip, port)
         self.pager = MultiLinePager(chars_per_sync, rows, cols)
         self.encoding= generateEncoding()
+        self.bytes_per_char = bytes_per_char
+        self.client.bytes_per_char = bytes_per_char
         self.builtin_msg = ""  # The last message sent to the built-in chatbox
 
     def reset(self):
@@ -83,7 +86,7 @@ def playAudio(osc_state: OscState, nth_audio: int, value: bool):
     osc_state.client.send_message(addr, value)
 
 def updateRegion(client, region_idx, letter_encoded):
-    for byte in range(0, generate_utils.config.BYTES_PER_CHAR):
+    for byte in range(0, client.bytes_per_char):
         addr="/avatar/parameters/" + generate_utils.getBlendParam(region_idx, byte)
         letter_remapped = (-127.5 + letter_encoded[byte]) / 127.5
         client.send_message(addr, letter_remapped)
@@ -149,9 +152,6 @@ def pageMessage(osc_state: OscState, msg: str, estate: EmotesState) -> bool:
         updateRegion(osc_state.client, i, encoded[i])
 
     ellipsis(osc_state.client, False)
-
-    # Wait for parameter sync.
-    time.sleep(SYNC_DELAY_S)
 
 # Like `pageMessage` but uses the built-in chatbox. The built-in chatbox
 # truncates data at about 150 chars, so just send the suffix of the message for
