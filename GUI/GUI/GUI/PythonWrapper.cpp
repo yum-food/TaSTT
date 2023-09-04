@@ -480,7 +480,7 @@ std::future<bool> PythonWrapper::StartApp(
 
 				return InvokeWithArgs({
 					"-u",  // Unbuffered output
-					"Resources/Scripts/transcribe.py",
+					"Resources/Scripts/transcribe_v2.py",
 					"--config", config_path,
 					},
 					std::move(out_cb),

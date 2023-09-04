@@ -70,6 +70,12 @@ namespace WebServer {
 			return false;
 		}
 
+		int optval = 1;
+		if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char*)&optval, sizeof(optval)) == SOCKET_ERROR) {
+			Log(out_, "Failed to setsockopt(SO_REUSEADDR): {}", WSAGetLastError());
+			return 1;
+		}
+
 		u_long enable_nonblock = 1;
 		if (ioctlsocket(sock, FIONBIO, &enable_nonblock) == SOCKET_ERROR) {
 			Log(out_, "Failed to enable non-blocking socket: {}\n", WSAGetLastError());

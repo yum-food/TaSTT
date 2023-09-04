@@ -13,3 +13,6 @@ python-osc
 pyyaml
 sentence_splitter
 transformers>=4.21.0
+
+git+https://github.com/openai/whisper.git 
+scipy

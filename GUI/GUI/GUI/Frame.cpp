@@ -2295,7 +2295,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
 				transcript_.SetFinalized(false);
 			}
 
-			std::regex pattern("^Transcription \\(([0-9]*\\.[0-9]+) seconds\\):");
+            std::regex pattern("^Transcript: ");
 			if (std::regex_search(out_line, pattern)) {
 				std::string filtered_transcript = std::regex_replace(out_line, pattern, "");
 				filtered_transcript.erase(std::remove_if(filtered_transcript.begin(), filtered_transcript.end(), [](char c) {

@@ -50,7 +50,7 @@ class DiskStream(AudioStream):
         else:
             raise NotImplementedError(f"Requested file type {path} " + \
                     "is not supported")
-        print(f"Loading audio data")
+        print(f"Loading audio data", file=sys.stderr)
         audio = AudioSegment.from_file(path, format=fmt)
         audio = audio.set_channels(1)
         # TODO(yum) replace manual decimation code with this!
@@ -60,7 +60,7 @@ class DiskStream(AudioStream):
 
         self.frames = frames
 
-        print(f"Loaded data")
+        print(f"Loaded data", file=sys.stderr)
 
     def getSamples(self) -> bytes:
         # Give out samples at a fixed rate to minimize
@@ -86,7 +86,7 @@ class MicStream(AudioStream):
         # If set, incoming frames are simply discarded.
         self.paused = False
 
-        print(f"Finding mic {which_mic}")
+        print(f"Finding mic {which_mic}", file=sys.stderr)
         self.dumpMicDevices()
 
         got_match = False
@@ -423,7 +423,8 @@ class FuzzyRepeatCommitter:
                 return TranscriptCommit("", preview, None)
             s0 = self.candidates[0]
             if s.wall_ts != s0.wall_ts:
-                print("Frames dropped, committer resetting candidates")
+                print("Frames dropped, committer resetting candidates",
+                        file=sys.stderr)
                 self.candidates = []
                 return TranscriptCommit("", preview, None)
             self.candidates.append(s)
@@ -462,7 +463,8 @@ class FuzzyRepeatCommitter:
         # Got a candidate! Commit it and return.
         self.candidates = []
         latency_s = self.collector.now() - (candidate.wall_ts + candidate.start_ts)
-        self.collector.dropAudioPrefix(candidate.end_ts)
+        # Measured to slightly improve performance in benchmark.
+        self.collector.dropAudioPrefix(candidate.end_ts + 0.10)
 
         return TranscriptCommit(candidate.transcript, preview, latency_s,
                 thresh_at_commit = edit_thresh)
@@ -627,7 +629,7 @@ def transcriptionThread(ctrl: ThreadControl):
         ctrl.transcript += commit.delta
 
         if len(commit.delta):
-            print(f"{ctrl.transcript}")
+            print(f"Transcript: {ctrl.transcript}")
             if cfg["enable_debug_mode"]:
                 print(f"commit latency: {commit.latency_s}", file=sys.stderr)
                 print(f"commit thresh: {commit.thresh_at_commit}", file=sys.stderr)
@@ -715,7 +717,7 @@ def vrInputThread(ctrl: ThreadControl):
                         #audio_state.audio_events.append(audio_state.AUDIO_EVENT_TOGGLE_OFF)
                         pass
                 elif state == PAUSE_STATE:
-                    print("RECORDING")
+                    print("RECORDING", file=sys.stderr)
                     state = RECORD_STATE
                     if not ctrl.cfg["use_builtin"]:
                         ctrl.pager.toggleBoard(True)
@@ -723,12 +725,13 @@ def vrInputThread(ctrl: ThreadControl):
                         ctrl.pager.ellipsis(True)
                     if ctrl.cfg["reset_on_toggle"]:
                         if ctrl.cfg["enable_debug_mode"]:
-                            print("Toggle detected, dropping transcript (3)")
+                            print("Toggle detected, dropping transcript (3)",
+                                    file=sys.stderr)
                         ctrl.transcript = ""
                         #audio_state.drop_transcription = True
                     else:
                         if ctrl.cfg["enable_debug_mode"]:
-                            print("Toggle detected, committing preview text (3)")
+                            print("Toggle detected, committing preview text (3)", file=sys.stderr)
                         #audio_state.text += audio_state.preview_text
 
                     ctrl.stream.pause(False)
