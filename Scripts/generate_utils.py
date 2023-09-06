@@ -30,12 +30,6 @@ config = Config()
 def getDummyParam():
     return "TaSTT_Dummy"
 
-def getHipToggleParam():
-    return "TaSTT_Hip_Toggle"
-
-def getHandToggleParam():
-    return "TaSTT_Hand_Toggle"
-
 def getToggleParam():
     return "TaSTT_Toggle"
 
