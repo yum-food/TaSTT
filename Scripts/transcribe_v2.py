@@ -9,6 +9,7 @@ from emotes_v2 import EmotesState
 import app_config
 import argparse
 import editdistance
+import keybind_event_machine
 import langcodes
 import math
 import numpy as np
@@ -307,16 +308,20 @@ class CompressingAudioCollector(AudioCollectorFilter):
         return frames
 
 class AudioSegmenter:
-    def __init__(self):
+    def __init__(self,
+            min_silence_ms=500):
+        self.vad_options = vad.VadOptions(
+                min_silence_duration_ms=min_silence_ms)
         pass
 
     def segmentAudio(self, audio: bytes):
         audio = np.frombuffer(audio,
                 dtype=np.int16).flatten().astype(np.float32) / 32768.0
-        return vad.get_speech_timestamps(audio)
+        return vad.get_speech_timestamps(audio, vad_options=self.vad_options)
 
-    def getStableCutoff(self, audio: bytes, min_delta_s = 1.5) -> int:
-        min_delta_frames = min_delta_s * AudioStream.FPS
+    def getStableCutoff(self, audio: bytes) -> int:
+        min_delta_frames = int((self.vad_options.min_silence_duration_ms *
+                AudioStream.FPS) / 1000)
         cutoff = None
 
         last_end = None
@@ -330,7 +335,7 @@ class AudioSegmenter:
                 delta_frames = s['start'] - last_end
                 #print(f"delta frames: {delta_frames}")
                 if delta_frames > min_delta_frames:
-                    cutoff = s['start'] - int(min_delta_frames / 2)
+                    cutoff = s['start']
             else:
                 last_end = s['end']
 
@@ -444,10 +449,11 @@ class TranscriptCommit:
 class VadCommitter:
     def __init__(self,
             collector: AudioCollector,
-            whisper: Whisper):
+            whisper: Whisper,
+            segmenter: AudioSegmenter):
         self.collector = collector
         self.whisper = whisper
-        self.segmenter = AudioSegmenter()
+        self.segmenter = segmenter
 
     def getDelta(self) -> TranscriptCommit:
         audio = self.collector.getAudio()
@@ -515,13 +521,13 @@ def evaluate(cfg,
     collector = AudioCollector(stream)
     collector = CompressingAudioCollector(collector)
     whisper = Whisper(collector, cfg)
-    com = None
-    com = VadCommitter(collector, whisper)
+    segmenter = AudioSegmenter(min_silence_ms=500)
+    committer = VadCommitter(collector, whisper, segmenter)
     transcript = ""
     commits = []
 
     while len(stream.frames) > 0:
-        commit = com.getDelta()
+        commit = committer.getDelta()
 
         if len(stream.frames) == 0:
             commit.delta = commit.preview
@@ -614,10 +620,10 @@ def transcriptionThread(ctrl: ThreadControl):
 
         commit = ctrl.committer.getDelta()
 
-        if False:
-            print(f"Transcript: {ctrl.transcript}{commit.delta}{commit.preview}")
+        if True:
+            print(f"Transcript: {ctrl.transcript}{commit.delta}[{commit.preview}]")
 
-        if len(commit.delta):
+        if False and len(commit.delta):
             print(f"Transcript: {ctrl.transcript}{commit.delta}{commit.preview}")
             if cfg["enable_debug_mode"]:
                 print(f"commit latency: {commit.latency_s}", file=sys.stderr)
@@ -678,7 +684,7 @@ def vrInputThread(ctrl: ThreadControl):
 
             elif now - last_rising > 0.5:
                 # Medium press
-                print("CLEARING")
+                print("CLEARING", file=sys.stderr)
                 last_medium_press_end = now
                 state = PAUSE_STATE
 
@@ -697,7 +703,7 @@ def vrInputThread(ctrl: ThreadControl):
             else:
                 # Short hold
                 if state == RECORD_STATE:
-                    print("PAUSED")
+                    print("PAUSED", file=sys.stderr)
                     state = PAUSE_STATE
                     if not ctrl.cfg["use_builtin"]:
                         ctrl.pager.lockWorld(True)
@@ -734,22 +740,91 @@ def vrInputThread(ctrl: ThreadControl):
                         pass
 
 def kbInputThread(ctrl: ThreadControl):
-    while ctrl.run_app:
+    machine = keybind_event_machine.KeybindEventMachine(ctrl.cfg["keybind"])
+    last_press_time = 0
+
+    # double pressing the keybind
+    double_press_timeout = 0.5
+
+    RECORD_STATE = 0
+    PAUSE_STATE = 1
+    state = PAUSE_STATE
+
+    while ctrl.run_app == True:
         time.sleep(0.01)
+
+        cur_press_time = machine.getNextPressTime()
+        if cur_press_time == 0:
+            continue
+
+        EVENT_SINGLE_PRESS = 0
+        EVENT_DOUBLE_PRESS = 1
+        if last_press_time == 0:
+            event = EVENT_SINGLE_PRESS
+        elif cur_press_time - last_press_time < double_press_timeout:
+            event = EVENT_DOUBLE_PRESS
+        else:
+            event = EVENT_SINGLE_PRESS
+        last_press_time = cur_press_time
+
+        if event == EVENT_DOUBLE_PRESS:
+            print("CLEARING", file=sys.stderr)
+            state = PAUSE_STATE
+
+            if ctrl.cfg["enable_local_beep"]:
+                #audio_state.audio_events.append(audio_state.AUDIO_EVENT_DISMISS)
+                pass
+
+            if not ctrl.cfg["use_builtin"]:
+                ctrl.pager.toggleBoard(False)
+
+            # Flush the *entire* pipeline.
+            ctrl.stream.pause(True)
+            ctrl.stream.getSamples()
+            ctrl.collector.dropAudio()
+            ctrl.pager.clear()
+            continue
+
+        # Short hold
+        if state == RECORD_STATE:
+            print("PAUSED", file=sys.stderr)
+            state = PAUSE_STATE
+            if not ctrl.cfg["use_builtin"]:
+                ctrl.pager.lockWorld(True)
+
+            ctrl.stream.pause(True)
+
+            if ctrl.cfg["enable_local_beep"]:
+                #audio_state.audio_events.append(audio_state.AUDIO_EVENT_TOGGLE_OFF)
+                pass
+        elif state == PAUSE_STATE:
+            print("RECORDING", file=sys.stderr)
+            state = RECORD_STATE
+            if not ctrl.cfg["use_builtin"]:
+                ctrl.pager.toggleBoard(True)
+                ctrl.pager.lockWorld(False)
+                ctrl.pager.ellipsis(True)
+            if ctrl.cfg["reset_on_toggle"]:
+                if ctrl.cfg["enable_debug_mode"]:
+                    print("Toggle detected, dropping transcript (2)")
+                ctrl.transcript = ""
+                ctrl.preview = ""
+            else:
+                if ctrl.cfg["enable_debug_mode"]:
+                    print("Toggle detected, committing preview text (2)")
+                #audio_state.text += audio_state.preview_text
+
+            ctrl.stream.pause(False)
+            ctrl.pager.clear()
+
+            if ctrl.cfg["enable_local_beep"]:
+                #audio_state.audio_events.append(audio_state.AUDIO_EVENT_TOGGLE_ON)
+                pass
 
 def oscThread(ctrl: ThreadControl):
     while ctrl.run_app:
         ctrl.pager.page(ctrl.preview)
         time.sleep(0.01)
-
-def dev_run(cfg):
-    stream = MicStream(cfg["microphone"])
-    collector = AudioCollector(stream)
-    segmenter = AudioSegmenter()
-    while True:
-        audio = collector.getAudio()
-        cutoff = segmenter.getStableCutoff(audio)
-        print(f"audio cutoff: {cutoff}")
 
 def run(cfg):
     stream = MicStream(cfg["microphone"])
@@ -759,7 +834,8 @@ def run(cfg):
     #collector = NormalizingAudioCollector(collector)
     collector = CompressingAudioCollector(collector)
     whisper = Whisper(collector, cfg)
-    committer = VadCommitter(collector, whisper)
+    segmenter = AudioSegmenter(min_silence_ms=500)
+    committer = VadCommitter(collector, whisper, segmenter)
     pager = OscPager(cfg)
 
     ctrl = ThreadControl(cfg)
@@ -813,7 +889,7 @@ if __name__ == "__main__":
                 "Evaluate/vei/control.txt"),
             ]
 
-    if False:
+    if True:
         sum = 0
         for audio, control in experiments:
             sum += evaluate(cfg, audio, control)
@@ -821,5 +897,4 @@ if __name__ == "__main__":
     else:
         #optimize(cfg, experiments)
         run(cfg)
-        #dev_run(cfg)
 
