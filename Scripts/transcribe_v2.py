@@ -22,14 +22,10 @@ import time
 import typing
 import vad
 
-TRANSCRIBE_REQ_RESET_COMMITS = 0
-TRANSCRIBE_REQ_WHOLE_BUFFER = 1
-
 class ThreadControl:
     def __init__(self, cfg):
         self.cfg = cfg
         self.run_app = True
-        self.transcribe_queue = []
 
 class AudioStream():
     FORMAT = pyaudio.paInt16
@@ -613,39 +609,19 @@ def optimize(cfg,
     return optimized_params
 
 def transcriptionThread(ctrl: ThreadControl):
-    commits = []
     while ctrl.run_app:
         op = None
-        while len(ctrl.transcribe_queue) > 0:
-            cur_op = ctrl.transcribe_queue[0]
-            ctrl.transcribe_queue = ctrl.transcribe_queue[1:]
-            if cur_op == TRANSCRIBE_REQ_RESET_COMMITS:
-                commits = []
-                op = None
-                ctrl.transcribe_queue = []
-                break
-            elif cur_op == TRANSCRIBE_REQ_WHOLE_BUFFER:
-                op = TRANSCRIBE_REQ_WHOLE_BUFFER
-        if op == TRANSCRIBE_REQ_WHOLE_BUFFER:
-            print("Retranscribing committed buffers", file=sys.stderr)
-            audio = b''.join(commit.audio for commit in commits)
-            segments = ctrl.whisper.transcribe(audio)
-            # TODO support concatenation
-            ctrl.transcript = "".join([s.transcript for s in segments])
-            ctrl.preview = ctrl.transcript
-            commits = []
 
         commit = ctrl.committer.getDelta()
 
-        if True:
+        if False:
             print(f"Transcript: {ctrl.transcript}{commit.delta}{commit.preview}")
 
-        if False and len(commit.delta):
+        if len(commit.delta):
             print(f"Transcript: {ctrl.transcript}{commit.delta}{commit.preview}")
             if cfg["enable_debug_mode"]:
                 print(f"commit latency: {commit.latency_s}", file=sys.stderr)
                 print(f"commit thresh: {commit.thresh_at_commit}", file=sys.stderr)
-            commits.append(commit)
 
         ctrl.transcript += commit.delta
         ctrl.preview = ctrl.transcript + commit.preview
@@ -722,7 +698,6 @@ def vrInputThread(ctrl: ThreadControl):
                 # Short hold
                 if state == RECORD_STATE:
                     print("PAUSED")
-                    ctrl.transcribe_queue.append(TRANSCRIBE_REQ_WHOLE_BUFFER)
                     state = PAUSE_STATE
                     if not ctrl.cfg["use_builtin"]:
                         ctrl.pager.lockWorld(True)
@@ -735,7 +710,6 @@ def vrInputThread(ctrl: ThreadControl):
                 elif state == PAUSE_STATE:
                     print("RECORDING", file=sys.stderr)
                     state = RECORD_STATE
-                    ctrl.transcribe_queue.append(TRANSCRIBE_REQ_RESET_COMMITS)
                     if not ctrl.cfg["use_builtin"]:
                         ctrl.pager.toggleBoard(True)
                         ctrl.pager.lockWorld(False)
@@ -795,7 +769,6 @@ def run(cfg):
     ctrl.committer = committer
     ctrl.pager = pager
     ctrl.transcript = ""
-    ctrl.transcribe_queue = []
     ctrl.preview = ""
 
     transcribe_audio_thd = threading.Thread(target=transcriptionThread, args=[ctrl])
