@@ -162,6 +162,10 @@ if (-Not (Test-Path curl)) {
   popd > $null
 }
 
+if (-Not (Test-Path "silero-vad")) {
+  git clone "https://github.com/snakers4/silero-vad"
+}
+
 mkdir $install_dir > $null
 mkdir $install_dir/Resources > $null
 cp -Recurse ../Animations TaSTT/Resources/Animations
@@ -179,6 +183,8 @@ cp -Recurse ../UnityAssets TaSTT/Resources/UnityAssets
 cp -Recurse ../BrowserSource TaSTT/Resources/BrowserSource
 cp GUI/x64/$release/GUI.exe TaSTT/TaSTT.exe
 mkdir TaSTT/Resources/Models
+cp "silero-vad/files/silero_vad.onnx" TaSTT/Resources/Models/
+cp "silero-vad/LICENSE" TaSTT/Resources/Models/silero_vad.onnx.LICENSE
 mkdir TaSTT/Resources/Uwu
 cp UwwwuPP/build/Src/Debug/Uwwwu.exe TaSTT/Resources/Uwu/
 cp UwwwuPP/LICENSE TaSTT/Resources/Uwu/

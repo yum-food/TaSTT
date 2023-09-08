@@ -444,7 +444,7 @@ def transcribeAudio(audio_state):
         # Apply filters to transcription
         filtered_text = translated
         if audio_state.cfg["enable_uwu_filter"]:
-            uwu_proc = subprocess.Popen(["Resources/Uwu/Uwwwu.exe", filtered_text],
+            uwu_proc = subprocess.Popen(["Resources/Models/Uwwwu.exe", filtered_text],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE)
             uwu_stdout, uwu_stderr = uwu_proc.communicate()
