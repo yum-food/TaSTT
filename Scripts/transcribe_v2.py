@@ -517,20 +517,19 @@ class OscPager:
         self.next_sync_window = time.time()
 
     def page(self, text):
-        now = time.time()
-        if now < self.next_sync_window:
-            return
         if self.cfg["use_builtin"]:
             osc_ctrl.pageMessageBuiltin(self.osc_state, text)
-            self.next_sync_window = now + 1.5
+            self.bumpSyncWindow(amount_s=1.5)
         else:
-            if self.cfg["enable_debug_mode"]:
-                print(f"page osc data (now={now}, next={now+osc_ctrl.SYNC_DELAY_S})")
             osc_ctrl.pageMessage(self.osc_state, text, EmotesState())
             self.bumpSyncWindow()
 
-    def bumpSyncWindow(self):
-        self.next_sync_window = time.time() + osc_ctrl.SYNC_DELAY_S
+    def bumpSyncWindow(self, amount_s=osc_ctrl.SYNC_DELAY_S):
+        self.next_sync_window = time.time() + amount_s
+
+    def getSyncWindow(self):
+        while time.time() < self.next_sync_window:
+            time.sleep(0.01)
 
     def clear(self):
         osc_ctrl.clear(self.osc_state)
@@ -704,6 +703,7 @@ def vrInputThread(ctrl: ThreadControl):
                 # Long press: treat as the end of transcription.
                 state = PAUSE_STATE
                 if not ctrl.cfg["use_builtin"]:
+                    ctrl.pager.getSyncWindow()
                     ctrl.pager.lockWorld(True)
 
                 ctrl.stream.pause(True)
@@ -730,6 +730,7 @@ def vrInputThread(ctrl: ThreadControl):
                     pass
 
                 if not ctrl.cfg["use_builtin"]:
+                    ctrl.pager.getSyncWindow()
                     ctrl.pager.toggleBoard(False)
 
                 # Flush the *entire* pipeline.
@@ -743,6 +744,7 @@ def vrInputThread(ctrl: ThreadControl):
                     print("PAUSED", file=sys.stderr)
                     state = PAUSE_STATE
                     if not ctrl.cfg["use_builtin"]:
+                        ctrl.pager.getSyncWindow()
                         ctrl.pager.lockWorld(True)
 
                     ctrl.stream.pause(True)
@@ -754,6 +756,7 @@ def vrInputThread(ctrl: ThreadControl):
                     print("RECORDING", file=sys.stderr)
                     state = RECORD_STATE
                     if not ctrl.cfg["use_builtin"]:
+                        ctrl.pager.getSyncWindow()
                         ctrl.pager.toggleBoard(True)
                         ctrl.pager.lockWorld(False)
                         ctrl.pager.ellipsis(True)
@@ -813,6 +816,7 @@ def kbInputThread(ctrl: ThreadControl):
                 pass
 
             if not ctrl.cfg["use_builtin"]:
+                ctrl.pager.getSyncWindow()
                 ctrl.pager.toggleBoard(False)
 
             # Flush the *entire* pipeline.
@@ -827,6 +831,7 @@ def kbInputThread(ctrl: ThreadControl):
             print("PAUSED", file=sys.stderr)
             state = PAUSE_STATE
             if not ctrl.cfg["use_builtin"]:
+                ctrl.pager.getSyncWindow()
                 ctrl.pager.lockWorld(True)
 
             ctrl.stream.pause(True)
@@ -838,6 +843,7 @@ def kbInputThread(ctrl: ThreadControl):
             print("RECORDING", file=sys.stderr)
             state = RECORD_STATE
             if not ctrl.cfg["use_builtin"]:
+                ctrl.pager.getSyncWindow()
                 ctrl.pager.toggleBoard(True)
                 ctrl.pager.lockWorld(False)
                 ctrl.pager.ellipsis(True)
@@ -860,6 +866,7 @@ def kbInputThread(ctrl: ThreadControl):
 
 def oscThread(ctrl: ThreadControl):
     while ctrl.run_app:
+        ctrl.pager.getSyncWindow()
         ctrl.pager.page(ctrl.preview)
         time.sleep(0.01)
 
