@@ -314,7 +314,7 @@ class CompressingAudioCollector(AudioCollectorFilter):
 
 class AudioSegmenter:
     def __init__(self,
-            min_silence_ms=500):
+            min_silence_ms=250):
         self.vad_options = vad.VadOptions(
                 min_silence_duration_ms=min_silence_ms)
         pass
@@ -524,20 +524,29 @@ class OscPager:
             osc_ctrl.pageMessageBuiltin(self.osc_state, text)
             self.next_sync_window = now + 1.5
         else:
+            if self.cfg["enable_debug_mode"]:
+                print(f"page osc data (now={now}, next={now+osc_ctrl.SYNC_DELAY_S})")
             osc_ctrl.pageMessage(self.osc_state, text, EmotesState())
-            self.next_sync_window = now + osc_ctrl.SYNC_DELAY_S
+            self.bumpSyncWindow()
+
+    def bumpSyncWindow(self):
+        self.next_sync_window = time.time() + osc_ctrl.SYNC_DELAY_S
 
     def clear(self):
         osc_ctrl.clear(self.osc_state)
+        self.bumpSyncWindow()
 
     def toggleBoard(self, state: bool):
         osc_ctrl.toggleBoard(self.osc_state.client, state)
+        self.bumpSyncWindow()
 
     def lockWorld(self, state: bool):
         osc_ctrl.lockWorld(self.osc_state.client, state)
+        self.bumpSyncWindow()
 
     def ellipsis(self, state: bool):
         osc_ctrl.ellipsis(self.osc_state.client, state)
+        self.bumpSyncWindow()
 
 def evaluate(cfg,
         audio_path: str,
@@ -547,7 +556,7 @@ def evaluate(cfg,
     collector = AudioCollector(stream)
     collector = CompressingAudioCollector(collector)
     whisper = Whisper(collector, cfg)
-    segmenter = AudioSegmenter(min_silence_ms=500)
+    segmenter = AudioSegmenter(min_silence_ms=250)
     committer = VadCommitter(collector, whisper, segmenter)
     transcript = ""
     commits = []
@@ -648,10 +657,10 @@ def transcriptionThread(ctrl: ThreadControl):
 
         commit = ctrl.committer.getDelta()
 
-        if True:
+        if False:
             print(f"Transcript: {ctrl.transcript}{commit.delta}[{commit.preview}]")
 
-        if False and len(commit.delta):
+        if True and len(commit.delta):
             print(f"Transcript: {ctrl.transcript}{commit.delta}{commit.preview}")
             if cfg["enable_debug_mode"]:
                 print(f"commit latency: {commit.latency_s}", file=sys.stderr)
