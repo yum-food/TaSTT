@@ -72,6 +72,7 @@ public:
 	bool enable_lock_at_spawn;
 	int gpu_idx;
 	int min_silence_duration_ms;
+	int max_speech_duration_s;
 	std::string keybind;
 
 	// Unity and transcription shared settings.

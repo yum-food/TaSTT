@@ -314,9 +314,11 @@ class CompressingAudioCollector(AudioCollectorFilter):
 
 class AudioSegmenter:
     def __init__(self,
-            min_silence_ms=250):
+            min_silence_ms=250,
+            max_speech_s=5):
         self.vad_options = vad.VadOptions(
-                min_silence_duration_ms=min_silence_ms)
+                min_silence_duration_ms=min_silence_ms,
+                max_speech_duration_s=max_speech_s)
         pass
 
     def segmentAudio(self, audio: bytes):
@@ -332,6 +334,7 @@ class AudioSegmenter:
 
         last_end = None
         segments = self.segmentAudio(audio)
+
         for i in range(len(segments)):
             s = segments[i]
             #print(f"s: {s}")
@@ -349,7 +352,8 @@ class AudioSegmenter:
                 now = int(len(audio) / AudioStream.FRAME_SZ)
                 #print(f"now: {now}")
                 #print(f"min d: {min_delta_frames}")
-                if now - s['end'] > min_delta_frames:
+                delta_frames = now - s['end']
+                if delta_frames > min_delta_frames:
                     cutoff = now - int(min_delta_frames / 2)
 
         return (cutoff, len(segments) > 0)
@@ -480,7 +484,7 @@ class VadCommitter:
         delta = ""
         commit_audio = None
         latency_s = None
-        if stable_cutoff:
+        if has_audio and stable_cutoff:
             #print(f"stable cutoff get: {stable_cutoff}", file=sys.stderr)
             latency_s = self.collector.now() - self.collector.begin()
             commit_audio = self.collector.dropAudioPrefixByFrames(stable_cutoff)
@@ -497,13 +501,13 @@ class VadCommitter:
             #saveAudio(commit_audio, filename)
 
         preview = ""
-        if self.cfg["enable_previews"]:
-            if has_audio:
-                segments = self.whisper.transcribe(audio)
-                preview = "".join(s.transcript for s in segments)
-            else:
-                #print("VAD detects no audio, skip transcription", file=sys.stderr)
-                self.collector.keepLast(1.0)
+        if self.cfg["enable_previews"] and has_audio:
+            segments = self.whisper.transcribe(audio)
+            preview = "".join(s.transcript for s in segments)
+
+        if not has_audio:
+            #print("VAD detects no audio, skip transcription", file=sys.stderr)
+            self.collector.keepLast(1.0)
 
         return TranscriptCommit(
                 delta,
@@ -907,7 +911,8 @@ def run(cfg):
     #collector = NormalizingAudioCollector(collector)
     collector = CompressingAudioCollector(collector)
     whisper = Whisper(collector, cfg)
-    segmenter = AudioSegmenter(min_silence_ms=cfg["min_silence_duration_ms"])
+    segmenter = AudioSegmenter(min_silence_ms=cfg["min_silence_duration_ms"],
+            max_speech_s=cfg["max_speech_duration_s"])
     committer = VadCommitter(cfg, collector, whisper, segmenter)
     pager = OscPager(cfg)
 
