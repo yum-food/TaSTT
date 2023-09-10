@@ -2383,6 +2383,16 @@ void Frame::OnAppStart(wxCommandEvent& event) {
 				//Log(transcribe_out_, "Got transcription line! Transcript: \"{}\"", filtered_transcript);
 				transcript_.Set(std::move(filtered_transcript));
 			}
+
+            pattern = std::regex("^Preview: ");
+			if (std::regex_search(out_line, pattern)) {
+				std::string filtered_transcript = std::regex_replace(out_line, pattern, "");
+				filtered_transcript.erase(std::remove_if(filtered_transcript.begin(), filtered_transcript.end(), [](char c) {
+					return c == '\n' || c == '\r';
+					}), filtered_transcript.end());
+				//Log(transcribe_out_, "Got transcription line! Transcript: \"{}\"", filtered_transcript);
+				transcript_.SetPreview(std::move(filtered_transcript));
+			}
 		}
 	};
     auto in_cb = [&](std::string& in) {

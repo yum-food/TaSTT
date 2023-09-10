@@ -11,6 +11,12 @@ void Transcript::Set(std::string&& segment) {
 	segments_.push_back(std::move(segment));
 }
 
+void Transcript::SetPreview(std::string&& segment) {
+	std::scoped_lock l(mu_);
+	previews_.clear();
+	previews_.push_back(std::move(segment));
+}
+
 void Transcript::Clear() {
 	std::scoped_lock l(mu_);
 	segments_.clear();
@@ -19,6 +25,11 @@ void Transcript::Clear() {
 std::vector<std::string> Transcript::Get() {
 	std::scoped_lock l(mu_);
 	return segments_;
+}
+
+std::vector<std::string> Transcript::GetPreview() {
+	std::scoped_lock l(mu_);
+	return previews_;
 }
 
 void Transcript::SetFinalized(bool is_finalized) {

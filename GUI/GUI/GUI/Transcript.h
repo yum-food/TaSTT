@@ -11,6 +11,7 @@ public:
 
 	void Append(std::string&& segment);
 	void Set(std::string&& segment);
+	void SetPreview(std::string&& segment);
 	void Clear();
 
 	// Indicate whether the transcript is "finalized", i.e. the transcription
@@ -19,10 +20,12 @@ public:
 	void SetFinalized(bool is_finalized);
 
 	std::vector<std::string> Get();
+	std::vector<std::string> GetPreview();
 	bool IsFinalized();
 
 private:
 	std::mutex mu_;
 	std::vector<std::string> segments_;
+	std::vector<std::string> previews_;
 	bool is_finalized_{ false };
 };

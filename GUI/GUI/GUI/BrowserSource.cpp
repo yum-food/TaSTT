@@ -55,11 +55,23 @@ void BrowserSource::Run(volatile bool* run)
 				transcript_oss << segment;
 			}
 
+			std::ostringstream preview_oss;
+			std::vector<std::string> preview = transcript_->GetPreview();
+			// Hack: escape transcription to work inside JSON blob.
+			for (auto& segment : preview) {
+				size_t pos;
+				while ((pos = segment.find('"')) != std::string::npos) {
+					segment[pos] = '\'';
+				}
+				preview_oss << segment;
+			}
+
 			bool is_final = transcript_->IsFinalized();
 
 			std::ostringstream resp_oss;
 			resp_oss << "{";
 			resp_oss << "\"transcript\":\"" << transcript_oss.str() << "\",";
+			resp_oss << "\"preview\":\"" << preview_oss.str() << "\",";
 			resp_oss << "\"is_final\":" << std::to_string(is_final ? 1 : 0) << "";
 			resp_oss << "}";
 			payload = resp_oss.str();
