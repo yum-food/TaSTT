@@ -456,7 +456,7 @@ class TranscriptCommit:
 
 def saveAudio(audio: bytes, path: str):
     with wave.open(path, 'wb') as wf:
-        print(f"Saving audio to {path}")
+        print(f"Saving audio to {path}", file=sys.stderr)
         wf.setnchannels(AudioStream.CHANNELS)
         wf.setsampwidth(AudioStream.FRAME_SZ)
         wf.setframerate(AudioStream.FPS)
@@ -481,15 +481,15 @@ class VadCommitter:
         commit_audio = None
         latency_s = None
         if stable_cutoff:
-            #print(f"stable cutoff get: {stable_cutoff}")
+            #print(f"stable cutoff get: {stable_cutoff}", file=sys.stderr)
             latency_s = self.collector.now() - self.collector.begin()
             commit_audio = self.collector.dropAudioPrefixByFrames(stable_cutoff)
 
             segments = self.whisper.transcribe(commit_audio)
             for s in segments:
-                print(f"commit segment: {s}")
+                print(f"commit segment: {s}", file=sys.stderr)
             delta = ''.join(s.transcript for s in segments)
-            print(f"delta get: {delta}")
+            print(f"delta get: {delta}", file=sys.stderr)
             audio = self.collector.getAudio()
 
             #ts = datetime.fromtimestamp(self.collector.now() - latency_s)
@@ -502,7 +502,7 @@ class VadCommitter:
                 segments = self.whisper.transcribe(audio)
                 preview = "".join(s.transcript for s in segments)
             else:
-                #print("VAD detects no audio, skip transcription")
+                #print("VAD detects no audio, skip transcription", file=sys.stderr)
                 self.collector.keepLast(1.0)
 
         return TranscriptCommit(
@@ -572,7 +572,7 @@ def evaluate(cfg,
             break
 
         if len(commit.delta) > 0:
-            print(f"Commit latency: {commit.latency_s}")
+            print(f"Commit latency: {commit.latency_s}", file=sys.stderr)
             commits.append(commit)
             last_commit_ts = collector.now()
 
@@ -580,9 +580,9 @@ def evaluate(cfg,
         preview = commit.preview
 
         if False and len(commit.delta):
-            print(f"transcript: {transcript}")
-            print(f"commit latency: {commit.latency_s}")
-            print(f"commit thresh: {commit.thresh_at_commit}")
+            print(f"transcript: {transcript}", file=sys.stderr)
+            print(f"commit latency: {commit.latency_s}", file=sys.stderr)
+            print(f"commit thresh: {commit.thresh_at_commit}", file=sys.stderr)
 
     with open(control_path, "r") as f:
         control = f.read()
@@ -597,14 +597,14 @@ def evaluate(cfg,
 
     dist = editdistance.eval(control, experiment)
 
-    print(f"RESULTS")
-    print(f"edit distance: {dist}")
-    print(f"avg latency: {avg_latency}")
-    print(f"num commits: {len(commits)}")
-    print(f"final transcript: {transcript}")
+    print(f"RESULTS", file=sys.stderr)
+    print(f"edit distance: {dist}", file=sys.stderr)
+    print(f"avg latency: {avg_latency}", file=sys.stderr)
+    print(f"num commits: {len(commits)}", file=sys.stderr)
+    print(f"final transcript: {transcript}", file=sys.stderr)
 
     score = (3 + (dist/len(control)) * 100) * avg_latency
-    print(f"score: {score}")
+    print(f"score: {score}", file=sys.stderr)
     return score
 
 def optimize(cfg,
@@ -645,12 +645,13 @@ def optimize(cfg,
 
     optimized_params = result.x
 
-    print("Optimized Parameters:")
-    print(f"last_n_must_match: {int(optimized_params[0])}")
-    print(f"edit_thresh_min: {optimized_params[1]}")
-    print(f"edit_thresh_grow_begin_s: {optimized_params[2]}")
-    print(f"edit_thresh_grow_halflife_s: {optimized_params[3]}")
-    print(f"min_segment_age_s: {optimized_params[4]}")
+    print("Optimized Parameters:", file=sys.stderr)
+    print(f"last_n_must_match: {int(optimized_params[0])}", file=sys.stderr)
+    print(f"edit_thresh_min: {optimized_params[1]}", file=sys.stderr)
+    print(f"edit_thresh_grow_begin_s: {optimized_params[2]}", file=sys.stderr)
+    print(f"edit_thresh_grow_halflife_s: {optimized_params[3]}",
+            file=sys.stderr)
+    print(f"min_segment_age_s: {optimized_params[4]}", file=sys.stderr)
 
     return optimized_params
 
@@ -660,14 +661,16 @@ def transcriptionThread(ctrl: ThreadControl):
 
         commit = ctrl.committer.getDelta()
 
-        if False:
-            print(f"Transcript: {ctrl.transcript}{commit.delta}[{commit.preview}]")
-
-        if True and len(commit.delta):
+        if len(commit.delta) > 0 or len(commit.preview) > 0:
             print(f"Transcript: {ctrl.transcript}{commit.delta}{commit.preview}")
             if cfg["enable_debug_mode"]:
                 print(f"commit latency: {commit.latency_s}", file=sys.stderr)
-                print(f"commit thresh: {commit.thresh_at_commit}", file=sys.stderr)
+                print(f"commit thresh: {commit.thresh_at_commit}",
+                        file=sys.stderr)
+            if len(commit.preview) > 0:
+                print("Finalized: 0")
+            else:
+                print("Finalized: 1")
 
         ctrl.transcript += commit.delta
         ctrl.preview = ctrl.transcript + commit.preview
@@ -857,12 +860,14 @@ def kbInputThread(ctrl: ThreadControl):
                 ctrl.pager.ellipsis(True)
             if ctrl.cfg["reset_on_toggle"]:
                 if ctrl.cfg["enable_debug_mode"]:
-                    print("Toggle detected, dropping transcript (2)")
+                    print("Toggle detected, dropping transcript (2)",
+                            file=sys.stderr)
                 ctrl.transcript = ""
                 ctrl.preview = ""
             else:
                 if ctrl.cfg["enable_debug_mode"]:
-                    print("Toggle detected, committing preview text (2)")
+                    print("Toggle detected, committing preview text (2)",
+                            file=sys.stderr)
                 #audio_state.text += audio_state.preview_text
 
             ctrl.stream.pause(False)
@@ -921,15 +926,15 @@ def run(cfg):
             break
 
     ctrl.run_app = False
-    print("Join transcription thread")
+    print("Join transcription thread", file=sys.stderr)
     transcribe_audio_thd.join()
-    print("Join vr input thread")
+    print("Join vr input thread", file=sys.stderr)
     vr_input_thd.join()
-    print("Join kb input thread")
+    print("Join kb input thread", file=sys.stderr)
     kb_input_thd.join()
-    print("Join osc thread")
+    print("Join osc thread", file=sys.stderr)
     osc_thd.join()
-    print("Done")
+    print("Done", file=sys.stderr)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -950,9 +955,9 @@ if __name__ == "__main__":
     if False:
         sum = 0
         for audio, control in experiments:
-            print(f"Run experiment {audio} :: {control}")
+            print(f"Run experiment {audio} :: {control}", file=sys.stderr)
             sum += evaluate(cfg, audio, control)
-        print(f"Total score: {sum}")
+        print(f"Total score: {sum}", file=sys.stderr)
     else:
         #optimize(cfg, experiments)
         run(cfg)
