@@ -87,6 +87,7 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	gpu_idx(0),
 	min_silence_duration_ms(250),
 	max_speech_duration_s(5),
+	transcription_loop_delay_ms(100),
 	keybind("ctrl+x"),
 
 	chars_per_sync(8),
@@ -131,6 +132,7 @@ bool AppConfig::Serialize(const std::filesystem::path& path) {
 	cm.Set("gpu_idx", gpu_idx);
 	cm.Set("min_silence_duration_ms", min_silence_duration_ms);
 	cm.Set("max_speech_duration_s", max_speech_duration_s);
+	cm.Set("transcription_loop_delay_ms", transcription_loop_delay_ms);
 	cm.Set("keybind", keybind);
 
 	cm.Set("chars_per_sync", chars_per_sync);
@@ -188,6 +190,7 @@ bool AppConfig::Deserialize(const std::filesystem::path& path) {
 	cm.Get("gpu_idx", c.gpu_idx);
 	cm.Get("min_silence_duration_ms", c.min_silence_duration_ms);
 	cm.Get("max_speech_duration_s", c.max_speech_duration_s);
+	cm.Get("transcription_loop_delay_ms", c.transcription_loop_delay_ms);
 	cm.Get("keybind", c.keybind);
 
 	cm.Get("chars_per_sync", c.chars_per_sync);

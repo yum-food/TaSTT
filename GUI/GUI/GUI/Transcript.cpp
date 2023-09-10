@@ -20,6 +20,7 @@ void Transcript::SetPreview(std::string&& segment) {
 void Transcript::Clear() {
 	std::scoped_lock l(mu_);
 	segments_.clear();
+	previews_.clear();
 }
 
 std::vector<std::string> Transcript::Get() {

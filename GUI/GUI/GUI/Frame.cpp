@@ -77,6 +77,7 @@ namespace {
         ID_PY_APP_GPU_IDX,
         ID_PY_APP_MIN_SILENCE_DURATION_MS,
         ID_PY_APP_MAX_SPEECH_DURATION_S,
+        ID_PY_APP_TRANSCRIPTION_LOOP_DELAY_MS,
         ID_PY_APP_KEYBIND,
         ID_PY_APP_BROWSER_SRC_PORT,
         ID_PY_APP_COMMIT_FUZZ_THRESHOLD,
@@ -775,6 +776,16 @@ Frame::Frame()
                         "milliseconds.");
 					py_app_max_speech_duration_s_ = py_app_max_speech_duration_s;
 
+					auto* py_app_transcription_loop_delay_ms = new wxTextCtrl(
+                        py_app_config_panel_pairs, ID_PY_APP_TRANSCRIPTION_LOOP_DELAY_MS,
+                        std::to_string(app_c_->transcription_loop_delay_ms), wxDefaultPosition,
+						wxDefaultSize, /*style=*/0);
+                    py_app_transcription_loop_delay_ms->SetToolTip(
+						"The amount of time, in milliseconds, that the "
+                        "application will sleep between every subsequent "
+                        "transcription.");
+					py_app_transcription_loop_delay_ms_ = py_app_transcription_loop_delay_ms;
+
 					auto* py_app_keybind = new wxTextCtrl(
 						py_app_config_panel_pairs, ID_PY_APP_KEYBIND,
 						app_c_->keybind, wxDefaultPosition,
@@ -867,6 +878,11 @@ Frame::Frame()
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs,
                         wxID_ANY, /*label=*/"Maximum speech duration (s):"));
                     sizer->Add(py_app_max_speech_duration_s, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Transcription loop delay (ms):"));
+                    sizer->Add(py_app_transcription_loop_delay_ms, /*proportion=*/0,
                         /*flags=*/wxEXPAND);
 
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs,
@@ -1570,6 +1586,10 @@ void Frame::ApplyConfigToInputFields()
 	auto* py_app_max_speech_duration_s = static_cast<wxTextCtrl*>(FindWindowById(ID_PY_APP_MAX_SPEECH_DURATION_S));
 	py_app_max_speech_duration_s->Clear();
 	py_app_max_speech_duration_s->AppendText(std::to_string(app_c_->max_speech_duration_s));
+
+	auto* py_app_transcription_loop_delay_ms = static_cast<wxTextCtrl*>(FindWindowById(ID_PY_APP_TRANSCRIPTION_LOOP_DELAY_MS));
+	py_app_transcription_loop_delay_ms->Clear();
+	py_app_transcription_loop_delay_ms->AppendText(std::to_string(app_c_->transcription_loop_delay_ms));
 
     auto* py_app_enable_local_beep = static_cast<wxCheckBox*>(FindWindowById(ID_PY_APP_ENABLE_LOCAL_BEEP));
     py_app_enable_local_beep->SetValue(app_c_->enable_local_beep);
@@ -2326,6 +2346,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
 	ASSIGN_OR_RETURN_VOID(int, gpu_idx, stoiInRange(transcribe_out_, py_app_gpu_idx_->GetValue().ToStdString(), "gpu_idx", 0, 10));
 	ASSIGN_OR_RETURN_VOID(int, min_silence_duration_ms, stoiInRange(transcribe_out_, py_app_min_silence_duration_ms_->GetValue().ToStdString(), "min_silence_duration_ms", 50, 5000));
 	ASSIGN_OR_RETURN_VOID(int, max_speech_duration_s, stoiInRange(transcribe_out_, py_app_max_speech_duration_s_->GetValue().ToStdString(), "max_speech_duration_s", 1, 30));
+	ASSIGN_OR_RETURN_VOID(int, transcription_loop_delay_ms, stoiInRange(transcribe_out_, py_app_transcription_loop_delay_ms_->GetValue().ToStdString(), "transcription_loop_delay_ms", 0, 10000));
 	ASSIGN_OR_RETURN_VOID(int, browser_src_port, stoiInRange(transcribe_out_, py_app_browser_src_port_->GetValue().ToStdString(), "browser_src_port", 1024, 65535));
 
     std::string keybind = py_app_keybind_->GetValue().ToStdString();
@@ -2357,6 +2378,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     app_c_->gpu_idx = gpu_idx;
     app_c_->min_silence_duration_ms = min_silence_duration_ms;
     app_c_->max_speech_duration_s = max_speech_duration_s;
+    app_c_->transcription_loop_delay_ms = transcription_loop_delay_ms;
     app_c_->keybind = keybind;
     app_c_->Serialize(AppConfig::kConfigPath);
 

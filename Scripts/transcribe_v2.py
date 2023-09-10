@@ -367,7 +367,8 @@ class Segment:
             end_ts: float,
             wall_ts: float,
             avg_logprob: float,
-            no_speech_prob: float):
+            no_speech_prob: float,
+            compression_ratio: float):
         self.transcript = transcript
         # start_ts, end_ts are timestamps in seconds relative to `wall_ts`.
         self.start_ts = start_ts
@@ -377,6 +378,7 @@ class Segment:
         self.wall_ts = wall_ts
         self.avg_logprob = avg_logprob
         self.no_speech_prob = no_speech_prob
+        self.compression_ratio = compression_ratio
 
     def __str__(self):
         ts = f"(ts: {self.start_ts}-{self.end_ts}) "
@@ -438,11 +440,17 @@ class Whisper:
         for s in segments:
             # Manual touchup. I see a decent number of hallucinations sneaking
             # in with high `no_speech_prob` and modest `avg_logprob`.
-            if s.no_speech_prob > 0.8 and s.avg_logprob < -0.5:
+            if s.no_speech_prob > 0.6 and s.avg_logprob < -0.5:
+                continue
+            if cfg["enable_debug_mode"]:
+                print(f"s get: {s}")
+            if s.avg_logprob < -1.0:
+                continue
+            if s.compression_ratio > 2.4:
                 continue
             res.append(Segment(s.text, s.start, s.end,
                 self.collector.begin(),
-                s.avg_logprob, s.no_speech_prob))
+                s.avg_logprob, s.no_speech_prob, s.compression_ratio))
         return res
 
 class TranscriptCommit:
@@ -490,11 +498,12 @@ class VadCommitter:
             commit_audio = self.collector.dropAudioPrefixByFrames(stable_cutoff)
 
             segments = self.whisper.transcribe(commit_audio)
-            for s in segments:
-                print(f"commit segment: {s}", file=sys.stderr)
             delta = ''.join(s.transcript for s in segments)
-            print(f"delta get: {delta}", file=sys.stderr)
             audio = self.collector.getAudio()
+            if cfg["enable_debug_mode"]:
+                for s in segments:
+                    print(f"commit segment: {s}", file=sys.stderr)
+                print(f"delta get: {delta}", file=sys.stderr)
 
             #ts = datetime.fromtimestamp(self.collector.now() - latency_s)
             #filename = str(ts.strftime('%Y_%m_%d__%H-%M-%S')) + ".wav"
@@ -665,7 +674,7 @@ def optimize(cfg,
 
 def transcriptionThread(ctrl: ThreadControl):
     while ctrl.run_app:
-        time.sleep(.005)
+        time.sleep(ctrl.cfg["transcription_loop_delay_ms"] / 1000.0);
 
         op = None
 
