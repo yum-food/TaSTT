@@ -69,6 +69,7 @@ public:
 	bool enable_debug_mode;
 	bool reset_on_toggle;
 	bool enable_previews;
+	bool enable_lock_at_spawn;
 	int gpu_idx;
 	std::string keybind;
 

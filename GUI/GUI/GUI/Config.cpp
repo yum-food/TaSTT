@@ -83,6 +83,7 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	enable_debug_mode(false),
 	reset_on_toggle(true),
 	enable_previews(true),
+	enable_lock_at_spawn(true),
 	gpu_idx(0),
 	keybind("ctrl+x"),
 
@@ -124,6 +125,7 @@ bool AppConfig::Serialize(const std::filesystem::path& path) {
 	cm.Set("enable_debug_mode", enable_debug_mode);
 	cm.Set("reset_on_toggle", reset_on_toggle);
 	cm.Set("enable_previews", enable_previews);
+	cm.Set("enable_lock_at_spawn", enable_lock_at_spawn);
 	cm.Set("gpu_idx", gpu_idx);
 	cm.Set("keybind", keybind);
 
@@ -178,6 +180,7 @@ bool AppConfig::Deserialize(const std::filesystem::path& path) {
 	cm.Get("enable_debug_mode", c.enable_debug_mode);
 	cm.Get("reset_on_toggle", c.reset_on_toggle);
 	cm.Get("enable_previews", c.enable_previews);
+	cm.Get("enable_lock_at_spawn", c.enable_lock_at_spawn);
 	cm.Get("gpu_idx", c.gpu_idx);
 	cm.Get("keybind", c.keybind);
 

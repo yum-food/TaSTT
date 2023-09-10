@@ -713,9 +713,6 @@ def vrInputThread(ctrl: ThreadControl):
             if now - last_rising > 1.5:
                 # Long press: treat as the end of transcription.
                 state = PAUSE_STATE
-                if not ctrl.cfg["use_builtin"]:
-                    ctrl.pager.getSyncWindow()
-                    ctrl.pager.lockWorld(True)
 
                 ctrl.stream.pause(True)
 
@@ -749,12 +746,17 @@ def vrInputThread(ctrl: ThreadControl):
                 ctrl.stream.getSamples()
                 ctrl.collector.dropAudio()
                 ctrl.pager.clear()
+                if ctrl.cfg["enable_lock_at_spawn"]:
+                    # Give the board 0.5 seconds to disappear before unlocking from
+                    # world space.
+                    time.sleep(0.5)
+                    ctrl.pager.lockWorld(False)
             else:
                 # Short hold
                 if state == RECORD_STATE:
                     print("PAUSED", file=sys.stderr)
                     state = PAUSE_STATE
-                    if not ctrl.cfg["use_builtin"]:
+                    if not ctrl.cfg["use_builtin"] and not ctrl.cfg["enable_lock_at_spawn"]:
                         ctrl.pager.getSyncWindow()
                         ctrl.pager.lockWorld(True)
 
@@ -769,7 +771,7 @@ def vrInputThread(ctrl: ThreadControl):
                     if not ctrl.cfg["use_builtin"]:
                         ctrl.pager.getSyncWindow()
                         ctrl.pager.toggleBoard(True)
-                        ctrl.pager.lockWorld(False)
+                        ctrl.pager.lockWorld(ctrl.cfg["enable_lock_at_spawn"])
                         ctrl.pager.ellipsis(True)
                     if ctrl.cfg["reset_on_toggle"]:
                         if ctrl.cfg["enable_debug_mode"]:
@@ -835,13 +837,18 @@ def kbInputThread(ctrl: ThreadControl):
             ctrl.stream.getSamples()
             ctrl.collector.dropAudio()
             ctrl.pager.clear()
+            if ctrl.cfg["enable_lock_at_spawn"]:
+                # Give the board 0.5 seconds to disappear before unlocking from
+                # world space.
+                time.sleep(0.5)
+                ctrl.pager.lockWorld(False)
             continue
 
         # Short hold
         if state == RECORD_STATE:
             print("PAUSED", file=sys.stderr)
             state = PAUSE_STATE
-            if not ctrl.cfg["use_builtin"]:
+            if not ctrl.cfg["use_builtin"] and not ctrl.cfg["enable_lock_at_spawn"]:
                 ctrl.pager.getSyncWindow()
                 ctrl.pager.lockWorld(True)
 
@@ -856,7 +863,7 @@ def kbInputThread(ctrl: ThreadControl):
             if not ctrl.cfg["use_builtin"]:
                 ctrl.pager.getSyncWindow()
                 ctrl.pager.toggleBoard(True)
-                ctrl.pager.lockWorld(False)
+                ctrl.pager.lockWorld(ctrl.cfg["enable_lock_at_spawn"])
                 ctrl.pager.ellipsis(True)
             if ctrl.cfg["reset_on_toggle"]:
                 if ctrl.cfg["enable_debug_mode"]:

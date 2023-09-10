@@ -71,6 +71,7 @@ namespace {
         ID_PY_APP_ENABLE_DEBUG_MODE,
         ID_PY_APP_RESET_ON_TOGGLE,
         ID_PY_APP_ENABLE_PREVIEWS,
+        ID_PY_APP_ENABLE_LOCK_AT_SPAWN,
         ID_PY_APP_ROWS,
         ID_PY_APP_COLS,
         ID_PY_APP_GPU_IDX,
@@ -954,6 +955,15 @@ Frame::Frame()
                 );
                 py_app_enable_previews_ = py_app_enable_previews;
 
+                auto* py_app_enable_lock_at_spawn = new wxCheckBox(py_config_panel,
+                    ID_PY_APP_ENABLE_LOCK_AT_SPAWN, "Lock chatbox at spawn");
+                py_app_enable_lock_at_spawn->SetValue(app_c_->enable_lock_at_spawn);
+                py_app_enable_lock_at_spawn->SetToolTip(
+                    "If checked, the custom chatbox will be locked in world "
+                    "space when spawned. This minimizes the visual "
+                    "disruption for other players.");
+                py_app_enable_lock_at_spawn_ = py_app_enable_lock_at_spawn;
+
                 // Hack: Add newlines before and after the button text to make
                 // the buttons bigger, and easier to click from inside VR.
                 auto* py_app_start_button = new wxButton(py_config_panel,
@@ -970,6 +980,8 @@ Frame::Frame()
                 sizer->Add(py_app_reset_on_toggle, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
                 sizer->Add(py_app_enable_previews, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+                sizer->Add(py_app_enable_lock_at_spawn, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
                 sizer->Add(py_app_enable_browser_src, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
@@ -1554,6 +1566,9 @@ void Frame::ApplyConfigToInputFields()
 
     auto* py_app_enable_previews = static_cast<wxCheckBox*>(FindWindowById(ID_PY_APP_ENABLE_PREVIEWS));
     py_app_enable_previews->SetValue(app_c_->enable_previews);
+
+    auto* py_app_enable_lock_at_spawn = static_cast<wxCheckBox*>(FindWindowById(ID_PY_APP_ENABLE_LOCK_AT_SPAWN));
+    py_app_enable_lock_at_spawn->SetValue(app_c_->enable_lock_at_spawn);
 
     // Unity panel
     auto* unity_assets_path = static_cast<wxDirPickerCtrl*>(FindWindowById(ID_UNITY_ASSETS_FILE_PICKER));
@@ -2262,6 +2277,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     const bool enable_debug_mode = py_app_enable_debug_mode_->GetValue();
     const bool reset_on_toggle = py_app_reset_on_toggle_->GetValue();
     const bool enable_previews = py_app_enable_previews_->GetValue();
+    const bool enable_lock_at_spawn = py_app_enable_lock_at_spawn_->GetValue();
 
 	ASSIGN_OR_RETURN_VOID(int, rows, stoiInRange(transcribe_out_, py_app_rows_->GetValue().ToStdString(), "rows", 1, 10));
 	ASSIGN_OR_RETURN_VOID(int, cols, stoiInRange(transcribe_out_, py_app_cols_->GetValue().ToStdString(), "cols", 1, 120));
@@ -2295,6 +2311,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     app_c_->enable_debug_mode = enable_debug_mode;
     app_c_->reset_on_toggle = reset_on_toggle;
     app_c_->enable_previews = enable_previews;
+    app_c_->enable_lock_at_spawn = enable_lock_at_spawn;
     app_c_->gpu_idx = gpu_idx;
     app_c_->keybind = keybind;
     app_c_->Serialize(AppConfig::kConfigPath);
