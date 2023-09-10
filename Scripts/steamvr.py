@@ -19,6 +19,7 @@ class InputEvent:
 def pollButtonPress(
         hand: str = "right",
         button: str = "b",
+        ctrl = None  # ThreadControl object
         ) -> int:
     hands = {}
     hands["left"] = vr.TrackedControllerRole_LeftHand
@@ -31,7 +32,7 @@ def pollButtonPress(
 
     system = None
     first = True
-    while not system:
+    while ctrl.run_app and not system:
         try:
             system = vr.init(vr.VRApplication_Background)
         except Exception as e:
@@ -42,7 +43,7 @@ def pollButtonPress(
     last_packet = 0
     event_high = False
 
-    while True:
+    while ctrl.run_app:
         time.sleep(0.01)
 
         lh_idx = system.getTrackedDeviceIndexForControllerRole(hands[hand])

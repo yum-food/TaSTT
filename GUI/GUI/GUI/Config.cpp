@@ -82,6 +82,7 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	enable_profanity_filter(false),
 	enable_debug_mode(false),
 	reset_on_toggle(true),
+	enable_previews(true),
 	gpu_idx(0),
 	keybind("ctrl+x"),
 
@@ -122,6 +123,7 @@ bool AppConfig::Serialize(const std::filesystem::path& path) {
 	cm.Set("enable_profanity_filter", enable_profanity_filter);
 	cm.Set("enable_debug_mode", enable_debug_mode);
 	cm.Set("reset_on_toggle", reset_on_toggle);
+	cm.Set("enable_previews", enable_previews);
 	cm.Set("gpu_idx", gpu_idx);
 	cm.Set("keybind", keybind);
 
@@ -175,6 +177,7 @@ bool AppConfig::Deserialize(const std::filesystem::path& path) {
 	cm.Get("enable_profanity_filter", c.enable_profanity_filter);
 	cm.Get("enable_debug_mode", c.enable_debug_mode);
 	cm.Get("reset_on_toggle", c.reset_on_toggle);
+	cm.Get("enable_previews", c.enable_previews);
 	cm.Get("gpu_idx", c.gpu_idx);
 	cm.Get("keybind", c.keybind);
 

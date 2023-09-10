@@ -70,6 +70,7 @@ namespace {
         ID_PY_APP_ENABLE_PROFANITY_FILTER,
         ID_PY_APP_ENABLE_DEBUG_MODE,
         ID_PY_APP_RESET_ON_TOGGLE,
+        ID_PY_APP_ENABLE_PREVIEWS,
         ID_PY_APP_ROWS,
         ID_PY_APP_COLS,
         ID_PY_APP_GPU_IDX,
@@ -942,6 +943,17 @@ Frame::Frame()
                 );
                 py_app_reset_on_toggle_ = py_app_reset_on_toggle;
 
+                auto* py_app_enable_previews = new wxCheckBox(py_config_panel,
+                    ID_PY_APP_ENABLE_PREVIEWS, "Enable previews");
+                py_app_enable_previews->SetValue(app_c_->enable_previews);
+                py_app_enable_previews->SetToolTip(
+                    "If checked, audio that has not yet stabilized will also "
+                    "be transcribed and shown. Turn this off if you're on a "
+                    "resource-constrained system or if transcription is "
+                    "running slowly."
+                );
+                py_app_enable_previews_ = py_app_enable_previews;
+
                 // Hack: Add newlines before and after the button text to make
                 // the buttons bigger, and easier to click from inside VR.
                 auto* py_app_start_button = new wxButton(py_config_panel,
@@ -956,6 +968,8 @@ Frame::Frame()
                 sizer->Add(py_app_config_panel_pairs, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
                 sizer->Add(py_app_reset_on_toggle, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+                sizer->Add(py_app_enable_previews, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
                 sizer->Add(py_app_enable_browser_src, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
@@ -1538,6 +1552,9 @@ void Frame::ApplyConfigToInputFields()
     auto* py_app_reset_on_toggle = static_cast<wxCheckBox*>(FindWindowById(ID_PY_APP_RESET_ON_TOGGLE));
     py_app_reset_on_toggle->SetValue(app_c_->reset_on_toggle);
 
+    auto* py_app_enable_previews = static_cast<wxCheckBox*>(FindWindowById(ID_PY_APP_ENABLE_PREVIEWS));
+    py_app_enable_previews->SetValue(app_c_->enable_previews);
+
     // Unity panel
     auto* unity_assets_path = static_cast<wxDirPickerCtrl*>(FindWindowById(ID_UNITY_ASSETS_FILE_PICKER));
     unity_assets_path->SetPath(app_c_->assets_path);
@@ -1574,7 +1591,6 @@ void Frame::OnExit(wxCloseEvent& event)
 {
     OnAppStop();
     OnUnityAutoRefreshStop();
-    // Allow default close processing to continue.
     event.Skip();
 }
 
@@ -2245,6 +2261,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     const bool enable_profanity_filter = py_app_enable_profanity_filter_->GetValue();
     const bool enable_debug_mode = py_app_enable_debug_mode_->GetValue();
     const bool reset_on_toggle = py_app_reset_on_toggle_->GetValue();
+    const bool enable_previews = py_app_enable_previews_->GetValue();
 
 	ASSIGN_OR_RETURN_VOID(int, rows, stoiInRange(transcribe_out_, py_app_rows_->GetValue().ToStdString(), "rows", 1, 10));
 	ASSIGN_OR_RETURN_VOID(int, cols, stoiInRange(transcribe_out_, py_app_cols_->GetValue().ToStdString(), "cols", 1, 120));
@@ -2277,6 +2294,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     app_c_->enable_profanity_filter = enable_profanity_filter;
     app_c_->enable_debug_mode = enable_debug_mode;
     app_c_->reset_on_toggle = reset_on_toggle;
+    app_c_->enable_previews = enable_previews;
     app_c_->gpu_idx = gpu_idx;
     app_c_->keybind = keybind;
     app_c_->Serialize(AppConfig::kConfigPath);
@@ -2306,7 +2324,13 @@ void Frame::OnAppStart(wxCommandEvent& event) {
 			}
 		}
 	};
-    auto in_cb = [&](std::string& in) {};
+    auto in_cb = [&](std::string& in) {
+        if (!run_py_app_) {
+            std::ostringstream oss;
+            oss << "exit" << std::endl;
+            in = oss.str();
+        }
+    };
     auto run_cb = [&]() {
         return run_py_app_;
     };
@@ -2338,7 +2362,7 @@ void Frame::OnAppStop() {
     }
     else {
 		py_app_.wait();
-		Log(transcribe_out_, "Stopped transcription engine\n");
+        Log(transcribe_out_, "Stopped transcription engine\n");
     }
     status = obs_app_.wait_for(std::chrono::seconds(0));
     if (status == std::future_status::ready) {
@@ -2346,7 +2370,7 @@ void Frame::OnAppStop() {
     }
     else {
 		obs_app_.wait();
-		Log(transcribe_out_, "Stopped browser source\n");
+        Log(transcribe_out_, "Stopped browser source\n");
     }
     transcript_.Clear();
 }

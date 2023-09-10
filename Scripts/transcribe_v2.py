@@ -428,6 +428,7 @@ class Whisper:
                 audio,
                 language = langcodes.find(self.cfg["language"]).language,
                 vad_filter = True,
+                temperature=0.0,
                 without_timestamps = False)
         res = []
         for s in segments:
@@ -463,9 +464,11 @@ def saveAudio(audio: bytes, path: str):
 
 class VadCommitter:
     def __init__(self,
+            cfg: typing.Dict,
             collector: AudioCollector,
             whisper: Whisper,
             segmenter: AudioSegmenter):
+        self.cfg = cfg
         self.collector = collector
         self.whisper = whisper
         self.segmenter = segmenter
@@ -486,7 +489,7 @@ class VadCommitter:
             for s in segments:
                 print(f"commit segment: {s}")
             delta = ''.join(s.transcript for s in segments)
-            #print(f"delta get: {delta}")
+            print(f"delta get: {delta}")
             audio = self.collector.getAudio()
 
             #ts = datetime.fromtimestamp(self.collector.now() - latency_s)
@@ -494,12 +497,13 @@ class VadCommitter:
             #saveAudio(commit_audio, filename)
 
         preview = ""
-        if has_audio:
-            segments = self.whisper.transcribe(audio)
-            preview = "".join(s.transcript for s in segments)
-        else:
-            #print("VAD detects no audio, skip transcription")
-            self.collector.keepLast(1.0)
+        if self.cfg["enable_previews"]:
+            if has_audio:
+                segments = self.whisper.transcribe(audio)
+                preview = "".join(s.transcript for s in segments)
+            else:
+                #print("VAD detects no audio, skip transcription")
+                self.collector.keepLast(1.0)
 
         return TranscriptCommit(
                 delta,
@@ -556,7 +560,7 @@ def evaluate(cfg,
     collector = CompressingAudioCollector(collector)
     whisper = Whisper(collector, cfg)
     segmenter = AudioSegmenter(min_silence_ms=250)
-    committer = VadCommitter(collector, whisper, segmenter)
+    committer = VadCommitter(cfg, collector, whisper, segmenter)
     transcript = ""
     commits = []
     last_commit_ts = None
@@ -685,10 +689,14 @@ def vrInputThread(ctrl: ThreadControl):
     last_rising = time.time()
     last_medium_press_end = 0
 
-    button_generator = steamvr.pollButtonPress(hand=hand_id, button=button_id)
+    button_generator = steamvr.pollButtonPress(hand=hand_id, button=button_id,
+            ctrl=ctrl)
     while ctrl.run_app:
         time.sleep(0.01)
-        event = next(button_generator)
+        try:
+            event = next(button_generator)
+        except StopIteration:
+            break
 
         if event.opcode == steamvr.EVENT_RISING_EDGE:
             last_rising = time.time()
@@ -790,7 +798,7 @@ def kbInputThread(ctrl: ThreadControl):
     PAUSE_STATE = 1
     state = PAUSE_STATE
 
-    while ctrl.run_app == True:
+    while ctrl.run_app:
         time.sleep(0.01)
 
         cur_press_time = machine.getNextPressTime()
@@ -879,7 +887,7 @@ def run(cfg):
     collector = CompressingAudioCollector(collector)
     whisper = Whisper(collector, cfg)
     segmenter = AudioSegmenter(min_silence_ms=250)
-    committer = VadCommitter(collector, whisper, segmenter)
+    committer = VadCommitter(cfg, collector, whisper, segmenter)
     pager = OscPager(cfg)
 
     ctrl = ThreadControl(cfg)
@@ -909,13 +917,19 @@ def run(cfg):
 
     for line in sys.stdin:
         if "exit" in line or "quit" in line:
+            print("Exit requested", file=sys.stderr)
             break
 
     ctrl.run_app = False
+    print("Join transcription thread")
     transcribe_audio_thd.join()
+    print("Join vr input thread")
     vr_input_thd.join()
+    print("Join kb input thread")
     kb_input_thd.join()
+    print("Join osc thread")
     osc_thd.join()
+    print("Done")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

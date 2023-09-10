@@ -68,6 +68,7 @@ public:
 	bool enable_profanity_filter;
 	bool enable_debug_mode;
 	bool reset_on_toggle;
+	bool enable_previews;
 	int gpu_idx;
 	std::string keybind;
 

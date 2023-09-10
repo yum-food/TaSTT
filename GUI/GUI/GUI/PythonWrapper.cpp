@@ -320,7 +320,16 @@ bool PythonWrapper::InvokeCommandWithArgs(const std::string& cmd,
 		}
 	}
 	if (!run_cb()) {
-		return false;
+		DWORD timeout_ms = 1000 * 10;
+		DWORD ret = WaitForSingleObject(pi.hProcess, timeout_ms);
+
+		if (ret == WAIT_TIMEOUT) {
+			std::ostringstream stderr_oss;
+			stderr_oss << "Timed out waiting for graceful exit, killing process";
+			out_cb("", stderr_oss.str());
+
+			TerminateProcess(pi.hProcess, 0);
+		}
 	}
 
 	std::ostringstream stdout_oss, stderr_oss;
