@@ -566,6 +566,8 @@ def evaluate(cfg,
     last_commit_ts = None
 
     while True:
+        time.sleep(.005)
+
         commit = committer.getDelta()
 
         if last_commit_ts != None and collector.now() - last_commit_ts > 30:
@@ -577,6 +579,8 @@ def evaluate(cfg,
             last_commit_ts = collector.now()
 
         transcript += commit.delta
+        # Hard-cap transcript length at 4k.
+        transcript = transcript[-4096:]
         preview = commit.preview
 
         if False and len(commit.delta):
@@ -657,6 +661,8 @@ def optimize(cfg,
 
 def transcriptionThread(ctrl: ThreadControl):
     while ctrl.run_app:
+        time.sleep(.005)
+
         op = None
 
         commit = ctrl.committer.getDelta()
@@ -673,6 +679,9 @@ def transcriptionThread(ctrl: ThreadControl):
                 print("Finalized: 1")
 
         ctrl.transcript += commit.delta
+        # Hard-cap transcript length at 4k characters to prevent runaway memory
+        # use.
+        ctrl.transcript = ctrl.transcript[-4096:]
         ctrl.preview = ctrl.transcript + commit.preview
 
 def vrInputThread(ctrl: ThreadControl):

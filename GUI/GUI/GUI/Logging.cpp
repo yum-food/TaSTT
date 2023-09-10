@@ -10,6 +10,7 @@
 #include <wx/tokenzr.h>
 #include <wx/txtstrm.h>
 
+#include <filesystem>
 #include <fstream>
 #include <regex>
 #include <sstream>
@@ -34,7 +35,8 @@ void Logging::ThreadLogger::Append(wxTextCtrl* frame, const std::string&& messag
 void Logging::ThreadLogger::Drain()
 {
 	std::scoped_lock l(mu_);
-	std::ofstream log_ofs("Resources/log.txt", std::ios_base::app);
+	const std::filesystem::path log_path("Resources/log.txt");
+	std::ofstream log_ofs(log_path, std::ios_base::app);
 	for (const auto& [frame, messages] : messages_) {
 		for (const auto& message : messages) {
 			if (frame) {
@@ -46,14 +48,15 @@ void Logging::ThreadLogger::Drain()
 			log_ofs << message;
 		}
 
-		// Constrain wxTextCtrl's to 1000 lines to keep memory in check.
+		// Constrain wxTextCtrl's to 100-200 lines to keep memory usage /
+		// general snappiness in check.
 		if (frame) {
 			wxString allText = frame->GetValue();
 			wxArrayString lines = wxStringTokenize(allText, "\n");
 			size_t count = lines.GetCount();
-			if (count > 2000) {
-				// Keep only the last 1000 lines.
-				size_t linesToRemove = count - 1000;
+			if (count > 200) {
+				// Keep only the last 100 lines.
+				size_t linesToRemove = count - 100;
 
 				// Remove lines from the beginning
 				lines.RemoveAt(0, linesToRemove);
@@ -67,9 +70,22 @@ void Logging::ThreadLogger::Drain()
 			}
 		}
 	}
-
 	log_ofs.close();
 	messages_.clear();
+
+	// Drop first 50% of lines in file if larger than 1 MB.
+	if (std::filesystem::file_size(log_path) > 1024 * 1024) {
+		std::vector<std::string> lines;
+		std::ifstream log_ifs(log_path);
+		std::string line;
+		while (std::getline(log_ifs, line)) {
+			lines.push_back(std::move(line));
+		}
+		log_ofs = std::ofstream(log_path);
+		for (int i = lines.size() / 2; i < lines.size(); i++) {
+			log_ofs << lines[i];
+		}
+	}
 }
 
 std::string Logging::HidePII(const std::string&& str,
