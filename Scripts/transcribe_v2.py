@@ -13,6 +13,7 @@ import argparse
 import ctranslate2
 import editdistance
 import keybind_event_machine
+import keyboard
 import langcodes
 import lang_compat
 import math
@@ -29,6 +30,7 @@ import transformers
 import typing
 import vad
 import wave
+import winsound
 
 class ThreadControl:
     def __init__(self, cfg):
@@ -537,7 +539,7 @@ class Plugin:
     def transform(self, commit: TranscriptCommit) -> TranscriptCommit:
         return commit
 
-    def stop():
+    def stop(self):
         pass
 
 class TranslationPlugin(Plugin):
@@ -897,6 +899,11 @@ def vrInputThread(ctrl: ThreadControl):
     last_rising = time.time()
     last_medium_press_end = 0
 
+    waveform0 =  os.path.abspath("Resources/Sounds/Noise_On_Quiet.wav")
+    waveform1 =  os.path.abspath("Resources/Sounds/Noise_Off_Quiet.wav")
+    waveform2 =  os.path.abspath("Resources/Sounds/Dismiss_Noise_Quiet.wav")
+    waveform3 =  os.path.abspath("Resources/Sounds/KB_Noise_Off_Quiet.wav")
+
     button_generator = steamvr.pollButtonPress(hand=hand_id, button=button_id,
             ctrl=ctrl)
     while ctrl.run_app:
@@ -924,12 +931,14 @@ def vrInputThread(ctrl: ThreadControl):
                 if last_rising - last_medium_press_end < 1.0:
                     # Type transcription
                     if ctrl.cfg["enable_local_beep"]:
-                        #audio_state.audio_events.append(audio_state.AUDIO_EVENT_UPDATE)
+                        winsound.PlaySound(waveform3, winsound.SND_FILENAME | winsound.SND_ASYNC)
                         pass
-                    #keyboard.write(audio_state.filtered_text)
+                    # TODO(yum) this is broken! Audio is not being collected
+                    # while paused anymore.
+                    #keyboard.write(ctrl.preview)
                 else:
                     if ctrl.cfg["enable_local_beep"]:
-                        #audio_state.audio_events.append(audio_state.AUDIO_EVENT_TOGGLE_OFF)
+                        winsound.PlaySound(waveform1, winsound.SND_FILENAME | winsound.SND_ASYNC)
                         pass
 
             elif now - last_rising > 0.5:
@@ -939,7 +948,7 @@ def vrInputThread(ctrl: ThreadControl):
                 state = PAUSE_STATE
 
                 if ctrl.cfg["enable_local_beep"]:
-                    #audio_state.audio_events.append(audio_state.AUDIO_EVENT_DISMISS)
+                    winsound.PlaySound(waveform2, winsound.SND_FILENAME | winsound.SND_ASYNC)
                     pass
 
                 if not ctrl.cfg["use_builtin"]:
@@ -968,7 +977,7 @@ def vrInputThread(ctrl: ThreadControl):
                     ctrl.stream.pause(True)
 
                     if ctrl.cfg["enable_local_beep"]:
-                        #audio_state.audio_events.append(audio_state.AUDIO_EVENT_TOGGLE_OFF)
+                        winsound.PlaySound(waveform1, winsound.SND_FILENAME | winsound.SND_ASYNC)
                         pass
                 elif state == PAUSE_STATE:
                     print("RECORDING", file=sys.stderr)
@@ -994,7 +1003,7 @@ def vrInputThread(ctrl: ThreadControl):
                     ctrl.pager.clear()
 
                     if ctrl.cfg["enable_local_beep"]:
-                        #audio_state.audio_events.append(audio_state.AUDIO_EVENT_TOGGLE_ON)
+                        winsound.PlaySound(waveform0, winsound.SND_FILENAME | winsound.SND_ASYNC)
                         pass
 
 def kbInputThread(ctrl: ThreadControl):
@@ -1007,6 +1016,11 @@ def kbInputThread(ctrl: ThreadControl):
     RECORD_STATE = 0
     PAUSE_STATE = 1
     state = PAUSE_STATE
+
+    waveform0 =  os.path.abspath("Resources/Sounds/Noise_On_Quiet.wav")
+    waveform1 =  os.path.abspath("Resources/Sounds/Noise_Off_Quiet.wav")
+    waveform2 =  os.path.abspath("Resources/Sounds/Dismiss_Noise_Quiet.wav")
+    waveform3 =  os.path.abspath("Resources/Sounds/KB_Noise_Off_Quiet.wav")
 
     while ctrl.run_app:
         time.sleep(0.01)
@@ -1030,7 +1044,7 @@ def kbInputThread(ctrl: ThreadControl):
             state = PAUSE_STATE
 
             if ctrl.cfg["enable_local_beep"]:
-                #audio_state.audio_events.append(audio_state.AUDIO_EVENT_DISMISS)
+                winsound.PlaySound(waveform2, winsound.SND_FILENAME | winsound.SND_ASYNC)
                 pass
 
             if not ctrl.cfg["use_builtin"]:
@@ -1060,7 +1074,7 @@ def kbInputThread(ctrl: ThreadControl):
             ctrl.stream.pause(True)
 
             if ctrl.cfg["enable_local_beep"]:
-                #audio_state.audio_events.append(audio_state.AUDIO_EVENT_TOGGLE_OFF)
+                winsound.PlaySound(waveform1, winsound.SND_FILENAME | winsound.SND_ASYNC)
                 pass
         elif state == PAUSE_STATE:
             print("RECORDING", file=sys.stderr)
@@ -1086,7 +1100,7 @@ def kbInputThread(ctrl: ThreadControl):
             ctrl.pager.clear()
 
             if ctrl.cfg["enable_local_beep"]:
-                #audio_state.audio_events.append(audio_state.AUDIO_EVENT_TOGGLE_ON)
+                winsound.PlaySound(waveform0, winsound.SND_FILENAME | winsound.SND_ASYNC)
                 pass
 
 def oscThread(ctrl: ThreadControl):
