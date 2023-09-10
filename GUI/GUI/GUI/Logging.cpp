@@ -51,13 +51,14 @@ void Logging::ThreadLogger::Drain()
 		// Constrain wxTextCtrl's to a few hundred lines to keep memory usage /
 		// general snappiness in check.
 		if (frame) {
-			wxString allText = frame->GetValue();
-			wxArrayString lines = wxStringTokenize(allText, "\n");
-			size_t count = lines.GetCount();
-			constexpr int kHalfMaxLines = 1000;
-			if (count > kHalfMaxLines * 2) {
+			constexpr int kHalfMaxChars = 50 * 1000;
+			int nchars;
+			while ((nchars = frame->GetLastPosition()) > kHalfMaxChars) {
+				wxString allText = frame->GetValue();
+				wxArrayString lines = wxStringTokenize(allText, "\n");
 				// Keep only the last kHalfMaxLines lines.
-				size_t linesToRemove = count - kHalfMaxLines;
+				size_t nlines = lines.GetCount();
+				size_t linesToRemove = nlines / 2;
 
 				// Remove lines from the beginning
 				lines.RemoveAt(0, linesToRemove);

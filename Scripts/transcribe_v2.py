@@ -592,8 +592,6 @@ def evaluate(cfg,
             last_commit_ts = collector.now()
 
         transcript += commit.delta
-        # Hard-cap transcript length at 4k.
-        transcript = transcript[-4096:]
         preview = commit.preview
 
         if False and len(commit.delta):
@@ -681,8 +679,18 @@ def transcriptionThread(ctrl: ThreadControl):
         commit = ctrl.committer.getDelta()
 
         if len(commit.delta) > 0 or len(commit.preview) > 0:
-            print(f"Transcript: {ctrl.transcript}{commit.delta}")
-            print(f"Preview: {commit.preview}")
+            # Hard-cap displayed transcript length at 4k characters to prevent
+            # runaway memory use in UI. Keep the full transcript to avoid
+            # breaking OSC pager.
+            try:
+                print(f"Transcript: {ctrl.transcript[-4096:]}{commit.delta}")
+            except UnicodeEncodeError:
+                print("Failed to encode transcript - discarding delta")
+                continue
+            try:
+                print(f"Preview: {commit.preview}")
+            except UnicodeEncodeError:
+                print("Failed to encode preview - discarding")
             if cfg["enable_debug_mode"]:
                 print(f"commit latency: {commit.latency_s}", file=sys.stderr)
                 print(f"commit thresh: {commit.thresh_at_commit}",
@@ -693,9 +701,6 @@ def transcriptionThread(ctrl: ThreadControl):
                 print("Finalized: 1")
 
         ctrl.transcript += commit.delta
-        # Hard-cap transcript length at 4k characters to prevent runaway memory
-        # use.
-        ctrl.transcript = ctrl.transcript[-4096:]
         ctrl.preview = ctrl.transcript + commit.preview
 
 def vrInputThread(ctrl: ThreadControl):
