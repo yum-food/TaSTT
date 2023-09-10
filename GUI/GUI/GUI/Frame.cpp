@@ -75,6 +75,7 @@ namespace {
         ID_PY_APP_ROWS,
         ID_PY_APP_COLS,
         ID_PY_APP_GPU_IDX,
+        ID_PY_APP_MIN_SILENCE_DURATION_MS,
         ID_PY_APP_KEYBIND,
         ID_PY_APP_BROWSER_SRC_PORT,
         ID_PY_APP_COMMIT_FUZZ_THRESHOLD,
@@ -753,6 +754,15 @@ Frame::Frame()
 						"discrete GPU.");
 					py_app_gpu_idx_ = py_app_gpu_idx;
 
+					auto* py_app_min_silence_duration_ms = new wxTextCtrl(
+                        py_app_config_panel_pairs, ID_PY_APP_MIN_SILENCE_DURATION_MS,
+                        std::to_string(app_c_->min_silence_duration_ms), wxDefaultPosition,
+						wxDefaultSize, /*style=*/0);
+                    py_app_min_silence_duration_ms->SetToolTip(
+                        "The minimum duration, in milliseconds, of a silence "
+                        "used to segment speech.");
+					py_app_min_silence_duration_ms_ = py_app_min_silence_duration_ms;
+
 					auto* py_app_keybind = new wxTextCtrl(
 						py_app_config_panel_pairs, ID_PY_APP_KEYBIND,
 						app_c_->keybind, wxDefaultPosition,
@@ -835,6 +845,11 @@ Frame::Frame()
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs,
                         wxID_ANY, /*label=*/"GPU index:"));
                     sizer->Add(py_app_gpu_idx, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Minimum silence duration (ms):"));
+                    sizer->Add(py_app_min_silence_duration_ms, /*proportion=*/0,
                         /*flags=*/wxEXPAND);
 
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs,
@@ -1530,6 +1545,10 @@ void Frame::ApplyConfigToInputFields()
     auto* py_app_gpu_idx = static_cast<wxTextCtrl*>(FindWindowById(ID_PY_APP_GPU_IDX));
     py_app_gpu_idx->Clear();
     py_app_gpu_idx->AppendText(std::to_string(app_c_->gpu_idx));
+
+	auto* py_app_min_silence_duration_ms = static_cast<wxTextCtrl*>(FindWindowById(ID_PY_APP_MIN_SILENCE_DURATION_MS));
+	py_app_min_silence_duration_ms->Clear();
+	py_app_min_silence_duration_ms->AppendText(std::to_string(app_c_->min_silence_duration_ms));
 
     auto* py_app_enable_local_beep = static_cast<wxCheckBox*>(FindWindowById(ID_PY_APP_ENABLE_LOCAL_BEEP));
     py_app_enable_local_beep->SetValue(app_c_->enable_local_beep);
@@ -2284,6 +2303,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
 	ASSIGN_OR_RETURN_VOID(int, chars_per_sync, stoiInRange(transcribe_out_, kCharsPerSync[chars_per_sync_idx].ToStdString(), "chars_per_sync", 5, 24));
 	ASSIGN_OR_RETURN_VOID(int, bytes_per_char, stoiInRange(transcribe_out_, kBytesPerChar[bytes_per_char_idx].ToStdString(), "bytes_per_char", 1, 2));
 	ASSIGN_OR_RETURN_VOID(int, gpu_idx, stoiInRange(transcribe_out_, py_app_gpu_idx_->GetValue().ToStdString(), "gpu_idx", 0, 10));
+	ASSIGN_OR_RETURN_VOID(int, min_silence_duration_ms, stoiInRange(transcribe_out_, py_app_min_silence_duration_ms_->GetValue().ToStdString(), "min_silence_duration_ms", 50, 5000));
 	ASSIGN_OR_RETURN_VOID(int, browser_src_port, stoiInRange(transcribe_out_, py_app_browser_src_port_->GetValue().ToStdString(), "browser_src_port", 1024, 65535));
 
     std::string keybind = py_app_keybind_->GetValue().ToStdString();
@@ -2313,6 +2333,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     app_c_->enable_previews = enable_previews;
     app_c_->enable_lock_at_spawn = enable_lock_at_spawn;
     app_c_->gpu_idx = gpu_idx;
+    app_c_->min_silence_duration_ms = min_silence_duration_ms;
     app_c_->keybind = keybind;
     app_c_->Serialize(AppConfig::kConfigPath);
 

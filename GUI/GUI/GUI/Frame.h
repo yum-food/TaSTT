@@ -38,6 +38,7 @@ private:
     wxTextCtrl* py_app_rows_;
     wxTextCtrl* py_app_cols_;
     wxTextCtrl* py_app_gpu_idx_;
+    wxTextCtrl* py_app_min_silence_duration_ms_;
     wxTextCtrl* py_app_keybind_;
     wxTextCtrl* py_app_browser_src_port_;
     wxTextCtrl* py_app_commit_fuzz_threshold_;

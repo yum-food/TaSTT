@@ -85,6 +85,7 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	enable_previews(true),
 	enable_lock_at_spawn(true),
 	gpu_idx(0),
+	min_silence_duration_ms(250),
 	keybind("ctrl+x"),
 
 	chars_per_sync(8),
@@ -127,6 +128,7 @@ bool AppConfig::Serialize(const std::filesystem::path& path) {
 	cm.Set("enable_previews", enable_previews);
 	cm.Set("enable_lock_at_spawn", enable_lock_at_spawn);
 	cm.Set("gpu_idx", gpu_idx);
+	cm.Set("min_silence_duration_ms", min_silence_duration_ms);
 	cm.Set("keybind", keybind);
 
 	cm.Set("chars_per_sync", chars_per_sync);
@@ -182,6 +184,7 @@ bool AppConfig::Deserialize(const std::filesystem::path& path) {
 	cm.Get("enable_previews", c.enable_previews);
 	cm.Get("enable_lock_at_spawn", c.enable_lock_at_spawn);
 	cm.Get("gpu_idx", c.gpu_idx);
+	cm.Get("min_silence_duration_ms", c.min_silence_duration_ms);
 	cm.Get("keybind", c.keybind);
 
 	cm.Get("chars_per_sync", c.chars_per_sync);

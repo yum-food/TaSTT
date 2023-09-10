@@ -71,6 +71,7 @@ public:
 	bool enable_previews;
 	bool enable_lock_at_spawn;
 	int gpu_idx;
+	int min_silence_duration_ms;
 	std::string keybind;
 
 	// Unity and transcription shared settings.

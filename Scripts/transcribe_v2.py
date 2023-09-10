@@ -898,7 +898,7 @@ def run(cfg):
     #collector = NormalizingAudioCollector(collector)
     collector = CompressingAudioCollector(collector)
     whisper = Whisper(collector, cfg)
-    segmenter = AudioSegmenter(min_silence_ms=250)
+    segmenter = AudioSegmenter(min_silence_ms=cfg["min_silence_duration_ms"])
     committer = VadCommitter(cfg, collector, whisper, segmenter)
     pager = OscPager(cfg)
 
