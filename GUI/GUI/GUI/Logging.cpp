@@ -7,10 +7,12 @@
 #endif
 
 #include <wx/process.h>
+#include <wx/tokenzr.h>
 #include <wx/txtstrm.h>
 
 #include <fstream>
 #include <regex>
+#include <sstream>
 #include <string>
 
 Logging::ThreadLogger Logging::kThreadLogger = Logging::ThreadLogger();
@@ -43,7 +45,29 @@ void Logging::ThreadLogger::Drain()
 			}
 			log_ofs << message;
 		}
+
+		// Constrain wxTextCtrl's to 1000 lines to keep memory in check.
+		if (frame) {
+			wxString allText = frame->GetValue();
+			wxArrayString lines = wxStringTokenize(allText, "\n");
+			size_t count = lines.GetCount();
+			if (count > 2000) {
+				// Keep only the last 1000 lines.
+				size_t linesToRemove = count - 1000;
+
+				// Remove lines from the beginning
+				lines.RemoveAt(0, linesToRemove);
+
+				// Join the lines back into a single string
+				wxString newText = wxJoin(lines, '\n');
+
+				// Update the text in the wxTextCtrl
+				frame->Clear();
+				frame->AppendText(newText);
+			}
+		}
 	}
+
 	log_ofs.close();
 	messages_.clear();
 }
