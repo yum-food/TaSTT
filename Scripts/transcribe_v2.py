@@ -709,10 +709,10 @@ class OscPager:
 
     def page(self, text):
         if self.cfg["use_builtin"]:
-            osc_ctrl.pageMessageBuiltin(self.osc_state, text)
+            osc_ctrl.pageMessageBuiltin(self.cfg, self.osc_state, text)
             self.bumpSyncWindow(amount_s=1.5)
         else:
-            osc_ctrl.pageMessage(self.osc_state, text, EmotesState())
+            osc_ctrl.pageMessage(self.cfg, self.osc_state, text, EmotesState())
             self.bumpSyncWindow()
 
     def bumpSyncWindow(self, amount_s=osc_ctrl.SYNC_DELAY_S):

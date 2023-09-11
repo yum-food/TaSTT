@@ -94,7 +94,7 @@ def updateRegion(client, region_idx, letter_encoded):
 # Sends one slice of `msg` to the board then returns. Slices are sent
 # in FIFO order; e.g., the most recently spoken words are sent last.
 # Returns True if done paging, False otherwise.
-def pageMessage(osc_state: OscState, msg: str, estate: EmotesState) -> bool:
+def pageMessage(cfg, osc_state: OscState, msg: str, estate: EmotesState) -> bool:
     msg = estate.encode_emotes(msg)
 
     msg_slice, slice_idx = osc_state.pager.getNextSlice(msg)
@@ -120,17 +120,20 @@ def pageMessage(osc_state: OscState, msg: str, estate: EmotesState) -> bool:
     #    len(msg_slice)))
 
     # Really long messages just wrap back around.
-    which_region = (slice_idx % generate_utils.config.numRegions(0))
 
     # if in last region:
     #   how long is it
-    num_cells = generate_utils.config.BOARD_ROWS * generate_utils.config.BOARD_COLS
-    num_regions = ceil(num_cells / generate_utils.config.CHARS_PER_SYNC)
+    num_cells = cfg["rows"] * cfg["cols"]
+    num_regions = ceil(num_cells / cfg["chars_per_sync"])
+    which_region = slice_idx % num_regions
+    #print(f"which_region: {which_region}")
+    #print(f"num_regions: {num_regions}")
     #print("num regions: {}".format(num_regions))
     if which_region == num_regions - 1:
-        layers_in_last_region = num_cells % generate_utils.config.CHARS_PER_SYNC
+        layers_in_last_region = num_cells % cfg["chars_per_sync"]
+        #print(f"layers in last region: {layers_in_last_region}")
         if layers_in_last_region == 0:
-            layers_in_last_region = generate_utils.config.CHARS_PER_SYNC
+            layers_in_last_region = cfg["chars_per_sync"]
         #print("layers in last region: {}".format(layers_in_last_region))
         old_len = len(msg_slice)
         msg_slice = msg_slice[0:layers_in_last_region]
@@ -156,7 +159,7 @@ def pageMessage(osc_state: OscState, msg: str, estate: EmotesState) -> bool:
 # Like `pageMessage` but uses the built-in chatbox. The built-in chatbox
 # truncates data at about 150 chars, so just send the suffix of the message for
 # now.
-def pageMessageBuiltin(osc_state: OscState, msg: str) -> bool:
+def pageMessageBuiltin(cfg, osc_state: OscState, msg: str) -> bool:
     if len(msg) == 0 or msg.isspace():
         return False  # Not paging
 
