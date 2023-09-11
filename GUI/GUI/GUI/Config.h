@@ -81,6 +81,7 @@ public:
 	int bytes_per_char;
 	int rows;
 	int cols;
+	int texture_sz;
 
 	// Unity-specific settings.
 	std::string assets_path;

@@ -92,8 +92,9 @@ AppConfig::AppConfig(wxTextCtrl* out)
 
 	chars_per_sync(8),
 	bytes_per_char(1),
-	rows(4),
-	cols(48),
+	rows(3),
+	cols(36),
+	texture_sz(512),
 
 	assets_path(),
 	fx_path(),
@@ -139,6 +140,7 @@ bool AppConfig::Serialize(const std::filesystem::path& path) {
 	cm.Set("bytes_per_char", bytes_per_char);
 	cm.Set("rows", rows);
 	cm.Set("cols", cols);
+	cm.Set("texture_sz", texture_sz);
 
 	cm.Set("assets_path", assets_path);
 	cm.Set("fx_path", fx_path);
@@ -197,6 +199,7 @@ bool AppConfig::Deserialize(const std::filesystem::path& path) {
 	cm.Get("bytes_per_char", c.bytes_per_char);
 	cm.Get("rows", c.rows);
 	cm.Get("cols", c.cols);
+	cm.Get("texture_sz", c.texture_sz);
 
 	cm.Get("assets_path", c.assets_path);
 	cm.Get("fx_path", c.fx_path);

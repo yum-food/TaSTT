@@ -100,6 +100,7 @@ namespace {
         ID_UNITY_BYTES_PER_CHAR,
         ID_UNITY_ROWS,
         ID_UNITY_COLS,
+        ID_UNITY_TEXTURE_SZ,
         ID_UNITY_CLEAR_OSC,
         ID_UNITY_ENABLE_PHONEMES,
 		ID_DEBUG_PANEL,
@@ -1228,6 +1229,13 @@ Frame::Frame()
                         "The number of columns on the text box.");
                     unity_cols_ = unity_cols;
 
+                    auto* unity_texture_sz = new wxTextCtrl(unity_config_panel_pairs,
+                        ID_UNITY_TEXTURE_SZ, std::to_string(app_c_->texture_sz),
+                        wxDefaultPosition, wxDefaultSize, /*style=*/0);
+                    unity_texture_sz->SetToolTip(
+                        "The size of the textures holding text glyphs.");
+                    unity_texture_sz_ = unity_texture_sz;
+
                     auto* sizer = new wxFlexGridSizer(/*cols=*/2);
                     unity_config_panel_pairs->SetSizer(sizer);
 
@@ -1281,6 +1289,11 @@ Frame::Frame()
                     sizer->Add(new wxStaticText(unity_config_panel_pairs,
                         wxID_ANY, /*label=*/"Text box columns:"));
                     sizer->Add(unity_cols, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(unity_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Texture size:"));
+                    sizer->Add(unity_texture_sz, /*proportion=*/0,
                         /*flags=*/wxEXPAND);
                 }
 
@@ -1660,6 +1673,16 @@ void Frame::ApplyConfigToInputFields()
     auto* unity_cols = static_cast<wxTextCtrl*>(FindWindowById(ID_UNITY_COLS));
     unity_cols->Clear();
     unity_cols->AppendText(std::to_string(app_c_->cols));
+
+    auto* unity_texture_sz = static_cast<wxTextCtrl*>(FindWindowById(ID_UNITY_TEXTURE_SZ));
+    unity_texture_sz->Clear();
+    unity_texture_sz->AppendText(std::to_string(app_c_->texture_sz));
+
+    auto* unity_clear_osc = static_cast<wxCheckBox*>(FindWindowById(ID_UNITY_CLEAR_OSC));
+    unity_clear_osc->SetValue(app_c_->clear_osc);
+
+    auto* unity_enable_phonemes = static_cast<wxCheckBox*>(FindWindowById(ID_UNITY_ENABLE_PHONEMES));
+    unity_enable_phonemes->SetValue(app_c_->enable_phonemes);
 }
 
 void Frame::OnExit(wxCloseEvent& event)
@@ -1880,8 +1903,9 @@ void Frame::OnGenerateFX(wxCommandEvent& event)
 			bytes_per_char_idx = kBytesDefault;
 		}
 
-		ASSIGN_OR_RETURN_BOOL(int, rows, stoiInRange(transcribe_out_, py_app_rows_->GetValue().ToStdString(), "rows", 1, 10));
-		ASSIGN_OR_RETURN_BOOL(int, cols, stoiInRange(transcribe_out_, py_app_cols_->GetValue().ToStdString(), "cols", 1, 120));
+		ASSIGN_OR_RETURN_BOOL(int, rows, stoiInRange(transcribe_out_, unity_rows_->GetValue().ToStdString(), "rows", 1, 10));
+		ASSIGN_OR_RETURN_BOOL(int, cols, stoiInRange(transcribe_out_, unity_cols_->GetValue().ToStdString(), "cols", 1, 120));
+		ASSIGN_OR_RETURN_BOOL(int, texture_sz, stoiInRange(transcribe_out_, unity_texture_sz_->GetValue().ToStdString(), "texture_sz", 128, 8192));
 		ASSIGN_OR_RETURN_BOOL(int, chars_per_sync, stoiInRange(transcribe_out_, kCharsPerSync[chars_per_sync_idx].ToStdString(), "chars_per_sync", 5, 24));
 		ASSIGN_OR_RETURN_BOOL(int, bytes_per_char, stoiInRange(transcribe_out_, kBytesPerChar[bytes_per_char_idx].ToStdString(), "bytes_per_char", 1, 2));
 
@@ -1894,6 +1918,7 @@ void Frame::OnGenerateFX(wxCommandEvent& event)
 		app_c_->chars_per_sync = chars_per_sync;
 		app_c_->rows = rows;
 		app_c_->cols = cols;
+		app_c_->texture_sz = texture_sz;
 		app_c_->clear_osc = unity_clear_osc_->GetValue();
 		app_c_->enable_phonemes = unity_enable_phonemes_->GetValue();
 		app_c_->Serialize(AppConfig::kConfigPath);

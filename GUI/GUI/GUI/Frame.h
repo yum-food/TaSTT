@@ -46,6 +46,7 @@ private:
     wxTextCtrl* py_app_commit_fuzz_threshold_;
     wxTextCtrl* unity_rows_;
     wxTextCtrl* unity_cols_;
+    wxTextCtrl* unity_texture_sz_;
 
     wxDirPickerCtrl* unity_assets_file_picker_;
     wxFilePickerCtrl* unity_animator_file_picker_;

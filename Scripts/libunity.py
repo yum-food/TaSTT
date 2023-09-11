@@ -446,7 +446,7 @@ class UnityAnimator():
             self.nodes.append(node)
             anchor = node.anchor
             if anchor == None:
-                raise Exception("Node is missing anchor: {}".format(str(node)))
+                anchor = self.allocateId()
             if anchor in self.id_to_node:
                 raise Exception("Duplicate anchor: {}, node 1: {}, node 2: {}".format(anchor, str(node), str(self.id_to_node[anchor])))
             self.id_to_node[anchor] = node
@@ -1013,9 +1013,11 @@ def unityYamlToString(nodes):
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 """[1:][:-1]
-    lines.append(preamble)
+    if len(nodes) > 1 or (len(nodes) == 1 and nodes[0].anchor):
+        lines.append(preamble)
     for doc in nodes:
-        lines.append("--- !u!" + doc.class_id + " &" + doc.anchor)
+        if len(nodes) > 1 or (len(nodes) == 1 and nodes[0].anchor):
+            lines.append("--- !u!" + doc.class_id + " &" + doc.anchor)
         lines.append(str(doc))
     result = '\n'.join(lines)
 
@@ -1134,7 +1136,8 @@ class UnityParser:
                 if self.cur_node == None:
                     self.cur_node = UnityDocument()
                     self.cur_node.anchor = event.anchor
-                    self.cur_node.class_id = anchor_to_class_id[event.anchor]
+                    if event.anchor:
+                        self.cur_node.class_id = anchor_to_class_id[event.anchor]
                 else:
                     self.cur_node = self.cur_node.addChildMapping(self.cur_scalar)
                 self.pushState(self.MAPPING_START)

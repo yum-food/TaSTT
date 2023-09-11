@@ -1,3 +1,4 @@
+import argparse
 import libunity
 import sys
 
@@ -16,5 +17,9 @@ def removeAudioSources(path: str):
         f.write(libunity.unityYamlToString(anim.nodes))
 
 if __name__ == "__main__":
-    removeAudioSources(sys.argv[1])
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--prefab", type=str, help="Path to .prefab file.")
+    args = parser.parse_args()
+
+    removeAudioSources(args.prefab)
 

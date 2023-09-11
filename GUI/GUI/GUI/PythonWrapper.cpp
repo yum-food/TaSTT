@@ -509,6 +509,7 @@ bool PythonWrapper::GenerateAnimator(
 	wxTextCtrl* out) {
 	// Python script locations
 	std::string remove_audio_srcs_path = "Resources/Scripts/remove_audio_sources.py";
+	std::string set_texture_sz_path = "Resources/Scripts/set_texture_sz.py";
 	std::string libunity_path = "Resources/Scripts/libunity.py";
 	std::string libtastt_path = "Resources/Scripts/libtastt.py";
 	std::string generate_emotes_path = "Resources/Scripts/emotes_v2.py";
@@ -648,8 +649,10 @@ bool PythonWrapper::GenerateAnimator(
 		std::string prefab_path = Quote(std::filesystem::path(tastt_assets_path) / "World Constraint.prefab");
 		Log(out, "Remove audio sources from prefab at {}\n", prefab_path);
 		Log(out, "Removing audio sources from prefab... ");
-		if (!InvokeWithArgs({ remove_audio_srcs_path, prefab_path },
-			"Failed to generate guid.map", out)) {
+		if (!InvokeWithArgs({ remove_audio_srcs_path,
+			"--prefab", Quote(prefab_path)
+			},
+			"Failed to remove audio sources", out)) {
 			return false;
 		}
 		Log(out, "succes!\n");
@@ -755,6 +758,23 @@ bool PythonWrapper::GenerateAnimator(
 			Log(out, "Error removing unicode texture: {} ({})\n", err.message(), err.value());
 			return false;
 		}
+	}
+	{
+		Log(out, "Setting texture sizes... ");
+		std::filesystem::path fonts_dir = tastt_fonts_path / "Bitmaps";
+		for (const auto& entry : std::filesystem::recursive_directory_iterator(fonts_dir)) {
+			Log(out, "Entry get {}\n", entry.path().string());
+			Log(out, "Setting size to {}\n", config.texture_sz);
+			if (entry.is_regular_file() && entry.path().extension() == ".meta") {
+				if (!InvokeWithArgs({ set_texture_sz_path,
+					"--meta", Quote(entry.path().string()),
+					"--size", std::to_string(config.texture_sz)},
+					"Failed to set texture size", out)) {
+					return false;
+				}
+			}
+		}
+		Log(out, "succes!\n");
 	}
 	{
 		Log(out, "Generating guid.map... ");
