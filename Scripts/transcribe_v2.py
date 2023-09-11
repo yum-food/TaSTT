@@ -4,9 +4,7 @@ from faster_whisper import WhisperModel
 from functools import partial
 from profanity_filter import ProfanityFilter
 from pydub import AudioSegment
-from scipy.optimize import minimize
 from sentence_splitter import split_text_into_sentences
-from whisper.normalizers import EnglishTextNormalizer
 
 import app_config
 import argparse
@@ -813,6 +811,12 @@ def evaluate(cfg,
 
 def optimize(cfg,
         experiments: typing.List[typing.Tuple[str, str]]):
+
+    install_in_venv(["git+https://github.com/openai/whisper.git",
+        "scipy"])
+
+    from scipy.optimize import minimize
+    from whisper.normalizers import EnglishTextNormalizer
 
     def wrapper_to_optimize(x):
         s = 0

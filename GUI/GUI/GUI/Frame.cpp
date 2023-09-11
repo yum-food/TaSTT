@@ -1789,7 +1789,7 @@ void Frame::EnsureVirtualEnv(bool block, bool force)
 			"-u",  // Unbuffered output
 			"-m pip",
 			"install",
-			"-r Resources/Scripts/requirements.txt",
+			"-r Resources/Scripts/requirements_frozen.txt",
 			}, std::move(out_cb))) {
 			Log(transcribe_out_, "Failed to launch environment setup thread!\n");
 			return false;
