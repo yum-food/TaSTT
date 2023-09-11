@@ -761,7 +761,16 @@ def generateFXLayer(which_layer: int, anim: libunity.UnityAnimator, layer:
         dummy_param = generate_utils.getDummyParam()
         anim.addTransitionBooleanCondition(state,
                 home_state_transition, dummy_param, False)
-    pass
+    
+    if generate_utils.config.layerNeedsParity(which_layer):
+        # There may be layers which never write to the text box. In this case,
+        # when those layers are turned on to write to that last region, they
+        # simply transition back to the default (idle) state.
+        home_state_transition = anim.addTransition(default_state)
+        select_param = generate_utils.getSelectParam()
+        i = generate_utils.config.numRegions(0) - 1
+        anim.addTransitionIntegerEqualityCondition(active_state,
+                home_state_transition, select_param, i)
 
 # Generic toggle adding utility.
 # Generates the layer and parameter.
