@@ -6,7 +6,7 @@ turn your voice into text, then sends it into VRChat via OSC.
 
 To get started, download the latest .zip from [the releases page](https://github.com/yum-food/TaSTT/releases/latest).
 
-[![Speech-to-text demo](https://img.youtube.com/vi/u5h-ivkwS0M/0.jpg)](https://youtube.com/watch?v=u5h-ivkwS0M)
+[![Speech-to-text demo](https://img.youtube.com/vi/tUO1MXN64Mo/0.jpg)](https://youtube.com/watch?v=tUO1MXN64Mo)
 
 Contents:
 
