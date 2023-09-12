@@ -158,8 +158,7 @@ class MicStream(AudioStream):
         for i in range(0, numdevices):
             if (self.p.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0:
                 device_name = self.p.get_device_info_by_host_api_device_index(0, i).get('name')
-                print("Input Device id ", i, " - ", device_name,
-                        file=sys.stderr)
+                print("Input Device id ", i, " - ", device_name)
 
     def onAudioFramesAvailable(self,
             frames,
