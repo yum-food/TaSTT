@@ -149,19 +149,6 @@ if (-Not (Test-Path Profanity)) {
   popd > $null
 }
 
-if (-Not (Test-Path curl)) {
-  git clone https://github.com/curl/curl
-
-  pushd curl > $null
-
-  mkdir build
-  cd build
-  cmake.exe -DCMAKE_BUILD_TYPE=Release ..
-  cmake.exe --build . --config Release
-
-  popd > $null
-}
-
 if (-Not (Test-Path "silero-vad")) {
   git clone "https://github.com/snakers4/silero-vad"
 }
@@ -172,11 +159,12 @@ cp -Recurse ../Animations TaSTT/Resources/Animations
 mkdir TaSTT/Resources/Fonts
 cp -Recurse ../Fonts/Bitmaps TaSTT/Resources/Fonts/Bitmaps
 cp -Recurse ../Fonts/Emotes TaSTT/Resources/Fonts/Emotes
-cp -Recurse ../Images TaSTT/Resources/Images
 cp -Recurse Python TaSTT/Resources/Python
 cp -Recurse PortableGit TaSTT/Resources/PortableGit
 cp -Recurse ../Scripts TaSTT/Resources/Scripts
 cp $nvidia_dir/*.dll TaSTT/Resources/Scripts/
+mkdir TaSTT/Resources/Images
+cp ../Images/logo*.png TaSTT/Resources/Images/
 cp -Recurse ../Shaders TaSTT/Resources/Shaders
 cp -Recurse ../Sounds TaSTT/Resources/Sounds
 cp -Recurse ../UnityAssets TaSTT/Resources/UnityAssets
@@ -189,9 +177,6 @@ mkdir TaSTT/Resources/Uwu
 cp UwwwuPP/build/Src/Debug/Uwwwu.exe TaSTT/Resources/Uwu/
 cp UwwwuPP/LICENSE TaSTT/Resources/Uwu/
 cp -r Profanity/Profanity TaSTT/Resources/Profanity
-mkdir TaSTT/Resources/curl
-cp curl/build/src/Release/curl.exe TaSTT/Resources/curl/
-cp -r curl/LICENSES TaSTT/Resources/curl/
 
 if (-Not $skip_zip) {
   Compress-Archive -Path "$install_dir" -DestinationPath "$install_dir.zip" -Force
