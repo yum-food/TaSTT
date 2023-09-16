@@ -646,7 +646,7 @@ bool PythonWrapper::GenerateAnimator(
 		Log(out, "success!\n");
 	}
 	if (!config.enable_phonemes) {
-		std::string prefab_path = Quote(std::filesystem::path(tastt_assets_path) / "World Constraint.prefab");
+		std::string prefab_path = (std::filesystem::path(tastt_assets_path) / "World Constraint.prefab").string();
 		Log(out, "Remove audio sources from prefab at {}\n", prefab_path);
 		Log(out, "Removing audio sources from prefab... ");
 		if (!InvokeWithArgs({ remove_audio_srcs_path,

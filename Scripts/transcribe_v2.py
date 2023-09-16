@@ -663,6 +663,11 @@ class UwuPlugin(StreamingPlugin):
                 uwu_text = uwu_stdout.decode("utf-8")
                 uwu_text = uwu_text.replace("\n", "")
                 uwu_text = uwu_text.replace("\r", "")
+                if uwu_text.isspace():
+                    return ""
+                # Guarantee that the segment starts with a single space and
+                # doesn't end with whitespace.
+                uwu_text = " " + uwu_text.lstrip().rstrip()
                 return uwu_text
             commit.delta = _to_uwu(commit.delta)
             commit.preview = _to_uwu(commit.preview)
