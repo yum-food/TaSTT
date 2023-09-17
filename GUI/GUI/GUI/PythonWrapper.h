@@ -28,14 +28,18 @@ namespace PythonWrapper
 
 	// Invoke a command on the shell with arguments.
 	// On error, sets `out` to an error message and returns false.
-	bool InvokeCommandWithArgs(const std::string& cmd,
+	bool InvokeCommandWithArgs(
+		const AppConfig& app_c,
+		const std::string& cmd,
 		std::vector<std::string>&& args,
 		std::string* py_stdout,
 		std::string* py_stderr = NULL);
 
 	// Invoke a command on the shell with arguments.
 	// On error, sets `out` to an error message and returns false.
-	bool InvokeCommandWithArgs(const std::string& cmd,
+	bool InvokeCommandWithArgs(
+		const AppConfig& app_c,
+		const std::string& cmd,
 		std::vector<std::string>&& args,
 		const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
 		const std::function<void(std::string& in)>&& in_cb = [](std::string&) {},
@@ -43,13 +47,19 @@ namespace PythonWrapper
 
 	// Invoke the interpreter with arguments.
 	// On error, sets `out` to an error message and returns false.
-	bool InvokeWithArgs(std::vector<std::string>&& args, std::string* py_stdout,
+	bool InvokeWithArgs(
+		const AppConfig& app_c,
+		std::vector<std::string>&& args, std::string* py_stdout,
 		std::string* py_stderr = NULL);
 
-	bool InvokeWithArgs(std::vector<std::string>&& args,
+	bool InvokeWithArgs(
+		const AppConfig& app_c,
+		std::vector<std::string>&& args,
 		const std::string&& err_msg, wxTextCtrl* out);
 
-	bool InvokeWithArgs(std::vector<std::string>&& args,
+	bool InvokeWithArgs(
+		const AppConfig& app_c,
+		std::vector<std::string>&& args,
 		const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
 		const std::function<void(std::string& in)>&& in_cb = [](std::string&) {},
 		const std::function<bool()>&& run_cb = []() { return true; });
@@ -72,6 +82,7 @@ namespace PythonWrapper
 	// parameters. We could persist those files so settings would persist across
 	// app restarts.
 	std::future<bool> StartApp(
+		const AppConfig& app_c,
 		const std::string& config_path,
 		wxTextCtrl *out,
 		const std::function<void(const std::string& out, const std::string& err)>&& out_cb,

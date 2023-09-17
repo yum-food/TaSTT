@@ -54,6 +54,7 @@ public:
 	std::string model;
 	std::string model_translation;
 	std::string button;
+	std::string prio;
 
 	bool enable_local_beep;
 	bool enable_browser_src;

@@ -98,7 +98,9 @@ std::string DrainWin32Pipe(const HANDLE pipe) {
 	return oss.str();
 }
 
-bool PythonWrapper::InvokeCommandWithArgs(const std::string& cmd,
+bool PythonWrapper::InvokeCommandWithArgs(
+	const AppConfig& app_c,
+	const std::string& cmd,
 	std::vector<std::string>&& args,
 	const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
 	const std::function<void(std::string& in)>&& in_cb,
@@ -281,17 +283,21 @@ bool PythonWrapper::InvokeCommandWithArgs(const std::string& cmd,
 		CloseHandle(pi.hThread);
 		});
 
-	// Set spawned process priority to low, to avoid lagging things like OBS.
-	// TODO(yum) make a toggle for this.
-#if 0
-	if (!SetPriorityClass(pi.hProcess, BELOW_NORMAL_PRIORITY_CLASS)) {
+	std::map<std::string, int> prio_stoi = {
+		{"above normal", ABOVE_NORMAL_PRIORITY_CLASS},
+		{"below normal", BELOW_NORMAL_PRIORITY_CLASS},
+		{"normal", NORMAL_PRIORITY_CLASS},
+		{"idle", IDLE_PRIORITY_CLASS},
+		{"high", HIGH_PRIORITY_CLASS},
+		{"realtime", REALTIME_PRIORITY_CLASS},
+	};
+	if (!SetPriorityClass(pi.hProcess, prio_stoi[app_c.prio])) {
 		std::ostringstream err_oss;
 		err_oss << "Error while executing python command \"" << cmd_oss.str()
 			<< "\": Failed to reduce priority class: " << GetWin32ErrMsg();
 		out_cb("", err_oss.str());
 		return false;
 	}
-#endif
 
 	// While the process is running, drain output and send input every 10 ms.
 	DWORD timeout_ms = 10;
@@ -356,6 +362,7 @@ bool PythonWrapper::InvokeCommandWithArgs(const std::string& cmd,
 }
 
 bool PythonWrapper::InvokeCommandWithArgs(
+	const AppConfig& app_c,
 	const std::string& cmd,
 	std::vector<std::string>&& args,
 	std::string* py_stdout, std::string* py_stderr) {
@@ -365,7 +372,7 @@ bool PythonWrapper::InvokeCommandWithArgs(
 		out_oss << out;
 		err_oss << err;
 	};
-	bool ret = InvokeCommandWithArgs(cmd, std::move(args), std::move(out_cb));
+	bool ret = InvokeCommandWithArgs(app_c, cmd, std::move(args), std::move(out_cb));
 	if (py_stderr) {
 		*py_stderr = err_oss.str();
 	}
@@ -373,17 +380,21 @@ bool PythonWrapper::InvokeCommandWithArgs(
 	return ret;
 }
 
-bool PythonWrapper::InvokeWithArgs(std::vector<std::string>&& args,
+bool PythonWrapper::InvokeWithArgs(
+	const AppConfig& app_c,
+	std::vector<std::string>&& args,
 	std::string* py_stdout, std::string* py_stderr) {
-	return InvokeCommandWithArgs("Resources/Python/python.exe",
+	return InvokeCommandWithArgs(app_c, "Resources/Python/python.exe",
 		std::move(args), py_stdout, py_stderr);
 }
 
-bool PythonWrapper::InvokeWithArgs(std::vector<std::string>&& args,
+bool PythonWrapper::InvokeWithArgs(
+	const AppConfig& app_c,
+	std::vector<std::string>&& args,
 	const std::string&& err_msg,
 	wxTextCtrl* const out) {
 	std::string py_stdout, py_stderr;
-	if (InvokeWithArgs(std::move(args), &py_stdout, &py_stderr)) {
+	if (InvokeWithArgs(app_c, std::move(args), &py_stdout, &py_stderr)) {
 		Log(out, "success!\n");
 		Log(out, py_stdout.c_str());
 		if (!py_stdout.empty()) {
@@ -402,18 +413,21 @@ bool PythonWrapper::InvokeWithArgs(std::vector<std::string>&& args,
 	}
 }
 
-bool PythonWrapper::InvokeWithArgs(std::vector<std::string>&& args,
+bool PythonWrapper::InvokeWithArgs(
+	const AppConfig& app_c,
+	std::vector<std::string>&& args,
 	const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
 	const std::function<void(std::string& in)>&& in_cb,
 	const std::function<bool()>&& run_cb) {
-	return InvokeCommandWithArgs("Resources/Python/python.exe",
+	return InvokeCommandWithArgs(app_c,
+		"Resources/Python/python.exe",
 		std::move(args), std::move(out_cb), std::move(in_cb), std::move(run_cb));
 }
 
 
 std::string PythonWrapper::GetVersion() {
 	std::string py_stdout, py_stderr;
-    bool ok = InvokeWithArgs({ "--version" }, &py_stdout, &py_stderr);
+    bool ok = InvokeWithArgs(AppConfig(nullptr), { "--version" }, &py_stdout, &py_stderr);
 	if (!ok) {
 		wxLogError("Failed to get python version: %s", py_stderr.c_str());
 	}
@@ -423,7 +437,7 @@ std::string PythonWrapper::GetVersion() {
 std::string PythonWrapper::DumpMics() {
 	std::string py_stdout, py_stderr;
 	const std::string dump_mics_path = "Resources/Scripts/dump_mic_devices.py";
-	bool ok = InvokeWithArgs({ dump_mics_path }, &py_stdout, &py_stderr);
+	bool ok = InvokeWithArgs(AppConfig(nullptr), { dump_mics_path }, &py_stdout, &py_stderr);
 	if (!ok) {
 		wxLogError("Failed to dump mic devices: %s", py_stderr.c_str());
 	}
@@ -455,7 +469,7 @@ bool PythonWrapper::InstallPip(
 	}
 
 	std::string pip_path = "Resources/Python/get-pip.py";
-	if (!InvokeWithArgs({ pip_path }, std::move(out_cb), std::move(in_cb),
+	if (!InvokeWithArgs(AppConfig(nullptr), { pip_path }, std::move(out_cb), std::move(in_cb),
 		std::move(run_cb))) {
 		return false;
 	}
@@ -468,6 +482,7 @@ bool PythonWrapper::InstallPip(
 }
 
 std::future<bool> PythonWrapper::StartApp(
+		const AppConfig& app_c,
 		const std::string& config_path,
 		wxTextCtrl *out,
 		const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
@@ -477,6 +492,7 @@ std::future<bool> PythonWrapper::StartApp(
 
 	return std::move(std::async(std::launch::async,
 		[](
+			const AppConfig app_c,
 			const std::string config_path,
 			wxTextCtrl *out,
 			const std::function<void(const std::string& out, const std::string& err)>&& out_cb,
@@ -487,7 +503,9 @@ std::future<bool> PythonWrapper::StartApp(
 
 				Log(out, "DEBUG::{}:: config_path: {}\n", __func__, config_path);
 
-				return InvokeWithArgs({
+				return InvokeWithArgs(
+					app_c,
+					{
 					"-u",  // Unbuffered output
 					"Resources/Scripts/transcribe_v2.py",
 					"--config", config_path,
@@ -495,7 +513,7 @@ std::future<bool> PythonWrapper::StartApp(
 					std::move(out_cb),
 					std::move(in_cb),
 					std::move(run_cb));
-		}, config_path, out, std::move(out_cb), std::move(in_cb),
+		}, app_c, config_path, out, std::move(out_cb), std::move(in_cb),
 			std::move(run_cb), std::move(prestart_cb)));
 }
 
@@ -554,7 +572,7 @@ bool PythonWrapper::GenerateAnimator(
 	const int texture_cols = (config.bytes_per_char == 1 ? 16 : 128);
 	{
 		Log(out, "Generating shader for {}x{} board (pass 0)...", config.rows, config.cols);
-		if (!InvokeWithArgs({ generate_shader_path,
+		if (!InvokeWithArgs(AppConfig(nullptr), { generate_shader_path,
 			"--bytes_per_char", std::to_string(config.bytes_per_char),
 			"--board_rows", std::to_string(config.rows),
 			"--board_cols", std::to_string(config.cols),
@@ -570,7 +588,7 @@ bool PythonWrapper::GenerateAnimator(
 		Log(out, "Generating shader for {}x{} board (pass 1)...", config.rows, config.cols);
 
 		std::string py_stdout, py_stderr;
-		if (!InvokeWithArgs({ generate_shader_path,
+		if (!InvokeWithArgs(AppConfig(nullptr), { generate_shader_path,
 			"--bytes_per_char", std::to_string(config.bytes_per_char),
 			"--board_rows", std::to_string(config.rows),
 			"--board_cols", std::to_string(config.cols),
@@ -587,7 +605,7 @@ bool PythonWrapper::GenerateAnimator(
 		Log(out, "Generating emotes... ");
 
 		std::string py_stdout, py_stderr;
-		if (InvokeWithArgs({ generate_emotes_path,
+		if (InvokeWithArgs(AppConfig(nullptr), { generate_emotes_path,
 			"Resources/Fonts/Emotes/",
 			/*board_aspect_ratio=*/ std::to_string(6),
 			/*texture_aspect_ratio=*/ std::to_string(2),
@@ -649,7 +667,7 @@ bool PythonWrapper::GenerateAnimator(
 		std::string prefab_path = (std::filesystem::path(tastt_assets_path) / "World Constraint.prefab").string();
 		Log(out, "Remove audio sources from prefab at {}\n", prefab_path);
 		Log(out, "Removing audio sources from prefab... ");
-		if (!InvokeWithArgs({ remove_audio_srcs_path,
+		if (!InvokeWithArgs(AppConfig(nullptr), { remove_audio_srcs_path,
 			"--prefab", Quote(prefab_path)
 			},
 			"Failed to remove audio sources", out)) {
@@ -766,7 +784,7 @@ bool PythonWrapper::GenerateAnimator(
 			Log(out, "Entry get {}\n", entry.path().string());
 			Log(out, "Setting size to {}\n", config.texture_sz);
 			if (entry.is_regular_file() && entry.path().extension() == ".meta") {
-				if (!InvokeWithArgs({ set_texture_sz_path,
+				if (!InvokeWithArgs(AppConfig(nullptr), { set_texture_sz_path,
 					"--meta", Quote(entry.path().string()),
 					"--size", std::to_string(config.texture_sz)},
 					"Failed to set texture size", out)) {
@@ -778,7 +796,7 @@ bool PythonWrapper::GenerateAnimator(
 	}
 	{
 		Log(out, "Generating guid.map... ");
-		if (!InvokeWithArgs({ libunity_path, "guid_map",
+		if (!InvokeWithArgs(AppConfig(nullptr), { libunity_path, "guid_map",
 			"--project_root", Quote(config.assets_path),
 			"--save_to", Quote(guid_map_path), },
 			"Failed to generate guid.map", out)) {
@@ -787,7 +805,7 @@ bool PythonWrapper::GenerateAnimator(
 	}
 	{
 		Log(out, "Generating animations... ");
-		if (!InvokeWithArgs({ libtastt_path, "gen_anims",
+		if (!InvokeWithArgs(AppConfig(nullptr), { libtastt_path, "gen_anims",
 			"--gen_anim_dir", Quote(tastt_animations_path),
 			"--guid_map", Quote(guid_map_path),
 			"--config", Quote(config_path) },
@@ -797,7 +815,7 @@ bool PythonWrapper::GenerateAnimator(
 	}
 	{
 		Log(out, "Generating FX layer... ");
-		if (!InvokeWithArgs({ libtastt_path, "gen_fx",
+		if (!InvokeWithArgs(AppConfig(nullptr), { libtastt_path, "gen_fx",
 			"--fx_dest", Quote(tastt_fx0_path),
 			"--gen_anim_dir", Quote(tastt_animations_path),
 			"--guid_map", Quote(guid_map_path),
@@ -808,7 +826,7 @@ bool PythonWrapper::GenerateAnimator(
 	}
 	{
 		Log(out, "Merging with user animator... ");
-		if (!InvokeWithArgs({ libunity_path, "merge",
+		if (!InvokeWithArgs(AppConfig(nullptr), { libunity_path, "merge",
 			"--fx0", Quote(config.fx_path),
 			"--fx1", Quote(tastt_fx0_path),
 			"--fx_dest", Quote(tastt_fx1_path), },
@@ -818,7 +836,7 @@ bool PythonWrapper::GenerateAnimator(
 	}
 	{
 		Log(out, "Setting noop animations... ");
-		if (!InvokeWithArgs({ libunity_path, "set_noop_anim",
+		if (!InvokeWithArgs(AppConfig(nullptr), { libunity_path, "set_noop_anim",
 			"--fx0", Quote(tastt_fx1_path),
 			"--fx_dest", Quote(tastt_animator_path),
 			"--gen_anim_dir", Quote(tastt_animations_path),
@@ -829,7 +847,7 @@ bool PythonWrapper::GenerateAnimator(
 	}
 	{
 		Log(out, "Generating avatar parameters... ");
-		if (!InvokeWithArgs({ generate_params_path,
+		if (!InvokeWithArgs(AppConfig(nullptr), { generate_params_path,
 			"--old_params", Quote(config.params_path),
 			"--new_params", Quote(tastt_params_path),
 			"--config", Quote(config_path) },
@@ -839,7 +857,7 @@ bool PythonWrapper::GenerateAnimator(
 	}
 	{
 		Log(out, "Generating avatar menu... ");
-		if (!InvokeWithArgs({ generate_menu_path,
+		if (!InvokeWithArgs(AppConfig(nullptr), { generate_menu_path,
 			"--old_menu", Quote(config.menu_path),
 			"--new_menu", Quote(tastt_menu_path) },
 			"Failed to generate avatar menu", out)) {

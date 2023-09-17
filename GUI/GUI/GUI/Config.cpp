@@ -68,6 +68,7 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	model("base.en"),
 	model_translation("nllb-200-distilled-600M"),
 	button("left joystick"),
+	prio("normal"),
 
 	enable_local_beep(true),
 	enable_browser_src(false),
@@ -114,6 +115,7 @@ bool AppConfig::Serialize(const std::filesystem::path& path) {
 	cm.Set("model", model);
 	cm.Set("model_translation", model_translation);
 	cm.Set("button", button);
+	cm.Set("prio", prio);
 
 	cm.Set("enable_local_beep", enable_local_beep);
 	cm.Set("enable_browser_src", enable_browser_src);
@@ -173,6 +175,7 @@ bool AppConfig::Deserialize(const std::filesystem::path& path) {
 	cm.Get("model", c.model);
 	cm.Get("model_translation", c.model_translation);
 	cm.Get("button", c.button);
+	cm.Get("prio", c.prio);
 
 	cm.Get("enable_local_beep", c.enable_local_beep);
 	cm.Get("enable_browser_src", c.enable_browser_src);

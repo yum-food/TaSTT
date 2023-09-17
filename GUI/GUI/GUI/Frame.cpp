@@ -58,6 +58,7 @@ namespace {
         ID_PY_APP_CHARS_PER_SYNC,
         ID_PY_APP_BYTES_PER_CHAR,
         ID_PY_APP_BUTTON,
+        ID_PY_APP_PRIO,
         ID_PY_APP_MODEL_PANEL,
         ID_PY_APP_ENABLE_LOCAL_BEEP,
         ID_PY_APP_ENABLE_BROWSER_SRC,
@@ -517,6 +518,17 @@ namespace {
     const size_t kNumButtons = sizeof(kButton) / sizeof(kButton[0]);
     constexpr int kButtonDefault = 0;
 
+    const wxString kPrio[] = {
+        "idle",
+        "below normal",
+        "normal",
+        "above normal",
+        "high",
+        "realtime",
+    };
+    const size_t kNumPrios = sizeof(kPrio) / sizeof(kPrio[0]);
+    constexpr int kPrioDefault = 0;
+
     const wxString kDecodeMethods[] = {
         "greedy",
         "beam",
@@ -733,6 +745,13 @@ Frame::Frame()
                         "for anything else!");
                     py_app_button_ = py_app_button;
 
+                    auto* py_app_prio = new wxChoice(py_app_config_panel_pairs,
+                        ID_PY_APP_PRIO, wxDefaultPosition,
+                        wxDefaultSize, kNumPrios, kPrio);
+                    py_app_prio->SetToolTip(
+                        "The priority level at which the transcription process runs.");
+                    py_app_prio_ = py_app_prio;
+
                     auto* py_app_rows = new wxTextCtrl(py_app_config_panel_pairs,
                         ID_PY_APP_ROWS, std::to_string(app_c_->rows),
                         wxDefaultPosition, wxDefaultSize, /*style=*/0);
@@ -849,6 +868,11 @@ Frame::Frame()
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs,
                         wxID_ANY, /*label=*/"Button:"));
                     sizer->Add(py_app_button, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs,
+                        wxID_ANY, /*label=*/"Process priority:"));
+                    sizer->Add(py_app_prio, /*proportion=*/0,
                         /*flags=*/wxEXPAND);
 
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs,
@@ -1572,6 +1596,11 @@ void Frame::ApplyConfigToInputFields()
 		kNumButtons, app_c_->button, kButtonDefault);
 	py_app_button->SetSelection(button_idx);
 
+    auto* py_app_prio = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_PRIO));
+	int prio_idx = GetDropdownChoiceIndex(kPrio,
+		kNumPrios, app_c_->prio, kPrioDefault);
+	py_app_prio->SetSelection(prio_idx);
+
     auto* py_app_desktop_keybind = static_cast<wxTextCtrl*>(FindWindowById(ID_PY_APP_KEYBIND));
     py_app_desktop_keybind->Clear();
     py_app_desktop_keybind->AppendText(app_c_->keybind);
@@ -1785,11 +1814,12 @@ void Frame::EnsureVirtualEnv(bool block, bool force)
 			Log(transcribe_out_, "{}", out);
 			Log(transcribe_out_, "{}", err);
 		};
-		if (!PythonWrapper::InvokeWithArgs({
-			"-u",  // Unbuffered output
-			"-m pip",
-			"install",
-			"-r Resources/Scripts/requirements_frozen.txt",
+		if (!PythonWrapper::InvokeWithArgs(*app_c_,
+			{
+				"-u",  // Unbuffered output
+				"-m pip",
+				"install",
+				"-r Resources/Scripts/requirements_frozen.txt",
 			}, std::move(out_cb))) {
 			Log(transcribe_out_, "Failed to launch environment setup thread!\n");
 			return false;
@@ -2053,13 +2083,13 @@ void Frame::OnUnityAutoRefreshStop(wxCommandEvent& event) {
 void Frame::OnListPip(wxCommandEvent& event)
 {
     Log(debug_out_, "Listing pip packages... ");
-    PythonWrapper::InvokeWithArgs({
+    PythonWrapper::InvokeWithArgs(*app_c_, {
         "-m pip",
         "list",
         }, "Failed to list pip packages", debug_out_);
 
     Log(debug_out_, "Listing pip cache... ");
-    PythonWrapper::InvokeWithArgs({
+    PythonWrapper::InvokeWithArgs(*app_c_, {
         "-m pip",
         "cache",
         "list",
@@ -2069,7 +2099,7 @@ void Frame::OnListPip(wxCommandEvent& event)
 void Frame::OnClearPip(wxCommandEvent& event)
 {
     Log(debug_out_, "Clearing pip cache... ");
-    PythonWrapper::InvokeWithArgs({
+    PythonWrapper::InvokeWithArgs(*app_c_, {
         "-m pip",
         "cache",
         "purge",
@@ -2103,7 +2133,7 @@ void Frame::OnResetVenv(wxCommandEvent& event)
             };
             auto in_cb = [&](std::string& in) {};
             Log(debug_out_, "Freezing packages...\n");
-            if (!PythonWrapper::InvokeWithArgs({ "-m pip freeze" }, out_cb, in_cb)) {
+            if (!PythonWrapper::InvokeWithArgs(*app_c_, { "-m pip freeze" }, out_cb, in_cb)) {
                 Log(debug_out_, "failed!\n");
                 return;
             }
@@ -2132,7 +2162,7 @@ void Frame::OnResetVenv(wxCommandEvent& event)
 			};
 			auto in_cb = [&](std::string& in) {};
 			Log(debug_out_, "Uninstalling packages...\n");
-			if (!PythonWrapper::InvokeWithArgs({ "-m pip uninstall -y -r venv_pkgs.txt" }, out_cb, in_cb)) {
+			if (!PythonWrapper::InvokeWithArgs(*app_c_, { "-m pip uninstall -y -r venv_pkgs.txt" }, out_cb, in_cb)) {
 				Log(debug_out_, "failed!\n");
 				return;
 			}
@@ -2347,7 +2377,11 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     }
     int button_idx = py_app_button_->GetSelection();
     if (button_idx == wxNOT_FOUND) {
-        button_idx = kBytesDefault;
+        button_idx = kButtonDefault;
+    }
+    int prio_idx = py_app_prio_->GetSelection();
+    if (prio_idx == wxNOT_FOUND) {
+        prio_idx = kPrioDefault;
     }
 
     const bool enable_local_beep = py_app_enable_local_beep_->GetValue();
@@ -2384,6 +2418,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     app_c_->chars_per_sync = chars_per_sync;
     app_c_->bytes_per_char = bytes_per_char;
     app_c_->button = kButton[button_idx].ToStdString();
+    app_c_->prio = kPrio[prio_idx].ToStdString();
     app_c_->rows = rows;
     app_c_->cols = cols;
     app_c_->enable_local_beep = enable_local_beep;
@@ -2466,8 +2501,9 @@ void Frame::OnAppStart(wxCommandEvent& event) {
             return true;
         });
     const std::string config_path(AppConfig::kConfigPath);
-    py_app_ = std::move(PythonWrapper::StartApp(config_path, transcribe_out_,
-        std::move(out_cb), std::move(in_cb), std::move(run_cb),
+	py_app_ = std::move(PythonWrapper::StartApp(*app_c_,
+        config_path, transcribe_out_,
+		std::move(out_cb), std::move(in_cb), std::move(run_cb),
         std::move(prestart_cb)));
     Log(transcribe_out_, "py app valid: {}\n", py_app_.valid());
 }
