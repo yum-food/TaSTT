@@ -60,42 +60,53 @@
   </style>
   <body>
     <div id="content"></div>
-    <script>
-      function scrollToBottom() {
-                  window.scrollTo(0,document.body.scrollHeight);
-                }
-      function getTranscript() {
-        $.ajax({
-                url: 'http://localhost:%PORT%/api/transcript',
-                method: 'GET',
-                dataType: 'json',
-                success: function(data) {
-                        var transcript = data.transcript;
-                        var preview = data.preview;
-                        var red_circle = '<span class="red_circle"></span>';
-                        var grey_circle = '<span class="grey_circle"></span>';
+		<script>
+			function scrollToBottom() {
+				window.scrollTo(0, document.body.scrollHeight);
+			}
 
-                        var contentHtml = '';
-                        contentHtml += '<span class="transcript">' +
-                          transcript + '</span>';
-                        contentHtml += '<span class="preview">' +
-                          preview + '</span>';
-                        if (data.is_final == 1) {
-                          contentHtml += grey_circle;
-                        } else {
-                          contentHtml += red_circle;
-                        }
+			function getTranscript() {
+				$.ajax({
+					url: 'http://localhost:%PORT%/api/v0/transcript',
+					method: 'GET',
+					dataType: 'json',
+					success: function (data) {
+            // dirty hack: create a bunch of invisible content to push the
+            // transcript down the bottom
+            var transcriptHtml = '<span class="transcript" style="opacity: 0">'
+                    + '___ '.repeat(128) + '</span>';
+						data.commits.forEach(function (commit, index) {
+              let age = data.ts - commit.ts;
+              let min_age_s = 5.0;
+              let max_age_s = 60.0;
+              let opacity = 1.0 - (age - min_age_s) / (max_age_s - min_age_s);
+              opacity = Math.max(0, opacity);
+              opacity = Math.min(1, opacity);
+              transcriptHtml += `<span class="transcript" style="opacity: ${opacity};">${commit.delta}</span>`;
+						});
 
-                        $('#content').html(contentHtml);
-                        $('#content').css("background-color", "#22222280");
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                        console.error('Error getting transcript: ', textStatus, errorThrown);
-                }
-        });
-        scrollToBottom();
-      }
-      setInterval(getTranscript, /*interval_ms=*/100);
-    </script>
+						// Append the preview with full opacity if it exists
+            if (data.preview && data.preview.preview) {
+                transcriptHtml += `<span class="preview" style="opacity: 1;">${data.preview.preview}</span>`;
+            }
+
+            // Create the circle indicator
+            var circleHtml = data.preview.preview ?
+              '<span class="red_circle"></span>' :
+              '<span class="grey_circle"></span>';
+
+            $('#content').html(transcriptHtml + circleHtml);
+            $('#content').css("background-color", "#22222280");
+					},
+					error: function (jqXHR, textStatus, errorThrown) {
+						console.error('Error getting transcript: ', textStatus, errorThrown);
+					}
+				});
+				scrollToBottom();
+			}
+
+			setInterval(getTranscript, /*interval_ms=*/100);
+		</script>
+
   </body>
 </html>

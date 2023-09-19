@@ -1,3 +1,4 @@
+from browser_src import BrowserSource
 from datetime import datetime
 from emotes_v2 import EmotesState
 from faster_whisper import WhisperModel
@@ -5,6 +6,7 @@ from functools import partial
 from profanity_filter import ProfanityFilter
 from pydub import AudioSegment
 from sentence_splitter import split_text_into_sentences
+from transcribe_pipeline import StreamingPlugin, TranscriptCommit
 
 import app_config
 import argparse
@@ -458,19 +460,6 @@ class Whisper:
                 s.avg_logprob, s.no_speech_prob, s.compression_ratio))
         return res
 
-class TranscriptCommit:
-    def __init__(self,
-            delta: str,
-            preview: str,
-            latency_s: int = None,
-            thresh_at_commit: int = None,
-            audio: bytes = None):
-        self.delta = delta
-        self.preview = preview
-        self.latency_s = latency_s
-        self.thresh_at_commit = thresh_at_commit
-        self.audio = audio
-
 def saveAudio(audio: bytes, path: str):
     with wave.open(path, 'wb') as wf:
         print(f"Saving audio to {path}", file=sys.stderr)
@@ -544,16 +533,6 @@ def install_in_venv(pkgs: typing.List[str]) -> bool:
     if pip_proc.returncode != 0:
         print(f"`pip install {pkgs_str}` exited with {pip_proc.returncode}",
                 file=sys.stderr)
-
-class StreamingPlugin:
-    def __init__(self):
-        pass
-
-    def transform(self, commit: TranscriptCommit) -> TranscriptCommit:
-        return commit
-
-    def stop(self):
-        pass
 
 class TranslationPlugin(StreamingPlugin):
     def __init__(self, cfg):
@@ -1166,6 +1145,7 @@ def run(cfg):
     ctrl.plugins.append(LowercasePlugin(cfg))
     ctrl.plugins.append(ProfanityPlugin(cfg))
     ctrl.plugins.append(UwuPlugin(cfg))
+    ctrl.plugins.append(BrowserSource(cfg))
 
     ctrl.filters = []
     ctrl.filters.append(TrailingPeriodFilter(cfg))

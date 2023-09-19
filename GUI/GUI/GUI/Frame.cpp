@@ -2492,6 +2492,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
         EnsureVirtualEnv(/*block=*/true);
     };
 
+#if 0
     obs_app_ = std::async(std::launch::async,
         [this, enable_browser_src, browser_src_port]() -> bool {
             if (enable_browser_src) {
@@ -2500,6 +2501,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
             }
             return true;
         });
+#endif
     const std::string config_path(AppConfig::kConfigPath);
 	py_app_ = std::move(PythonWrapper::StartApp(*app_c_,
         config_path, transcribe_out_,
