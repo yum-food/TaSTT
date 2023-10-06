@@ -77,10 +77,6 @@ namespace PythonWrapper
 		const std::function<bool()>&& run_cb = []() { return true; });
 	bool InstallPip(std::string* out, std::string* err = nullptr);
 
-	// TODO(yum) both StartApp and GenerateAnimator should be
-	// parameterized with config files instead of these ever-growing lists of
-	// parameters. We could persist those files so settings would persist across
-	// app restarts.
 	std::future<bool> StartApp(
 		const AppConfig& app_c,
 		const std::string& config_path,

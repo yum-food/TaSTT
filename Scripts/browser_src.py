@@ -51,6 +51,10 @@ class MyHandler(http.server.BaseHTTPRequestHandler):
         self.http_server_instance = http_server_instance
         super().__init__(*args, **kwargs)
 
+    def log_message(self, format, *args):
+        # TODO log if cfg["debug_mode_enabled"] is set
+        return
+
     def do_GET(self):
         self.handle_request('GET')
 
@@ -96,6 +100,12 @@ class BrowserSource(StreamingPlugin):
         del commit.audio
         if commit.delta:
             self.commits.append(commit)
+        # Limit commits to last N.
+        now = time.time()
+        self.commits = [commit for commit in self.commits]
+        max_commits = 10
+        if len(self.commits) > max_commits:
+            self.commits = self.commits[-int(max_commits/2):]
         self.preview_commit = commit
         return original_commit
 

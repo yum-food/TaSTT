@@ -217,11 +217,11 @@ class AudioCollector:
         return self.frames
 
     def dropAudioPrefix(self, dur_s: float) -> bytes:
-        n_bytes = int(dur_s * self.stream.FPS) * self.stream.FRAME_SZ
+        n_bytes = int(dur_s * AudioStream.FPS) * self.stream.FRAME_SZ
         n_bytes = min(n_bytes, len(self.frames))
         cut_portion = self.frames[:n_bytes]
         self.frames = self.frames[n_bytes:]
-        self.wall_ts = self.wall_ts + self.duration()
+        self.wall_ts += float(n_bytes / self.stream.FRAME_SZ) / self.stream.FPS
         return cut_portion
 
     def dropAudioPrefixByFrames(self, dur_frames: int) -> bytes:
@@ -229,7 +229,7 @@ class AudioCollector:
         n_bytes = min(n_bytes, len(self.frames))
         cut_portion = self.frames[:n_bytes]
         self.frames = self.frames[n_bytes:]
-        self.wall_ts = self.wall_ts + self.duration()
+        self.wall_ts += float(n_bytes / self.stream.FRAME_SZ) / self.stream.FPS
         return cut_portion
 
     def keepLast(self, dur_s: float) -> bytes:
@@ -243,7 +243,7 @@ class AudioCollector:
         return cut_portion
 
     def duration(self):
-        return len(self.frames) / (self.stream.FPS * self.stream.FRAME_SZ)
+        return len(self.frames) / (AudioStream.FPS * self.stream.FRAME_SZ)
 
     def begin(self):
         return self.wall_ts
@@ -486,9 +486,13 @@ class VadCommitter:
         delta = ""
         commit_audio = None
         latency_s = None
+        duration_s = self.collector.duration()
+        start_ts = self.collector.begin()
         if has_audio and stable_cutoff:
             #print(f"stable cutoff get: {stable_cutoff}", file=sys.stderr)
             latency_s = self.collector.now() - self.collector.begin()
+            duration_s = stable_cutoff / AudioStream.FPS
+            start_ts = self.collector.begin()
             commit_audio = self.collector.dropAudioPrefixByFrames(stable_cutoff)
 
             segments = self.whisper.transcribe(commit_audio)
@@ -516,13 +520,15 @@ class VadCommitter:
                 delta,
                 preview,
                 latency_s,
-                audio=audio)
+                audio=audio,
+                duration_s=duration_s,
+                start_ts=start_ts)
 
 def install_in_venv(pkgs: typing.List[str]) -> bool:
     pkgs_str = " ".join(pkgs)
     print(f"Installing {pkgs_str}")
     pip_proc = subprocess.Popen(
-            f"Resources/Python/python.exe -m pip install {pkgs_str}".split(),
+            f"Resources/Python/python.exe -m pip install {pkgs_str} --no-warn-script-location".split(),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE)
     pip_stdout, pip_stderr = pip_proc.communicate()
@@ -533,6 +539,8 @@ def install_in_venv(pkgs: typing.List[str]) -> bool:
     if pip_proc.returncode != 0:
         print(f"`pip install {pkgs_str}` exited with {pip_proc.returncode}",
                 file=sys.stderr)
+        return False
+    return True
 
 class TranslationPlugin(StreamingPlugin):
     def __init__(self, cfg):
@@ -847,6 +855,8 @@ def optimize(cfg,
     return optimized_params
 
 def transcriptionThread(ctrl: ThreadControl):
+    last_stable_commit = None
+
     while ctrl.run_app:
         time.sleep(ctrl.cfg["transcription_loop_delay_ms"] / 1000.0);
 
@@ -858,6 +868,23 @@ def transcriptionThread(ctrl: ThreadControl):
             commit = plugin.transform(commit)
 
         if len(commit.delta) > 0 or len(commit.preview) > 0:
+            # Avoid re-sending text after long pauses. User controls the length
+            # of the pause in the UI.
+            if ctrl.cfg["reset_after_silence_s"] > 0:
+                silence_duration = 0
+                if last_stable_commit:
+                    last_commit_end_ts = \
+                            last_stable_commit.start_ts + \
+                            last_stable_commit.duration_s
+                    silence_duration = commit.start_ts - last_commit_end_ts
+                if silence_duration > ctrl.cfg["reset_after_silence_s"]:
+                    print(f"Resetting transcript after {silence_duration}-second "
+                            "silence", file=sys.stderr)
+                    ctrl.transcript = ""
+                    ctrl.preview = ""
+                if commit.delta:
+                    last_stable_commit = commit
+
             # Hard-cap displayed transcript length at 4k characters to prevent
             # runaway memory use in UI. Keep the full transcript to avoid
             # breaking OSC pager.
@@ -870,21 +897,18 @@ def transcriptionThread(ctrl: ThreadControl):
             try:
                 print(f"Transcript: {transcript}")
             except UnicodeEncodeError:
-                print("Failed to encode transcript - discarding delta")
+                print("Failed to encode transcript - discarding delta",
+                        file=sys.stderr)
                 continue
             try:
                 print(f"Preview: {preview}")
             except UnicodeEncodeError:
-                print("Failed to encode preview - discarding")
+                print("Failed to encode preview - discarding", file=sys.stderr)
 
             if cfg["enable_debug_mode"]:
                 print(f"commit latency: {commit.latency_s}", file=sys.stderr)
                 print(f"commit thresh: {commit.thresh_at_commit}",
                         file=sys.stderr)
-            if len(commit.preview) > 0:
-                print("Finalized: 0")
-            else:
-                print("Finalized: 1")
 
         ctrl.transcript += commit.delta
         ctrl.preview = ctrl.transcript + commit.preview
@@ -1125,7 +1149,7 @@ def run(cfg):
 
     collector = AudioCollector(stream)
     #collector = LengthEnforcingAudioCollector(collector, 5.0)
-    #collector = NormalizingAudioCollector(collector)
+    collector = NormalizingAudioCollector(collector)
     collector = CompressingAudioCollector(collector)
     whisper = Whisper(collector, cfg)
     segmenter = AudioSegmenter(min_silence_ms=cfg["min_silence_duration_ms"],

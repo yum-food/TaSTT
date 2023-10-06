@@ -74,6 +74,7 @@ public:
 	int gpu_idx;
 	int min_silence_duration_ms;
 	int max_speech_duration_s;
+	int reset_after_silence_s;
 	int transcription_loop_delay_ms;
 	std::string keybind;
 

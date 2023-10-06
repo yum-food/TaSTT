@@ -40,6 +40,7 @@ private:
     wxTextCtrl* py_app_gpu_idx_;
     wxTextCtrl* py_app_min_silence_duration_ms_;
     wxTextCtrl* py_app_max_speech_duration_s_;
+    wxTextCtrl* py_app_reset_after_silence_s_;
     wxTextCtrl* py_app_transcription_loop_delay_ms_;
     wxTextCtrl* py_app_keybind_;
     wxTextCtrl* py_app_browser_src_port_;
