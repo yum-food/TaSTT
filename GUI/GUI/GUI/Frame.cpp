@@ -458,6 +458,7 @@ namespace {
         "base",
         "small.en",
         "small",
+        "yumfood/whisper_distil_medium_en_ct2",
         "medium.en",
         "medium",
         "large-v1",
