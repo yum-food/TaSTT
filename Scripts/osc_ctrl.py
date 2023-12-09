@@ -11,9 +11,10 @@ import generate_utils
 import random
 import time
 
-# Based on a couple experiments, this seems like about as fast as we can go
-# before players start losing events.
-SYNC_FREQ_HZ = 5.0
+# 5 Hz usually works, but 3 Hz is more reliable in busy lobbies. Feel free to
+# dial this up if you want faster paging, but know that it might break for
+# remote users.
+SYNC_FREQ_HZ = 3.0
 SYNC_DELAY_S = 1.0 / SYNC_FREQ_HZ
 
 def getClient(ip = "127.0.0.1", port = 9000):
