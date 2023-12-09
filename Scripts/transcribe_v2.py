@@ -421,16 +421,14 @@ class Whisper:
             model_device = "cpu"
 
         download_it = os.path.exists(model_root)
-        model_str = model_str
+        if '/' in model_str:
+            hf_hub_download(repo_id=model_str, filename='model.bin',
+                    local_dir=model_root)
+            hf_hub_download(repo_id=model_str, filename='vocabulary.json',
+                    local_dir=model_root)
+            hf_hub_download(repo_id=model_str, filename='config.json',
+                    local_dir=model_root)
         if download_it:
-            if '/' in model_str:
-                hf_hub_download(repo_id=model_str, filename='model.bin',
-                        local_dir=model_root)
-                hf_hub_download(repo_id=model_str, filename='vocabulary.json',
-                        local_dir=model_root)
-                hf_hub_download(repo_id=model_str, filename='config.json',
-                        local_dir=model_root)
-
             model_str = model_root
         self.model = WhisperModel(model_str,
                 device = model_device,
