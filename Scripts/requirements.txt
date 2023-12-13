@@ -1,17 +1,20 @@
-ctranslate2
 editdistance
-faster-whisper@https://github.com/guillaumekln/faster-whisper/archive/78d57d73c5b4a76b32d1d5a415e4e7aea760295c.tar.gz
+flash-attn==2.3.6
 future==0.18.2
 huggingface_hub==0.16.4
 keyboard
 langcodes
 language-data
 openvr
+onnxruntime
+packaging
 pillow
 pyaudio
 pydub
 python-osc
 pyyaml
 sentence_splitter
-transformers>=4.21.0
+transformers==4.35.2
+--extra-index-url https://download.pytorch.org/whl/cu121
+torch
 
