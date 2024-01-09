@@ -99,7 +99,7 @@ float4 GetLetter(float2 uv) {
   bool is_emote = false;
 
   if (letter < 0xE000) {
-    letter_uv = GetLetterUV(uv, letter % 0x2000, TEXTURE_NCOLS, TEXTURE_NROWS, BOARD_NCOLS, BOARD_NROWS, /*margin=*/0.02);
+    letter_uv = GetLetterUV(uv, letter % 0x2000, TEXTURE_NCOLS, TEXTURE_NROWS, BOARD_NCOLS, BOARD_NROWS, /*margin=*/0);
   } else {
     is_emote = true;
     texture_cols = 16.0;
@@ -110,58 +110,44 @@ float4 GetLetter(float2 uv) {
 
   bool discard_text = (letter_uv.x == -1) * (letter_uv.y == -1);
 
-  // We use ddx/ddy to get the correct mipmaps of the font textures. This
-  // confers 2 main benefits:
-  //   1. We don't use as much VRAM for distant players.
-  //   2. Glyphs anti-alias much more nicely.
-  const float iddx = ddx(letter_uv.x);
-  const float iddy = ddy(letter_uv.y);
-
-  bool add_dithering = Enable_Dithering * !is_emote;
-  // Add noise to UV.
-  // Here, iddx and iddy tell us how big the current UV cell is with respect to
-  // screen space (i.e. how many pixels wide it is).
-  float noise = frac(prng(letter_uv) + _Time[0]);
-  letter_uv.x += lerp(0, (noise - 0.5) * iddx / 4.0, add_dithering);
-  letter_uv.y += lerp(0, (noise - 0.5) * iddy / 4.0, add_dithering);
+  const float iddx = ddx(uv.x);
+  const float iddy = ddy(uv.y);
 
   float4 text = float4(0, 0, 0, 0);
   int which_texture = (int) floor(letter / (uint) (64 * 128));
   [forcecase] switch (which_texture)
   {
     case 0:
-      // Divide iddx, iddy by 2.0 to remain on a higher-detail mip level for
-      // longer.
       text = _Font_0x0000_0x1FFF.SampleGrad(linear_clamp_sampler,
-          letter_uv, iddx / 2.0, iddy / 2.0);
+          letter_uv, iddx, iddy);
       break;
     case 1:
       text = _Font_0x2000_0x3FFF.SampleGrad(linear_clamp_sampler,
-          letter_uv, iddx / 2.0, iddy / 2.0);
+          letter_uv, iddx, iddy);
       break;
     case 2:
       text = _Font_0x4000_0x5FFF.SampleGrad(linear_clamp_sampler,
-          letter_uv, iddx / 2.0, iddy / 2.0);
+          letter_uv, iddx, iddy);
       break;
     case 3:
       text = _Font_0x6000_0x7FFF.SampleGrad(linear_clamp_sampler,
-          letter_uv, iddx / 2.0, iddy / 2.0);
+          letter_uv, iddx, iddy);
       break;
     case 4:
       text = _Font_0x8000_0x9FFF.SampleGrad(linear_clamp_sampler,
-          letter_uv, iddx / 2.0, iddy / 2.0);
+          letter_uv, iddx, iddy);
       break;
     case 5:
       text = _Font_0xA000_0xBFFF.SampleGrad(linear_clamp_sampler,
-          letter_uv, iddx / 2.0, iddy / 2.0);
+          letter_uv, iddx, iddy);
       break;
     case 6:
       text = _Font_0xC000_0xDFFF.SampleGrad(linear_clamp_sampler,
-          letter_uv, iddx / 2.0, iddy / 2.0);
+          letter_uv, iddx, iddy);
       break;
     case 7:
       text = _Img_0xE000_0xE03F.SampleGrad(linear_clamp_sampler,
-          letter_uv, iddx / 2.0, iddy / 2.0);
+          letter_uv, iddx, iddy);
       break;
     default:
       // Return some distinctive pattern that will look like a bug.
