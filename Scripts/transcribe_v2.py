@@ -337,7 +337,7 @@ class AudioSegmenter:
     # Returns the stable cutoff (if any) and whether there are any segments.
     def getStableCutoff(self, audio: bytes) -> typing.Tuple[int, bool]:
         min_delta_frames = int((self.vad_options.min_silence_duration_ms *
-                AudioStream.FPS) / 1000)
+                AudioStream.FPS) / 1000.0)
         cutoff = None
 
         last_end = None
@@ -515,9 +515,10 @@ class VadCommitter:
                     print(f"commit segment: {s}", file=sys.stderr)
                 print(f"delta get: {delta}", file=sys.stderr)
 
-            #ts = datetime.fromtimestamp(self.collector.now() - latency_s)
-            #filename = str(ts.strftime('%Y_%m_%d__%H-%M-%S')) + ".wav"
-            #saveAudio(commit_audio, filename)
+            if True:
+                ts = datetime.fromtimestamp(self.collector.now() - latency_s)
+                filename = str(ts.strftime('%Y_%m_%d__%H-%M-%S')) + ".wav"
+                saveAudio(commit_audio, filename)
 
         preview = ""
         if self.cfg["enable_previews"] and has_audio:

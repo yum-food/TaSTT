@@ -155,7 +155,7 @@ def genUnicode():
 def genASCII():
     # Create an 8k grayscale image. 16 glyphs wide, 8 glyphs tall.
     # Only characters on the range [0, 128).
-    image = Image.new(mode="L", size=(8192,8192), color=0)
+    image = Image.new(mode="RGBA", size=(8192,8192), color=0)
     draw = ImageDraw.Draw(image)
     n_rows = 8
     n_cols = 16
@@ -174,11 +174,11 @@ def genASCII():
             else:
                 char = " "
             draw.text((col * font_pixels * 8 / 2, row * font_pixels * 8 - 20),
-                    char, font=font, fill=255)
+                    char, font=font, fill=(255,255,255))
     image.save("Fonts/Bitmaps/font-ascii.png")
 
 if __name__ == "__main__":
     print("Generating unicode fonts")
-    genUnicode()
+    #genUnicode()
     print("Generating ASCII fonts")
     genASCII()

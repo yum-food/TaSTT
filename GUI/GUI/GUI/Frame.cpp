@@ -119,7 +119,9 @@ namespace {
 
     const wxString kMicChoices[] = {
         "index",
+        "beyond",
         "focusrite",
+        "motu",
         // ok now this is epic
         "0",
         "1",
