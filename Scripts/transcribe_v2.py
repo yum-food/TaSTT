@@ -457,6 +457,20 @@ class Whisper:
             # Manual touchup. I see a decent number of hallucinations sneaking
             # in with high `no_speech_prob` and modest `avg_logprob`.
             if s.no_speech_prob > 0.6 and s.avg_logprob < -0.5:
+                if cfg["enable_debug_mode"]:
+                    print(f"Drop probable hallucination (case 1) " +
+                            f"(text='{s.text}', " +
+                            f"no_speech_prob={s.no_speech_prob}, " +
+                            f"avg_logprob={s.avg_logprob})", file=sys.stderr)
+                continue
+            # Another touchup targeted at the vexatious "thanks for watching!"
+            # hallucination.
+            if s.no_speech_prob > 0.15 and s.avg_logprob < -0.7:
+                if cfg["enable_debug_mode"]:
+                    print(f"Drop probable hallucination (case 2) " +
+                            f"(text='{s.text}', " +
+                            f"no_speech_prob={s.no_speech_prob}, " +
+                            f"avg_logprob={s.avg_logprob})", file=sys.stderr)
                 continue
             if cfg["enable_debug_mode"]:
                 print(f"s get: {s}")
@@ -500,6 +514,7 @@ class VadCommitter:
         latency_s = None
         duration_s = self.collector.duration()
         start_ts = self.collector.begin()
+
         if has_audio and stable_cutoff:
             #print(f"stable cutoff get: {stable_cutoff}", file=sys.stderr)
             latency_s = self.collector.now() - self.collector.begin()
@@ -515,7 +530,7 @@ class VadCommitter:
                     print(f"commit segment: {s}", file=sys.stderr)
                 print(f"delta get: {delta}", file=sys.stderr)
 
-            if True:
+            if False:
                 ts = datetime.fromtimestamp(self.collector.now() - latency_s)
                 filename = str(ts.strftime('%Y_%m_%d__%H-%M-%S')) + ".wav"
                 saveAudio(commit_audio, filename)

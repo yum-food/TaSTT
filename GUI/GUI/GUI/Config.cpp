@@ -87,8 +87,8 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	enable_lock_at_spawn(true),
 	gpu_idx(0),
 	min_silence_duration_ms(250),
-	max_speech_duration_s(15),
-	reset_after_silence_s(10),
+	max_speech_duration_s(10),
+	reset_after_silence_s(15),
 	transcription_loop_delay_ms(100),
 	keybind("ctrl+x"),
 
