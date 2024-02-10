@@ -435,7 +435,7 @@ class Whisper:
         self.model = WhisperModel(model_str,
                 device = model_device,
                 device_index = cfg["gpu_idx"],
-                compute_type = "float16",
+                compute_type = cfg["compute_type"],
                 download_root = model_root,
                 local_files_only = download_it)
 
