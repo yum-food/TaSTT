@@ -107,12 +107,14 @@ class MicStream(AudioStream):
 
         got_match = False
         device_index = -1
-        focusrite_str = "Focusrite"
-        index_str = "Digital Audio Interface"
         if which_mic == "index":
-            target_str = index_str
+            target_str = "Digital Audio Interface"
         elif which_mic == "focusrite":
-            target_str = focusrite_str
+            target_str = "Focusrite"
+        elif which_mic == "motu":
+            target_str = "In 1-2 (MOTU M Series)"
+        elif which_mic == "beyond":
+            target_str = "Microphone (Beyond)"
         else:
             print(f"Mic {which_mic} requested, treating it as a numerical " +
                     "device ID", file=sys.stderr)
@@ -464,7 +466,8 @@ class Whisper:
                             f"avg_logprob={s.avg_logprob})", file=sys.stderr)
                 continue
             # Another touchup targeted at the vexatious "thanks for watching!"
-            # hallucination.
+            # hallucination. This triggers a lot when listening to
+            # instrumental/electronic music.
             if s.no_speech_prob > 0.15 and s.avg_logprob < -0.7:
                 if cfg["enable_debug_mode"]:
                     print(f"Drop probable hallucination (case 2) " +

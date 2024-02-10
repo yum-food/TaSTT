@@ -64,6 +64,7 @@ private:
     wxChoice* py_app_bytes_per_char_;
     wxChoice* py_app_button_;
     wxChoice* py_app_prio_;
+    wxChoice* py_app_compute_type_;
     wxChoice* unity_chars_per_sync_;
     wxChoice* unity_bytes_per_char_;
 

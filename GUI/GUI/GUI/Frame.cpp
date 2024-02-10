@@ -59,6 +59,7 @@ namespace {
         ID_PY_APP_BYTES_PER_CHAR,
         ID_PY_APP_BUTTON,
         ID_PY_APP_PRIO,
+        ID_PY_APP_COMPUTE_TYPE,
         ID_PY_APP_MODEL_PANEL,
         ID_PY_APP_ENABLE_LOCAL_BEEP,
         ID_PY_APP_ENABLE_BROWSER_SRC,
@@ -534,6 +535,19 @@ namespace {
     const size_t kNumPrios = sizeof(kPrio) / sizeof(kPrio[0]);
     constexpr int kPrioDefault = 0;
 
+    const wxString kComputeType[] = {
+        "int8",
+        "int8_float32",
+        "int8_float16",
+        "int8_bfloat16",
+        "int16",
+        "float16",
+        "bfloat16",
+        "float32",
+    };
+    const size_t kNumComputeTypes = sizeof(kComputeType) / sizeof(kComputeType[0]);
+    constexpr int kComputeTypeDefault = 4;
+
     const wxString kDecodeMethods[] = {
         "greedy",
         "beam",
@@ -757,6 +771,14 @@ Frame::Frame()
                         "The priority level at which the transcription process runs.");
                     py_app_prio_ = py_app_prio;
 
+                    auto* py_app_compute_type = new wxChoice(py_app_config_panel_pairs,
+                        ID_PY_APP_COMPUTE_TYPE, wxDefaultPosition,
+                        wxDefaultSize, kNumComputeTypes, kComputeType);
+                    py_app_compute_type->SetToolTip(
+                        "The compute type to use for GPU inference. Ignored "
+                        "if CPU mode is enabled.");
+                    py_app_compute_type_ = py_app_compute_type;
+
                     auto* py_app_rows = new wxTextCtrl(py_app_config_panel_pairs,
                         ID_PY_APP_ROWS, std::to_string(app_c_->rows),
                         wxDefaultPosition, wxDefaultSize, /*style=*/0);
@@ -888,6 +910,11 @@ Frame::Frame()
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs,
                         wxID_ANY, /*label=*/"Process priority:"));
                     sizer->Add(py_app_prio, /*proportion=*/0,
+                        /*flags=*/wxEXPAND);
+
+                    sizer->Add(new wxStaticText(py_app_config_panel_pairs,
+                        wxID_ANY, /*label=*/"GPU compute type:"));
+                    sizer->Add(py_app_compute_type, /*proportion=*/0,
                         /*flags=*/wxEXPAND);
 
                     sizer->Add(new wxStaticText(py_app_config_panel_pairs,
@@ -1620,6 +1647,11 @@ void Frame::ApplyConfigToInputFields()
 	int prio_idx = GetDropdownChoiceIndex(kPrio,
 		kNumPrios, app_c_->prio, kPrioDefault);
 	py_app_prio->SetSelection(prio_idx);
+
+    auto* py_app_compute_type = static_cast<wxChoice*>(FindWindowById(ID_PY_APP_COMPUTE_TYPE));
+	int compute_type_idx = GetDropdownChoiceIndex(kComputeType,
+		kNumComputeTypes, app_c_->compute_type, kComputeTypeDefault);
+	py_app_compute_type->SetSelection(compute_type_idx);
 
     auto* py_app_desktop_keybind = static_cast<wxTextCtrl*>(FindWindowById(ID_PY_APP_KEYBIND));
     py_app_desktop_keybind->Clear();
@@ -2407,6 +2439,10 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     if (prio_idx == wxNOT_FOUND) {
         prio_idx = kPrioDefault;
     }
+    int compute_type_idx = py_app_compute_type_->GetSelection();
+    if (compute_type_idx == wxNOT_FOUND) {
+        compute_type_idx = kComputeTypeDefault;
+    }
 
     const bool enable_local_beep = py_app_enable_local_beep_->GetValue();
     const bool enable_browser_src = py_app_enable_browser_src_->GetValue();
@@ -2444,6 +2480,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     app_c_->bytes_per_char = bytes_per_char;
     app_c_->button = kButton[button_idx].ToStdString();
     app_c_->prio = kPrio[prio_idx].ToStdString();
+    app_c_->compute_type = kComputeType[compute_type_idx].ToStdString();
     app_c_->rows = rows;
     app_c_->cols = cols;
     app_c_->enable_local_beep = enable_local_beep;
