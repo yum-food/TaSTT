@@ -99,20 +99,20 @@ if (-Not (Test-Path $nvidia_dir)) {
   # NVIDIA locks these files behind a fucking login making it a massive
   # pain in the dick for end users to download, so I rehosted them.
   # TODO check hashes.
-  echo "Fetching NVIDIA dll 1/4 (600MB)"
-  $CUDNN_1_URL = "https://www.dropbox.com/scl/fi/7vgnqz732lmrdkbktc0tm/cublas64_11.dll?rlkey=ju4fjpf8v9aoopdeqddfkcrfj&dl=0"
+  echo "Fetching NVIDIA dll 1/4 (90MB)"
+  $CUDNN_1_URL = "https://www.dropbox.com/scl/fi/7vgnqz732lmrdkbktc0tm/cublas64_11.dll?rlkey=ju4fjpf8v9aoopdeqddfkcrfj&dl=1"
   Invoke-WebRequest $CUDNN_1_URL -OutFile "cublas64_11.dll"
 
-  echo "Fetching NVIDIA dll 2/4 (80MB)"
-  $CUDNN_2_URL = "https://www.dropbox.com/scl/fi/xgz2rbp5gxy1v6o0t5e4r/cublasLt64_11.dll?rlkey=l6uk24q82anmjtlr39m8pbftb&dl=0"
+  echo "Fetching NVIDIA dll 2/4 (160MB)"
+  $CUDNN_2_URL = "https://www.dropbox.com/scl/fi/xgz2rbp5gxy1v6o0t5e4r/cublasLt64_11.dll?rlkey=l6uk24q82anmjtlr39m8pbftb&dl=1"
   Invoke-WebRequest $CUDNN_2_URL -OutFile "cublasLt64_11.dll"
 
-  echo "Fetching NVIDIA dll 3/4 (80MB)"
-  $CUDNN_3_URL = "https://www.dropbox.com/scl/fi/ffy0i5l5asrfkiesr3t1u/cudnn_cnn_infer64_8.dll?rlkey=t2v0v6y78tq2h2i5y0bmm7n0z&dl=0"
+  echo "Fetching NVIDIA dll 3/4 (600MB)"
+  $CUDNN_3_URL = "https://www.dropbox.com/scl/fi/ffy0i5l5asrfkiesr3t1u/cudnn_cnn_infer64_8.dll?rlkey=t2v0v6y78tq2h2i5y0bmm7n0z&dl=1"
   Invoke-WebRequest $CUDNN_3_URL -OutFile "cudnn_cnn_infer64_8.dll"
 
-  echo "Fetching NVIDIA dll 4/4 (150MB)"
-  $CUDNN_4_URL = "https://www.dropbox.com/scl/fi/dd1t62wc5gtz5bmhji01h/cudnn_ops_infer64_8.dll?rlkey=b11q8h3f97pxsamak04z4f84d&dl=0"
+  echo "Fetching NVIDIA dll 4/4 (90MB)"
+  $CUDNN_4_URL = "https://www.dropbox.com/scl/fi/dd1t62wc5gtz5bmhji01h/cudnn_ops_infer64_8.dll?rlkey=b11q8h3f97pxsamak04z4f84d&dl=1"
   Invoke-WebRequest $CUDNN_4_URL -OutFile "cudnn_ops_infer64_8.dll"
 
   popd > $null
