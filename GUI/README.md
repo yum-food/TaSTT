@@ -13,7 +13,7 @@
 $ git submodule init
 $ git submodule update
 ```
-3. Execute Libraries/fetch.ps1. This will take 10-20 minutes.
+3. Execute Libraries/fetch.ps1. This will take 2-3 minutes.
   3.0. If you can't run the script, run `Set-ExecutionPolicyPolicy
       Unrestricted` in an admin instance of powershell. Heed the warning,
       this is a security risk! Never run code from someone you don't trust
@@ -26,7 +26,7 @@ $ git submodule update
 7. Build x64/Release.
   1. The build configuration is in the top. By default it's probably Debug/x64.
   2. To build: ctrl+shift+B
-  3. If you saw an error in 3.1, rerun Libraries/fetch.ps1.
+  3. If you saw an error in 7.1, rerun Libraries/fetch.ps1.
 8. Open GUI/GUI.sln with Visual Studio 2022.
 9. Build x64/Release.
 10. Run package.ps1 from powershell.
