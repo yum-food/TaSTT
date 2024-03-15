@@ -422,7 +422,7 @@ class Whisper:
         if cfg["use_cpu"]:
             model_device = "cpu"
 
-        download_it = os.path.exists(model_root)
+        already_downloaded = os.path.exists(model_root)
         if '/' in model_str:
             hf_hub_download(repo_id=model_str, filename='model.bin',
                     local_dir=model_root)
@@ -430,14 +430,15 @@ class Whisper:
                     local_dir=model_root)
             hf_hub_download(repo_id=model_str, filename='config.json',
                     local_dir=model_root)
-        if download_it:
+            already_downloaded = True
+        if already_downloaded:
             model_str = model_root
         self.model = WhisperModel(model_str,
                 device = model_device,
                 device_index = cfg["gpu_idx"],
                 compute_type = cfg["compute_type"],
                 download_root = model_root,
-                local_files_only = download_it)
+                local_files_only = already_downloaded)
 
     def transcribe(self, frames: bytes = None) -> typing.List[Segment]:
         if frames is None:

@@ -461,12 +461,12 @@ namespace {
         "base",
         "small.en",
         "small",
-        "yumfood/whisper_distil_medium_en_ct2",
+        "Systran/faster-distil-whisper-medium.en",
         "medium.en",
         "medium",
+        "Systran/faster-distil-whisper-large-v2",
         "large-v1",
         "large-v2",
-        "yumfood/whisper_distil_large_v2_ct2",
     };
     const size_t kNumModelChoices = sizeof(kModelChoices) / sizeof(kModelChoices[0]);
     constexpr int kModelDefault = 2;  // base.en

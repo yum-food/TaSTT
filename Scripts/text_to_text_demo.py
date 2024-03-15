@@ -7,8 +7,6 @@ from pythonosc import udp_client
 
 import generate_utils
 import osc_ctrl
-import paging
-import pythonosc
 import time
 
 class AppConfig:
