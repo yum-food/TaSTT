@@ -65,7 +65,7 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	microphone("index"),
 	language("english"),
 	language_target("Do not translate"),
-	model("base.en"),
+	model("small.en"),
 	model_translation("nllb-200-distilled-600M"),
 	button("left joystick"),
 	prio("normal"),
@@ -93,10 +93,10 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	transcription_loop_delay_ms(100),
 	keybind("ctrl+x"),
 
-	chars_per_sync(8),
+	chars_per_sync(10),
 	bytes_per_char(1),
-	rows(3),
-	cols(36),
+	rows(4),
+	cols(40),
 	texture_sz(512),
 
 	assets_path(),
