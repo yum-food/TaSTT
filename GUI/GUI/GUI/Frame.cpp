@@ -459,14 +459,17 @@ namespace {
         "tiny",
         "base.en",
         "base",
+        "distil-small.en",
         "small.en",
         "small",
-        "Systran/faster-distil-whisper-medium.en",
+        "distil-medium.en",
         "medium.en",
         "medium",
-        "Systran/faster-distil-whisper-large-v2",
         "large-v1",
+        "distil-large-v2",
         "large-v2",
+        "distil-large-v3",
+        "large-v3",
     };
     const size_t kNumModelChoices = sizeof(kModelChoices) / sizeof(kModelChoices[0]);
     constexpr int kModelDefault = 2;  // base.en

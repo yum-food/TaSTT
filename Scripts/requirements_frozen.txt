@@ -1,11 +1,11 @@
-﻿av==10.0.0
+﻿av==12.0.0
 certifi==2023.7.22
 charset-normalizer==3.2.0
 colorama==0.4.6
 coloredlogs==15.0.1
-ctranslate2==3.19.0
+ctranslate2==4.2.1
 editdistance==0.6.2
-faster-whisper @ https://github.com/guillaumekln/faster-whisper/archive/78d57d73c5b4a76b32d1d5a415e4e7aea760295c.tar.gz#sha256=824b441278d59fb7daff99f98823d492762e279980922308a2e0833ac8e49c5c
+faster-whisper @ https://github.com/guillaumekln/faster-whisper/archive/2f6913efc85306fc4f900da6c67f9a06a7d54a3d.tar.gz#sha256=c389ad787c8cdafcb13d31f8bae788083eb4e490819aad6b49d76c82e490a388
 filelock==3.12.3
 flatbuffers==23.5.26
 fsspec==2023.9.0

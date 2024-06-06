@@ -1,6 +1,6 @@
-ctranslate2
+ctranslate2==4.2.1
 editdistance
-faster-whisper@https://github.com/guillaumekln/faster-whisper/archive/78d57d73c5b4a76b32d1d5a415e4e7aea760295c.tar.gz
+faster-whisper@https://github.com/guillaumekln/faster-whisper/archive/2f6913efc85306fc4f900da6c67f9a06a7d54a3d.tar.gz
 future==0.18.2
 huggingface_hub==0.16.4
 keyboard
