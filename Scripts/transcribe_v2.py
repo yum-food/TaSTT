@@ -423,10 +423,11 @@ class Whisper:
         model_device = "cuda"
         if cfg["use_cpu"]:
             model_device = "cpu"
+            if cfg["use_flash_attention"]:
+                print(f"Flash attention disabled on CPU", file=sys.stderr)
+                cfg["use_flash_attention"] = False
 
         already_downloaded = os.path.exists(model_root)
-
-        print(f"Use flash attention {cfg['use_flash_attention']}")
 
         self.model = WhisperModel(model_str,
                 device = model_device,
