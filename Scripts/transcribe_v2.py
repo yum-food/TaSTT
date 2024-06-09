@@ -426,13 +426,15 @@ class Whisper:
 
         already_downloaded = os.path.exists(model_root)
 
+        print(f"Use flash attention {cfg['use_flash_attention']}")
+
         self.model = WhisperModel(model_str,
                 device = model_device,
                 device_index = cfg["gpu_idx"],
                 compute_type = cfg["compute_type"],
                 download_root = model_root,
                 local_files_only = already_downloaded,
-                flash_attention = True)
+                flash_attention = cfg["use_flash_attention"])
 
     def transcribe(self, frames: bytes = None) -> typing.List[Segment]:
         if frames is None:

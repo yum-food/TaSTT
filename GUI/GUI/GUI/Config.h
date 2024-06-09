@@ -62,6 +62,7 @@ public:
 	int browser_src_port;
 	int commit_fuzz_threshold;
 	bool use_cpu;
+	bool use_flash_attention;
 	bool use_builtin;
 	bool enable_uwu_filter;
 	bool remove_trailing_period;

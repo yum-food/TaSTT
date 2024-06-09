@@ -64,6 +64,7 @@ namespace {
         ID_PY_APP_ENABLE_LOCAL_BEEP,
         ID_PY_APP_ENABLE_BROWSER_SRC,
         ID_PY_APP_USE_CPU,
+        ID_PY_APP_USE_FLASH_ATTENTION,
         ID_PY_APP_USE_BUILTIN,
         ID_PY_APP_ENABLE_UWU_FILTER,
         ID_PY_APP_REMOVE_TRAILING_PERIOD,
@@ -995,6 +996,16 @@ Frame::Frame()
                 );
                 py_app_use_cpu_ = py_app_use_cpu;
 
+                auto* py_app_use_flash_attention = new wxCheckBox(py_config_panel,
+                    ID_PY_APP_USE_FLASH_ATTENTION, "Use flash attention");
+                py_app_use_flash_attention->SetValue(app_c_->use_flash_attention);
+                py_app_use_flash_attention->SetToolTip(
+                    "If checked, the transcription engine will use flash "
+                    "attention for inference. This is much faster and more "
+                    "efficient, but requires a 3000 series GPU or higher."
+                );
+                py_app_use_flash_attention_ = py_app_use_flash_attention;
+
                 auto* py_app_use_builtin = new wxCheckBox(py_config_panel,
                     ID_PY_APP_USE_BUILTIN, "Use built-in chatbox");
                 py_app_use_builtin->SetValue(app_c_->use_builtin);
@@ -1111,6 +1122,8 @@ Frame::Frame()
                 sizer->Add(py_app_enable_local_beep, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
                 sizer->Add(py_app_use_cpu, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+                sizer->Add(py_app_use_flash_attention, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
                 sizer->Add(py_app_use_builtin, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
@@ -1700,6 +1713,9 @@ void Frame::ApplyConfigToInputFields()
 
     auto* py_app_use_cpu = static_cast<wxCheckBox*>(FindWindowById(ID_PY_APP_USE_CPU));
     py_app_use_cpu->SetValue(app_c_->use_cpu);
+
+    auto* py_app_use_flash_attention = static_cast<wxCheckBox*>(FindWindowById(ID_PY_APP_USE_FLASH_ATTENTION));
+    py_app_use_flash_attention->SetValue(app_c_->use_flash_attention);
 
     auto* py_app_use_builtin = static_cast<wxCheckBox*>(FindWindowById(ID_PY_APP_USE_BUILTIN));
     py_app_use_builtin->SetValue(app_c_->use_builtin);
@@ -2450,6 +2466,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     const bool enable_local_beep = py_app_enable_local_beep_->GetValue();
     const bool enable_browser_src = py_app_enable_browser_src_->GetValue();
     const bool use_cpu = py_app_use_cpu_->GetValue();
+    const bool use_flash_attention = py_app_use_flash_attention_->GetValue();
     const bool use_builtin = py_app_use_builtin_->GetValue();
     const bool enable_uwu_filter = py_app_enable_uwu_filter_->GetValue();
     const bool remove_trailing_period = py_app_remove_trailing_period_->GetValue();
@@ -2490,6 +2507,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     app_c_->enable_browser_src = enable_browser_src;
     app_c_->browser_src_port = browser_src_port;
     app_c_->use_cpu = use_cpu;
+    app_c_->use_flash_attention = use_flash_attention;
     app_c_->use_builtin = use_builtin;
     app_c_->enable_uwu_filter = enable_uwu_filter;
     app_c_->remove_trailing_period = remove_trailing_period;

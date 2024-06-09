@@ -71,6 +71,7 @@ private:
     wxCheckBox* py_app_enable_local_beep_;
     wxCheckBox* py_app_enable_browser_src_;
     wxCheckBox* py_app_use_cpu_;
+    wxCheckBox* py_app_use_flash_attention_;
     wxCheckBox* py_app_use_builtin_;
     wxCheckBox* py_app_enable_uwu_filter_;
     wxCheckBox* py_app_remove_trailing_period_;

@@ -76,6 +76,7 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	browser_src_port(8097),
 	commit_fuzz_threshold(4),
 	use_cpu(false),
+	use_flash_attention(false),
 	use_builtin(false),
 	enable_uwu_filter(false),
 	remove_trailing_period(false),
@@ -125,6 +126,7 @@ bool AppConfig::Serialize(const std::filesystem::path& path) {
 	cm.Set("browser_src_port", browser_src_port);
 	cm.Set("commit_fuzz_threshold", commit_fuzz_threshold);
 	cm.Set("use_cpu", use_cpu);
+	cm.Set("use_flash_attention", use_flash_attention);
 	cm.Set("use_builtin", use_builtin);
 	cm.Set("enable_uwu_filter", enable_uwu_filter);
 	cm.Set("remove_trailing_period", remove_trailing_period);
