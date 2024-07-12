@@ -60,22 +60,24 @@
   </style>
   <body>
     <div id="content"></div>
-		<script>
-			function scrollToBottom() {
-				window.scrollTo(0, document.body.scrollHeight);
-			}
+    <script>
+      function scrollToBottom() {
+        window.scrollTo(0, document.body.scrollHeight);
+      }
 
-			function getTranscript() {
-				$.ajax({
-					url: 'http://localhost:%PORT%/api/v0/transcript',
-					method: 'GET',
-					dataType: 'json',
-					success: function (data) {
+      function getTranscript() {
+        const host = window.location.hostname;
+        const port = window.location.port;
+        $.ajax({
+          url: `http://${host}:${port}/api/v0/transcript`,
+          method: 'GET',
+          dataType: 'json',
+          success: function (data) {
             // dirty hack: create a bunch of invisible content to push the
             // transcript down the bottom
             var transcriptHtml = '<span class="transcript" style="opacity: 0">'
                     + '___ '.repeat(128) + '</span>';
-						data.commits.forEach(function (commit, index) {
+            data.commits.forEach(function (commit, index) {
               let age = data.ts - commit.ts;
               let min_age_s = 5.0;
               let max_age_s = 60.0;
@@ -83,9 +85,9 @@
               opacity = Math.max(0, opacity);
               opacity = Math.min(1, opacity);
               transcriptHtml += `<span class="transcript" style="opacity: ${opacity};">${commit.delta.trim() + ' '}</span>`;
-						});
+            });
 
-						// Append the preview with full opacity if it exists
+            // Append the preview with full opacity if it exists
             if (data.preview && data.preview.preview) {
                 transcriptHtml += `<span class="preview" style="opacity: 1;">${data.preview.preview}</span>`;
             }
@@ -97,16 +99,16 @@
 
             $('#content').html(transcriptHtml + circleHtml);
             $('#content').css("background-color", "#22222280");
-					},
-					error: function (jqXHR, textStatus, errorThrown) {
-						console.error('Error getting transcript: ', textStatus, errorThrown);
-					}
-				});
-				scrollToBottom();
-			}
+          },
+          error: function (jqXHR, textStatus, errorThrown) {
+            console.error('Error getting transcript: ', textStatus, errorThrown);
+          }
+        });
+        scrollToBottom();
+      }
 
-			setInterval(getTranscript, /*interval_ms=*/100);
-		</script>
+      setInterval(getTranscript, /*interval_ms=*/100);
+    </script>
 
   </body>
 </html>
