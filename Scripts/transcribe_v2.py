@@ -844,8 +844,9 @@ def transcriptionThread(ctrl: ThreadControl):
         if not ctrl.transcript.endswith(' ') and not \
                 commit.delta.startswith(' '):
             commit.delta = ' ' + commit.delta
-        if not commit.delta.endswith(' ') and not \
-                commit.preview.startswith(' '):
+        if len(commit.delta) > 0 and \
+                (not commit.delta.endswith(' ')) and \
+                (not commit.preview.startswith(' ')):
             commit.preview = ' ' + commit.preview
 
         ctrl.transcript += commit.delta
