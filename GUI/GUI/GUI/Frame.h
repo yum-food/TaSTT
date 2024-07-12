@@ -69,6 +69,7 @@ private:
     wxChoice* unity_bytes_per_char_;
 
     wxCheckBox* py_app_enable_local_beep_;
+    wxCheckBox* py_app_enable_orig_lang_;
     wxCheckBox* py_app_enable_browser_src_;
     wxCheckBox* py_app_use_cpu_;
     wxCheckBox* py_app_use_flash_attention_;

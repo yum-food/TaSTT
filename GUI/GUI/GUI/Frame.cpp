@@ -62,6 +62,7 @@ namespace {
         ID_PY_APP_COMPUTE_TYPE,
         ID_PY_APP_MODEL_PANEL,
         ID_PY_APP_ENABLE_LOCAL_BEEP,
+        ID_PY_APP_ENABLE_ORIG_LANG,
         ID_PY_APP_ENABLE_BROWSER_SRC,
         ID_PY_APP_USE_CPU,
         ID_PY_APP_USE_FLASH_ATTENTION,
@@ -985,6 +986,16 @@ Frame::Frame()
                 );
                 py_app_enable_local_beep_ = py_app_enable_local_beep;
 
+                auto* py_app_enable_orig_lang = new wxCheckBox(py_config_panel,
+                    ID_PY_APP_ENABLE_ORIG_LANG, "Translation shows original language");
+                py_app_enable_orig_lang->SetValue(app_c_->enable_orig_lang);
+                py_app_enable_orig_lang->SetToolTip(
+                    "When translation is enabled, this checkbox determines whether "
+                    "the original language is shown in parentheses after the "
+                    "translated text - c'est comme ça. ( like this)."
+                );
+                py_app_enable_orig_lang_ = py_app_enable_orig_lang;
+
                 auto* py_app_use_cpu = new wxCheckBox(py_config_panel,
                     ID_PY_APP_USE_CPU, "Use CPU");
                 py_app_use_cpu->SetValue(app_c_->use_cpu);
@@ -1120,6 +1131,8 @@ Frame::Frame()
                 sizer->Add(py_app_enable_browser_src, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
                 sizer->Add(py_app_enable_local_beep, /*proportion=*/0,
+                    /*flags=*/wxEXPAND);
+                sizer->Add(py_app_enable_orig_lang, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
                 sizer->Add(py_app_use_cpu, /*proportion=*/0,
                     /*flags=*/wxEXPAND);
@@ -1707,6 +1720,9 @@ void Frame::ApplyConfigToInputFields()
 
     auto* py_app_enable_local_beep = static_cast<wxCheckBox*>(FindWindowById(ID_PY_APP_ENABLE_LOCAL_BEEP));
     py_app_enable_local_beep->SetValue(app_c_->enable_local_beep);
+
+    auto* py_app_enable_orig_lang = static_cast<wxCheckBox*>(FindWindowById(ID_PY_APP_ENABLE_ORIG_LANG));
+    py_app_enable_orig_lang->SetValue(app_c_->enable_orig_lang);
 
     auto* py_app_enable_browser_src = static_cast<wxCheckBox*>(FindWindowById(ID_PY_APP_ENABLE_BROWSER_SRC));
     py_app_enable_browser_src->SetValue(app_c_->enable_browser_src);
@@ -2464,6 +2480,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     }
 
     const bool enable_local_beep = py_app_enable_local_beep_->GetValue();
+    const bool enable_orig_lang = py_app_enable_orig_lang_->GetValue();
     const bool enable_browser_src = py_app_enable_browser_src_->GetValue();
     const bool use_cpu = py_app_use_cpu_->GetValue();
     const bool use_flash_attention = py_app_use_flash_attention_->GetValue();
@@ -2504,6 +2521,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
     app_c_->rows = rows;
     app_c_->cols = cols;
     app_c_->enable_local_beep = enable_local_beep;
+    app_c_->enable_orig_lang = enable_orig_lang;
     app_c_->enable_browser_src = enable_browser_src;
     app_c_->browser_src_port = browser_src_port;
     app_c_->use_cpu = use_cpu;

@@ -72,6 +72,7 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	compute_type("float16"),
 
 	enable_local_beep(true),
+	enable_orig_lang(true),
 	enable_browser_src(false),
 	browser_src_port(8097),
 	commit_fuzz_threshold(4),
@@ -122,6 +123,7 @@ bool AppConfig::Serialize(const std::filesystem::path& path) {
 	cm.Set("compute_type", compute_type);
 
 	cm.Set("enable_local_beep", enable_local_beep);
+	cm.Set("enable_orig_lang", enable_orig_lang);
 	cm.Set("enable_browser_src", enable_browser_src);
 	cm.Set("browser_src_port", browser_src_port);
 	cm.Set("commit_fuzz_threshold", commit_fuzz_threshold);
@@ -185,6 +187,7 @@ bool AppConfig::Deserialize(const std::filesystem::path& path) {
 	cm.Get("compute_type", c.compute_type);
 
 	cm.Get("enable_local_beep", c.enable_local_beep);
+	cm.Get("enable_orig_lang", c.enable_orig_lang);
 	cm.Get("enable_browser_src", c.enable_browser_src);
 	cm.Get("browser_src_port", c.browser_src_port);
 	cm.Get("commit_fuzz_threshold", c.commit_fuzz_threshold);

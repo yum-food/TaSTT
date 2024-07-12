@@ -546,8 +546,8 @@ class VadCommitter:
             self.collector.keepLast(1.0)
 
         return TranscriptCommit(
-                delta,
-                preview,
+                delta.strip(),
+                preview.strip(),
                 latency_s,
                 audio=audio,
                 duration_s=duration_s,
@@ -651,6 +651,8 @@ class TranslationPlugin(StreamingPlugin):
                 translated_sentence = self.tokenizer.decode(self.tokenizer.convert_tokens_to_ids(target))
                 translated_sentences.append(translated_sentence)
             translated = " ".join(translated_sentences)
+            if cfg["enable_orig_lang"] and len(sentences) > 0:
+                translated += f" ({text})"
             return translated
 
         commit.delta = _translate_text(commit.delta)
@@ -783,118 +785,6 @@ class OscPager:
         osc_ctrl.ellipsis(self.osc_state.client, state)
         self.bumpSyncWindow()
 
-def evaluate(cfg,
-        audio_path: str,
-        control_path: str):
-    stream = DiskStream(audio_path)
-
-    collector = AudioCollector(stream)
-    collector = CompressingAudioCollector(collector)
-    whisper = Whisper(collector, cfg)
-    segmenter = AudioSegmenter(min_silence_ms=250)
-    committer = VadCommitter(cfg, collector, whisper, segmenter)
-    transcript = ""
-    commits = []
-    last_commit_ts = None
-
-    while True:
-        time.sleep(.005)
-
-        commit = committer.getDelta()
-
-        if last_commit_ts != None and collector.now() - last_commit_ts > 30:
-            break
-
-        if len(commit.delta) > 0:
-            print(f"Commit latency: {commit.latency_s}", file=sys.stderr)
-            commits.append(commit)
-            last_commit_ts = collector.now()
-
-        transcript += commit.delta
-        preview = commit.preview
-
-        if False and len(commit.delta):
-            print(f"transcript: {transcript}", file=sys.stderr)
-            print(f"commit latency: {commit.latency_s}", file=sys.stderr)
-            print(f"commit thresh: {commit.thresh_at_commit}", file=sys.stderr)
-
-    with open(control_path, "r") as f:
-        control = f.read()
-    normalizer = EnglishTextNormalizer()
-    control = normalizer(control)
-    experiment = normalizer(transcript)
-
-    sum_latency = 0
-    for commit in commits:
-        sum_latency += commit.latency_s
-    avg_latency = sum_latency / len(commits)
-
-    dist = editdistance.eval(control, experiment)
-
-    print(f"RESULTS", file=sys.stderr)
-    print(f"edit distance: {dist}", file=sys.stderr)
-    print(f"avg latency: {avg_latency}", file=sys.stderr)
-    print(f"num commits: {len(commits)}", file=sys.stderr)
-    print(f"final transcript: {transcript}", file=sys.stderr)
-
-    score = (3 + (dist/len(control)) * 100) * avg_latency
-    print(f"score: {score}", file=sys.stderr)
-    return score
-
-def optimize(cfg,
-        experiments: typing.List[typing.Tuple[str, str]]):
-
-    install_in_venv(["git+https://github.com/openai/whisper.git",
-        "scipy"])
-
-    from scipy.optimize import minimize
-    from whisper.normalizers import EnglishTextNormalizer
-
-    def wrapper_to_optimize(x):
-        s = 0
-        for audio_path, control_path in experiments:
-            s += evaluate(
-                    cfg,
-                    audio_path,
-                    control_path,
-                    int(x[0]),  # last_n_must_match
-                    2**x[1],    # edit_thresh_min
-                    (2**x[2])-1,# edit_thresh_grow_begin_s
-                    x[3],       # edit_thresh_grow_halflife_s
-                    x[4]        # min_segment_age_s
-                    )
-        return s
-
-    initial_guess = [2.3, 1, 1.75, 1.5, 0.5]
-    bounds = [
-        (2, 3),    # last_n_must_match
-        (1, 4),    # edit_thresh_min
-        (0, 2.5), # edit_thresh_grow_begin_s
-        (0.1, 2), # edit_thresh_grow_halflife_s
-        (0, 3)     # min_segment_age_s
-    ]
-
-    result = minimize(
-        wrapper_to_optimize,
-        initial_guess,
-        bounds=bounds,
-        method='L-BFGS-B',
-        options={"maxfun": int((60/.5)*12),
-            "eps": 0.2},
-    )
-
-    optimized_params = result.x
-
-    print("Optimized Parameters:", file=sys.stderr)
-    print(f"last_n_must_match: {int(optimized_params[0])}", file=sys.stderr)
-    print(f"edit_thresh_min: {optimized_params[1]}", file=sys.stderr)
-    print(f"edit_thresh_grow_begin_s: {optimized_params[2]}", file=sys.stderr)
-    print(f"edit_thresh_grow_halflife_s: {optimized_params[3]}",
-            file=sys.stderr)
-    print(f"min_segment_age_s: {optimized_params[4]}", file=sys.stderr)
-
-    return optimized_params
-
 def transcriptionThread(ctrl: ThreadControl):
     last_stable_commit = None
 
@@ -950,6 +840,13 @@ def transcriptionThread(ctrl: ThreadControl):
                 print(f"commit latency: {commit.latency_s}", file=sys.stderr)
                 print(f"commit thresh: {commit.thresh_at_commit}",
                         file=sys.stderr)
+
+        if not ctrl.transcript.endswith(' ') and not \
+                commit.delta.startswith(' '):
+            commit.delta = ' ' + commit.delta
+        if not commit.delta.endswith(' ') and not \
+                commit.preview.startswith(' '):
+            commit.preview = ' ' + commit.preview
 
         ctrl.transcript += commit.delta
         ctrl.preview = ctrl.transcript + commit.preview

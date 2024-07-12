@@ -58,6 +58,7 @@ public:
 	std::string compute_type;
 
 	bool enable_local_beep;
+	bool enable_orig_lang;
 	bool enable_browser_src;
 	int browser_src_port;
 	int commit_fuzz_threshold;
