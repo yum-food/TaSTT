@@ -841,8 +841,9 @@ def transcriptionThread(ctrl: ThreadControl):
                 print(f"commit thresh: {commit.thresh_at_commit}",
                         file=sys.stderr)
 
-        if not ctrl.transcript.endswith(' ') and not \
-                commit.delta.startswith(' '):
+        if len(ctrl.transcript) > 0 and \
+                (not ctrl.transcript.endswith(' ')) and \
+                (not commit.delta.startswith(' ')):
             commit.delta = ' ' + commit.delta
         if len(commit.delta) > 0 and \
                 (not commit.delta.endswith(' ')) and \
