@@ -189,6 +189,7 @@ bool AppConfig::Deserialize(const std::filesystem::path& path) {
 	cm.Get("browser_src_port", c.browser_src_port);
 	cm.Get("commit_fuzz_threshold", c.commit_fuzz_threshold);
 	cm.Get("use_cpu", c.use_cpu);
+	cm.Get("use_flash_attention", c.use_flash_attention);
 	cm.Get("use_builtin", c.use_builtin);
 	cm.Get("enable_uwu_filter", c.enable_uwu_filter);
 	cm.Get("remove_trailing_period", c.remove_trailing_period);
