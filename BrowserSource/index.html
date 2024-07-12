@@ -82,7 +82,7 @@
               let opacity = 1.0 - (age - min_age_s) / (max_age_s - min_age_s);
               opacity = Math.max(0, opacity);
               opacity = Math.min(1, opacity);
-              transcriptHtml += `<span class="transcript" style="opacity: ${opacity};">${commit.delta}</span>`;
+              transcriptHtml += `<span class="transcript" style="opacity: ${opacity};">${commit.delta.trim() + ' '}</span>`;
 						});
 
 						// Append the preview with full opacity if it exists
