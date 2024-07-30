@@ -53,35 +53,66 @@ Basic controls:
 * Works with the built-in chatbox (usable with public avatars!)
 * Customizable board resolution, [up to ridiculous sizes](https://www.youtube.com/watch?v=u5h-ivkwS0M).
 * Lighweight design:
+  * Works with VRC native chatbox - works with any avatar without modification
   * Custom textbox requires as few as 65 parameter bits
-  * Transcription doesn't affect VRChat framerate much, since VRC is heavily
-    CPU-bound. Performance impact when not speaking is negligible.
+  * Transcription doesn't destroy your frames in game since VRChat is heavily
+    CPU bound. Performance impact when not speaking is negligible.
+* Performant: uses CTranslate2 inference engine with GPU support and
+  flash-attention
 * Browser source. Use with OBS!
 * Multi-language support.
-  * Japanese, Korean, and Chinese glyphs included, among many other languages.
-    * Full list of Unicode blocks is defined in
-      [generate_fonts.py](https://github.com/yum-food/TaSTT/blob/master/Scripts/generate_fonts.py#L43-L109).
   * Whisper natively supports transcription in [100 languages](
     https://github.com/openai/whisper/blob/main/whisper/tokenizer.py#L10).
+  * A local translation algorithm (Meta's NLLB) enables translating into 200
+    other languages with good-ish accuracy (BLEU scores typically around 20-35)
+    and low latency.
 * Customizable:
   * Control button may be set to left/right a/b/joystick.
-  * Text color, background color, and border color are customizable in the shader.
-  * Text background may be customized with PBR textures: base color, normal,
-    metallic, roughness, and emission are all implemented.
-  * Border width and rounding are customizable.
-  * Shader supports physically based shading: smoothness, metallic, and emissive.
+  * Text filters: lowercase, uppercase, uwu, remove trailing period, profanity
+    censoring.
 * Many optional quality-of-life features:
   * Audio feedback: hear distinct beeps when transcription starts and stops.
   * May also enable in-game noise indicator, to grab others' attention.
-  * Visual transcription indicator.
-  * Resize with a blendtree in your radial menu.
-* Locks to world space when done speaking.
+* Custom chatbox features:
+  * Free modular avatar prefab available [here](https://yumfood.gumroad.com/l/tastt_modular).
+  * Resizable with a blendtree in your radial menu.
+  * Locks to world space either when summoned (default) or when done speaking.
+  * Unicode variant (supporting e.g. Chinese and Japanese) is available
+    through the app's Unity panel.
 * Privacy-respecting: transcription is done on your GPU, not in the cloud.
 * Hackable.
 * From-scratch implementation.
 * Free as in beer.
 * Free as in freedom.
 * MIT license.
+
+## Bad parts
+
+I think that any ethical software project should disclose what sucks about it.
+Here's what sucks about this project:
+
+* The app UI looks like trash. Only you will see it, so I don't think this
+  really matters. (Electron rewrite when?)
+* The app is HUGE. This mostly stems from the bundled NVIDIA CUDNN .dll's
+  (~1.0GB) and portable git (~500 MB).
+  * NVIDIA's DLLs should be statically linked into ctranslate2. That probably
+    means doing our own build of ctranslate2... yuck.
+  * Portable git can probably be stripped down. It includes a full mingw
+    environment responsible for the vast majority of the size, which we almost
+    certainly don't need.
+* The app doesn't start automatically with steamvr (TODO do this)
+* The app starts in a weird state where it's transcribing and doesn't really
+  back off correctly. Press the controller keybind once to stop transcription
+  then again to put it into a normal state.
+* The backend Unity code is pretty gory. (This is largely irrelevant to end
+  users, since end users mostly use the VRC-native chatbox or the modular
+  avatar prefab.) I have a burning disdain for C# so I wrote a scuffed
+  "animator as code" library (libunity.py) in Python. This includes a lot of
+  crazy shit like a multiprocess YAML parser and a ton of macro-like string
+  manipulation/concatenation. We should just use the upstream C# animator as
+  code library.
+* The app doesn't include any version numbers, so debugging version-specific
+  issues can be tough (TODO fix this)
 
 ## Requirements
 
@@ -93,11 +124,10 @@ System requirements:
     lot more, so I wouldn't recommend it.
   * I've tested on a 1080 Ti and a 3090 and saw comparable latency.
 * SteamVR.
-* No write defaults on your avatar if you're using the custom text box.
 
-Avatar resources used:
+Avatar resources used by custom chatbox:
 
-* Tris: 4
+* Tris: 12
 * Material slots: 1
 * Texture memory: 340 KB (English), 130 MB (international)
 * Parameter bits: 65-217 (configurable; more bits == faster paging)
@@ -114,7 +144,10 @@ reason or another:
 
 1. RabidCrab's STT costs money and relies on cloud-based transcription.
    Because of the reliance on cloud-based transcription services, it's
-   typically slower and less reliable than local transcription.
+   typically slower and less reliable than local transcription. However, the
+   accuracy and speed of cloud AI models has improved radically since late
+   2022, so this is probably the best option if money and privacy don't matter
+   to you.
 2. The in-game text box is not visible in streamer mode, and limits you to one
    update every ~2 seconds, making it a poor choice for latency-sensitive
    communication.
@@ -129,14 +162,14 @@ reason or another:
    also uses Whisper, but they rely on the C# interface to Const-Me's
    CUDA-enabled Whisper implementation. This implementation does not support
    beam search decoding and waits for pauses to segment your voice. Thus it's
-   less accurate and higher latency than this project's Python-based
-   transcription engine, but it's more performant. It supports more feature
+   less accurate and higher latency than this project's
+   transcription engine. It supports more features
    (like cloud-based TTS), so you might want to check it out.
 
-Why should you pick this project over the alternatives? This project has
-the lowest latency (measured <500ms end-to-end on mid-range hardware), most
-reliable transcriptions of any STT in VRChat, period. There is no network hop
-to worry about and no subscription to manage. Just download and go.
+Why should you pick this project over the alternatives? This project is mature,
+low-latency (typically 500-1000 ms end-to-end in game under load), reliable, and
+accurate. There is no network hop to worry about and no subscription to manage.
+Just download and go.
 
 ## Design overview
 
@@ -152,7 +185,7 @@ These are the important bits:
    namely the animations and the animator.
 5. `osc_ctrl.py`. Sends OSC messages to VRChat, which it dutifully passes along
    to the generated FX layer.
-6. `transcribe.py`. Uses OpenAI's whisper neural network to transcribe audio
+6. `transcribe_v2.py`. Uses OpenAI's whisper neural network to transcribe audio
    and sends it to the board using osc_ctrl.
 
 #### Parameters & board indexing
