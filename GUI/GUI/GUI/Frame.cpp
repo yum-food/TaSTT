@@ -484,6 +484,10 @@ namespace {
     constexpr int kModelTranslationDefault = 2;  // base.en
 
     const wxString kCharsPerSync[] = {
+        "1",
+        "2",
+        "3",
+        "4",
         "5",
         "6",
         "7",
@@ -2027,7 +2031,7 @@ void Frame::OnGenerateFX(wxCommandEvent& event)
 		ASSIGN_OR_RETURN_BOOL(int, rows, stoiInRange(transcribe_out_, unity_rows_->GetValue().ToStdString(), "rows", 1, 10));
 		ASSIGN_OR_RETURN_BOOL(int, cols, stoiInRange(transcribe_out_, unity_cols_->GetValue().ToStdString(), "cols", 1, 120));
 		ASSIGN_OR_RETURN_BOOL(int, texture_sz, stoiInRange(transcribe_out_, unity_texture_sz_->GetValue().ToStdString(), "texture_sz", 128, 8192));
-		ASSIGN_OR_RETURN_BOOL(int, chars_per_sync, stoiInRange(transcribe_out_, kCharsPerSync[chars_per_sync_idx].ToStdString(), "chars_per_sync", 5, 24));
+		ASSIGN_OR_RETURN_BOOL(int, chars_per_sync, stoiInRange(transcribe_out_, kCharsPerSync[chars_per_sync_idx].ToStdString(), "chars_per_sync", 1, 24));
 		ASSIGN_OR_RETURN_BOOL(int, bytes_per_char, stoiInRange(transcribe_out_, kBytesPerChar[bytes_per_char_idx].ToStdString(), "bytes_per_char", 1, 2));
 
 		app_c_->assets_path = unity_assets_path.string();
@@ -2383,7 +2387,7 @@ void Frame::OnUnityParamChangeImpl() {
     if (chars_per_sync_idx == wxNOT_FOUND) {
         chars_per_sync_idx = kCharsDefault;
     }
-	ASSIGN_OR_RETURN_VOID(int, chars_per_sync, stoiInRange(transcribe_out_, kCharsPerSync[chars_per_sync_idx].ToStdString(), "chars_per_sync", 5, 24));
+	ASSIGN_OR_RETURN_VOID(int, chars_per_sync, stoiInRange(transcribe_out_, kCharsPerSync[chars_per_sync_idx].ToStdString(), "chars_per_sync", 1, 24));
     int bytes_per_char_idx = unity_bytes_per_char_->GetSelection();
     if (bytes_per_char_idx == wxNOT_FOUND) {
         bytes_per_char_idx = kBytesDefault;
@@ -2497,7 +2501,7 @@ void Frame::OnAppStart(wxCommandEvent& event) {
 
 	ASSIGN_OR_RETURN_VOID(int, rows, stoiInRange(transcribe_out_, py_app_rows_->GetValue().ToStdString(), "rows", 1, 10));
 	ASSIGN_OR_RETURN_VOID(int, cols, stoiInRange(transcribe_out_, py_app_cols_->GetValue().ToStdString(), "cols", 1, 120));
-	ASSIGN_OR_RETURN_VOID(int, chars_per_sync, stoiInRange(transcribe_out_, kCharsPerSync[chars_per_sync_idx].ToStdString(), "chars_per_sync", 5, 24));
+	ASSIGN_OR_RETURN_VOID(int, chars_per_sync, stoiInRange(transcribe_out_, kCharsPerSync[chars_per_sync_idx].ToStdString(), "chars_per_sync", 1, 24));
 	ASSIGN_OR_RETURN_VOID(int, bytes_per_char, stoiInRange(transcribe_out_, kBytesPerChar[bytes_per_char_idx].ToStdString(), "bytes_per_char", 1, 2));
 	ASSIGN_OR_RETURN_VOID(int, gpu_idx, stoiInRange(transcribe_out_, py_app_gpu_idx_->GetValue().ToStdString(), "gpu_idx", 0, 10));
 	ASSIGN_OR_RETURN_VOID(int, min_silence_duration_ms, stoiInRange(transcribe_out_, py_app_min_silence_duration_ms_->GetValue().ToStdString(), "min_silence_duration_ms", 50, 5000));

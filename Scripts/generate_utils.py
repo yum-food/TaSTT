@@ -26,8 +26,7 @@ class Config():
     def layerNeedsParity(self, which_layer):
         num_cells = self.BOARD_ROWS * self.BOARD_COLS
         layers_in_last_region = num_cells % self.CHARS_PER_SYNC
-        float_result = num_cells / self.CHARS_PER_SYNC
-        if which_layer >= layers_in_last_region:
+        if layers_in_last_region > 0 and which_layer >= layers_in_last_region:
             return True
         else:
             return False
