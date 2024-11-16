@@ -85,39 +85,6 @@ if (-Not (Test-Path $git_dir)) {
   Read-Host -Prompt "Press enter once PortableGit is installed at $pwd\PortableGit"
 }
 
-$nvidia_dir = "nvidia_dll"
-
-if (-Not (Test-Path $nvidia_dir)) {
-  echo "Fetching CUDNN dependencies"
-
-  mkdir $nvidia_dir
-  pushd $nvidia_dir > $null
-
-  $ZLIB_URL = "https://drive.google.com/uc?export=download&id=1NpWU83JVOWG0tJtFK7ObygTbOasGWZpI"
-  Invoke-WebRequest $ZLIB_URL -OutFile "zlibwapi.dll"
-
-  # NVIDIA locks these files behind a fucking login making it a massive
-  # pain in the dick for end users to download, so I rehosted them.
-  # TODO check hashes.
-  echo "Fetching NVIDIA dll 1/4 (90 MB)"
-  $CUDNN_1_URL = "https://www.dropbox.com/scl/fi/d21dsoa982ce7wigng510/cudnn_ops_infer64_8.dll?rlkey=xflxyux0ekhr0fs11m4gs58md&st=0wff5fyn&dl=1"
-  Invoke-WebRequest $CUDNN_1_URL -OutFile "cudnn_ops_infer64_8.dll"
-
-  echo "Fetching NVIDIA dll 2/4 (570 MB)"
-  $CUDNN_2_URL = "https://www.dropbox.com/scl/fi/uqccevwk9h2q84dt9vr6u/cudnn_cnn_infer64_8.dll?rlkey=sik7xd0ozg06nr4eayzdym4la&st=031bb8pa&dl=1"
-  Invoke-WebRequest $CUDNN_2_URL -OutFile "cudnn_cnn_infer64_8.dll"
-
-  echo "Fetching NVIDIA dll 3/4 (470 MB)"
-  $CUBLAS_1_URL = "https://www.dropbox.com/scl/fi/3vrd4fzwno8q5ejigqz6l/cublasLt64_12.dll?rlkey=uvbdn5e7dmm8ajdhm7yztjmhc&st=dguf57q4&dl=1"
-  Invoke-WebRequest $CUBLAS_1_URL -OutFile "cublasLt64_12.dll"
-
-  echo "Fetching NVIDIA dll 4/4 (100 MB)"
-  $CUBLAS_2_URL = "https://www.dropbox.com/scl/fi/hoxjdru7qmwbzelw1gr2t/cublas64_12.dll?rlkey=mcmq5t0b62wjc2uc7ylrixwi6&st=z1la337w&dl=1"
-  Invoke-WebRequest $CUBLAS_2_URL -OutFile "cublas64_12.dll"
-
-  popd > $null
-}
-
 if (-Not (Test-Path UwwwuPP)) {
   git clone https://github.com/yum-food/UwwwuPP
   pushd UwwwuPP > $null
@@ -162,7 +129,6 @@ cp -Recurse ../Fonts/Emotes TaSTT/Resources/Fonts/Emotes
 cp -Recurse Python TaSTT/Resources/Python
 cp -Recurse PortableGit TaSTT/Resources/PortableGit
 cp -Recurse ../Scripts TaSTT/Resources/Scripts
-cp $nvidia_dir/*.dll TaSTT/Resources/Scripts/
 mkdir TaSTT/Resources/Images
 cp ../Images/logo*.png TaSTT/Resources/Images/
 cp -Recurse ../Shaders TaSTT/Resources/Shaders

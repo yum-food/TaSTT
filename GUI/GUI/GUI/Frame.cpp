@@ -136,6 +136,16 @@ namespace {
         "7",
         "8",
         "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
     };
     const size_t kNumMicChoices = sizeof(kMicChoices) / sizeof(kMicChoices[0]);
     constexpr int kMicDefault = 0;  // index
@@ -472,6 +482,7 @@ namespace {
         "large-v2",
         "distil-large-v3",
         "large-v3",
+        "large-v3-turbo",
     };
     const size_t kNumModelChoices = sizeof(kModelChoices) / sizeof(kModelChoices[0]);
     constexpr int kModelDefault = 2;  // base.en
@@ -1855,6 +1866,27 @@ void Frame::OnNavbarDebug(wxCommandEvent& event)
     Resize();
 }
 
+bool FindDirectoryByPrefix(wxTextCtrl* out, const std::string& prefix, std::filesystem::path& path) {
+	std::error_code ec;
+	// Find directory starting with "cudnn"
+	for (const auto& entry :
+		std::filesystem::directory_iterator(".", ec)) {
+		if (ec) {
+			Log(out, "Failed to iterate cwd: {}\n",
+				ec.message());
+			return false;
+		}
+
+		if (entry.is_directory(ec) &&
+			!ec &&
+			entry.path().filename().string().starts_with(prefix)) {
+			path = entry.path();
+            return true;
+		}
+	}
+    return false;
+}
+
 void Frame::EnsureVirtualEnv(bool block, bool force)
 {
     auto status = env_proc_.wait_for(std::chrono::seconds(0));
@@ -1886,48 +1918,116 @@ void Frame::EnsureVirtualEnv(bool block, bool force)
         return;
 	}
 
-    env_proc_ = std::move(std::async(std::launch::async, [&]() {
-        Log(transcribe_out_, "Setting up Python virtual environment\n");
-		Log(transcribe_out_, "This could take several minutes, please be "
-			"patient!\n");
-		Log(transcribe_out_, "This will download ~1GB of dependencies.\n");
+	env_proc_ = std::move(std::async(std::launch::async, [&]() {
+		Log(transcribe_out_, "Setting up Python virtual environment\n");
+	Log(transcribe_out_, "This could take several minutes, please be "
+		"patient!\n");
+	Log(transcribe_out_, "This will download ~1GB of dependencies.\n");
 
-		{
-			Log(transcribe_out_, "  Installing pip\n");
-			auto out_cb = [&](const std::string& out, const std::string& err) {
-				Log(transcribe_out_, "{}", out);
-				Log(transcribe_out_, "{}", err);
-			};
-			if (!PythonWrapper::InstallPip(std::move(out_cb))) {
-                Log(transcribe_out_, "Failed to install pip!\n");
-                return false;
-			}
-		}
-
-		Log(transcribe_out_, "  Installing dependencies\n");
+	{
+		Log(transcribe_out_, "  Installing pip\n");
 		auto out_cb = [&](const std::string& out, const std::string& err) {
 			Log(transcribe_out_, "{}", out);
 			Log(transcribe_out_, "{}", err);
 		};
-		if (!PythonWrapper::InvokeWithArgs(*app_c_,
-			{
-				"-u",  // Unbuffered output
-				"-m pip",
-				"install",
-				"-r Resources/Scripts/requirements_frozen.txt",
-			}, std::move(out_cb))) {
-			Log(transcribe_out_, "Failed to launch environment setup thread!\n");
+		if (!PythonWrapper::InstallPip(std::move(out_cb))) {
+			Log(transcribe_out_, "Failed to install pip!\n");
 			return false;
 		}
-        Log(transcribe_out_, "Successfully set up virtual environment!\n");
+	}
 
-        std::ofstream venv_flag_ofs(venv_flag);
-		auto now = std::chrono::system_clock::now();
-		const int64_t seconds_since_epoch = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
-        venv_flag_ofs << std::to_string(seconds_since_epoch);
+	Log(transcribe_out_, "  Installing python dependencies\n");
+	auto out_cb = [&](const std::string& out, const std::string& err) {
+		Log(transcribe_out_, "{}", out);
+		Log(transcribe_out_, "{}", err);
+	};
+	if (!PythonWrapper::InvokeWithArgs(*app_c_,
+		{
+			"-u",  // Unbuffered output
+			"-m pip",
+			"install",
+			"-r Resources/Scripts/requirements_frozen.txt",
+		}, out_cb)) {
+		Log(transcribe_out_, "Failed to launch environment setup thread!\n");
+		return false;
+	}
 
-		return true;
-	}));
+	Log(transcribe_out_, " Fetching CuDNN\n");
+	if (!PythonWrapper::InvokeWithArgs(*app_c_,
+		{
+			"-m wget",
+			"https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/windows-x86_64/cudnn-windows-x86_64-9.5.1.17_cuda12-archive.zip"
+		}, out_cb)) {
+	}
+	Log(transcribe_out_, " Unzipping CuDNN\n");
+	if (!PythonWrapper::InvokeWithArgs(*app_c_,
+		{
+			"-m zipfile -e",
+			"cudnn-windows-x86_64-9.5.1.17_cuda12-archive.zip",
+			"."
+		}, out_cb)) {
+	}
+	Log(transcribe_out_, " Installing CuDNN\n");
+	{
+		std::filesystem::path cudnn_dir;
+        if (!FindDirectoryByPrefix(transcribe_out_, "cudnn", cudnn_dir)) {
+			Log(transcribe_out_, "Failed to find unzipped cudnn "
+				"directory\n");
+            return false;
+        }
+		std::error_code ec;
+		const std::filesystem::path dest_dir = "Resources/Scripts";
+		for (const auto& entry :
+			std::filesystem::recursive_directory_iterator(cudnn_dir, ec)) {
+			if (ec) {
+				Log(transcribe_out_, "Failed to iterate cudnn dir: {}\n",
+					ec.message());
+				return false;
+			}
+			if (!entry.is_regular_file(ec)) {
+				continue;
+			}
+			if (ec) {
+				Log(transcribe_out_, "Skipping unrecognized file type "
+					"{}: {}\n", entry.path().string(), ec.message());
+				continue;
+			}
+			if (entry.path().extension() != ".dll") {
+				continue;
+			}
+			std::filesystem::path dest =
+				dest_dir / entry.path().filename();
+			// Remove destination
+			std::filesystem::remove(dest, ec);
+			if (ec) {
+				Log(transcribe_out_, "Failed to delete old CuDNN .dll: {}\n",
+					ec.message());
+				return false;
+			}
+			// Rename file
+			std::filesystem::rename(entry.path(), dest, ec);
+			if (ec) {
+				Log(transcribe_out_, "Failed to move CuDNN .dll: {}\n",
+					ec.message());
+			}
+		}
+		// Delete cudnn dir
+        std::filesystem::remove_all(cudnn_dir, ec);
+        if (ec) {
+            Log(transcribe_out_, "Failed to remove old CuDNN dir: {}\n",
+                ec.message());
+        }
+	}
+
+	Log(transcribe_out_, "Successfully set up virtual environment!\n");
+
+	std::ofstream venv_flag_ofs(venv_flag);
+	auto now = std::chrono::system_clock::now();
+	const int64_t seconds_since_epoch = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
+	venv_flag_ofs << std::to_string(seconds_since_epoch);
+
+	return true;
+		}));
 
     if (block) {
         // Spinning prevents the GUI from hanging.

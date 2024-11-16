@@ -1,6 +1,6 @@
-ctranslate2==4.2.1
+ctranslate2==4.5.0
 editdistance
-faster-whisper@https://github.com/guillaumekln/faster-whisper/archive/2f6913efc85306fc4f900da6c67f9a06a7d54a3d.tar.gz
+faster-whisper@https://github.com/guillaumekln/faster-whisper/archive/53bbe5401683c9a7549db62642e3d4535956b95c.tar.gz
 future==0.18.2
 huggingface_hub==0.16.4
 keyboard
@@ -14,4 +14,5 @@ python-osc
 pyyaml
 sentence_splitter
 transformers>=4.21.0
+wget
 
