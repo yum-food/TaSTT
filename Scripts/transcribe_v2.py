@@ -423,9 +423,6 @@ class Whisper:
         model_device = "cuda"
         if cfg["use_cpu"]:
             model_device = "cpu"
-            if cfg["use_flash_attention"]:
-                print(f"Flash attention disabled on CPU", file=sys.stderr)
-                cfg["use_flash_attention"] = False
 
         already_downloaded = os.path.exists(model_root)
 
@@ -434,8 +431,7 @@ class Whisper:
                 device_index = cfg["gpu_idx"],
                 compute_type = cfg["compute_type"],
                 download_root = model_root,
-                local_files_only = already_downloaded,
-                flash_attention = cfg["use_flash_attention"])
+                local_files_only = already_downloaded)
 
     def transcribe(self, frames: bytes = None) -> typing.List[Segment]:
         if frames is None:
@@ -612,15 +608,11 @@ class TranslationPlugin(StreamingPlugin):
         model_device = "cuda"
         if cfg["use_cpu"]:
             model_device = "cpu"
-            if cfg["use_flash_attention"]:
-                print(f"Flash attention disabled on CPU", file=sys.stderr)
-                cfg["use_flash_attention"] = False
 
         self.translator = ctranslate2.Translator(output_dir,
                 device = model_device,
                 device_index = cfg["gpu_idx"],
-                compute_type = cfg["compute_type"],
-                flash_attention = cfg["use_flash_attention"])
+                compute_type = cfg["compute_type"])
 
         whisper_lang = cfg["language"]
         nllb_lang = lang_compat.whisper_to_nllb[whisper_lang]
