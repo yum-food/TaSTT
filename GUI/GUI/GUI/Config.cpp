@@ -78,7 +78,7 @@ AppConfig::AppConfig(wxTextCtrl* out)
 	commit_fuzz_threshold(4),
 	use_cpu(false),
 	use_flash_attention(false),
-	use_builtin(false),
+	use_builtin(true),
 	enable_uwu_filter(false),
 	remove_trailing_period(false),
 	enable_uppercase_filter(false),
