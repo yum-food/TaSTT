@@ -1,0 +1,6 @@
+datasets
+pillow
+python-osc
+unidecode
+sentencepiece
+
