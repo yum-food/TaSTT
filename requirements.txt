@@ -1,5 +1,9 @@
 datasets
+faster-whisper
+langcodes
 pillow
+pyaudio
+pydub
 python-osc
 unidecode
 sentencepiece

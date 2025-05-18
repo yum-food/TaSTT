@@ -1,5 +1,40 @@
 # Optimized text paging for VRChat
 
+This repo provides code to help you send English text into VRChat. It includes:
+
+1. Training code to produce an English-language tokenizer of any vocabulary
+   size.
+2. Code to turn your tokenizer into a lookup table for GPU decoding.
+3. Unity code to generate an animator to shuttle data from OSC to material
+   properties.
+4. OSC code to talk to your Unity animator.
+
+To get started, see Quick Start.
+
+## Quick start
+
+1. Clone this repo.
+2. Clone my toon shader, [2ner](https://github.com/yum-food/2ner).
+3. Install Lyuma's av3emulator.
+4. Drag STT.prefab onto your avatar's root.
+5. Enter play mode.
+6. Open PowerShell.
+
+```bash
+$ cd ~
+$ mkdir tmp
+$ cd tmp
+$ python.exe -m venv venv
+$ ./venv/Scripts/Activate.ps1
+$ pushd /path/to/FastTextPaging/
+$ pip3 install -r requirements.txt
+$ python3 ./hi.py
+```
+
+7. Start typing.
+
+## Design overview
+
 It is sometimes useful to send text data into VRChat, for example for
 speech-to-text (STT). This is typically done naively, with a "block" of
 n 8-bit characters\* sent in along with an 8-bit pointer. Since avatars can only
@@ -19,7 +54,7 @@ used. Thus to reach a typical reading speed, you need to use (260/4.7) = 55.5
 OSC bits. The goal of this module is to get more out of these bits by
 compressing text over the wire.
 
-## Unigram tokenizer
+### Unigram tokenizer
 
 Byte pair encoding (BPE) is an encoding scheme frequently used in natural
 language processing (NLP) contexts. For any language with a fixed character set
@@ -127,7 +162,7 @@ bits    naive rate  bpe rate    speedup factor
 
 I reserve 39 token slots for sequences of whitespace characters of length 2-40. This helps simplify formatting. To end a line or position text, you can just send in the exact right number of spaces, and a fixed-width font renderer will position things as intended.
 
-## Paging data into shader
+### Paging data into shader
 
 Sending this data to a shader is pretty simple:
 
@@ -224,7 +259,7 @@ void GetTokens(uint screen_ptr, out uint block_ptr, out uint tokens[BLOCK_WIDTH]
 }
 ```
 
-## GPU decoding
+### GPU decoding
 
 Now we have to translate the tokens into text. I do this with a texture laid out as follows:
 
@@ -235,6 +270,10 @@ Now we have to translate the tokens into text. I do this with a texture laid out
 My tokenizer's vocabulary is 65,536 tokens. If we add up the lengths of every token, rounding them up to the nearest multiple of 4, we get the length 667,532 This means that we need 166,883 slots to fit the actual content of the vocabulary.
 
 So, the entire vocabulary - length+offset head and content - requires a 32-bit RGBA texture with 232,419 slots. We'll just jam this into a 512x512 texture, at an occupancy ratio of 88.66% (11.34% waste). The total VRAM usage of that lookup table (LUT) is 1 MiB.
+
+![Unigram tokenizer texture](Images/unigram_lut_for_visualization.png)
+
+*A 64K vocabulary tokenizer I trained on Wikipedia and OpenSubtitles.*
 
 We want to implement this API:
 
