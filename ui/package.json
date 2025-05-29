@@ -1,0 +1,24 @@
+{
+  "name": "TaSTT",
+  "version": "1.0.0",
+  "description": "Speech-to-text tool for VRChat",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm run build:css && electron .",
+    "build:css": "tailwindcss -i ./src/input.css -o ./build/output.css",
+    "watch:css": "tailwindcss -i ./src/input.css -o ./build/output.css --watch",
+    "dev": "npm run watch:css & electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "yum_food",
+  "license": "MIT",
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "^36.3.2",
+    "postcss": "^8.5.4",
+    "tailwindcss": "^3.4.17"
+  }
+}
