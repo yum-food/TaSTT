@@ -5,4 +5,4 @@ pyaudio
 pydub
 python-osc
 sentencepiece
-wave
+silero-vad

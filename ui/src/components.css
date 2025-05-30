@@ -46,6 +46,14 @@
     .btn-red {
         @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
     }
+    
+    .btn-purple {
+        @apply bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500;
+    }
+    
+    .btn-orange {
+        @apply bg-orange-600 text-white hover:bg-orange-700 focus:ring-orange-500;
+    }
 }
 
 /* Console styling */

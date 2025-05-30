@@ -10,7 +10,13 @@ $ choco uninstall nodejs -y
 $ choco install nodejs-lts -y
 ```
 
-Now open a non-admin PowerShell terminal:
+To build the app:
+```
+$ npm install
+$ npm run dev
+```
+
+For posterity, this is how I set up the ui directory initially. In a non-admin PowerShell window:
 
 ```bash
 # Check your node and npm versions.
@@ -30,3 +36,4 @@ npx tailwindcss init -p
 npm install --save-dev vue@3 @vitejs/plugin-vue vite yaml
 npm install --save-dev js-yaml
 ```
+

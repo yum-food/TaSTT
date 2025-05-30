@@ -330,10 +330,11 @@ if __name__ == "__main__":
     cli_args = parse_args()
     cfg = app_config.getConfig(cli_args.config)
     shared_data = SharedThreadData(cfg)
-    osc_thread = threading.Thread(
-            target=osc_thread,
-            args=(shared_data,))
-    osc_thread.start()
+    if False:
+        osc_thread = threading.Thread(
+                target=osc_thread,
+                args=(shared_data,))
+        osc_thread.start()
 
     transcribe_thread = threading.Thread(
             target=stt.transcriptionThread,
@@ -382,6 +383,7 @@ if __name__ == "__main__":
                 local_word = shared_data.word
         print(local_word + "_")
     shared_data.exit_event.set()
-    osc_thread.join()
+    if False:
+        osc_thread.join()
     transcribe_thread.join()
 

@@ -3,12 +3,85 @@
   "version": "1.0.0",
   "description": "Speech-to-text tool for VRChat",
   "main": "index.js",
+  "homepage": "./",
   "scripts": {
     "start": "npm run build:css && electron .",
     "build:css": "tailwindcss -i ./src/components.css -o ./build/output.css",
     "watch:css": "tailwindcss -i ./src/components.css -o ./build/output.css --watch",
     "dev": "concurrently \"npm run watch:css\" \"electron .\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dist": "npm run build:css && electron-builder",
+    "dist:win": "npm run build:css && electron-builder --win",
+    "dist:portable": "npm run build:css && electron-builder --win portable",
+    "dist:zip": "npm run build:css && electron-builder --win zip"
+  },
+  "build": {
+    "appId": "com.yum_food.tastt",
+    "productName": "TaSTT",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!dist/**/*",
+      "!src/**/*",
+      "!node_modules/**/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!node_modules/**/{test,__tests__,tests,powered-test,example,examples}",
+      "!node_modules/**/*.d.ts",
+      "!node_modules/.bin",
+      "!.git/**/*",
+      "!.gitignore"
+    ],
+    "extraResources": [
+      {
+        "from": "../app",
+        "to": "app",
+        "filter": [
+          "**/*.py",
+          "requirements.txt",
+          "!**/__pycache__/**/*"
+        ]
+      },
+      {
+        "from": "../config.yaml",
+        "to": "config.yaml"
+      },
+      {
+        "from": "../dll",
+        "to": "dll",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "../Images",
+        "to": "Images",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "../bin",
+        "to": "bin",
+        "filter": ["**/*"]
+      }
+    ],
+    "win": {
+      "icon": "../Images/logo.png",
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-portable.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   },
   "keywords": [],
   "author": "yum_food",
@@ -22,6 +95,7 @@
     "concurrently": "^9.1.2",
     "cross-env": "^7.0.3",
     "electron": "^36.3.2",
+    "electron-builder": "^25.1.8",
     "postcss": "^8.5.4",
     "tailwindcss": "^3.4.17",
     "vite": "^6.3.5",

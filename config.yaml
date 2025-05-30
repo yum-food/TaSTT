@@ -1,6 +1,7 @@
 compute_type: float16
 enable_debug_mode: 0
 enable_previews: 1
+user_prompt: Use proper punctuation and grammar. Prefer spelled out numbers like one, eleven, twenty, etc.
 save_audio: 0
 language: english
 gpu_idx: 0

@@ -6,10 +6,10 @@ import os
 import pyaudio
 from pydub import AudioSegment
 from shared_thread_data import SharedThreadData
+from silero_vad import load_silero_vad, get_speech_timestamps
 import sys
 import time
 import typing
-import vad
 import wave
 
 
@@ -33,7 +33,7 @@ class AudioStream():
 class MicStream(AudioStream):
     CHUNK_SZ = 1024
 
-    def __init__(self, which_mic: str):
+    def __init__(self, cfg: typing.Dict):
         self.p = pyaudio.PyAudio()
         self.stream = None
         self.sample_rate = None
@@ -45,8 +45,11 @@ class MicStream(AudioStream):
         # If set, incoming frames are simply discarded.
         self.paused = False
 
-        print(f"Finding mic {which_mic}", file=sys.stderr)
-        self.dumpMicDevices()
+        which_mic = cfg["microphone"]
+
+        if cfg["enable_debug_mode"]:
+            print(f"Finding mic {which_mic}", file=sys.stderr)
+            self.dumpMicDevices()
 
         got_match = False
         device_index = -1
@@ -59,8 +62,9 @@ class MicStream(AudioStream):
         elif which_mic == "beyond":
             target_str = "Microphone (Beyond)"
         else:
-            print(f"Mic {which_mic} requested, treating it as a numerical " +
-                    "device ID", file=sys.stderr)
+            if cfg["enable_debug_mode"]:
+                print(f"Mic {which_mic} requested, treating it as a numerical " +
+                        "device ID", file=sys.stderr)
             device_index = int(which_mic)
             got_match = True
         if not got_match:
@@ -79,9 +83,11 @@ class MicStream(AudioStream):
             raise KeyError(f"Mic {which_mic} not found")
 
         info = self.p.get_device_info_by_host_api_device_index(0, device_index)
-        print(f"Found mic {which_mic}: {info['name']}", file=sys.stderr)
+        if cfg["enable_debug_mode"]:
+            print(f"Found mic {which_mic}: {info['name']}", file=sys.stderr)
         self.sample_rate = int(info['defaultSampleRate'])
-        print(f"Mic sample rate: {self.sample_rate}", file=sys.stderr)
+        if cfg["enable_debug_mode"]:
+            print(f"Mic sample rate: {self.sample_rate}", file=sys.stderr)
 
         self.stream = self.p.open(
                 rate=self.sample_rate,
@@ -289,19 +295,40 @@ class AudioSegmenter:
     def __init__(self,
             min_silence_ms=250,
             max_speech_s=5):
-        self.vad_options = vad.VadOptions(
-                min_silence_duration_ms=min_silence_ms,
-                max_speech_duration_s=max_speech_s)
-        pass
+        self.min_silence_ms = min_silence_ms
+        self.max_speech_s = max_speech_s
+        
+        # Load Silero VAD model
+        self.model = load_silero_vad()
+        
+        self.vad_threshold = 0.3
+        self.min_silence_duration_ms = min_silence_ms
+        self.max_speech_duration_s = max_speech_s
+        
+        self.speech_pad_ms = 300
 
     def segmentAudio(self, audio: bytes):
-        audio = np.frombuffer(audio,
+        # Convert audio bytes to numpy array expected by silero-vad
+        audio_array = np.frombuffer(audio,
                 dtype=np.int16).flatten().astype(np.float32) / 32768.0
-        return vad.get_speech_timestamps(audio, vad_options=self.vad_options)
+        
+        # Get speech timestamps using silero-vad
+        # Note: silero-vad expects sample rate of 16000 Hz which matches AudioStream.FPS
+        speech_timestamps = get_speech_timestamps(
+            audio_array,
+            self.model,
+            sampling_rate=AudioStream.FPS,
+            threshold=self.vad_threshold,
+            min_silence_duration_ms=self.min_silence_duration_ms,
+            max_speech_duration_s=self.max_speech_duration_s,
+            return_seconds=False  # We want frame indices, not seconds
+        )
+        
+        return speech_timestamps
 
     # Returns the stable cutoff (if any) and whether there are any segments.
     def getStableCutoff(self, audio: bytes) -> typing.Tuple[int, bool]:
-        min_delta_frames = int((self.vad_options.min_silence_duration_ms *
+        min_delta_frames = int((self.min_silence_duration_ms *
                 AudioStream.FPS) / 1000.0)
         cutoff = None
 
@@ -379,8 +406,9 @@ class Whisper:
         model_str = cfg["model"]
         model_root = os.path.join(parent_dir, "Models",
                 os.path.normpath(model_str))
-        print(f"Model {cfg['model']} will be saved to {model_root}",
-                file=sys.stderr)
+        if cfg["enable_debug_mode"]:
+            print(f"Model {cfg['model']} will be saved to {model_root}",
+                    file=sys.stderr)
 
         model_device = "cuda"
         if cfg["use_cpu"]:
@@ -395,21 +423,42 @@ class Whisper:
                 download_root = model_root,
                 local_files_only = already_downloaded)
 
+        self.context_window_chars = 200  # Keep last 200 chars of context
+        self.recent_context = ""  # Store recent committed text
+
+    def update_context(self, committed_text: str):
+        """Update the context with recently committed text."""
+        self.recent_context = (self.recent_context + " " + committed_text).strip()
+        # Keep only the last N characters to avoid prompt getting too long
+        if len(self.recent_context) > self.context_window_chars:
+            self.recent_context = self.recent_context[-self.context_window_chars:]
+
     def transcribe(self, frames: bytes = None) -> typing.List[Segment]:
         if frames is None:
             frames = self.collector.getAudio()
-        # Convert from signed 16-bit int [-32768, 32767] to signed 32-bit float on
-        # [-1, 1].
+        
+        # Convert audio to float32
         audio = np.frombuffer(frames,
                 dtype=np.int16).flatten().astype(np.float32) / 32768.0
 
+        # Build context-aware prompt
+        prompt = self._build_prompt()
+        
         t0 = time.time()
         segments, info = self.model.transcribe(
                 audio,
                 language = langcodes.find(self.cfg["language"]).language,
                 vad_filter = True,
                 temperature=0.0,
-                without_timestamps = False)
+                without_timestamps = False,
+                initial_prompt=prompt,
+                beam_size=5,
+                best_of=5,
+                condition_on_previous_text=True,
+                compression_ratio_threshold=2.4,
+                log_prob_threshold=-1.0,
+                no_speech_threshold=0.6
+        )
         res = []
         for s in segments:
             # Manual touchup. I see a decent number of hallucinations sneaking
@@ -444,6 +493,17 @@ class Whisper:
         if self.cfg["enable_debug_mode"]:
             print(f"Transcription latency (s): {t1 - t0}")
         return res
+
+    def _build_prompt(self) -> str:
+        """Build a context-aware prompt for Whisper."""
+        user_prompt = self.cfg["user_prompt"]
+        context_prompt = ""
+        if self.recent_context and len(self.recent_context) > 0:
+            context_prompt = f"Here is the context so far: {self.recent_context}"
+
+        prompts = [user_prompt, context_prompt]
+        prompts = [p for p in prompts if p and len(p) > 0]
+        return " ".join(prompts)
 
 class TranscriptCommit:
     def __init__(self,
@@ -502,10 +562,21 @@ class VadCommitter:
             latency_s = self.collector.now() - self.collector.begin()
             duration_s = stable_cutoff / AudioStream.FPS
             start_ts = self.collector.begin()
-            commit_audio = self.collector.dropAudioPrefixByFrames(stable_cutoff)
+            
+            # Get the filtered audio first, then extract the portion we need
+            filtered_audio = self.collector.getAudio()
+            commit_audio = filtered_audio[:stable_cutoff * AudioStream.FRAME_SZ]
+            
+            # Now drop the prefix from the collector
+            self.collector.dropAudioPrefixByFrames(stable_cutoff)
 
             segments = self.whisper.transcribe(commit_audio)
             delta = ''.join(s.transcript for s in segments)
+            
+            # Update whisper's context with the committed text
+            if delta.strip():
+                self.whisper.update_context(delta.strip())
+            
             audio = self.collector.getAudio()
             if self.cfg["enable_debug_mode"]:
                 for s in segments:
@@ -540,11 +611,11 @@ class VadCommitter:
 def transcriptionThread(shared_data: SharedThreadData):
     last_stable_commit = None
 
-    stream = MicStream(shared_data.cfg["microphone"])
+    stream = MicStream(shared_data.cfg)
     collector = AudioCollector(stream)
     collector = CompressingAudioCollector(collector)
+    collector = BoostingAudioCollector(collector, -12.0, shared_data.cfg)
     collector = NormalizingAudioCollector(collector)
-    collector = BoostingAudioCollector(collector, 0.0, shared_data.cfg)
     whisper = Whisper(collector, shared_data.cfg)
     segmenter = AudioSegmenter(min_silence_ms=shared_data.cfg["min_silence_duration_ms"],
             max_speech_s=shared_data.cfg["max_speech_duration_s"])
@@ -552,6 +623,8 @@ def transcriptionThread(shared_data: SharedThreadData):
 
     transcript = ""
     preview = ""
+
+    print(f"Ready to go!", flush=True)
 
     while not shared_data.exit_event.is_set():
         time.sleep(shared_data.cfg["transcription_loop_delay_ms"] / 1000.0);
@@ -561,8 +634,7 @@ def transcriptionThread(shared_data: SharedThreadData):
         commit = committer.getDelta()
 
         if len(commit.delta) > 0 or len(commit.preview) > 0:
-            # Avoid re-sending text after long pauses. User controls the length
-            # of the pause in the UI.
+            # Avoid re-sending text after long pauses
             if shared_data.cfg["reset_after_silence_s"] > 0:
                 silence_duration = 0
                 if last_stable_commit:
@@ -571,10 +643,12 @@ def transcriptionThread(shared_data: SharedThreadData):
                             last_stable_commit.duration_s
                     silence_duration = commit.start_ts - last_commit_end_ts
                 if silence_duration > shared_data.cfg["reset_after_silence_s"]:
-                    print(f"Resetting transcript after {silence_duration}-second "
-                            "silence", file=sys.stderr)
+                    if shared_data.cfg["enable_debug_mode"]:
+                        print(f"Resetting transcript after {silence_duration}-second "
+                                "silence", file=sys.stderr)
                     transcript = ""
                     preview = ""
+                    whisper.recent_context = ""  # Reset context too
                 if commit.delta:
                     last_stable_commit = commit
 

@@ -3,12 +3,27 @@ const path = require('node:path');
 const fs = require('node:fs').promises;
 const yaml = require('js-yaml');
 const { spawn } = require('child_process');
+const https = require('https');
 
 const APP_ROOT = path.join(__dirname, '..');
 const CONFIG_PATH = path.join(APP_ROOT, 'config.yaml');
 
 let mainWindow;
 let runningProcess = null; // Track the running Python process
+
+// Required DLL files for CUDA/cuDNN support
+const REQUIRED_DLLS = [
+  'cublas64_12.dll',
+  'cublasLt64_12.dll',
+  'cudnn64_9.dll',
+  'cudnn_adv64_9.dll',
+  'cudnn_cnn64_9.dll',
+  'cudnn_engines_precompiled64_9.dll',
+  'cudnn_engines_runtime_compiled64_9.dll',
+  'cudnn_graph64_9.dll',
+  'cudnn_heuristic64_9.dll',
+  'cudnn_ops64_9.dll'
+];
 
 // Helper function to get the correct Python executable from venv
 function getVenvPython() {
@@ -24,6 +39,78 @@ function sendPythonOutput(message, type = 'stdout') {
   }
 }
 
+// Helper function to create environment with DLL path
+function createPythonEnvironment() {
+  const dllPath = path.join(APP_ROOT, 'dll');
+  const binPath = path.join(APP_ROOT, 'bin');
+  const env = { ...process.env };
+  env.PATH = `${dllPath};${binPath};${env.PATH}`;
+  env.HF_HUB_DISABLE_SYMLINKS_WARNING = '1';
+  return env;
+}
+
+// Helper function to download a file from URL
+function downloadFile(url, outputPath) {
+  return new Promise((resolve, reject) => {
+    const file = require('fs').createWriteStream(outputPath);
+    
+    const request = https.get(url, (response) => {
+      if (response.statusCode === 200) {
+        response.pipe(file);
+        
+        file.on('finish', () => {
+          file.close();
+          resolve();
+        });
+        
+        file.on('error', (err) => {
+          fs.unlink(outputPath).catch(() => {}); // Clean up on error
+          reject(err);
+        });
+      } else {
+        file.close();
+        fs.unlink(outputPath).catch(() => {}); // Clean up on error
+        reject(new Error(`Failed to download: HTTP ${response.statusCode}`));
+      }
+    });
+    
+    request.on('error', (err) => {
+      file.close();
+      fs.unlink(outputPath).catch(() => {}); // Clean up on error
+      reject(err);
+    });
+  });
+}
+
+// Helper function to setup process event handlers
+function setupProcessHandlers(process) {
+  process.stdout.on('data', (data) => {
+    const text = data.toString();
+    sendPythonOutput(text.trimEnd(), 'stdout');
+  });
+  
+  process.stderr.on('data', (data) => {
+    const text = data.toString();
+    sendPythonOutput(text.trimEnd(), 'stderr');
+  });
+  
+  process.on('error', (error) => {
+    sendPythonOutput(`Process error: ${error.message}`, 'stderr');
+    runningProcess = null;
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('process-stopped');
+    }
+  });
+  
+  process.on('close', (code) => {
+    sendPythonOutput(`Process exited with code ${code}`, 'info');
+    runningProcess = null;
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('process-stopped');
+    }
+  });
+}
+
 // Helper function to execute Python commands using venv
 function executePythonCommand(args, options = {}) {
   return new Promise((resolve, reject) => {
@@ -31,14 +118,9 @@ function executePythonCommand(args, options = {}) {
     const commandStr = `${path.basename(pythonPath)} ${args.join(' ')}`;
     sendPythonOutput(`> ${commandStr}`, 'info');
     
-    // Add dll directory to PATH for Windows DLL loading
-    const dllPath = path.join(APP_ROOT, 'dll');
-    const env = { ...process.env };
-    env.PATH = `${dllPath};${env.PATH}`;
-    
     const spawnOptions = {
       ...options,
-      env
+      env: createPythonEnvironment()
     };
     
     const pythonProcess = spawn(pythonPath, args, spawnOptions);
@@ -78,6 +160,7 @@ function createWindow () {
   mainWindow = new BrowserWindow({
     width: 1000,
     height: 800,
+    icon: path.join(APP_ROOT, 'Images', 'favicon.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -93,6 +176,7 @@ const DEFAULT_CONFIG = {
   compute_type: 'float16',
   enable_debug_mode: 0,
   enable_previews: 1,
+  user_prompt: 'Use proper punctuation and grammar. Prefer spelled out numbers like one, eleven, twenty, etc.',
   save_audio: 0,
   language: 'english',
   gpu_idx: 0,
@@ -117,11 +201,11 @@ ipcMain.handle('load-config', async () => {
   } catch (error) {
     if (error.code === 'ENOENT') {
       // Config file doesn't exist, create it with defaults
-      console.log('Config file not found, creating with defaults...');
+      console.error('Config file not found, creating with defaults...');
       try {
         const yamlContent = yaml.dump(DEFAULT_CONFIG, { lineWidth: -1 });
         await fs.writeFile(CONFIG_PATH, yamlContent, 'utf8');
-        console.log('Created config.yaml with default values');
+        console.error('Created config.yaml with default values');
         return DEFAULT_CONFIG;
       } catch (writeError) {
         console.error('Error creating default config:', writeError);
@@ -145,21 +229,138 @@ ipcMain.handle('save-config', async (event, config) => {
   }
 });
 
-ipcMain.handle('restart-app', () => {
-  app.relaunch();
-  app.exit();
+ipcMain.handle('reset-config', async () => {
+  try {
+    // Check if the file exists first
+    try {
+      await fs.access(CONFIG_PATH);
+      // File exists, delete it
+      await fs.unlink(CONFIG_PATH);
+      console.error('Config file deleted successfully');
+      return { success: true, message: 'Configuration reset to defaults' };
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        // Config file doesn't exist, that's fine
+        return { success: true, message: 'Configuration already at defaults' };
+      }
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error resetting config:', error);
+    throw new Error(`Failed to reset configuration: ${error.message}`);
+  }
 });
 
-ipcMain.handle('install-requirements', async (event) => {
-  const requirementsPath = path.join(APP_ROOT, 'app', 'requirements.txt');
+// Generic function to ensure required files are present
+async function ensureRequiredFiles(config) {
+  const { 
+    directoryName, 
+    requiredFiles, 
+    downloadBaseUrl, 
+    resourceType 
+  } = config;
+  
+  const targetPath = path.join(APP_ROOT, directoryName);
   
   try {
+    // Check if target directory exists, create it if not
+    try {
+      await fs.access(targetPath);
+      sendPythonOutput(`${resourceType} directory exists`, 'info');
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        sendPythonOutput(`Creating ${resourceType} directory...`, 'info');
+        await fs.mkdir(targetPath, { recursive: true });
+        sendPythonOutput(`${resourceType} directory created`, 'info');
+      } else {
+        throw error;
+      }
+    }
+    
+    // Check each required file
+    const missingFiles = [];
+    for (const fileName of requiredFiles) {
+      const filePath = path.join(targetPath, fileName);
+      try {
+        await fs.access(filePath);
+        sendPythonOutput(`✓ ${fileName} exists`, 'info');
+      } catch (error) {
+        if (error.code === 'ENOENT') {
+          missingFiles.push(fileName);
+          sendPythonOutput(`✗ ${fileName} missing`, 'info');
+        } else {
+          throw error;
+        }
+      }
+    }
+    
+    // Download missing files
+    if (missingFiles.length > 0) {
+      sendPythonOutput(`Downloading ${missingFiles.length} missing ${resourceType} file${missingFiles.length > 1 ? 's' : ''}...`, 'info');
+      
+      for (const fileName of missingFiles) {
+        const filePath = path.join(targetPath, fileName);
+        const downloadUrl = `${downloadBaseUrl}/${fileName}`;
+        
+        try {
+          sendPythonOutput(`Downloading ${fileName}...`, 'info');
+          await downloadFile(downloadUrl, filePath);
+          sendPythonOutput(`✓ Downloaded ${fileName}`, 'info');
+        } catch (downloadError) {
+          sendPythonOutput(`✗ Failed to download ${fileName}: ${downloadError.message}`, 'stderr');
+          throw new Error(`Failed to download ${fileName}: ${downloadError.message}`);
+        }
+      }
+      
+      sendPythonOutput(`All missing ${resourceType} files downloaded successfully`, 'info');
+    } else {
+      sendPythonOutput(`All required ${resourceType} files are present`, 'info');
+    }
+    
+    return { 
+      success: true, 
+      message: `${resourceType} setup complete. ${missingFiles.length} file${missingFiles.length > 1 ? 's' : ''} downloaded.`,
+      downloadedFiles: missingFiles
+    };
+  } catch (error) {
+    console.error(`Error setting up ${resourceType} files:`, error);
+    throw new Error(`${resourceType} setup failed: ${error.message}`);
+  }
+}
+
+// Update the install-requirements handler
+ipcMain.handle('install-requirements', async () => {
+  const requirementsPath = path.join(APP_ROOT, 'app', 'requirements.txt');
+  const venvMarkerPath = path.join(APP_ROOT, '.venv_is_set_up');
+  
+  try {
+    // Check if venv is already set up
+    try {
+      await fs.access(venvMarkerPath);
+      sendPythonOutput('Virtual environment already set up, skipping installation', 'info');
+      return { success: true, message: 'Virtual environment already set up' };
+    } catch (error) {
+      // Marker doesn't exist, proceed with setup
+    }
+    
     // Check if requirements.txt exists
     await fs.access(requirementsPath);
     
-    const result = await executePythonCommand(['-m', 'pip', 'install', '-r', requirementsPath]);
+    await executePythonCommand(['-m', 'pip', 'install', '-r', requirementsPath]);
+
+    await ensureRequiredFiles({
+      directoryName: 'dll',
+      requiredFiles: REQUIRED_DLLS,
+      downloadBaseUrl: 'https://yummers.dev/tastt/dll',
+      resourceType: 'DLL'
+    });
+
+    await fs.mkdir(path.join(APP_ROOT, 'Models'), { recursive: true });
     
-    return { success: true, message: 'Requirements installed successfully' };
+    await fs.writeFile(venvMarkerPath, new Date().toISOString(), 'utf8');
+    sendPythonOutput('Created .venv_is_set_up marker file', 'info');
+    
+    return { success: true, message: 'Requirements and dependencies installed successfully' };
   } catch (error) {
     console.error('Error installing requirements:', error);
     if (error.code === 'ENOENT') {
@@ -175,11 +376,124 @@ ipcMain.handle('get-microphones', async () => {
   try {
     const result = await executePythonCommand([scriptPath]);
     const microphones = JSON.parse(result.stdout.trim());
-    console.log('Successfully retrieved microphones:', microphones);
     return microphones;
   } catch (error) {
     console.error('Failed to get microphones:', error);
     throw new Error(`Failed to get microphones: ${error.stderr || error.error || 'Unknown error'}`);
+  }
+});
+
+// Helper function to safely delete directory contents
+async function clearDirectory(dirPath, dirName) {
+  try {
+    await fs.access(dirPath);
+    sendPythonOutput(`Clearing ${dirName} directory...`, 'info');
+    
+    const files = await fs.readdir(dirPath);
+    let deletedCount = 0;
+    
+    for (const file of files) {
+      const filePath = path.join(dirPath, file);
+      
+      try {
+        await fs.rm(filePath, { recursive: true, force: true });
+        sendPythonOutput(`✗ Deleted file ${file}`, 'info');
+        
+        deletedCount++;
+      } catch (deleteError) {
+        sendPythonOutput(`Warning: Could not delete ${file}: ${deleteError.message}`, 'stderr');
+        // Continue with other files even if one fails
+      }
+    }
+    
+    sendPythonOutput(`${dirName} directory cleared`, 'info');
+    return deletedCount;
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      sendPythonOutput(`${dirName} directory doesn't exist, skipping`, 'info');
+      return 0;
+    } else {
+      sendPythonOutput(`Error clearing ${dirName} directory: ${error.message}`, 'stderr');
+      throw error;
+    }
+  }
+}
+
+ipcMain.handle('reset-venv', async () => {
+  const venvMarkerPath = path.join(APP_ROOT, '.venv_is_set_up');
+  
+  try {
+    sendPythonOutput('Starting virtual environment reset...', 'info');
+    
+    // Delete the venv marker file first
+    try {
+      await fs.unlink(venvMarkerPath);
+      sendPythonOutput('Deleted .venv_is_set_up marker file', 'info');
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        sendPythonOutput(`Warning: Could not delete marker file: ${error.message}`, 'stderr');
+      }
+    }
+    
+    // Get list of installed packages
+    sendPythonOutput('Getting list of installed packages...', 'info');
+    const freezeResult = await executePythonCommand(['-m', 'pip', 'freeze']);
+    const installedPackages = freezeResult.stdout.trim();
+    
+    let uninstalledPackages = [];
+    
+    if (!installedPackages) {
+      sendPythonOutput('No packages found to uninstall', 'info');
+    } else {
+      // Parse package names and filter out core packages
+      const packageLines = installedPackages.split('\n').filter(line => line.trim());
+      const packageNames = packageLines
+        .map(line => line.split('==')[0].trim())
+        .filter(name => name && !name.startsWith('#'));
+      
+      const corePackages = ['pip', 'setuptools', 'wheel'];
+      const packagesToUninstall = packageNames.filter(name => !corePackages.includes(name.toLowerCase()));
+      
+      if (packagesToUninstall.length === 0) {
+        sendPythonOutput('Only core packages found, nothing to uninstall', 'info');
+      } else {
+        sendPythonOutput(`Uninstalling ${packagesToUninstall.length} packages...`, 'info');
+        
+        const uninstallArgs = ['-m', 'pip', 'uninstall', '-y', ...packagesToUninstall];
+        await executePythonCommand(uninstallArgs);
+        uninstalledPackages = packagesToUninstall;
+      }
+    }
+    
+    // Clear downloaded files
+    sendPythonOutput('Clearing downloaded files...', 'info');
+    
+    const dllPath = path.join(APP_ROOT, 'dll');
+    const modelsPath = path.join(APP_ROOT, 'Models');
+    const binPath = path.join(APP_ROOT, 'bin');
+    
+    const deletedDlls = await clearDirectory(dllPath, 'DLL');
+    const deletedModels = await clearDirectory(modelsPath, 'Models');
+    const deletedBins = await clearDirectory(binPath, 'Binary');
+    
+    const totalDeletedFiles = deletedDlls + deletedModels + deletedBins;
+    
+    sendPythonOutput('Virtual environment reset successfully!', 'info');
+    
+    return { 
+      success: true, 
+      message: `Virtual environment reset complete. Uninstalled ${uninstalledPackages.length} packages and deleted ${totalDeletedFiles} downloaded files.`,
+      uninstalledPackages,
+      deletedFiles: {
+        dlls: deletedDlls,
+        models: deletedModels,
+        binaries: deletedBins,
+        total: totalDeletedFiles
+      }
+    };
+  } catch (error) {
+    console.error('Error resetting virtual environment:', error);
+    throw new Error(`Virtual environment reset failed: ${error.message}`);
   }
 });
 
@@ -190,46 +504,14 @@ ipcMain.handle('start-process', async () => {
   }
 
   const scriptPath = path.join(APP_ROOT, 'app', 'hi.py');
-  const configPath = CONFIG_PATH;
+  const args = [scriptPath, '--config', CONFIG_PATH];
   
   try {
     const pythonPath = getVenvPython();
-    const args = [scriptPath, '--config', configPath];
-    
     sendPythonOutput(`Starting process: ${path.basename(pythonPath)} ${args.join(' ')}`, 'info');
     
-    // Add dll directory to PATH for Windows DLL loading
-    const dllPath = path.join(APP_ROOT, 'dll');
-    const env = { ...process.env };
-    env.PATH = `${dllPath};${env.PATH}`;
-    
-    runningProcess = spawn(pythonPath, args, { env });
-    
-    runningProcess.stdout.on('data', (data) => {
-      const text = data.toString();
-      sendPythonOutput(text.trimEnd(), 'stdout');
-    });
-    
-    runningProcess.stderr.on('data', (data) => {
-      const text = data.toString();
-      sendPythonOutput(text.trimEnd(), 'stderr');
-    });
-    
-    runningProcess.on('error', (error) => {
-      sendPythonOutput(`Process error: ${error.message}`, 'stderr');
-      runningProcess = null;
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('process-stopped');
-      }
-    });
-    
-    runningProcess.on('close', (code) => {
-      sendPythonOutput(`Process exited with code ${code}`, 'info');
-      runningProcess = null;
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('process-stopped');
-      }
-    });
+    runningProcess = spawn(pythonPath, args, { env: createPythonEnvironment() });
+    setupProcessHandlers(runningProcess);
     
     return { success: true };
   } catch (error) {
@@ -243,7 +525,7 @@ ipcMain.handle('stop-process', async () => {
     throw new Error('No process is running');
   }
   
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     let forcefullyKilled = false;
     
     // Set up a timeout to force kill after 10 seconds
