@@ -6,7 +6,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     restartApp: () => ipcRenderer.invoke('restart-app'),
     getMicrophones: () => ipcRenderer.invoke('get-microphones'),
     installRequirements: () => ipcRenderer.invoke('install-requirements'),
-    onPythonOutput: (callback) => ipcRenderer.on('python-output', (event, data) => callback(data))
+    startProcess: () => ipcRenderer.invoke('start-process'),
+    stopProcess: () => ipcRenderer.invoke('stop-process'),
+    onPythonOutput: (callback) => ipcRenderer.on('python-output', (event, data) => callback(data)),
+    onProcessStopped: (callback) => ipcRenderer.on('process-stopped', (event) => callback())
 });
 
 console.log('Preload script loaded.');

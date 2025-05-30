@@ -26,4 +26,7 @@ npm install --save-dev electron
 # Get tailwind and deps
 npm install --save-dev tailwindcss@3 postcss autoprefixer concurrently cross-env
 npx tailwindcss init -p
+# Install vue.js
+npm install --save-dev vue@3 @vitejs/plugin-vue vite yaml
+npm install --save-dev js-yaml
 ```

@@ -259,7 +259,8 @@ def get_vad_model():
     """Returns the VAD model instance."""
     abspath = os.path.abspath(__file__)
     my_dir = os.path.dirname(abspath)
-    path = os.path.join(my_dir, "Models/silero_vad.onnx")
+    parent_dir = os.path.dirname(my_dir)
+    path = os.path.join(parent_dir, "Models", "silero_vad.onnx")
     return SileroVADModel(path)
 
 

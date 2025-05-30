@@ -2,6 +2,7 @@ import app_config
 import argparse
 from math import floor, ceil
 import msvcrt
+import os
 from pythonosc import udp_client
 import sentencepiece as spm
 from shared_thread_data import SharedThreadData
@@ -15,8 +16,11 @@ TESTS_ENABLED = True
 # 0 = quiet, 1 = verbose, 2 = very verbose
 LOG_LEVEL = 0
 
+APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(APP_ROOT)
+
 def get_tokenizer():
-    model_path = "./custom_unigram_tokenizer_65k/unigram.model"
+    model_path = os.path.join(PROJECT_ROOT, "custom_unigram_tokenizer_65k", "unigram.model")
     print(f"Loading SentencePiece tokenizer from: {model_path}")
     sp = spm.SentencePieceProcessor()
     sp.load(model_path)
@@ -345,7 +349,6 @@ if __name__ == "__main__":
 
         time.sleep(0.1)
         continue
-
 
         try:
             char = char_bytes.decode('utf-8')

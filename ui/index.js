@@ -4,14 +4,16 @@ const fs = require('node:fs').promises;
 const yaml = require('js-yaml');
 const { spawn } = require('child_process');
 
+const APP_ROOT = path.join(__dirname, '..');
+const CONFIG_PATH = path.join(APP_ROOT, 'config.yaml');
+
 let mainWindow;
+let runningProcess = null; // Track the running Python process
 
 // Helper function to get the correct Python executable from venv
 function getVenvPython() {
-  const venvPath = path.join(__dirname, '..', 'venv');
-  const isWindows = process.platform === 'win32';
-  const pythonExecutable = isWindows ? 'python.exe' : 'python';
-  const pythonPath = path.join(venvPath, isWindows ? 'Scripts' : 'bin', pythonExecutable);
+  const venvPath = path.join(APP_ROOT, 'venv');
+  const pythonPath = path.join(venvPath, 'Scripts', 'python.exe');
   return pythonPath;
 }
 
@@ -29,7 +31,17 @@ function executePythonCommand(args, options = {}) {
     const commandStr = `${path.basename(pythonPath)} ${args.join(' ')}`;
     sendPythonOutput(`> ${commandStr}`, 'info');
     
-    const pythonProcess = spawn(pythonPath, args, options);
+    // Add dll directory to PATH for Windows DLL loading
+    const dllPath = path.join(APP_ROOT, 'dll');
+    const env = { ...process.env };
+    env.PATH = `${dllPath};${env.PATH}`;
+    
+    const spawnOptions = {
+      ...options,
+      env
+    };
+    
+    const pythonProcess = spawn(pythonPath, args, spawnOptions);
     
     let stdout = '';
     let stderr = '';
@@ -76,15 +88,47 @@ function createWindow () {
   mainWindow.loadFile('index.html');
 }
 
-// Path to config.yaml (one level up from ui directory)
-const configPath = path.join(__dirname, '..', 'config.yaml');
+// Default configuration based on user's current config.yaml
+const DEFAULT_CONFIG = {
+  compute_type: 'float16',
+  enable_debug_mode: 0,
+  enable_previews: 1,
+  save_audio: 0,
+  language: 'english',
+  gpu_idx: 0,
+  max_speech_duration_s: 10,
+  min_silence_duration_ms: 250,
+  microphone: 0,
+  model: 'turbo',
+  reset_after_silence_s: 15,
+  transcription_loop_delay_ms: 100,
+  use_cpu: 0,
+  block_width: 2,
+  num_blocks: 40,
+  rows: 10,
+  cols: 24
+};
 
 // IPC handlers
 ipcMain.handle('load-config', async () => {
   try {
-    const fileContent = await fs.readFile(configPath, 'utf8');
+    const fileContent = await fs.readFile(CONFIG_PATH, 'utf8');
     return yaml.load(fileContent);
   } catch (error) {
+    if (error.code === 'ENOENT') {
+      // Config file doesn't exist, create it with defaults
+      console.log('Config file not found, creating with defaults...');
+      try {
+        const yamlContent = yaml.dump(DEFAULT_CONFIG, { lineWidth: -1 });
+        await fs.writeFile(CONFIG_PATH, yamlContent, 'utf8');
+        console.log('Created config.yaml with default values');
+        return DEFAULT_CONFIG;
+      } catch (writeError) {
+        console.error('Error creating default config:', writeError);
+        // Return defaults even if we can't write the file
+        return DEFAULT_CONFIG;
+      }
+    }
     console.error('Error loading config:', error);
     throw error;
   }
@@ -93,7 +137,7 @@ ipcMain.handle('load-config', async () => {
 ipcMain.handle('save-config', async (event, config) => {
   try {
     const yamlContent = yaml.dump(config, { lineWidth: -1 });
-    await fs.writeFile(configPath, yamlContent, 'utf8');
+    await fs.writeFile(CONFIG_PATH, yamlContent, 'utf8');
     return { success: true };
   } catch (error) {
     console.error('Error saving config:', error);
@@ -107,7 +151,7 @@ ipcMain.handle('restart-app', () => {
 });
 
 ipcMain.handle('install-requirements', async (event) => {
-  const requirementsPath = path.join(__dirname, '..', 'app', 'requirements.txt');
+  const requirementsPath = path.join(APP_ROOT, 'app', 'requirements.txt');
   
   try {
     // Check if requirements.txt exists
@@ -126,41 +170,115 @@ ipcMain.handle('install-requirements', async (event) => {
 });
 
 ipcMain.handle('get-microphones', async () => {
-  const pythonScript = `
-import pyaudio
-import json
-import sys
-
-try:
-    p = pyaudio.PyAudio()
-    info = p.get_host_api_info_by_index(0)
-    numdevices = info.get('deviceCount')
-
-    microphones = []
-    for i in range(0, numdevices):
-        device_info = p.get_device_info_by_host_api_device_index(0, i)
-        if device_info.get('maxInputChannels') > 0:
-            microphones.append({
-                'index': i,
-                'name': device_info.get('name'),
-                'defaultSampleRate': device_info.get('defaultSampleRate')
-            })
-
-    print(json.dumps(microphones))
-    p.terminate()
-except Exception as e:
-    print(json.dumps({'error': str(e)}), file=sys.stderr)
-    sys.exit(1)
-`;
-
+  const scriptPath = path.join(APP_ROOT, 'app', 'list_microphones.py');
+  
   try {
-    const result = await executePythonCommand(['-c', pythonScript]);
+    const result = await executePythonCommand([scriptPath]);
     const microphones = JSON.parse(result.stdout.trim());
     console.log('Successfully retrieved microphones:', microphones);
     return microphones;
   } catch (error) {
     console.error('Failed to get microphones:', error);
     throw new Error(`Failed to get microphones: ${error.stderr || error.error || 'Unknown error'}`);
+  }
+});
+
+// Add handlers for starting and stopping the process
+ipcMain.handle('start-process', async () => {
+  if (runningProcess) {
+    throw new Error('Process is already running');
+  }
+
+  const scriptPath = path.join(APP_ROOT, 'app', 'hi.py');
+  const configPath = CONFIG_PATH;
+  
+  try {
+    const pythonPath = getVenvPython();
+    const args = [scriptPath, '--config', configPath];
+    
+    sendPythonOutput(`Starting process: ${path.basename(pythonPath)} ${args.join(' ')}`, 'info');
+    
+    // Add dll directory to PATH for Windows DLL loading
+    const dllPath = path.join(APP_ROOT, 'dll');
+    const env = { ...process.env };
+    env.PATH = `${dllPath};${env.PATH}`;
+    
+    runningProcess = spawn(pythonPath, args, { env });
+    
+    runningProcess.stdout.on('data', (data) => {
+      const text = data.toString();
+      sendPythonOutput(text.trimEnd(), 'stdout');
+    });
+    
+    runningProcess.stderr.on('data', (data) => {
+      const text = data.toString();
+      sendPythonOutput(text.trimEnd(), 'stderr');
+    });
+    
+    runningProcess.on('error', (error) => {
+      sendPythonOutput(`Process error: ${error.message}`, 'stderr');
+      runningProcess = null;
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('process-stopped');
+      }
+    });
+    
+    runningProcess.on('close', (code) => {
+      sendPythonOutput(`Process exited with code ${code}`, 'info');
+      runningProcess = null;
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('process-stopped');
+      }
+    });
+    
+    return { success: true };
+  } catch (error) {
+    runningProcess = null;
+    throw error;
+  }
+});
+
+ipcMain.handle('stop-process', async () => {
+  if (!runningProcess) {
+    throw new Error('No process is running');
+  }
+  
+  return new Promise((resolve, reject) => {
+    let forcefullyKilled = false;
+    
+    // Set up a timeout to force kill after 10 seconds
+    const killTimeout = setTimeout(() => {
+      if (runningProcess) {
+        sendPythonOutput('Process did not stop gracefully, forcing termination...', 'stderr');
+        forcefullyKilled = true;
+        runningProcess.kill();
+      }
+    }, 10000);
+    
+    // Listen for the process to exit
+    runningProcess.once('exit', (code, signal) => {
+      clearTimeout(killTimeout);
+      runningProcess = null;
+      
+      if (forcefullyKilled) {
+        sendPythonOutput('Process forcefully terminated', 'info');
+      } else {
+        sendPythonOutput('Process stopped gracefully', 'info');
+      }
+      
+      resolve({ success: true, forcefullyKilled });
+    });
+    
+    // Send termination signal
+    sendPythonOutput('Stopping process gracefully...', 'info');
+    runningProcess.kill();
+  });
+});
+
+// Clean up on app quit
+app.on('before-quit', () => {
+  if (runningProcess) {
+    runningProcess.kill();
   }
 });
 
@@ -173,6 +291,6 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', function () {
-  if (process.platform !== 'darwin') app.quit();
+  app.quit();
 });
 

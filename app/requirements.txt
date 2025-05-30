@@ -1,7 +1,8 @@
 faster-whisper
+hf-xet
 langcodes
 pyaudio
 pydub
 python-osc
 sentencepiece
-
+wave

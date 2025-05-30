@@ -42,6 +42,10 @@
     .btn-gray {
         @apply bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500;
     }
+    
+    .btn-red {
+        @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+    }
 }
 
 /* Console styling */

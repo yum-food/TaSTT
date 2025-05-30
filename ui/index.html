@@ -8,11 +8,9 @@
 </head>
 <body class="bg-gray-100">
     <div class="container-fluid px-6 py-6 h-screen flex flex-col">
-        <h1 class="text-3xl font-bold text-gray-800 mb-8">TaSTT</h1>
-        
         <div class="flex flex-1 gap-6 overflow-hidden">
-            <!-- Left panel: configuration form -->
-            <div class="w-1/2 overflow-y-auto">
+            <!-- Left Panel: Configuration Form -->
+            <div class="max-w-96 overflow-y-auto">
                 <form id="config-form" class="space-y-6 pr-3">
                     <!-- Basic settings (Always Visible) -->
                     <section class="config-section">
@@ -127,6 +125,10 @@
                                     <input type="checkbox" id="enable_previews" checked class="mr-2">
                                     <span class="checkbox-text">Enable Previews</span>
                                 </label>
+                                <label for="save_audio" class="checkbox-label">
+                                    <input type="checkbox" id="save_audio" class="mr-2">
+                                    <span class="checkbox-text">Save Audio Segments</span>
+                                </label>
                             </div>
                         </section>
 
@@ -156,9 +158,17 @@
 
                     <!-- Action Buttons -->
                     <div class="flex justify-between pb-6">
-                        <button type="button" id="setup-venv" class="btn btn-blue">
-                            Set up virtual environment
-                        </button>
+                        <div class="space-x-3">
+                            <button type="button" id="setup-venv" class="btn btn-blue">
+                                Set up virtual environment
+                            </button>
+                            <button type="button" id="start-process" class="btn btn-green">
+                                Start
+                            </button>
+                            <button type="button" id="stop-process" class="btn btn-red" disabled>
+                                Stop
+                            </button>
+                        </div>
                     </div>
                 </form>
 
@@ -167,9 +177,8 @@
             </div>
 
             <!-- Right Panel: Python Console -->
-            <div class="w-1/2 flex flex-col bg-gray-900 rounded-lg overflow-hidden">
+            <div class="flex-1 flex flex-col bg-gray-900 rounded-lg overflow-hidden">
                 <div class="bg-gray-800 px-4 py-2 flex justify-between items-center">
-                    <h2 class="text-white font-semibold">Python Output</h2>
                     <button id="clear-console" class="text-gray-400 hover:text-white text-sm">
                         Clear
                     </button>

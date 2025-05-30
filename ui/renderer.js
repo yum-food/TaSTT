@@ -22,15 +22,20 @@ function showStatus(message, type = 'info') {
 
 // Get form values
 function getFormValues() {
+    const microphoneValue = document.getElementById('microphone').value;
+    // Convert to number if it's a numeric string (device index)
+    const microphoneForConfig = /^\d+$/.test(microphoneValue) ? parseInt(microphoneValue) : microphoneValue;
+    
     return {
         compute_type: document.getElementById('compute_type').value,
         enable_debug_mode: document.getElementById('enable_debug_mode').checked ? 1 : 0,
         enable_previews: document.getElementById('enable_previews').checked ? 1 : 0,
+        save_audio: document.getElementById('save_audio').checked ? 1 : 0,
         language: document.getElementById('language').value,
         gpu_idx: parseInt(document.getElementById('gpu_idx').value),
         max_speech_duration_s: parseInt(document.getElementById('max_speech_duration_s').value),
         min_silence_duration_ms: parseInt(document.getElementById('min_silence_duration_ms').value),
-        microphone: document.getElementById('microphone').value,
+        microphone: microphoneForConfig,
         model: document.getElementById('model').value,
         reset_after_silence_s: parseInt(document.getElementById('reset_after_silence_s').value),
         transcription_loop_delay_ms: parseInt(document.getElementById('transcription_loop_delay_ms').value),
@@ -52,6 +57,7 @@ function setFormValues(config) {
     document.getElementById('compute_type').value = config.compute_type || 'int8';
     document.getElementById('enable_debug_mode').checked = config.enable_debug_mode === 1;
     document.getElementById('enable_previews').checked = config.enable_previews === 1;
+    document.getElementById('save_audio').checked = config.save_audio === 1;
     document.getElementById('language').value = config.language || 'english';
     document.getElementById('gpu_idx').value = config.gpu_idx || 0;
     document.getElementById('max_speech_duration_s').value = config.max_speech_duration_s || 10;
@@ -97,6 +103,30 @@ async function handleAsyncAction(actionName, actionFn) {
     }
 }
 
+// Process control buttons
+const startButton = document.getElementById('start-process');
+const stopButton = document.getElementById('stop-process');
+
+// Helper functions for button state management
+function setButtonState(button, disabled) {
+    button.disabled = disabled;
+    if (disabled) {
+        button.classList.add('opacity-50', 'cursor-not-allowed');
+    } else {
+        button.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+}
+
+function setProcessRunningState() {
+    setButtonState(startButton, true);
+    setButtonState(stopButton, false);
+}
+
+function setProcessStoppedState() {
+    setButtonState(startButton, false);
+    setButtonState(stopButton, true);
+}
+
 // Auto-save functionality with debouncing
 let saveTimeout;
 const SAVE_DELAY = 500; // milliseconds
@@ -110,6 +140,31 @@ async function autoSaveConfig() {
             const config = getFormValues();
             await window.electronAPI.saveConfig(config);
             showStatus('Configuration saved', 'success');
+            
+            // Check if process is running (stop button is enabled means process is running)
+            const stopButton = document.getElementById('stop-process');
+            
+            if (!stopButton.disabled) {
+                // Process is running, restart it with new config
+                appendToConsole('Restarting process with new configuration...', 'info');
+                
+                try {
+                    await window.electronAPI.stopProcess();
+                    
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    await window.electronAPI.startProcess();
+                    
+                    // Update button states to reflect running process
+                    setProcessRunningState();
+                    
+                    appendToConsole('Process restarted with new configuration', 'info');
+                } catch (error) {
+                    appendToConsole(`Failed to restart process: ${error.message}`, 'stderr');
+                    // Process is stopped, update button states
+                    setProcessStoppedState();
+                }
+            }
         } catch (error) {
             showStatus(`Failed to save configuration: ${error.message}`, 'error');
         }
@@ -246,4 +301,34 @@ document.getElementById('clear-console').addEventListener('click', () => {
 // Listen for Python output
 window.electronAPI.onPythonOutput((data) => {
     appendToConsole(data.message, data.type);
+});
+
+document.getElementById('start-process').addEventListener('click', async () => {
+    setButtonState(startButton, true);
+    
+    try {
+        await window.electronAPI.startProcess();
+        setProcessRunningState();
+        appendToConsole('Process started successfully', 'info');
+    } catch (error) {
+        appendToConsole(`Failed to start process: ${error.message}`, 'stderr');
+        setButtonState(startButton, false);
+    }
+});
+
+document.getElementById('stop-process').addEventListener('click', async () => {
+    setButtonState(stopButton, true);
+    
+    try {
+        const result = await window.electronAPI.stopProcess();
+        appendToConsole('Process stop initiated', 'info');
+    } catch (error) {
+        appendToConsole(`Failed to stop process: ${error.message}`, 'stderr');
+        setButtonState(stopButton, false);
+    }
+});
+
+// Listen for process stopped event
+window.electronAPI.onProcessStopped(() => {
+    setProcessStoppedState();
 }); 
