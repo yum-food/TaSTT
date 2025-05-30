@@ -1,29 +1,5 @@
-// Configuration and form field mappings
-const CONFIG_FIELDS = {
-    // String fields
-    compute_type: { type: 'select', default: 'float16' },
-    language: { type: 'select', default: 'english' },
-    model: { type: 'select', default: 'turbo' },
-    microphone: { type: 'number', default: 0 },
-    user_prompt: { type: 'text', default: '' },
-    
-    // Number fields
-    gpu_idx: { type: 'number', default: 0 },
-    max_speech_duration_s: { type: 'number', default: 10 },
-    min_silence_duration_ms: { type: 'number', default: 250 },
-    reset_after_silence_s: { type: 'number', default: 15 },
-    transcription_loop_delay_ms: { type: 'number', default: 100 },
-    block_width: { type: 'number', default: 2 },
-    num_blocks: { type: 'number', default: 40 },
-    rows: { type: 'number', default: 10 },
-    cols: { type: 'number', default: 24 },
-    
-    // Boolean fields (stored as 1/0)
-    enable_debug_mode: { type: 'boolean', default: 0 },
-    enable_previews: { type: 'boolean', default: 1 },
-    save_audio: { type: 'boolean', default: 0 },
-    use_cpu: { type: 'boolean', default: 0 }
-};
+// Import configuration schema
+const CONFIG_FIELDS = window.CONFIG_SCHEMA;
 
 // Button management system
 class ButtonManager {
@@ -35,6 +11,9 @@ class ButtonManager {
             resetVenv: document.getElementById('reset-venv'),
             refreshMicrophones: document.getElementById('refresh-microphones')
         };
+        
+        // Initialize button states on construction
+        this.setProcessStopped();
     }
     
     setState(buttonName, disabled) {

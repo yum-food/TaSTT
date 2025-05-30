@@ -10,9 +10,9 @@
     <div class="container-fluid px-6 py-6 h-screen flex flex-col">
         <div class="flex flex-1 gap-6 overflow-hidden">
             <!-- Left Panel: Configuration Form -->
-            <div class="max-w-96 relative flex flex-col">
+            <div class="max-w-96 relative flex flex-col overflow-hidden rounded-lg">
                 <!-- Loading Overlay -->
-                <div id="loading-overlay" class="absolute inset-0 bg-white bg-opacity-75 backdrop-blur-sm z-50 hidden flex items-center justify-center rounded-lg">
+                <div id="loading-overlay" class="absolute inset-0 bg-white bg-opacity-75 backdrop-blur-sm z-50 hidden flex items-center justify-center">
                     <div class="text-center p-6">
                         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                         <p class="text-gray-700 font-medium"></p>
@@ -126,7 +126,7 @@
                                 <h2 class="section-title">Transcription Settings</h2>
                                 <div>
                                     <label for="user_prompt" class="form-label">
-                                        Custom Prompt
+                                        Prompt
                                         <span class="text-gray-500 text-xs block mt-1"
                                               title="Whisper is given this prompt before transcribing. It helps guide the transcription style. For example, you could improve the spelling of your friends' names with: 'My friends' names are Saoirse, Azariah, and Caoimhe.'">
                                             (Hover for details)
@@ -135,6 +135,28 @@
                                     <textarea id="user_prompt" 
                                               class="form-input h-20 resize-none" 
                                               placeholder="My friends' names are Saoirse, Azariah, and Caoimhe."></textarea>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 mt-4">
+                                    <div>
+                                        <label for="beam_size" class="form-label">
+                                            Beam size
+                                            <span class="text-gray-500 text-xs block mt-1"
+                                                  title="Number of beams for beam search. Higher values may improve accuracy but increase compute time.">
+                                                (Search width)
+                                            </span>
+                                        </label>
+                                        <input type="number" id="beam_size" min="1" max="20" value="5" class="form-input">
+                                    </div>
+                                    <div>
+                                        <label for="best_of" class="form-label">
+                                            Best of
+                                            <span class="text-gray-500 text-xs block mt-1"
+                                                  title="Number of candidates to generate when sampling. The best one will be selected.">
+                                                (Sampling candidates)
+                                            </span>
+                                        </label>
+                                        <input type="number" id="best_of" min="1" max="20" value="5" class="form-input">
+                                    </div>
                                 </div>
                             </section>
 
@@ -162,6 +184,29 @@
                                     <label for="save_audio" class="checkbox-label">
                                         <input type="checkbox" id="save_audio" class="mr-2">
                                         <span class="checkbox-text">Save Audio Segments</span>
+                                    </label>
+                                </div>
+                            </section>
+
+                            <!-- Text Filters -->
+                            <section class="config-section">
+                                <h2 class="section-title">Text Filters</h2>
+                                <div class="space-y-3">
+                                    <label for="enable_lowercase_filter" class="checkbox-label">
+                                        <input type="checkbox" id="enable_lowercase_filter" class="mr-2">
+                                        <span class="checkbox-text">Convert to lowercase</span>
+                                    </label>
+                                    <label for="enable_uppercase_filter" class="checkbox-label">
+                                        <input type="checkbox" id="enable_uppercase_filter" class="mr-2">
+                                        <span class="checkbox-text">Convert to uppercase</span>
+                                    </label>
+                                    <label for="enable_profanity_filter" class="checkbox-label">
+                                        <input type="checkbox" id="enable_profanity_filter" class="mr-2">
+                                        <span class="checkbox-text">Filter profanity</span>
+                                    </label>
+                                    <label for="remove_trailing_period" class="checkbox-label">
+                                        <input type="checkbox" id="remove_trailing_period" class="mr-2">
+                                        <span class="checkbox-text">Remove trailing period</span>
                                     </label>
                                 </div>
                             </section>
@@ -240,6 +285,7 @@
         </div>
     </div>
 
+    <script src="config-schema.js"></script>
     <script src="renderer.js"></script>
 </body>
 </html>

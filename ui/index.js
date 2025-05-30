@@ -4,6 +4,7 @@ const fs = require('node:fs').promises;
 const yaml = require('js-yaml');
 const { spawn } = require('child_process');
 const https = require('https');
+const { CONFIG_SCHEMA, getDefaultConfig } = require('./config-schema.js');
 
 const APP_ROOT = path.join(__dirname, '..');
 const CONFIG_PATH = path.join(APP_ROOT, 'config.yaml');
@@ -82,6 +83,14 @@ function downloadFile(url, outputPath) {
   });
 }
 
+function shouldFilterMessage(message) {
+  // Filter out pydub ffmpeg/avconv warning. It does not actually matter.
+  if (message.includes("Couldn't find ffmpeg or avconv - defaulting to ffmpeg, but may not work")) {
+    return true;
+  }
+  return false;
+}
+
 // Helper function to setup process event handlers
 function setupProcessHandlers(process) {
   process.stdout.on('data', (data) => {
@@ -91,7 +100,9 @@ function setupProcessHandlers(process) {
   
   process.stderr.on('data', (data) => {
     const text = data.toString();
-    sendPythonOutput(text.trimEnd(), 'stderr');
+    if (!shouldFilterMessage(text)) {
+      sendPythonOutput(text.trimEnd(), 'stderr');
+    }
   });
   
   process.on('error', (error) => {
@@ -137,7 +148,10 @@ function executePythonCommand(args, options = {}) {
     pythonProcess.stderr.on('data', (data) => {
       const text = data.toString();
       stderr += text;
-      sendPythonOutput(text.trimEnd(), 'stderr');
+      // Filter out specific warning messages
+      if (!shouldFilterMessage(text)) {
+        sendPythonOutput(text.trimEnd(), 'stderr');
+      }
     });
     
     pythonProcess.on('error', (error) => {
@@ -171,27 +185,8 @@ function createWindow () {
   mainWindow.loadFile('index.html');
 }
 
-// Default configuration based on user's current config.yaml
-const DEFAULT_CONFIG = {
-  compute_type: 'float16',
-  enable_debug_mode: 0,
-  enable_previews: 1,
-  user_prompt: 'Use proper punctuation and grammar. Prefer spelled out numbers like one, eleven, twenty, etc.',
-  save_audio: 0,
-  language: 'english',
-  gpu_idx: 0,
-  max_speech_duration_s: 10,
-  min_silence_duration_ms: 250,
-  microphone: 0,
-  model: 'turbo',
-  reset_after_silence_s: 15,
-  transcription_loop_delay_ms: 100,
-  use_cpu: 0,
-  block_width: 2,
-  num_blocks: 40,
-  rows: 10,
-  cols: 24
-};
+// Replace the DEFAULT_CONFIG constant with:
+const DEFAULT_CONFIG = getDefaultConfig();
 
 // IPC handlers
 ipcMain.handle('load-config', async () => {
@@ -521,12 +516,12 @@ ipcMain.handle('start-process', async () => {
 });
 
 ipcMain.handle('stop-process', async () => {
-  if (!runningProcess) {
-    throw new Error('No process is running');
-  }
-  
   return new Promise((resolve) => {
     let forcefullyKilled = false;
+
+    if (!runningProcess) {
+      resolve({ success: true, forcefullyKilled });
+    }
     
     // Set up a timeout to force kill after 10 seconds
     const killTimeout = setTimeout(() => {

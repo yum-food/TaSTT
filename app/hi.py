@@ -1,5 +1,6 @@
 import app_config
 import argparse
+import io
 from math import floor, ceil
 import msvcrt
 import os
@@ -10,6 +11,9 @@ import stt
 import sys
 import threading
 import time
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 TESTS_ENABLED = True
 

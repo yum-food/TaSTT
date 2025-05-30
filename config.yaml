@@ -1,18 +1,24 @@
 compute_type: float16
-enable_debug_mode: 0
-enable_previews: 1
-user_prompt: Use proper punctuation and grammar. Prefer spelled out numbers like one, eleven, twenty, etc.
-save_audio: 0
 language: english
+model: turbo
+microphone: 2
+user_prompt: Use proper punctuation and grammar. Prefer spelled out numbers like one, eleven, twenty, etc. Mm.
 gpu_idx: 0
 max_speech_duration_s: 10
 min_silence_duration_ms: 250
-microphone: 0
-model: turbo
 reset_after_silence_s: 15
 transcription_loop_delay_ms: 100
-use_cpu: 0
 block_width: 2
 num_blocks: 40
 rows: 10
 cols: 24
+beam_size: 5
+best_of: 5
+enable_debug_mode: 0
+enable_previews: 1
+save_audio: 0
+use_cpu: 0
+enable_lowercase_filter: 0
+enable_uppercase_filter: 0
+enable_profanity_filter: 0
+remove_trailing_period: 0
