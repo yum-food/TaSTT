@@ -162,11 +162,28 @@ function setFormValues(config) {
         }
     }
     
+    // Handle use_builtin toggle state
+    const useBuiltin = config.use_builtin === 1;
+    const customChatboxInputs = ['block_width', 'num_blocks', 'rows', 'cols'];
+    customChatboxInputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.disabled = useBuiltin;
+            if (useBuiltin) {
+                input.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                input.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+    });
+    
     isSettingValues = false; // Re-enable auto-save
 }
 
 // Console management
 const consoleContent = document.getElementById('console-content');
+const MAX_CONSOLE_LINES = 512;
+let consoleLineCount = 0;
 
 function appendToConsole(message, type = 'stdout') {
     const timestamp = new Date().toLocaleTimeString();
@@ -183,6 +200,28 @@ function appendToConsole(message, type = 'stdout') {
     lineDiv.appendChild(messageSpan);
     
     consoleContent.appendChild(lineDiv);
+    consoleLineCount++;
+    
+    // Remove old lines if we exceed the limit
+    if (consoleLineCount > MAX_CONSOLE_LINES) {
+        // Calculate how many lines to remove (remove 10% to avoid frequent trimming)
+        const linesToRemove = Math.floor(MAX_CONSOLE_LINES * 0.1);
+        
+        // Remove the oldest lines
+        for (let i = 0; i < linesToRemove; i++) {
+            if (consoleContent.firstChild) {
+                consoleContent.removeChild(consoleContent.firstChild);
+            }
+        }
+        
+        consoleLineCount -= linesToRemove;
+        
+        // Add a notice that lines were trimmed
+        const trimNotice = document.createElement('div');
+        trimNotice.className = 'console-info';
+        trimNotice.innerHTML = '<span class="console-timestamp">[System] </span><span class="console-info">... older lines removed to maintain performance ...</span>';
+        consoleContent.insertBefore(trimNotice, consoleContent.firstChild);
+    }
     
     // Auto-scroll to bottom
     const pythonConsole = document.getElementById('python-console');
@@ -316,11 +355,30 @@ function setupEventHandlers() {
         }
     });
     
+    // Use builtin chatbox toggle
+    document.getElementById('use_builtin').addEventListener('change', (e) => {
+        const customChatboxInputs = ['block_width', 'num_blocks', 'rows', 'cols'];
+        const isBuiltin = e.target.checked;
+        
+        customChatboxInputs.forEach(inputId => {
+            const input = document.getElementById(inputId);
+            if (input) {
+                input.disabled = isBuiltin;
+                if (isBuiltin) {
+                    input.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    input.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }
+        });
+    });
+    
     // Setup virtual environment
     document.getElementById('setup-venv').addEventListener('click', async () => {
         loadingOverlay.show('Setting up virtual environment - please wait...'); // Show overlay with custom message
         try {
             await buttonManager.withButtonLoading('setupVenv', async () => {
+                await window.electronAPI.deleteVenvIndicatorFile();
                 await handleAsyncAction('Install requirements', () => window.electronAPI.installRequirements());
             });
         } finally {

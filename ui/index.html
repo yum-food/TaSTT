@@ -64,6 +64,31 @@
                                         </button>
                                     </div>
                                 </div>
+                                <div>
+                                    <label for="button_hand" class="form-label">
+                                        VR Hand
+                                    </label>
+                                    <select id="button_hand" class="form-input">
+                                        <option value="left">Left</option>
+                                        <option value="right">Right</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="button_type" class="form-label">
+                                        VR Button
+                                    </label>
+                                    <select id="button_type" class="form-input">
+                                        <option value="a">A</option>
+                                        <option value="b">B</option>
+                                        <option value="thumbstick">Thumbstick</option>
+                                    </select>
+                                </div>
+                                <div class="col-span-2">
+                                    <label for="keybind" class="form-label">
+                                        Keyboard Binding
+                                    </label>
+                                    <input type="text" id="keybind" value="f24" class="form-input" placeholder="f24">
+                                </div>
                             </div>
                         </section>
 
@@ -109,6 +134,10 @@
                                     <div>
                                         <label for="max_speech_duration_s" class="form-label">Max Speech Duration (seconds)</label>
                                         <input type="number" id="max_speech_duration_s" min="1" value="10" class="form-input">
+                                    </div>
+                                    <div>
+                                        <label for="min_speech_duration_ms" class="form-label">Min Speech Duration (ms)</label>
+                                        <input type="number" id="min_speech_duration_ms" min="0" value="100" class="form-input">
                                     </div>
                                     <div>
                                         <label for="min_silence_duration_ms" class="form-label">Min Silence Duration (ms)</label>
@@ -211,9 +240,30 @@
                                 </div>
                             </section>
 
+                            <!-- Input Settings -->
+                            <section class="config-section">
+                                <h2 class="section-title">Input Settings</h2>
+                                <div class="space-y-4">
+                                    <label for="reset_on_toggle" class="checkbox-label">
+                                        <input type="checkbox" id="reset_on_toggle" class="mr-2">
+                                        <span class="checkbox-text">Reset transcript on toggle</span>
+                                    </label>
+                                    <label for="enable_local_beep" class="checkbox-label">
+                                        <input type="checkbox" id="enable_local_beep" checked class="mr-2">
+                                        <span class="checkbox-text">Enable local beep sounds</span>
+                                    </label>
+                                </div>
+                            </section>
+
                             <!-- Display Settings -->
                             <section class="config-section">
                                 <h2 class="section-title">Custom Chatbox Settings</h2>
+                                <div class="mb-4">
+                                    <label for="use_builtin" class="checkbox-label">
+                                        <input type="checkbox" id="use_builtin" class="mr-2">
+                                        <span class="checkbox-text">Use built-in VRChat chatbox</span>
+                                    </label>
+                                </div>
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
                                         <label for="block_width" class="form-label">Block Width</label>

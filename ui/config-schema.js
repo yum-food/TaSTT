@@ -6,11 +6,15 @@ const CONFIG_SCHEMA = {
     model: { type: 'select', default: 'turbo' },
     microphone: { type: 'number', default: 0 },
     user_prompt: { type: 'text', default: 'Use proper punctuation and grammar. Prefer spelled out numbers like one, eleven, twenty, etc. Mm.' },
+    keybind: { type: 'text', default: 'ctrl+alt+x' },
+    button_hand: { type: 'select', default: 'right' },
+    button_type: { type: 'select', default: 'b' },
     
     // Number fields
     gpu_idx: { type: 'number', default: 0 },
     max_speech_duration_s: { type: 'number', default: 10 },
-    min_silence_duration_ms: { type: 'number', default: 250 },
+    min_speech_duration_ms: { type: 'number', default: 250 },
+    min_silence_duration_ms: { type: 'number', default: 100 },
     reset_after_silence_s: { type: 'number', default: 15 },
     transcription_loop_delay_ms: { type: 'number', default: 100 },
     block_width: { type: 'number', default: 2 },
@@ -28,7 +32,10 @@ const CONFIG_SCHEMA = {
     enable_lowercase_filter: { type: 'boolean', default: 0 },
     enable_uppercase_filter: { type: 'boolean', default: 0 },
     enable_profanity_filter: { type: 'boolean', default: 0 },
-    remove_trailing_period: { type: 'boolean', default: 0 }
+    remove_trailing_period: { type: 'boolean', default: 0 },
+    reset_on_toggle: { type: 'boolean', default: 0 },
+    enable_local_beep: { type: 'boolean', default: 1 },
+    use_builtin: { type: 'boolean', default: 1 }
 };
 
 // Helper to extract just the default values

@@ -246,6 +246,21 @@ ipcMain.handle('reset-config', async () => {
   }
 });
 
+ipcMain.handle('deleteVenvIndicatorFile', async () => {
+  const venvMarkerPath = path.join(APP_ROOT, '.venv_is_set_up');
+  try {
+    await fs.unlink(venvMarkerPath);
+    return { success: true, message: '.venv_is_set_up deleted successfully.' };
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      return { success: true, message: '.venv_is_set_up not found.' };
+    }
+    console.error('Error deleting .venv_is_set_up file:', error);
+    sendPythonOutput(`Error deleting .venv_is_set_up: ${error.message}`, 'stderr');
+    throw error;
+  }
+});
+
 // Generic function to ensure required files are present
 async function ensureRequiredFiles(config) {
   const { 
@@ -332,7 +347,6 @@ ipcMain.handle('install-requirements', async () => {
     // Check if venv is already set up
     try {
       await fs.access(venvMarkerPath);
-      sendPythonOutput('Virtual environment already set up, skipping installation', 'info');
       return { success: true, message: 'Virtual environment already set up' };
     } catch (error) {
       // Marker doesn't exist, proceed with setup

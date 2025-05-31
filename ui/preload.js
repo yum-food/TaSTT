@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     resetConfig: () => ipcRenderer.invoke('reset-config'),
     getMicrophones: () => ipcRenderer.invoke('get-microphones'),
     installRequirements: () => ipcRenderer.invoke('install-requirements'),
+    deleteVenvIndicatorFile: () => ipcRenderer.invoke('deleteVenvIndicatorFile'),
     resetVenv: () => ipcRenderer.invoke('reset-venv'),
     startProcess: () => ipcRenderer.invoke('start-process'),
     stopProcess: () => ipcRenderer.invoke('stop-process'),

@@ -1,24 +1,33 @@
 import app_config
 import argparse
 import io
+import keybind_event_machine
 from math import floor, ceil
 import msvcrt
 import os
 from pythonosc import udp_client
 import sentencepiece as spm
+import steamvr
 from shared_thread_data import SharedThreadData
 import stt
 import sys
 import threading
 import time
+import pygame
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
+# Initialize pygame mixer
+pygame.mixer.init()
 
 TESTS_ENABLED = True
 
 # 0 = quiet, 1 = verbose, 2 = very verbose
 LOG_LEVEL = 0
+
+# Global volume control (0.0 to 1.0)
+VOLUME = 0.3
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(APP_ROOT)
@@ -315,79 +324,276 @@ def handle_input(state: InputState, line: str, tokenizer, osc_client, cfg):
     send_data(osc_client, [indices[0]], [diff_blocks[0]], [diff_visual_pointers[0]])
 
 def osc_thread(shared_data: SharedThreadData):
-    tokenizer = get_tokenizer()
     osc_client = getOscClient()
 
-    # Prime the board
-    print("Priming the board")
-    input_state = InputState()
-    handle_input(input_state, "", tokenizer, osc_client, shared_data.cfg)
+    def join_segments(a, b):
+        if len(a) > 0 and a[-1] != ' ':
+            return a + ' ' + b
+        else:
+            return a + b
+
+    if shared_data.cfg["use_builtin"]:
+        last_change = time.time()
+        remote_word = ""
+        while not shared_data.exit_event.is_set():
+            time.sleep(0.1)
+            local_word = ""
+            with shared_data.word_lock:
+                local_word = join_segments(shared_data.transcript,
+                                           shared_data.preview)
+            local_word = local_word[-140:]
+            if local_word == remote_word:
+                continue
+            if time.time() - last_change < 1.5:
+                continue
+            addr = "/chatbox/input"
+            print(f"Send {local_word}", flush=True)
+            osc_client.send_message(addr, (local_word, True, False))
+            last_change = time.time()
+            remote_word = local_word
+    else:
+        # Custom chatbox
+        tokenizer = get_tokenizer()
+
+        # Prime the board
+        print("Priming the board")
+        input_state = InputState()
+        handle_input(input_state, "", tokenizer, osc_client, shared_data.cfg)
+
+        while not shared_data.exit_event.is_set():
+            word_copy = ""
+            with shared_data.word_lock:
+                word_copy = shared_data.word
+            handle_input(input_state, word_copy, tokenizer, osc_client, shared_data.cfg)
+            time.sleep(0.01)
+
+
+def vrInputThread(shared_data: SharedThreadData):
+    RECORD_STATE = 0
+    PAUSE_STATE = 1
+    state = PAUSE_STATE
+
+    hand_id = shared_data.cfg["button_hand"]
+    button_id = shared_data.cfg["button_type"]
+
+    # Rough description of state machine:
+    #   Single short press: toggle transcription
+    #   Medium press: dismiss custom chatbox
+    #   Long press: update chatbox in place
+    #   Medium press + long press: type transcription
+
+    last_rising = time.time()
+    last_medium_press_end = 0
+
+    waveform0 =  os.path.join(PROJECT_ROOT, "Sounds/Noise_On_Quiet.wav")
+    waveform1 =  os.path.join(PROJECT_ROOT, "Sounds/Noise_Off_Quiet.wav")
+    waveform2 =  os.path.join(PROJECT_ROOT, "Sounds/Dismiss_Noise_Quiet.wav")
+    waveform3 =  os.path.join(PROJECT_ROOT, "Sounds/KB_Noise_Off_Quiet.wav")
+
+    button_generator = steamvr.pollButtonPress(hand=hand_id, button=button_id,
+            shared_data=shared_data)
+    while not shared_data.exit_event.is_set():
+        time.sleep(0.01)
+        try:
+            event = next(button_generator)
+        except StopIteration:
+            break
+
+        with shared_data.word_lock:
+            if not shared_data.stream or not shared_data.collector:
+                continue
+
+            if event.opcode == steamvr.EVENT_RISING_EDGE:
+                last_rising = time.time()
+
+                if state == PAUSE_STATE:
+                    shared_data.stream.pause(False)
+                    shared_data.stream.getSamples()
+
+            elif event.opcode == steamvr.EVENT_FALLING_EDGE:
+                now = time.time()
+                if now - last_rising > 1.5:
+                    # Long press: treat as the end of transcription.
+                    state = PAUSE_STATE
+
+                    shared_data.stream.pause(True)
+
+                    if last_rising - last_medium_press_end < 1.0:
+                        # Type transcription
+                        if shared_data.cfg["enable_local_beep"]:
+                            play_sound_with_volume(waveform3)
+                    else:
+                        if shared_data.cfg["enable_local_beep"]:
+                            play_sound_with_volume(waveform1)
+
+                elif now - last_rising > 0.5:
+                    # Medium press
+                    print("CLEARING", file=sys.stderr)
+                    last_medium_press_end = now
+                    state = PAUSE_STATE
+
+                    if shared_data.cfg["enable_local_beep"]:
+                        play_sound_with_volume(waveform2)
+
+                    # Flush the *entire* pipeline.
+                    shared_data.stream.pause(True)
+                    shared_data.stream.getSamples()
+                    shared_data.collector.dropAudio()
+                    shared_data.transcript = ""
+                    shared_data.preview = ""
+                    continue
+
+                # Short hold
+                if state == RECORD_STATE:
+                    print("PAUSED", file=sys.stderr)
+                    state = PAUSE_STATE
+
+                    shared_data.stream.pause(True)
+
+                    if shared_data.cfg["enable_local_beep"]:
+                        play_sound_with_volume(waveform1)
+                elif state == PAUSE_STATE:
+                    print("RECORDING", file=sys.stderr)
+                    state = RECORD_STATE
+                    if shared_data.cfg["reset_on_toggle"]:
+                        if shared_data.cfg["enable_debug_mode"]:
+                            print("Toggle detected, dropping transcript (3)",
+                                    file=sys.stderr)
+                        shared_data.transcript = ""
+                        shared_data.preview = ""
+                        #audio_state.drop_transcription = True
+                    else:
+                        if shared_data.cfg["enable_debug_mode"]:
+                            print("Toggle detected, committing preview text (3)",
+                                  file=sys.stderr)
+                        #audio_state.text += audio_state.preview_text
+
+                    shared_data.stream.pause(False)
+
+                    if shared_data.cfg["enable_local_beep"]:
+                        play_sound_with_volume(waveform0)
+
+
+def kbInputThread(shared_data: SharedThreadData):
+    machine = keybind_event_machine.KeybindEventMachine(shared_data.cfg["keybind"])
+    last_press_time = 0
+
+    # double pressing the keybind
+    double_press_timeout = 0.5
+
+    RECORD_STATE = 0
+    PAUSE_STATE = 1
+    state = PAUSE_STATE
+
+    waveform0 = os.path.join(PROJECT_ROOT, "Sounds/Noise_On_Quiet.wav")
+    waveform1 = os.path.join(PROJECT_ROOT, "Sounds/Noise_Off_Quiet.wav")
+    waveform2 = os.path.join(PROJECT_ROOT, "Sounds/Dismiss_Noise_Quiet.wav")
+    waveform3 = os.path.join(PROJECT_ROOT, "Sounds/KB_Noise_Off_Quiet.wav")
 
     while not shared_data.exit_event.is_set():
-        word_copy = ""
-        with shared_data.word_lock:
-            word_copy = shared_data.word
-        handle_input(input_state, word_copy, tokenizer, osc_client, shared_data.cfg)
         time.sleep(0.01)
+
+        cur_press_time = machine.getNextPressTime()
+        if cur_press_time == 0:
+            continue
+
+        with shared_data.word_lock:
+            if not shared_data.stream or not shared_data.collector:
+                continue
+
+            EVENT_SINGLE_PRESS = 0
+            EVENT_DOUBLE_PRESS = 1
+            if last_press_time == 0:
+                event = EVENT_SINGLE_PRESS
+            elif cur_press_time - last_press_time < double_press_timeout:
+                event = EVENT_DOUBLE_PRESS
+            else:
+                event = EVENT_SINGLE_PRESS
+            last_press_time = cur_press_time
+
+            if event == EVENT_DOUBLE_PRESS:
+                print("CLEARING", file=sys.stderr)
+                state = PAUSE_STATE
+
+                if shared_data.cfg["enable_local_beep"]:
+                    play_sound_with_volume(waveform2)
+
+                # Flush the *entire* pipeline.
+                shared_data.stream.pause(True)
+                shared_data.stream.getSamples()
+                shared_data.collector.dropAudio()
+                shared_data.transcript = ""
+                shared_data.preview = ""
+                continue
+
+            # Short hold
+            if state == RECORD_STATE:
+                print("PAUSED", file=sys.stderr)
+                state = PAUSE_STATE
+
+                shared_data.stream.pause(True)
+
+                if shared_data.cfg["enable_local_beep"]:
+                    play_sound_with_volume(waveform1)
+            elif state == PAUSE_STATE:
+                print("RECORDING", file=sys.stderr)
+                state = RECORD_STATE
+                if shared_data.cfg["reset_on_toggle"]:
+                    if shared_data.cfg["enable_debug_mode"]:
+                        print("Toggle detected, dropping transcript (2)",
+                                file=sys.stderr)
+                    shared_data.transcript = ""
+                    shared_data.preview = ""
+                else:
+                    if shared_data.cfg["enable_debug_mode"]:
+                        print("Toggle detected, committing preview text (2)",
+                                file=sys.stderr)
+                    #audio_state.text += audio_state.preview_text
+
+                shared_data.stream.pause(False)
+
+                if shared_data.cfg["enable_local_beep"]:
+                    play_sound_with_volume(waveform0)
+
+def play_sound_with_volume(filepath):
+    """Play a WAV file with adjusted volume"""
+    volume = VOLUME
+    
+    try:
+        sound = pygame.mixer.Sound(filepath)
+        sound.set_volume(volume)
+        sound.play()
+    except Exception as e:
+        print(f"Error playing sound {filepath}: {e}", file=sys.stderr)
 
 if __name__ == "__main__":
     cli_args = parse_args()
     cfg = app_config.getConfig(cli_args.config)
     shared_data = SharedThreadData(cfg)
-    if False:
-        osc_thread = threading.Thread(
-                target=osc_thread,
-                args=(shared_data,))
-        osc_thread.start()
+    osc_thread = threading.Thread(
+            target=osc_thread,
+            args=(shared_data,))
+    osc_thread.start()
 
     transcribe_thread = threading.Thread(
             target=stt.transcriptionThread,
             args=(shared_data,))
     transcribe_thread.start()
 
+    vr_input_thd = threading.Thread(target=vrInputThread, args=(shared_data,))
+    vr_input_thd.start()
+
+    kb_input_thd = threading.Thread(target=kbInputThread, args=(shared_data,))
+    kb_input_thd.start()
+
     word_is_over = False
     local_word = ""
     while True:
-        char_bytes = msvcrt.getch()
-        if char_bytes == b'\x03':  # ctrl+C
-            break
-
         time.sleep(0.1)
         continue
-
-        try:
-            char = char_bytes.decode('utf-8')
-            if char == '\r' or char == '\n':
-                word_is_over = True
-                continue
-        except UnicodeDecodeError:
-            print(f"Unsupported character: {char_bytes}")
-            if char_bytes == b'\x00' or char_bytes == b'\xe0':
-                special_char = msvcrt.getch()
-            continue
-
-        if char_bytes == b'\x03':  # ctrl+C
-            break
-        elif char_bytes == b'\x08':  # backspace
-            with shared_data.word_lock:
-                shared_data.word = shared_data.word[:-1]
-                local_word = shared_data.word
-        elif char_bytes == b'\x0c':  # ctrl+L
-            with shared_data.word_lock:
-                shared_data.word = ""
-                local_word = shared_data.word
-        elif word_is_over:
-            with shared_data.word_lock:
-                shared_data.word = char
-                local_word = shared_data.word
-            word_is_over = False
-        else:
-            with shared_data.word_lock:
-                shared_data.word += char
-                local_word = shared_data.word
-        print(local_word + "_")
     shared_data.exit_event.set()
-    if False:
-        osc_thread.join()
+    osc_thread.join()
     transcribe_thread.join()
+    vr_input_thd.join()
+    kb_input_thd.join()
 

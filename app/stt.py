@@ -299,9 +299,11 @@ class CompressingAudioCollector(AudioCollectorFilter):
 class AudioSegmenter:
     def __init__(self,
             min_silence_ms=250,
-            max_speech_s=5):
+            max_speech_s=5,
+            min_speech_duration_ms=100):
         self.min_silence_ms = min_silence_ms
         self.max_speech_s = max_speech_s
+        self.min_speech_duration_ms = min_speech_duration_ms
 
         # Load Silero VAD model
         self.model = load_silero_vad()
@@ -309,6 +311,7 @@ class AudioSegmenter:
         self.vad_threshold = 0.3
         self.min_silence_duration_ms = min_silence_ms
         self.max_speech_duration_s = max_speech_s
+        self.min_speech_duration_ms = min_speech_duration_ms
 
     def segmentAudio(self, audio: bytes):
         # Convert audio bytes to numpy array expected by silero-vad
@@ -324,6 +327,7 @@ class AudioSegmenter:
             threshold=self.vad_threshold,
             min_silence_duration_ms=self.min_silence_duration_ms,
             max_speech_duration_s=self.max_speech_duration_s,
+            min_speech_duration_ms=self.min_speech_duration_ms,
             return_seconds=False  # We want frame indices, not seconds
         )
 
@@ -698,7 +702,8 @@ def transcriptionThread(shared_data: SharedThreadData):
     collector = NormalizingAudioCollector(collector)
     whisper = Whisper(collector, shared_data.cfg)
     segmenter = AudioSegmenter(min_silence_ms=shared_data.cfg["min_silence_duration_ms"],
-            max_speech_s=shared_data.cfg["max_speech_duration_s"])
+            max_speech_s=shared_data.cfg["max_speech_duration_s"],
+            min_speech_duration_ms=shared_data.cfg["min_speech_duration_ms"])
     committer = VadCommitter(shared_data.cfg, collector, whisper, segmenter)
 
     plugins = []
@@ -715,6 +720,10 @@ def transcriptionThread(shared_data: SharedThreadData):
     transcript = ""
     preview = ""
 
+    with shared_data.word_lock:
+        shared_data.stream = stream
+        shared_data.collector = collector
+
     print(f"Ready to go!", flush=True)
 
     while not shared_data.exit_event.is_set():
@@ -724,70 +733,72 @@ def transcriptionThread(shared_data: SharedThreadData):
 
         commit = committer.getDelta()
 
-        for plugin in plugins:
-            commit = plugin.transform(commit)
+        with shared_data.word_lock:
+            for plugin in plugins:
+                commit = plugin.transform(commit)
 
-        if len(commit.delta) > 0 or len(commit.preview) > 0:
-            # Avoid re-sending text after long pauses
-            if shared_data.cfg["reset_after_silence_s"] > 0:
-                silence_duration = 0
-                if last_stable_commit:
-                    last_commit_end_ts = \
-                            last_stable_commit.start_ts + \
-                            last_stable_commit.duration_s
-                    silence_duration = commit.start_ts - last_commit_end_ts
-                if silence_duration > shared_data.cfg["reset_after_silence_s"]:
-                    if shared_data.cfg["enable_debug_mode"]:
-                        print(f"Resetting transcript after {silence_duration}-second "
-                                "silence", file=sys.stderr)
-                    transcript = ""
-                    preview = ""
-                    whisper.recent_context = ""  # Reset context too
-                if commit.delta:
-                    last_stable_commit = commit
+            if len(commit.delta) > 0 or len(commit.preview) > 0:
+                # Avoid re-sending text after long pauses
+                if shared_data.cfg["reset_after_silence_s"] > 0:
+                    silence_duration = 0
+                    if last_stable_commit:
+                        last_commit_end_ts = \
+                                last_stable_commit.start_ts + \
+                                last_stable_commit.duration_s
+                        silence_duration = commit.start_ts - last_commit_end_ts
+                    if silence_duration > shared_data.cfg["reset_after_silence_s"]:
+                        if shared_data.cfg["enable_debug_mode"]:
+                            print(f"Resetting transcript after {silence_duration}-second "
+                                    "silence", file=sys.stderr)
+                        shared_data.transcript = ""
+                        shared_data.preview = ""
+                        whisper.recent_context = ""  # Reset context too
+                    if commit.delta:
+                        last_stable_commit = commit
 
-            # Hard-cap displayed transcript length at 4k characters to prevent
-            # runaway memory use in UI. Keep the full transcript to avoid
-            # breaking OSC pager.
-            transcript = transcript[-4096:]
-            def join_segments(a, b):
-                if len(a) > 0 and a[-1] != ' ':
-                    return a + ' ' + b
-                else:
-                    return a + b
-            transcript = join_segments(transcript, commit.delta)
-            preview = commit.preview
+                # Hard-cap displayed transcript length to prevent
+                # runaway memory use in UI. Keep the full transcript to avoid
+                # breaking OSC pager.
+                if len(shared_data.transcript) >= 1024:
+                    shared_data.transcript = shared_data.transcript[-512:]
+                def join_segments(a, b):
+                    if len(a) > 0 and a[-1] != ' ':
+                        return a + ' ' + b
+                    else:
+                        return a + b
+                shared_data.transcript = \
+                        join_segments(shared_data.transcript, commit.delta)
+                shared_data.preview = commit.preview
 
-            for filt in filters:
-                transcript, preview = filt.transform(transcript, preview)
+                for filt in filters:
+                    shared_data.transcript, shared_data.preview = \
+                            filt.transform(shared_data.transcript,
+                                           shared_data.preview)
 
-            try:
-                print(f"Transcript: {transcript}", flush=True)
-            except UnicodeEncodeError:
-                print("Failed to encode transcript - discarding delta",
-                        file=sys.stderr)
-                continue
-            try:
-                print(f"Preview: {preview}", flush=True)
-            except UnicodeEncodeError:
-                print("Failed to encode preview - discarding", file=sys.stderr)
+                try:
+                    print(f"Transcript: {shared_data.transcript}", flush=True)
+                except UnicodeEncodeError:
+                    print("Failed to encode transcript - discarding delta",
+                            file=sys.stderr)
+                    continue
+                try:
+                    print(f"Preview: {shared_data.preview}", flush=True)
+                except UnicodeEncodeError:
+                    print("Failed to encode preview - discarding", file=sys.stderr)
 
-            with shared_data.word_lock:
-                shared_data.word = join_segments(transcript, preview)
+                if shared_data.cfg["enable_debug_mode"]:
+                    print(f"commit latency: {commit.latency_s}", file=sys.stderr)
+                    print(f"commit thresh: {commit.thresh_at_commit}",
+                            file=sys.stderr)
 
-            if shared_data.cfg["enable_debug_mode"]:
-                print(f"commit latency: {commit.latency_s}", file=sys.stderr)
-                print(f"commit thresh: {commit.thresh_at_commit}",
-                        file=sys.stderr)
-
-        if len(transcript) > 0 and \
-                (not transcript.endswith(' ')) and \
-                (not commit.delta.startswith(' ')):
-            commit.delta = ' ' + commit.delta
-        if len(commit.delta) > 0 and \
-                (not commit.delta.endswith(' ')) and \
-                (not commit.preview.startswith(' ')):
-            commit.preview = ' ' + commit.preview
+            if len(shared_data.transcript) > 0 and \
+                    (not shared_data.transcript.endswith(' ')) and \
+                    (not commit.delta.startswith(' ')):
+                commit.delta = ' ' + commit.delta
+            if len(commit.delta) > 0 and \
+                    (not commit.delta.endswith(' ')) and \
+                    (not commit.preview.startswith(' ')):
+                commit.preview = ' ' + commit.preview
     for plugin in plugins:
         plugin.stop()
     for filt in filters:
