@@ -23,6 +23,7 @@ const CONFIG_SCHEMA = {
     cols: { type: 'number', default: 24 },
     beam_size: { type: 'number', default: 5 },
     best_of: { type: 'number', default: 5 },
+    volume: { type: 'number', default: 30 },
     
     // Boolean fields (stored as 1/0)
     enable_debug_mode: { type: 'boolean', default: 0 },
@@ -34,7 +35,6 @@ const CONFIG_SCHEMA = {
     enable_profanity_filter: { type: 'boolean', default: 0 },
     remove_trailing_period: { type: 'boolean', default: 0 },
     reset_on_toggle: { type: 'boolean', default: 0 },
-    enable_local_beep: { type: 'boolean', default: 1 },
     use_builtin: { type: 'boolean', default: 1 }
 };
 

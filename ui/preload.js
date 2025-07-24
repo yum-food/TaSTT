@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     resetVenv: () => ipcRenderer.invoke('reset-venv'),
     startProcess: () => ipcRenderer.invoke('start-process'),
     stopProcess: () => ipcRenderer.invoke('stop-process'),
+    getProcessState: () => ipcRenderer.invoke('get-process-state'),
     onPythonOutput: (callback) => ipcRenderer.on('python-output', (event, data) => callback(data)),
     onProcessStopped: (callback) => ipcRenderer.on('process-stopped', () => callback())
 });

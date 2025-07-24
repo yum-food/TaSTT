@@ -248,10 +248,13 @@
                                         <input type="checkbox" id="reset_on_toggle" class="mr-2">
                                         <span class="checkbox-text">Reset transcript on toggle</span>
                                     </label>
-                                    <label for="enable_local_beep" class="checkbox-label">
-                                        <input type="checkbox" id="enable_local_beep" checked class="mr-2">
-                                        <span class="checkbox-text">Enable local beep sounds</span>
-                                    </label>
+                                    <div>
+                                        <label for="volume" class="form-label">
+                                            Local Beep Volume
+                                            <span id="volume-display" class="text-gray-500 text-sm ml-2">30%</span>
+                                        </label>
+                                        <input type="range" id="volume" min="0" max="100" step="10" value="30" class="form-input w-full">
+                                    </div>
                                 </div>
                             </section>
 
@@ -314,7 +317,7 @@
                                 <button type="button" id="start-process" class="btn btn-green flex-1">
                                     Start
                                 </button>
-                                <button type="button" id="stop-process" class="btn btn-red flex-1" disabled>
+                                <button type="button" id="stop-process" class="btn btn-red flex-1">
                                     Stop
                                 </button>
                             </div>

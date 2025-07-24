@@ -2,6 +2,7 @@ faster-whisper
 hf-xet
 keyboard
 langcodes
+noisereduce
 pyaudio
 pygame
 pydub

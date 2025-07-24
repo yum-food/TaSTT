@@ -530,19 +530,20 @@ ipcMain.handle('start-process', async () => {
 });
 
 ipcMain.handle('stop-process', async () => {
+  if (!runningProcess) {
+    sendPythonOutput('No process to stop', 'info');
+    return { success: true, forcefullyKilled: false };
+  }
+
   return new Promise((resolve) => {
     let forcefullyKilled = false;
-
-    if (!runningProcess) {
-      resolve({ success: true, forcefullyKilled });
-    }
     
     // Set up a timeout to force kill after 10 seconds
     const killTimeout = setTimeout(() => {
       if (runningProcess) {
         sendPythonOutput('Process did not stop gracefully, forcing termination...', 'stderr');
         forcefullyKilled = true;
-        runningProcess.kill();
+        runningProcess.kill('SIGKILL');
       }
     }, 10000);
     
@@ -562,8 +563,12 @@ ipcMain.handle('stop-process', async () => {
     
     // Send termination signal
     sendPythonOutput('Stopping process gracefully...', 'info');
-    runningProcess.kill();
+    runningProcess.kill('SIGTERM');
   });
+});
+
+ipcMain.handle('get-process-state', () => {
+  return { isRunning: runningProcess !== null };
 });
 
 // Clean up on app quit

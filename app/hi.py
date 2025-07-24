@@ -26,9 +26,6 @@ TESTS_ENABLED = True
 # 0 = quiet, 1 = verbose, 2 = very verbose
 LOG_LEVEL = 0
 
-# Global volume control (0.0 to 1.0)
-VOLUME = 0.3
-
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(APP_ROOT)
 
@@ -347,7 +344,8 @@ def osc_thread(shared_data: SharedThreadData):
             if time.time() - last_change < 1.5:
                 continue
             addr = "/chatbox/input"
-            print(f"Send {local_word}", flush=True)
+            if shared_data.cfg["enable_debug_mode"]:
+                print(f"Send {local_word}", flush=True)
             osc_client.send_message(addr, (local_word, True, False))
             last_change = time.time()
             remote_word = local_word
@@ -420,20 +418,16 @@ def vrInputThread(shared_data: SharedThreadData):
 
                     if last_rising - last_medium_press_end < 1.0:
                         # Type transcription
-                        if shared_data.cfg["enable_local_beep"]:
-                            play_sound_with_volume(waveform3)
+                        play_sound_with_volume(waveform3, shared_data.cfg)
                     else:
-                        if shared_data.cfg["enable_local_beep"]:
-                            play_sound_with_volume(waveform1)
+                        play_sound_with_volume(waveform1, shared_data.cfg)
 
                 elif now - last_rising > 0.5:
                     # Medium press
                     print("CLEARING", file=sys.stderr)
                     last_medium_press_end = now
                     state = PAUSE_STATE
-
-                    if shared_data.cfg["enable_local_beep"]:
-                        play_sound_with_volume(waveform2)
+                    play_sound_with_volume(waveform2, shared_data.cfg)
 
                     # Flush the *entire* pipeline.
                     shared_data.stream.pause(True)
@@ -449,9 +443,7 @@ def vrInputThread(shared_data: SharedThreadData):
                     state = PAUSE_STATE
 
                     shared_data.stream.pause(True)
-
-                    if shared_data.cfg["enable_local_beep"]:
-                        play_sound_with_volume(waveform1)
+                    play_sound_with_volume(waveform1, shared_data.cfg)
                 elif state == PAUSE_STATE:
                     print("RECORDING", file=sys.stderr)
                     state = RECORD_STATE
@@ -469,9 +461,7 @@ def vrInputThread(shared_data: SharedThreadData):
                         #audio_state.text += audio_state.preview_text
 
                     shared_data.stream.pause(False)
-
-                    if shared_data.cfg["enable_local_beep"]:
-                        play_sound_with_volume(waveform0)
+                    play_sound_with_volume(waveform0, shared_data.cfg)
 
 
 def kbInputThread(shared_data: SharedThreadData):
@@ -514,9 +504,7 @@ def kbInputThread(shared_data: SharedThreadData):
             if event == EVENT_DOUBLE_PRESS:
                 print("CLEARING", file=sys.stderr)
                 state = PAUSE_STATE
-
-                if shared_data.cfg["enable_local_beep"]:
-                    play_sound_with_volume(waveform2)
+                play_sound_with_volume(waveform2, shared_data.cfg)
 
                 # Flush the *entire* pipeline.
                 shared_data.stream.pause(True)
@@ -530,11 +518,8 @@ def kbInputThread(shared_data: SharedThreadData):
             if state == RECORD_STATE:
                 print("PAUSED", file=sys.stderr)
                 state = PAUSE_STATE
-
                 shared_data.stream.pause(True)
-
-                if shared_data.cfg["enable_local_beep"]:
-                    play_sound_with_volume(waveform1)
+                play_sound_with_volume(waveform1, shared_data.cfg)
             elif state == PAUSE_STATE:
                 print("RECORDING", file=sys.stderr)
                 state = RECORD_STATE
@@ -548,20 +533,16 @@ def kbInputThread(shared_data: SharedThreadData):
                     if shared_data.cfg["enable_debug_mode"]:
                         print("Toggle detected, committing preview text (2)",
                                 file=sys.stderr)
-                    #audio_state.text += audio_state.preview_text
-
                 shared_data.stream.pause(False)
+                play_sound_with_volume(waveform0, shared_data.cfg)
 
-                if shared_data.cfg["enable_local_beep"]:
-                    play_sound_with_volume(waveform0)
-
-def play_sound_with_volume(filepath):
+def play_sound_with_volume(filepath, cfg):
     """Play a WAV file with adjusted volume"""
-    volume = VOLUME
+    volume = cfg.get("volume", 30)
     
     try:
         sound = pygame.mixer.Sound(filepath)
-        sound.set_volume(volume)
+        sound.set_volume(volume * 0.01)
         sound.play()
     except Exception as e:
         print(f"Error playing sound {filepath}: {e}", file=sys.stderr)
