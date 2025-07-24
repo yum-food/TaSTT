@@ -1,0 +1,12 @@
+faster-whisper
+hf-xet
+keyboard
+langcodes
+noisereduce
+pyaudio
+pygame
+pydub
+python-osc
+sentencepiece
+silero-vad
+openvr

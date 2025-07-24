@@ -1,3 +1,6 @@
 # Ignore vim swap files.
-*.sw[po]
+.*.sw[po]
 *.dll
+*.meta
+.venv_is_set_up
+
