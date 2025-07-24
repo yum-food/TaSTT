@@ -8,12 +8,21 @@ const dllPath = path.join(projectRoot, 'dll_empty');
 
 console.log('Creating empty virtual environment and dll directory...');
 
-// Create empty dll directory
-if (!fs.existsSync(dllPath)) {
-    fs.mkdirSync(dllPath, { recursive: true });
-    console.log('Created empty dll directory');
+// Delete dll & venv if they already exist
+if (fs.existsSync(dllPath)) {
+    fs.rmSync(dllPath, { recursive: true, force: true });
+    console.log('Deleted existing dll directory');
+}
+if (fs.existsSync(venvPath)) {
+    fs.rmSync(venvPath, { recursive: true, force: true });
+    console.log('Deleted existing venv directory');
 }
 
+// Create empty dll folder
+fs.mkdirSync(dllPath, { recursive: true });
+console.log('Created empty dll directory');
+
+// Create hermitic python venv
 try {
     console.log('Creating new venv...');
     execSync(`python -m venv "${venvPath}"`, { stdio: 'inherit' });
