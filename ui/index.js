@@ -48,9 +48,9 @@ function sendPythonOutput(message, type = 'stdout') {
 // Helper function to create environment with DLL path
 function createPythonEnvironment() {
   const dllPath = path.join(APP_ROOT, 'dll');
-  const binPath = path.join(APP_ROOT, 'bin');
-  const env = { ...process.env };
-  env.PATH = `${dllPath};${binPath};${env.PATH}`;
+  const binPath = path.join(APP_ROOT, 'venv', 'Scripts');
+  const env = {};
+  env.PATH = `${dllPath};${binPath}`;
   env.HF_HUB_DISABLE_SYMLINKS_WARNING = '1';
   return env;
 }
@@ -150,7 +150,7 @@ function setupProcessHandlers(process) {
 function executePythonCommand(args, options = {}) {
   return new Promise((resolve, reject) => {
     const pythonPath = getVenvPython();
-    const commandStr = `${path.basename(pythonPath)} ${args.join(' ')}`;
+    const commandStr = `${pythonPath} ${args.join(' ')}`;
     sendPythonOutput(`> ${commandStr}`, 'info');
 
     const spawnOptions = {
@@ -399,7 +399,9 @@ ipcMain.handle('install-requirements', async () => {
     if (error.code === 'ENOENT') {
       throw new Error('requirements.txt not found');
     }
-    throw new Error(`Installation failed: ${error.stderr || error.error || 'Unknown error'}`);
+
+    const errorDetails = error.stderr || error.stdout || error.message || error.error || 'Unknown error';
+    throw new Error(`Installation failed: ${errorDetails}`);
   }
 });
 
