@@ -807,7 +807,7 @@ def transcriptionThread(shared_data: SharedThreadData):
     stream = MicStream(shared_data.cfg)
     collector = AudioCollector(stream)
     collector = CompressingAudioCollector(collector)
-    collector = BoostingAudioCollector(collector, -24.0, 24.0,
+    collector = BoostingAudioCollector(collector, -16.0, 24.0,
                                        shared_data.cfg)
     collector = NoiseReducingAudioCollector(collector, shared_data.cfg)
     #collector = NormalizingAudioCollector(collector)
