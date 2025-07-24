@@ -8,7 +8,7 @@ const { CONFIG_SCHEMA, getDefaultConfig } = require('./config-schema.js');
 
 // Detect if we're running in development or production
 const isDev = !app.isPackaged;
-const APP_ROOT = isDev 
+const APP_ROOT = isDev
   ? path.join(__dirname, '..')  // Development: go up from ui/ to project root
   : process.resourcesPath;       // Production: use Electron's resource path
 
@@ -60,16 +60,16 @@ function downloadFile(url, outputPath) {
   return new Promise((resolve, reject) => {
     const file = require('fs').createWriteStream(outputPath);
     const fileName = path.basename(outputPath);
-    
+
     const request = https.get(url, (response) => {
       if (response.statusCode === 200) {
         const totalSize = parseInt(response.headers['content-length'], 10);
         let downloadedSize = 0;
         let lastProgressTime = Date.now();
-        
+
         response.on('data', (chunk) => {
           downloadedSize += chunk.length;
-          
+
           // Log progress every 5 seconds
           const now = Date.now();
           if (totalSize && (now - lastProgressTime >= 5000)) {
@@ -80,14 +80,14 @@ function downloadFile(url, outputPath) {
             lastProgressTime = now;
           }
         });
-        
+
         response.pipe(file);
-        
+
         file.on('finish', () => {
           file.close();
           resolve();
         });
-        
+
         file.on('error', (err) => {
           fs.unlink(outputPath).catch(() => {}); // Clean up on error
           reject(err);
@@ -98,7 +98,7 @@ function downloadFile(url, outputPath) {
         reject(new Error(`Failed to download: HTTP ${response.statusCode}`));
       }
     });
-    
+
     request.on('error', (err) => {
       file.close();
       fs.unlink(outputPath).catch(() => {}); // Clean up on error
@@ -121,14 +121,14 @@ function setupProcessHandlers(process) {
     const text = data.toString();
     sendPythonOutput(text.trimEnd(), 'stdout');
   });
-  
+
   process.stderr.on('data', (data) => {
     const text = data.toString();
     if (!shouldFilterMessage(text)) {
       sendPythonOutput(text.trimEnd(), 'stderr');
     }
   });
-  
+
   process.on('error', (error) => {
     sendPythonOutput(`Process error: ${error.message}`, 'stderr');
     runningProcess = null;
@@ -136,7 +136,7 @@ function setupProcessHandlers(process) {
       mainWindow.webContents.send('process-stopped');
     }
   });
-  
+
   process.on('close', (code) => {
     sendPythonOutput(`Process exited with code ${code}`, 'info');
     runningProcess = null;
@@ -152,23 +152,23 @@ function executePythonCommand(args, options = {}) {
     const pythonPath = getVenvPython();
     const commandStr = `${path.basename(pythonPath)} ${args.join(' ')}`;
     sendPythonOutput(`> ${commandStr}`, 'info');
-    
+
     const spawnOptions = {
       ...options,
       env: createPythonEnvironment()
     };
-    
+
     const pythonProcess = spawn(pythonPath, args, spawnOptions);
-    
+
     let stdout = '';
     let stderr = '';
-    
+
     pythonProcess.stdout.on('data', (data) => {
       const text = data.toString();
       stdout += text;
       sendPythonOutput(text.trimEnd(), 'stdout');
     });
-    
+
     pythonProcess.stderr.on('data', (data) => {
       const text = data.toString();
       stderr += text;
@@ -177,12 +177,12 @@ function executePythonCommand(args, options = {}) {
         sendPythonOutput(text.trimEnd(), 'stderr');
       }
     });
-    
+
     pythonProcess.on('error', (error) => {
       sendPythonOutput(`Failed to start Python process: ${error.message}`, 'stderr');
       reject({ error: error.message, stdout, stderr });
     });
-    
+
     pythonProcess.on('close', (code) => {
       if (code !== 0) {
         sendPythonOutput(`Process exited with code ${code}`, 'stderr');
@@ -287,15 +287,15 @@ ipcMain.handle('deleteVenvIndicatorFile', async () => {
 
 // Generic function to ensure required files are present
 async function ensureRequiredFiles(config) {
-  const { 
-    directoryName, 
-    requiredFiles, 
-    downloadBaseUrl, 
-    resourceType 
+  const {
+    directoryName,
+    requiredFiles,
+    downloadBaseUrl,
+    resourceType
   } = config;
-  
+
   const targetPath = path.join(APP_ROOT, directoryName);
-  
+
   try {
     // Check if target directory exists, create it if not
     try {
@@ -310,7 +310,7 @@ async function ensureRequiredFiles(config) {
         throw error;
       }
     }
-    
+
     // Check each required file
     const missingFiles = [];
     for (const fileName of requiredFiles) {
@@ -327,15 +327,15 @@ async function ensureRequiredFiles(config) {
         }
       }
     }
-    
+
     // Download missing files
     if (missingFiles.length > 0) {
       sendPythonOutput(`Downloading ${missingFiles.length} missing ${resourceType} file${missingFiles.length > 1 ? 's' : ''}...`, 'info');
-      
+
       for (const fileName of missingFiles) {
         const filePath = path.join(targetPath, fileName);
         const downloadUrl = `${downloadBaseUrl}/${fileName}`;
-        
+
         try {
           sendPythonOutput(`Downloading ${fileName}...`, 'info');
           await downloadFile(downloadUrl, filePath);
@@ -345,14 +345,14 @@ async function ensureRequiredFiles(config) {
           throw new Error(`Failed to download ${fileName}: ${downloadError.message}`);
         }
       }
-      
+
       sendPythonOutput(`All missing ${resourceType} files downloaded successfully`, 'info');
     } else {
       sendPythonOutput(`All required ${resourceType} files are present`, 'info');
     }
-    
-    return { 
-      success: true, 
+
+    return {
+      success: true,
       message: `${resourceType} setup complete. ${missingFiles.length} file${missingFiles.length > 1 ? 's' : ''} downloaded.`,
       downloadedFiles: missingFiles
     };
@@ -366,7 +366,7 @@ async function ensureRequiredFiles(config) {
 ipcMain.handle('install-requirements', async () => {
   const requirementsPath = path.join(APP_ROOT, 'app', 'requirements.txt');
   const venvMarkerPath = path.join(APP_ROOT, '.venv_is_set_up');
-  
+
   try {
     // Check if venv is already set up
     try {
@@ -375,10 +375,10 @@ ipcMain.handle('install-requirements', async () => {
     } catch (error) {
       // Marker doesn't exist, proceed with setup
     }
-    
+
     // Check if requirements.txt exists
     await fs.access(requirementsPath);
-    
+
     await executePythonCommand(['-m', 'pip', 'install', '-r', requirementsPath]);
 
     await ensureRequiredFiles({
@@ -389,10 +389,10 @@ ipcMain.handle('install-requirements', async () => {
     });
 
     await fs.mkdir(path.join(APP_ROOT, 'Models'), { recursive: true });
-    
+
     await fs.writeFile(venvMarkerPath, new Date().toISOString(), 'utf8');
     sendPythonOutput('Created .venv_is_set_up marker file', 'info');
-    
+
     return { success: true, message: 'Requirements and dependencies installed successfully' };
   } catch (error) {
     console.error('Error installing requirements:', error);
@@ -405,7 +405,7 @@ ipcMain.handle('install-requirements', async () => {
 
 ipcMain.handle('get-microphones', async () => {
   const scriptPath = path.join(APP_ROOT, 'app', 'list_microphones.py');
-  
+
   try {
     const result = await executePythonCommand([scriptPath]);
     const microphones = JSON.parse(result.stdout.trim());
@@ -421,24 +421,24 @@ async function clearDirectory(dirPath, dirName) {
   try {
     await fs.access(dirPath);
     sendPythonOutput(`Clearing ${dirName} directory...`, 'info');
-    
+
     const files = await fs.readdir(dirPath);
     let deletedCount = 0;
-    
+
     for (const file of files) {
       const filePath = path.join(dirPath, file);
-      
+
       try {
         await fs.rm(filePath, { recursive: true, force: true });
         sendPythonOutput(`✗ Deleted file ${file}`, 'info');
-        
+
         deletedCount++;
       } catch (deleteError) {
         sendPythonOutput(`Warning: Could not delete ${file}: ${deleteError.message}`, 'stderr');
         // Continue with other files even if one fails
       }
     }
-    
+
     sendPythonOutput(`${dirName} directory cleared`, 'info');
     return deletedCount;
   } catch (error) {
@@ -454,10 +454,10 @@ async function clearDirectory(dirPath, dirName) {
 
 ipcMain.handle('reset-venv', async () => {
   const venvMarkerPath = path.join(APP_ROOT, '.venv_is_set_up');
-  
+
   try {
     sendPythonOutput('Starting virtual environment reset...', 'info');
-    
+
     // Delete the venv marker file first
     try {
       await fs.unlink(venvMarkerPath);
@@ -467,14 +467,14 @@ ipcMain.handle('reset-venv', async () => {
         sendPythonOutput(`Warning: Could not delete marker file: ${error.message}`, 'stderr');
       }
     }
-    
+
     // Get list of installed packages
     sendPythonOutput('Getting list of installed packages...', 'info');
     const freezeResult = await executePythonCommand(['-m', 'pip', 'freeze']);
     const installedPackages = freezeResult.stdout.trim();
-    
+
     let uninstalledPackages = [];
-    
+
     if (!installedPackages) {
       sendPythonOutput('No packages found to uninstall', 'info');
     } else {
@@ -483,38 +483,38 @@ ipcMain.handle('reset-venv', async () => {
       const packageNames = packageLines
         .map(line => line.split('==')[0].trim())
         .filter(name => name && !name.startsWith('#'));
-      
+
       const corePackages = ['pip', 'setuptools', 'wheel'];
       const packagesToUninstall = packageNames.filter(name => !corePackages.includes(name.toLowerCase()));
-      
+
       if (packagesToUninstall.length === 0) {
         sendPythonOutput('Only core packages found, nothing to uninstall', 'info');
       } else {
         sendPythonOutput(`Uninstalling ${packagesToUninstall.length} packages...`, 'info');
-        
+
         const uninstallArgs = ['-m', 'pip', 'uninstall', '-y', ...packagesToUninstall];
         await executePythonCommand(uninstallArgs);
         uninstalledPackages = packagesToUninstall;
       }
     }
-    
+
     // Clear downloaded files
     sendPythonOutput('Clearing downloaded files...', 'info');
-    
+
     const dllPath = path.join(APP_ROOT, 'dll');
     const modelsPath = path.join(APP_ROOT, 'Models');
     const binPath = path.join(APP_ROOT, 'bin');
-    
+
     const deletedDlls = await clearDirectory(dllPath, 'DLL');
     const deletedModels = await clearDirectory(modelsPath, 'Models');
     const deletedBins = await clearDirectory(binPath, 'Binary');
-    
+
     const totalDeletedFiles = deletedDlls + deletedModels + deletedBins;
-    
+
     sendPythonOutput('Virtual environment reset successfully!', 'info');
-    
-    return { 
-      success: true, 
+
+    return {
+      success: true,
       message: `Virtual environment reset complete. Uninstalled ${uninstalledPackages.length} packages and deleted ${totalDeletedFiles} downloaded files.`,
       uninstalledPackages,
       deletedFiles: {
@@ -538,14 +538,14 @@ ipcMain.handle('start-process', async () => {
 
   const scriptPath = path.join(APP_ROOT, 'app', 'hi.py');
   const args = [scriptPath, '--config', CONFIG_PATH];
-  
+
   try {
     const pythonPath = getVenvPython();
     sendPythonOutput(`Starting process: ${path.basename(pythonPath)} ${args.join(' ')}`, 'info');
-    
+
     runningProcess = spawn(pythonPath, args, { env: createPythonEnvironment() });
     setupProcessHandlers(runningProcess);
-    
+
     return { success: true };
   } catch (error) {
     runningProcess = null;
@@ -561,7 +561,7 @@ ipcMain.handle('stop-process', async () => {
 
   return new Promise((resolve) => {
     let forcefullyKilled = false;
-    
+
     // Set up a timeout to force kill after 10 seconds
     const killTimeout = setTimeout(() => {
       if (runningProcess) {
@@ -570,21 +570,21 @@ ipcMain.handle('stop-process', async () => {
         runningProcess.kill('SIGKILL');
       }
     }, 10000);
-    
+
     // Listen for the process to exit
     runningProcess.once('exit', (code, signal) => {
       clearTimeout(killTimeout);
       runningProcess = null;
-      
+
       if (forcefullyKilled) {
         sendPythonOutput('Process forcefully terminated', 'info');
       } else {
         sendPythonOutput('Process stopped gracefully', 'info');
       }
-      
+
       resolve({ success: true, forcefullyKilled });
     });
-    
+
     // Send termination signal
     sendPythonOutput('Stopping process gracefully...', 'info');
     runningProcess.kill('SIGTERM');

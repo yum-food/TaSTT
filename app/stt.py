@@ -523,6 +523,13 @@ class Whisper:
                             f"no_speech_prob={s.no_speech_prob}, " +
                             f"avg_logprob={s.avg_logprob})", file=sys.stderr)
                 continue
+            if s.avg_logprob < -0.75:
+                if self.cfg["enable_debug_mode"]:
+                    print(f"Drop probable hallucination (case 3) " +
+                            f"(text='{s.text}', " +
+                            f"no_speech_prob={s.no_speech_prob}, " +
+                            f"avg_logprob={s.avg_logprob})", file=sys.stderr)
+                continue
             if self.cfg["enable_debug_mode"]:
                 print(f"s get: {s}")
             if s.avg_logprob < -1.0:
@@ -686,7 +693,7 @@ class VadCommitter:
 
             if self.cfg["save_audio"] and len(delta) > 0:
                 ts = datetime.fromtimestamp(self.collector.now() - latency_s)
-                filename = str(ts.strftime('%Y_%m_%d__%H-%M-%S')) + ".wav"
+                filename = str(ts.strftime('%Y_%m_%d__%H-%M-%S')) + delta.strip() + ".wav"
                 audio_dir = os.path.join(PROJECT_ROOT, "audio")
                 if not os.path.exists(audio_dir):
                     os.makedirs(audio_dir)

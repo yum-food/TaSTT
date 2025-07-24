@@ -67,6 +67,11 @@
         "from": "../dll_empty",
         "to": "dll",
         "filter": ["**/*"]
+      },
+      {
+        "from": "../Sounds",
+        "to": "Sounds",
+        "filter": ["*.wav"]
       }
     ],
     "win": {
@@ -89,7 +94,7 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
     },
-    "compression": "maximum",
+    "compression": "normal",
     "artifactName": "${productName}-${version}-${arch}.${ext}"
   },
   "keywords": [],
