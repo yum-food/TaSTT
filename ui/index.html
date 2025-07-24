@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
     <title>TaSTT</title>
-    <link rel="stylesheet" href="build/output.css">
+    <link rel="stylesheet" href="output.css">
 </head>
 <body class="bg-gray-100">
     <div class="container-fluid px-6 py-6 h-screen flex flex-col">
@@ -213,6 +213,10 @@
                                     <label for="save_audio" class="checkbox-label">
                                         <input type="checkbox" id="save_audio" class="mr-2">
                                         <span class="checkbox-text">Save Audio Segments</span>
+                                    </label>
+                                    <label for="enable_segment_logging" class="checkbox-label">
+                                        <input type="checkbox" id="enable_segment_logging" class="mr-2">
+                                        <span class="checkbox-text">Log Segment Metadata (Debug)</span>
                                     </label>
                                 </div>
                             </section>

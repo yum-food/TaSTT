@@ -6,14 +6,16 @@
   "homepage": "./",
   "scripts": {
     "start": "npm run build:css && electron .",
-    "build:css": "tailwindcss -i ./src/components.css -o ./build/output.css",
-    "watch:css": "tailwindcss -i ./src/components.css -o ./build/output.css --watch",
+    "build:css": "tailwindcss -i ./src/components.css -o ./output.css",
+    "watch:css": "tailwindcss -i ./src/components.css -o ./output.css --watch",
     "dev": "concurrently \"npm run watch:css\" \"electron .\"",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dist": "npm run build:css && electron-builder",
-    "dist:win": "npm run build:css && electron-builder --win",
-    "dist:portable": "npm run build:css && electron-builder --win portable",
-    "dist:zip": "npm run build:css && electron-builder --win zip"
+    "clean:meta": "node -e \"const fs=require('fs');const path=require('path');function deleteMeta(dir){fs.readdirSync(dir).forEach(f=>{const p=path.join(dir,f);if(f.endsWith('.meta'))fs.unlinkSync(p);else if(fs.statSync(p).isDirectory()&&!f.startsWith('.'))deleteMeta(p);})}deleteMeta('./node_modules')\"",
+    "prebuild": "node build_scripts/setup-empty-venv.js",
+    "dist": "npm run prebuild && npm run clean:meta && npm run build:css && electron-builder",
+    "dist:win": "npm run prebuild && npm run clean:meta && npm run build:css && electron-builder --win",
+    "dist:portable": "npm run prebuild && npm run clean:meta && npm run build:css && electron-builder --win portable",
+    "dist:zip": "npm run prebuild && npm run clean:meta && npm run build:css && electron-builder --win zip"
   },
   "build": {
     "appId": "com.yum_food.tastt",
@@ -47,11 +49,6 @@
         "to": "config.yaml"
       },
       {
-        "from": "../dll",
-        "to": "dll",
-        "filter": ["**/*"]
-      },
-      {
         "from": "../Images",
         "to": "Images",
         "filter": ["**/*"]
@@ -60,10 +57,20 @@
         "from": "../bin",
         "to": "bin",
         "filter": ["**/*"]
+      },
+      {
+        "from": "../venv_clean",
+        "to": "venv",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "../dll_empty",
+        "to": "dll",
+        "filter": ["**/*"]
       }
     ],
     "win": {
-      "icon": "../Images/logo.png",
+      "icon": "../Images/favicon.ico",
       "target": [
         {
           "target": "portable",
@@ -81,7 +88,9 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
-    }
+    },
+    "compression": "maximum",
+    "artifactName": "${productName}-${version}-${arch}.${ext}"
   },
   "keywords": [],
   "author": "yum_food",

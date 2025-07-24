@@ -6,7 +6,12 @@ const { spawn } = require('child_process');
 const https = require('https');
 const { CONFIG_SCHEMA, getDefaultConfig } = require('./config-schema.js');
 
-const APP_ROOT = path.join(__dirname, '..');
+// Detect if we're running in development or production
+const isDev = !app.isPackaged;
+const APP_ROOT = isDev 
+  ? path.join(__dirname, '..')  // Development: go up from ui/ to project root
+  : process.resourcesPath;       // Production: use Electron's resource path
+
 const CONFIG_PATH = path.join(APP_ROOT, 'config.yaml');
 
 let mainWindow;
@@ -50,13 +55,32 @@ function createPythonEnvironment() {
   return env;
 }
 
-// Helper function to download a file from URL
+// Helper function to download a file from URL with progress
 function downloadFile(url, outputPath) {
   return new Promise((resolve, reject) => {
     const file = require('fs').createWriteStream(outputPath);
+    const fileName = path.basename(outputPath);
     
     const request = https.get(url, (response) => {
       if (response.statusCode === 200) {
+        const totalSize = parseInt(response.headers['content-length'], 10);
+        let downloadedSize = 0;
+        let lastProgressTime = Date.now();
+        
+        response.on('data', (chunk) => {
+          downloadedSize += chunk.length;
+          
+          // Log progress every 5 seconds
+          const now = Date.now();
+          if (totalSize && (now - lastProgressTime >= 5000)) {
+            const progress = Math.round((downloadedSize / totalSize) * 100);
+            const mb = (downloadedSize / 1024 / 1024).toFixed(1);
+            const totalMb = (totalSize / 1024 / 1024).toFixed(1);
+            sendPythonOutput(`Downloading ${fileName}: ${mb}/${totalMb} MB (${progress}%)`, 'info');
+            lastProgressTime = now;
+          }
+        });
+        
         response.pipe(file);
         
         file.on('finish', () => {

@@ -1,5 +1,6 @@
 from datetime import datetime
 from faster_whisper import WhisperModel
+import json
 import langcodes
 import numpy as np
 import os
@@ -486,7 +487,8 @@ class Whisper:
         # Build context-aware prompt
         prompt = self._build_prompt()
 
-        print(f"Prompt: {prompt}", flush=True)
+        if self.cfg["enable_debug_mode"]:
+            print(f"Prompt: {prompt}", flush=True)
 
         t0 = time.time()
         segments, info = self.model.transcribe(
@@ -578,16 +580,69 @@ def saveAudio(audio: bytes, path: str, cfg: typing.Dict):
         wf.writeframes(audio)
 
 
+class SegmentLogger:
+    def __init__(self, cfg: typing.Dict):
+        self.cfg = cfg
+        self.enabled = cfg.get("enable_segment_logging", False)
+        self.session_data = []
+        self.log_file = None
+
+        if self.enabled:
+            log_dir = os.path.join(PROJECT_ROOT, "logs")
+            if not os.path.exists(log_dir):
+                os.makedirs(log_dir)
+
+            # Create file
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            self.log_file = os.path.join(log_dir, f"session_debug_{timestamp}.json")
+            print(f"Segment logging enabled. Logging to: {self.log_file}", file=sys.stderr)
+
+    def log_segment(self, segment: Segment, commit_type: str = "commit"):
+        if not self.enabled:
+            return
+
+        segment_data = {
+            "timestamp": datetime.now().isoformat(),
+            "type": commit_type,
+            "text": segment.transcript,
+            "start_ts": segment.start_ts,
+            "end_ts": segment.end_ts,
+            "wall_ts": segment.wall_ts,
+            "avg_logprob": segment.avg_logprob,
+            "no_speech_prob": segment.no_speech_prob,
+            "compression_ratio": segment.compression_ratio,
+            "duration": segment.end_ts - segment.start_ts
+        }
+
+        self.session_data.append(segment_data)
+
+        # Write to file incrementally
+        try:
+            with open(self.log_file, 'w') as f:
+                json.dump({
+                    "session_start": self.session_data[0]["timestamp"] if self.session_data else None,
+                    "segments": self.session_data
+                }, f, indent=2)
+        except Exception as e:
+            print(f"Error writing segment log: {e}", file=sys.stderr)
+
+    def close(self):
+        if self.enabled and self.session_data:
+            print(f"Session complete. Logged {len(self.session_data)} segments to {self.log_file}", file=sys.stderr)
+
+
 class VadCommitter:
     def __init__(self,
             cfg: typing.Dict,
             collector: AudioCollector,
             whisper: Whisper,
-            segmenter: AudioSegmenter):
+            segmenter: AudioSegmenter,
+            segment_logger: SegmentLogger = None):
         self.cfg = cfg
         self.collector = collector
         self.whisper = whisper
         self.segmenter = segmenter
+        self.segment_logger = segment_logger
 
     def getDelta(self) -> TranscriptCommit:
         audio = self.collector.getAudio()
@@ -618,6 +673,10 @@ class VadCommitter:
             if delta.strip():
                 self.whisper.update_context(delta.strip())
 
+            if self.segment_logger:
+                for s in segments:
+                    self.segment_logger.log_segment(s, "commit")
+
             audio = self.collector.getAudio()
             if self.cfg["enable_debug_mode"]:
                 for s in segments:
@@ -637,6 +696,10 @@ class VadCommitter:
         if self.cfg["enable_previews"] and has_audio:
             segments = self.whisper.transcribe(audio)
             preview = "".join(s.transcript for s in segments)
+
+            if self.segment_logger:
+                for s in segments:
+                    self.segment_logger.log_segment(s, "preview")
 
         if not has_audio:
             self.collector.keepLast(1.0)
@@ -745,7 +808,9 @@ def transcriptionThread(shared_data: SharedThreadData):
     segmenter = AudioSegmenter(min_silence_ms=shared_data.cfg["min_silence_duration_ms"],
             max_speech_s=shared_data.cfg["max_speech_duration_s"],
             min_speech_duration_ms=shared_data.cfg["min_speech_duration_ms"])
-    committer = VadCommitter(shared_data.cfg, collector, whisper, segmenter)
+
+    segment_logger = SegmentLogger(shared_data.cfg)
+    committer = VadCommitter(shared_data.cfg, collector, whisper, segmenter, segment_logger)
 
     plugins = []
     # plugins.append(TranslationPlugin(shared_data.cfg))  # Not implemented yet
@@ -839,4 +904,5 @@ def transcriptionThread(shared_data: SharedThreadData):
         plugin.stop()
     for filt in filters:
         filt.stop()
+    segment_logger.close()
 

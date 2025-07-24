@@ -29,6 +29,7 @@ const CONFIG_SCHEMA = {
     enable_debug_mode: { type: 'boolean', default: 0 },
     enable_previews: { type: 'boolean', default: 1 },
     save_audio: { type: 'boolean', default: 0 },
+    enable_segment_logging: { type: 'boolean', default: 0 },
     use_cpu: { type: 'boolean', default: 0 },
     enable_lowercase_filter: { type: 'boolean', default: 0 },
     enable_uppercase_filter: { type: 'boolean', default: 0 },
