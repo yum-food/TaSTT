@@ -45,17 +45,8 @@
         ]
       },
       {
-        "from": "../config.yaml",
-        "to": "config.yaml"
-      },
-      {
         "from": "../Images",
         "to": "Images",
-        "filter": ["**/*"]
-      },
-      {
-        "from": "../bin",
-        "to": "bin",
         "filter": ["**/*"]
       },
       {
