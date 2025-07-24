@@ -206,7 +206,10 @@ function appendToConsole(message, type = 'stdout') {
 
     const messageSpan = document.createElement('span');
     messageSpan.className = `console-${type}`;
-    messageSpan.textContent = message;
+
+    // Redact usernames from paths.
+    const redactedMessage = message.replace(/([A-Za-z]:[\/\\]Users[\/\\])([^\/\\]+)/g, '$1*****');
+    messageSpan.textContent = redactedMessage;
 
     const lineDiv = document.createElement('div');
     lineDiv.appendChild(timestampSpan);
