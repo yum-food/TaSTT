@@ -11,7 +11,7 @@
     "dev": "concurrently \"npm run watch:css\" \"electron .\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean:meta": "node -e \"const fs=require('fs');const path=require('path');function deleteMeta(dir){fs.readdirSync(dir).forEach(f=>{const p=path.join(dir,f);if(f.endsWith('.meta'))fs.unlinkSync(p);else if(fs.statSync(p).isDirectory()&&!f.startsWith('.'))deleteMeta(p);})}deleteMeta('./node_modules')\"",
-    "prebuild": "node build_scripts/setup-empty-venv.js",
+    "prebuild": "node build_scripts/setup-embedded-python.js",
     "dist": "npm run prebuild && npm run clean:meta && npm run build:css && electron-builder",
     "dist:win": "npm run prebuild && npm run clean:meta && npm run build:css && electron-builder --win",
     "dist:portable": "npm run prebuild && npm run clean:meta && npm run build:css && electron-builder --win portable",
@@ -50,8 +50,8 @@
         "filter": ["**/*"]
       },
       {
-        "from": "../venv_clean",
-        "to": "venv",
+        "from": "../python_embedded",
+        "to": "python",
         "filter": ["**/*"]
       },
       {

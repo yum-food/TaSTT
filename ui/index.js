@@ -31,10 +31,9 @@ const REQUIRED_DLLS = [
   'cudnn_ops64_9.dll'
 ];
 
-// Helper function to get the correct Python executable from venv
+// Helper function to get the correct Python executable from embedded python
 function getVenvPython() {
-  const venvPath = path.join(APP_ROOT, 'venv');
-  const pythonPath = path.join(venvPath, 'Scripts', 'python.exe');
+  const pythonPath = path.join(APP_ROOT, 'python', 'python.exe');
   return pythonPath;
 }
 
@@ -48,7 +47,7 @@ function sendPythonOutput(message, type = 'stdout') {
 // Helper function to create environment with DLL path
 function createPythonEnvironment() {
   const dllPath = path.join(APP_ROOT, 'dll');
-  const binPath = path.join(APP_ROOT, 'venv', 'Scripts');
+  const binPath = path.join(APP_ROOT, 'python', 'Scripts');
   const env = {};
   env.PATH = `${dllPath};${binPath}`;
   env.HF_HUB_DISABLE_SYMLINKS_WARNING = '1';
@@ -146,7 +145,7 @@ function setupProcessHandlers(process) {
   });
 }
 
-// Helper function to execute Python commands using venv
+// Helper function to execute Python commands using embedded python
 function executePythonCommand(args, options = {}) {
   return new Promise((resolve, reject) => {
     const pythonPath = getVenvPython();
