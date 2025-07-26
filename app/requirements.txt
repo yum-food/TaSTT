@@ -4,6 +4,7 @@ keyboard
 langcodes
 noisereduce
 pandas
+pronouncing
 pyaudio
 pygame
 pydub

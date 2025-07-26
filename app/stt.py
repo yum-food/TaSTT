@@ -578,8 +578,9 @@ class Whisper:
                 s.avg_logprob, s.no_speech_prob, s.compression_ratio,
                 audio_len_s)
 
-            # Check with ML model for "Thank you" hallucinations
-            if self.hallucination_filter.is_thank_you_hallucination(seg):
+            # Apply hallucination filter. This is a statistical model trained
+            # on personal speech data.
+            if self.hallucination_filter.is_hallucination(seg):
                 if self.cfg["enable_debug_mode"]:
                     log(f"Drop probable hallucination (case 4) " +
                             f"(text='{s.text}', " +
