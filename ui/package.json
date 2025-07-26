@@ -63,6 +63,11 @@
         "from": "../Sounds",
         "to": "Sounds",
         "filter": ["*.wav"]
+      },
+      {
+        "from": "../Models",
+        "to": "Models",
+        "filter": ["**/*.pkl"]
       }
     ],
     "win": {

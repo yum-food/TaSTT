@@ -3,10 +3,13 @@ hf-xet
 keyboard
 langcodes
 noisereduce
+pandas
 pyaudio
 pygame
 pydub
 python-osc
+scikit-learn
 sentencepiece
 silero-vad
 openvr
+joblib
