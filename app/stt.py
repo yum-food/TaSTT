@@ -485,7 +485,7 @@ class Whisper:
         self.collector = collector
         self.model = None
         self.cfg = cfg
-        self.hallucination_filter = HallucinationFilter()
+        self.hallucination_filter = HallucinationFilter(cfg)
         self.segment_logger = segment_logger
 
         model_str = cfg["model"]

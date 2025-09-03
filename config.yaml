@@ -1,8 +1,8 @@
 compute_type: float16
 language: english
-model: turbo
+model: distil-large-v3.5
 microphone: 4
-user_prompt: Use proper punctuation and grammar. Prefer spelled out numbers like one, eleven, twenty, etc. Mm.
+user_prompt: Use proper punctuation and grammar. Prefer spelled out numbers like one, eleven, twenty, etc.
 keybind: ctrl+alt+x
 button_hand: right
 button_type: b

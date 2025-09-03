@@ -88,7 +88,8 @@ class LoadingOverlay {
         this.overlay.classList.add('hidden');
         // Restore original states of form inputs and buttons
         const leftPanel = this.overlay.parentElement;
-        const inputs = leftPanel.querySelectorAll('input, select, textarea, button');
+        const inputs = leftPanel.querySelectorAll(
+          'input, select, textarea, button');
         inputs.forEach(input => {
             // Restore original disabled state
             input.disabled = this.originalStates.get(input) || false;
@@ -107,7 +108,8 @@ function showStatus(message, type = 'info') {
     statusEl.textContent = message;
 
     // Remove all status classes
-    const statusClasses = ['hidden', 'bg-green-100', 'bg-red-100', 'bg-blue-100', 'text-green-800', 'text-red-800', 'text-blue-800'];
+    const statusClasses = ['hidden', 'bg-green-100', 'bg-red-100',
+      'bg-blue-100', 'text-green-800', 'text-red-800', 'text-blue-800'];
     statusEl.classList.remove(...statusClasses);
 
     // Add appropriate classes based on type
