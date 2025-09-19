@@ -1,5 +1,14 @@
 ## TaSTT: A deliciously free STT
 
+Note: This project is archived and unsupported. Please consider these supported
+alternatives:
+
+* [TTS Voice Wizard](https://github.com/VRCWizard/TTS-Voice-Wizard) - free,
+  uses WhisperCPP and optional cloud backends
+* [VRCTextboxStt](https://github.com/I5UCC/VRCTextboxSTT) - free, uses the same
+  self-hosted backend as this tool
+* [RabidCrab's STT](https://vrcstt.com/) - non-free, uses cloud transcription
+
 TaSTT (pronounced "tasty") is a free speech-to-text tool for VRChat. It uses
 [a GPU-based transcription algorithm](https://github.com/openai/whisper) to
 turn your voice into text, then sends it into VRChat via OSC.
